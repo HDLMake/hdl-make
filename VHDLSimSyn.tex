@@ -1,0 +1,180 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[dvips]{graphicx}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{dirtree}
+\usepackage[usenames]{color}
+\usepackage{comment}
+
+\renewcommand*\DTstylecomment{\rmfamily}
+\renewcommand*\DTstyle{\ttfamily}
+\setlength{\DTbaselineskip}{8pt}
+\title{Proposal on script-based VHDL project simulation and synthesis}
+\author{Paweł Szostek \\ CERN BE-CO-HT}
+\date{\today}
+\begin{document}
+\maketitle
+%\begin{abstract}
+%This article desribes problems connected with  scripts, whose aim is to automate simulation of VHDL designs for Altera and to make synthesis faster by delegating it to dedicated server.
+%\end{abstract}
+\setcounter{section}{-1}
+\section{Introduction}
+\subsection{Rationale}
+Maintaining VHDL projects either for Altera or for Xilins is a source of many problems. When using Modelsim for simulating VHDL designs for Altera there is no tool for dependencies generation. The developer has to think up the dependencies between files and modules, as well as compilation order, on his own. This is laborious and consumes developer's time. Another problem occurs when trying to synthesize complex projects: it takes too much time to prepare a bitstream, which makes the edit-compile-test cycle too long. 
+\subsection{Basic remarks}\label{sec_remarks}
+The article describes sripts prepared for VHDL simulation and synthesis process enhancement. The set of used tools doesn't go beyond set of standard GNU tools available on most Unix-like systems: \textbf{bash}, \textbf{awk}, \textbf{grep}, \textbf{ssh}, \textbf{scp}, \textbf{make}, \textbf{tar}. It is also assumed, that the developer has already installed Modelsim for synthesis.
+
+All scripts are set up by default for standard directory structure, which is described in \cite{guidelines} in details.
+Its simplified form looks as follows:
+
+\vspace{3mm}
+\begin{minipage}{\linewidth}
+\small
+\dirtree{%
+.1 <block\_name>\DTcomment{core's top level directory}.
+.2 syn\DTcomment{synthesis}.
+.3 <vendor>.
+.2 sim.
+.3 gate\_sim.
+.3 rtl\_sim.
+.2 <hdl>\DTcomment{verilog, vhdl}.
+.3 design.
+.3 generate.
+.3 tb\DTcomment{test bench files}.
+.3 ip\DTcomment{ip core source code}.
+.2 pcb.
+.2 sw\DTcomment{utilities or software test}.
+.3 lint.
+.3 src.
+.2 impl\DTcomment{backend top level dir}.
+.3 <vendor>.
+.2 doc\DTcomment{specification}.
+.3 img.
+.3 fv.
+.3 src.
+.2 lib.
+}
+\normalsize
+\end{minipage}
+%\end{comment}
+\section{Simulation}
+\subsection{Description of the problem}
+When compiling VHDL files for simulation, one must ensure their correct order. In every project there is a dependency tree among files - one file makes use of data from an other file by e.g. including it. Each file may not be compiled until all files it is dependent on are compiled, otherwise the compilation process will fail. 
+
+There are no major obstacles when simulating Xilinx projects. The Project Navigator can automatically generate a bash script using Modelsim for any project. The script ensures correct compilation order and that all dependencies will be met.
+
+For Altera there is no tool for this purpose delivered by the vendor. 
+\subsection{The idea}
+The idea is to list in a file all modules, that are used in the project. Moreover, each module should contain a list of files, together with their working libraries. A set of scripts scans these listings, as well as the VHDL files, and creates the dependencies in make flavour, which is later on used for make execution. The complete mechanism is desribed in the following subsections.
+\subsection{How does it work internally}
+The prepared set of scripts consists of 6 files:
+\begin{itemize}
+\item \verb!makefile! - should be run in the testbench directory. It generates dependencies in makefile format. They are afterwards included in the run makefile and executed.
+\item \verb!vhdldep.sh! - main script for generating makefile-like dependencies. Runs \verb!precedence.awk!. It takes output of \verb!manifest.awk! from standard input.    
+\item \verb!sources.sh! - creates a list of files involved in the current project. Analyzes the \verb!modules! and \verb!manifest! files and writes them to standard output. It takes project path and hdl path as call arguments. 
+\item \verb!sources-lib.sh! - creates a list of pairs files-work\_library based on \verb!modules! and \verb!manifest! files.
+\item \verb!precedence.awk! - scans file for '\textit{use a.b}' statements, where \textit{a} is a work library and \textit{b} is file. If anything found, then writes \textit{a}.\textit{b} to standard output.
+\item \verb!manifest.awk! - scans \verb!manifest! and outputs file's absolute path followed by its work library name
+\end{itemize}
+\subsection{What should one do in order to use the scripts}
+In order to use the described scripts the following steps are required:
+\begin{enumerate}
+\item copy \verb!makefile! to the testbench directory.
+\item Copy the remaining scripts to a directory, for instance \verb!scripts! in the main project directory.
+\item If needed, change variables \verb!SCRIPTS_PATH! and \verb!HDL_PATH! (directory containing modules' directories). By default they are set according to default HT project directory tree.
+
+\item Create a file named \verb!modules! in the testbench directory and list there all modules that are involved in the project. Module names have to be separated with spaces. Module name is expected to be a directory name where files are stored.
+\item Create a file named \verb!manifest! in each module. Each line should contain a pair of file and work library separated by a space or tab. If there is no library next to the file, \textit{work} library is taken. If there is no file in the listing, it is not taken into account. If there is no \verb!manifest!, all files are taken with \textit{work} as the work library
+\item Run make.
+\end{enumerate}
+\subsection{Quick example}
+Let's take a very simple project as example. Its directory structure looks as follows: \\
+\\
+\begin{minipage}{\linewidth}
+\small{
+\nopagebreak
+\dirtree{%
+.1 simple\_project.
+.2 hdl.
+.3 design.
+.4 module1.
+.5 a.vhd.
+.5 b.vhd.
+.4 module2.
+.5 c.vhd.
+.5 d.vhd.
+.3 tb.
+.4 testbench1.
+.5 tb.sv.
+}
+}
+\normalsize
+\end{minipage}
+\\\\
+As mentioned, it is a really simple project - it consists of two modules (\textit{module1} and \textit{module2}) with some design files and one testbench (\textit{testbench1}) using those two modules.
+The easiest way to apply the scripts to it is to create a directory \verb!simple_project/sw/scripts! and put there all the scripts. As next step, make symlink from \verb!simple_project/sw/scripts/makefile! to \verb!simple_project/hdl/tb/testbench1/makefile!. Because the directory structure meets the standard presented in the subsection \ref{sec_remarks} there is no need to modificate any variable in the makefile. Now our project should look like this (new files are indicated with blue color):\\
+\begin{minipage}{\linewidth}
+\small{
+\dirtree{%
+.1 simple\_project.
+.2 hdl.
+.3 design.
+.4 module1.
+.5 a.vhd.
+.5 b.vhd.
+.5 \textcolor{blue}{manifest}.
+.4 module2.
+.5 c.vhd.
+.5 d.vhd.
+.5 \textcolor{blue}{manifest}.
+.3 tb.
+.4 testbench1.
+.5 tb.sv.
+.5 \textcolor{blue}{modules}.
+.5 \textcolor{blue}{makefile -> ../../../sw/scripts/makefile}.
+.2 sw.
+.3 scripts.
+.4 \textcolor{blue}{makefile}.
+.4 \textcolor{blue}{manifest.awk}.
+.4 \textcolor{blue}{precedence.awk}.
+.4 \textcolor{blue}{sources-lib.sh}.
+.4 \textcolor{blue}{sources.sh}.
+.4 \textcolor{blue}{vhdldep.sh}.
+}
+}
+\end{minipage}
+\normalsize
+\\\\
+When the make finishes the simulation is ready for browsing in Modelsim.
+\section{Synthesis}
+\subsection{Description of the problem}
+Synthesis of large projects is a time and resource-consuming process. It makes the edit-compile-test cycle unreasonably long and makes harder to introduce petty modifications to the hardware. Apart from that much of system resources like memory or CPU time are consumed and synthesis makes running other application harder. The solution for this problem is to set up a dedicated server for synthesis purpose only. This allowes to delegate this demanding task to a fast machine, while the developer's computer remains still useful.
+\subsection{How does it work internally}
+There are a few scripts that differ from each other depending on synthesis tool, that they are used with. Supported tools are:
+\begin{itemize}
+\item Altera's \textbf{quartus\_sh},
+\item Synopsys' \textbf{synplify},
+\item Xilinx' \textbf{xst}.
+\end{itemize}
+In general, all files needed for synthesis are extracted from the project directory, as well as from the project's file, and are copied over scp to the synthesis server. Synthesis is run remotely and its product is copied back to developer's machine.
+\subsection{What should one do in order to use the scripts}
+\subsubsection{Altera's quartus\_sh}
+Run the script \verb!qsh_synthesis.sh! from the directory containing the main project file (\verb!.qpf!).  
+\subsubsection{Synopsys' synplify}
+Run the script \verb!syn_synthesis.sh! from the directory containing the ISE project files (\verb!.xise!, files for mcs and xsvf generation), as well as Synplify project file (\verb!.prj!) prepared for the current design. Before execution, modify the following variables: \verb!xsvf_gen_file!, \verb!mcs_gen_file!, \verb!xtclsh_file!, \verb!ise_proj_file!, \verb!syn_proj_file!.
+
+\subsubsection{Xilinx' xst}
+Run the script \verb!xst_synthesis.sh! from the directory containing the main project file.  \textbf{The script is not ready yet!}
+\vspace{1cm}
+
+\noindent When the script finishes its work you will see the synthesis results in the project's directory.
+
+\begin{thebibliography}{9}%\label{literatura}
+\bibitem{guidelines}
+P. Loschmidt, N. Simanić, C. Prados,
+P. Alvarez, J. Serrano: \emph{Guidelines for VHDL Coding},
+http://www.ohwr.org/documents/24.
+\end{thebibliography}
+\end{document}
