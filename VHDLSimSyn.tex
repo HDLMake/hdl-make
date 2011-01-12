@@ -150,7 +150,7 @@ The easiest way to apply the scripts to it is to create a directory \verb!simple
 When the make finishes the simulation is ready for browsing in Modelsim.
 \section{Synthesis}
 \subsection{Description of the problem}
-Synthesis of large projects is a time and resource-consuming process. It makes the edit-compile-test cycle unreasonably long and makes harder to introduce petty modifications to the hardware. Apart from that much of system resources like memory or CPU time are consumed and synthesis makes running other application harder. The solution for this problem is to set up a dedicated server for synthesis purpose only. This allowes to delegate this demanding task to a fast machine, while the developer's computer remains still useful.
+Synthesis of large projects is a time and resource-consuming process. It makes the edit-compile-test cycle unreasonably long and makes harder to introduce petty modifications to the hardware. Apart from that much of system resources like memory or CPU time are consumed and synthesis makes running other application harder. The solution for this problem is to set up a dedicated server for synthesis purpose only. This allows to delegate this demanding task to a fast machine, while the developer's computer remains still useful.
 \subsection{How does it work internally}
 There are a few scripts that differ from each other depending on synthesis tool, that they are used with. Supported tools are:
 \begin{itemize}
@@ -159,6 +159,8 @@ There are a few scripts that differ from each other depending on synthesis tool,
 \item Xilinx' \textbf{xst}.
 \end{itemize}
 In general, all files needed for synthesis are extracted from the project directory, as well as from the project's file, and are copied over scp to the synthesis server. Synthesis is run remotely and its product is copied back to developer's machine.
+\subsection{Providing compatibility for different software versions}
+\subsection{Server preparation}
 \subsection{What should one do in order to use the scripts}
 \subsubsection{Altera's quartus\_sh}
 Run the script \verb!qsh_synthesis.sh! from the directory containing the main project file (\verb!.qpf!).  
