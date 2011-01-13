@@ -4,6 +4,15 @@
 function usage() {
 	echo "Usage: $0 hdl_path scripts_path"
 }
+
+function abs_path() {
+	local cur_dir=$(pwd)
+	local D=$(dirname $1)
+	local B=$(basename $1)
+	(cd $D && echo $(pwd)"/$B") || exit 1 
+	cd $cur_dir
+}
+
 ##$1 is expected to be project path
 if [ $# -ne 2 ]; then
 	echo "$0"': two arguments expected'
@@ -16,8 +25,8 @@ if [ ! -d $1 ]; then
 	usage
 	exit 1
 fi
-hdl_path=$1
-scripts_path=$2
+hdl_path=$(abs_path $1)
+scripts_path=$(abs_path $2)
 
 ##modules file is obligatory for each simulation
 if [ ! -f $(pwd)/modules ]; then

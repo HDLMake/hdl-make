@@ -1,6 +1,14 @@
 #!/bin/bash
 #script should be run by make
 
+function abs_path() {
+	local cur_dir=$(pwd)
+	local D=$(dirname $1)
+	local B=$(basename $1)
+	(cd $D && echo $(pwd)"/$B") || exit 1 
+	cd $cur_dir
+}
+
 ##associative array declaration
 if [ $# -lt 2 ]; then
 	echo "$0"': Argument expected'
@@ -14,7 +22,7 @@ if [ ! -d "$1" ]; then
 	exit 1
 fi
 
-scripts_path=$1
+scripts_path=$(abs_path $1)
 vhd_comp=$2
 
 number=0
@@ -67,9 +75,9 @@ for i in $(seq 0 $(($number-1))); do ##for each source file
 	fi
 done
 uniq_libs=$(echo $all_libs | tr " " "\n" | sort -u | tr "\n" " ")
-for lib in $uniq_libs; do
-	uniq_libs_long="$uniq_libs_long $(pwd)/$lib"
-done
+#for lib in $uniq_libs; do
+#	uniq_libs_long="$uniq_libs_long $(pwd)/$lib"
+#done
 echo ''
 echo 'VHDL_OBJ:='"$obj"
 echo ''

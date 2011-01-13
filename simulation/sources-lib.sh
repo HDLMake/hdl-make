@@ -1,20 +1,33 @@
 #!/bin/bash
 #script should be run by make
 
+function usage() {
+	echo "Usage: $0 hdl_path scripts_path"
+}
+
+function abs_path() {
+	local cur_dir=$(pwd)
+	local D=$(dirname $1)
+	local B=$(basename $1)
+	(cd $D && echo $(pwd)"/$B") || exit 1 
+	cd $cur_dir
+}
+
 ##$1 is expected to be project path
-if [ $# -lt 1 ]; then
-	echo "$0"': Argument expected'
-	echo "Usage: $0 project_path hdl_path"
+if [ $# -ne 2 ]; then
+	echo "$0"': Exactly two arguments expected'
+	usage
 	exit 1
 fi
 
-if [ ! -d $1 ]; then
-	echo "$0"':'"$1"'is not a directory'
-	echo "Usage: $0 project_path hdl_path"
+if [ ! -d $1 -o ! -d $2 ]; then
+	echo "$0: $1 or $2 is not a directory"
+	usage
 	exit 1
 fi
-hdl_path=$1
-scripts_path=$2
+
+hdl_path=$(abs_path $1)
+scripts_path=$(abs_path $2)
 ##modules file is obligatory for each simulation
 if [ ! -f $(pwd)/modules ]; then
 	echo "$0: Modules file does not exist"
