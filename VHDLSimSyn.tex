@@ -151,6 +151,8 @@ When the make finishes the simulation is ready for browsing in Modelsim.
 \section{Synthesis}
 \subsection{Description of the problem}
 Synthesis of large projects is a time and resource-consuming process. It makes the edit-compile-test cycle unreasonably long and makes harder to introduce petty modifications to the hardware. Apart from that much of system resources like memory or CPU time are consumed and synthesis makes running other application harder. The solution for this problem is to set up a dedicated server for synthesis purpose only. This allows to delegate this demanding task to a fast machine, while the developer's computer remains still useful.
+
+What is more, common synthesis server allows to unify synthesis projects. Usually, when developing a project in a team, all team members have different version of software tools. These tools are complex and their ersions are not always fully compatible with each other. When collaborating developers share the same machine for synthesis they can always be sure that the synthesis will run correctly.
 \subsection{How does it work internally}
 There are a few scripts that differ from each other depending on synthesis tool, that they are used with. Supported tools are:
 \begin{itemize}
