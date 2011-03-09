@@ -157,7 +157,7 @@ def parse_manifest(manifest_file):
         opt_map.rtl = [opt_map.rtl]
 
     if opt_map.ise == None:
-        opt_map.ise = "12.1"
+        opt_map.ise = "13.1"
         
     if opt_map.local != None and not isinstance(opt_map.local, (list, tuple)):
         opt_map.local = [opt_map.local]
@@ -292,11 +292,11 @@ def main():
     (global_mod.options, args) = parser.parse_args()
     
     global hdlm_path        
-    # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.xise != None:
         convert_xise(global_mod.options.xise)
         quit()
-    # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     
     # check if manifest is given in the command line
     # if yes, then use it
@@ -332,7 +332,7 @@ def main():
                     break
     else:
         opt_map.tcl = options.tcl
-    # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.fetch == True:
         if not os.path.exists(hdlm_path):
             os.mkdir(hdlm_path)
@@ -427,8 +427,8 @@ def main():
             quit()
         if opt_map.ise == "10.1":
             os.system("source /opt/Xilinx/10.1/ISE/settings32.sh")
-        elif opt_map.ise == "12.1":
-            os.system("source /opt/Xilinx/12.1/ISE_DS/ISE/settings32.sh")
+        elif float(opt_map.ise) > 12.1:
+            os.system("source /opt/Xilinx/"+opt_map.ise+"/ISE_DS/ISE/settings32.sh")
         else:
             my_msg("Don't know how to run settings script for ISE version: " + opt_map.ise)
         results = os.popen("xtclsh " + opt_map.tcl + " run_process")
@@ -438,9 +438,13 @@ def main():
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #            
     if global_mod.options.remote == True:
         if opt_map.tcl == None: #option taken, but no tcl given -> find it
-            complain_tc()
+            complain_tcl()
             quit()
-            
+        if not os.path.exists(opt_map.tcl)
+        
+        if not os.path.exists(hdlm_path):
+            my_msg("There are no modules fetched. Are you sure it's correct?")
+         
         global ssh
         apf = os.path.abspath
         folders_to_be_scanned = [apf(*opt_map.rtl)] + [apf(hdlm_path)] + [apf(".")]
@@ -456,9 +460,9 @@ def main():
         elif float(opt_map.ise) == 10.1:
             syn_cmd = "source /opt/Xilinx/10.1/ISE/settings32.sh"
         else:
-            my_msg("I dont know how to support your ISE version:" + opt_map.ise)
+            my_msg("I dont know how to support your ISE version: " + opt_map.ise)
+            quit()
             
-        syn_cmd = "source /opt/Xilinx/"+opt_map.ise+"/ISE*/settings32.sh"
         syn_cmd +=" && cd "+randstring +os.path.dirname(os.path.abspath(opt_map.tcl))+" && xtclsh "+opt_map.tcl+" run_process"
         v_msg("Launching synthesis on " + synth_server + ": " + syn_cmd)
         ssh.system(syn_cmd)
@@ -492,7 +496,7 @@ def main():
         modules = os.listdir(hdlm_path)
         if len(modules) == 0:
             v_msg("No modules were found in " + hdlm_path)
-        modules = [hdlm_path + "/" + x for x in modules]
+        modules = [hdlm_path + "/" + x for x in modules] + global_mod.opt_map.rtl
         v_msg("Modules that will be taken into account in the makefile: " + str(modules))
         deps = depend.generate_deps_for_modules(modules)
         depend.generate_makefile(deps)
