@@ -187,10 +187,7 @@ def transfer_files_forth(files):
     if not isinstance(files, list):
         return None;
     
-    global synth_server
-    global synth_user
-    global ssh
-    ssh_cmd = "ssh " + synth_user + "@" + synth_server
+    ssh_cmd = "ssh " + global_mod.synth_user + "@" + global_mod.synth_server
     
     randstring = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
     #create a randstring for a new catalogue on remote machine
@@ -202,9 +199,9 @@ def transfer_files_forth(files):
     ssh.system(mkdir_cmd)
     
     #create a string with filenames
-    lcl_files_str = ''.join(os.path.abspath(x) + ' ' for x in files)
+    local_files_str = ''.join(os.path.abspath(x) + ' ' for x in files)
     
-    cp_cmd = "tar -cvjf - " + lcl_files_str + "|" + ssh_cmd + ' "(cd ' + randstring + '; tar xjf -)"'
+    cp_cmd = "tar -cvjf - " + local_files_str + "|" + ssh_cmd + ' "(cd ' + randstring + '; tar xjf -)"'
     v_msg("Coping files to remote server: " + cp_cmd)
     os.system(cp_cmd)
     return randstring
