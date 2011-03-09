@@ -196,7 +196,7 @@ def transfer_files_forth(files):
     #create a new catalogue on remote machine
     mkdir_cmd = 'mkdir ' + randstring
     v_msg("Connecting to " + ssh_cmd + " and creating directory " + randstring + ": " + mkdir_cmd)
-    ssh.system(mkdir_cmd)
+    global_mod.ssh.system(mkdir_cmd)
     
     #create a string with filenames
     local_files_str = ''.join(os.path.abspath(x) + ' ' for x in files)
