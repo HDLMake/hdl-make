@@ -315,10 +315,11 @@ def main():
     
     global synth_server
     global synth_user
-    if global_mod.options.synth_server == None:
-        global_mod.options.synth_server = synth_server
-    if global_mod.options.synth_user == None:
-        global_mod.options.synth_user = synth_user
+    if global_mod.options.synth_server != None:
+        global_mod.synth_server = global_mod.options.synth_server
+    if global_mod.options.synth_user != None:
+        global_mod.synth_user = global_mod.options.synth_user
+    global_mod.ssh = myssh.MySSH(global_mod.synth_user, global_mod.synth_server)
     
     global opt_map
     opt_map = parse_manifest(top_manifest) #this call sets global object opt_map    
@@ -441,18 +442,19 @@ def main():
             complain_tcl()
             quit()
         if not os.path.exists(opt_map.tcl)
+            my_msg("Given .tcl doesn't exist: " + opt_map.tcl)
+            quit()
         
         if not os.path.exists(hdlm_path):
             my_msg("There are no modules fetched. Are you sure it's correct?")
          
-        global ssh
         apf = os.path.abspath
         folders_to_be_scanned = [apf(*opt_map.rtl)] + [apf(hdlm_path)] + [apf(".")]
         folders_to_be_scanned = list(set(folders_to_be_scanned))
         
         local_files = make_list_of_files(folders_to_be_scanned)
         randstring = transfer_files_forth(local_files)
-        ssh_cmd = "ssh " + synth_user + "@" + synth_server
+        ssh_cmd = "ssh " + global_mod.synth_user + "@" + global_mod.synth_server
         
         #generate command and run remote synthesis
         if float(opt_map.ise) > 12.0:
@@ -464,12 +466,12 @@ def main():
             quit()
             
         syn_cmd +=" && cd "+randstring +os.path.dirname(os.path.abspath(opt_map.tcl))+" && xtclsh "+opt_map.tcl+" run_process"
-        v_msg("Launching synthesis on " + synth_server + ": " + syn_cmd)
+        v_msg("Launching synthesis on " + global_mod.synth_server + ": " + syn_cmd)
         ssh.system(syn_cmd)
         
         ls_cmd = "cd "+randstring+" && find "+" -type f"
         v_msg("Looking for files for back-transfer: " + ls_cmd)
-        remote_files = [x.strip() for x in ssh.popen(ls_cmd).readlines()]
+        remote_files = [x.strip() for x in global_mod.ssh.popen(ls_cmd).readlines()]
         
         #substract local files from remote files
         new_files = list(set([x[1:] for x in remote_files]) - set([os.path.abspath(x) for x in local_files]))
@@ -521,9 +523,9 @@ if __name__ == "__main__":
     #global options' map for use in the entire script
     opt_map = None
     t0 = None
-    hdlm_path=".hdl-make"
+    hdlm_path=".hdl_make"
     top_manifest = ""
-    synth_user = "pawel"
-    synth_server = "127.0.0.1"
-    ssh = myssh.MySSH(synth_user, synth_server)
+    global_mod.synth_user = "htsynth"
+    global_mod.synth_server = "htsynth"
+    #globa_mod.ssh = myssh.MySSH(global_mod.synth_user, global_mod.synth_server)
     main()
