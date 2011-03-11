@@ -16,11 +16,6 @@ from msg import my_msg
 from msg import v_msg
 from optparse import OptionParser
 
-def complain_manifest():
-    print """There is no manifest file in the driectory
-It is therefore assumed that no external files are needed
-and the synthesis is made locally"""
-    
 def complain_tcl():
     print "For Xilinx synthesis a tcl file in the top module is required"
 
@@ -135,6 +130,7 @@ def parse_manifest(manifest_file):
     
     manifest_parser = cfgparse.ConfigParser(allow_py = True)
     manifest_parser.add_option('root', default=None)
+    manifest_parser.add_option('name', default=None)
     manifest_parser.add_option('tcl', default=None)
     manifest_parser.add_option('ise', default=None)
     manifest_parser.add_option('modules', dest="svn", keys="svn", default=None)
@@ -146,40 +142,37 @@ def parse_manifest(manifest_file):
     manifest_parser.add_file(manifest_file)
     
     #Take configuration parser from the global namespace
-    opt_map = manifest_parser.parse()
+    global_mod.opt_map = manifest_parser.parse()
     
-    if opt_map.root == None:
-        opt_map.root = "."
+    if global_mod.opt_map.root == None:
+        global_mod.opt_map.root = "."
         
-    if opt_map.rtl == None:
-        opt_map.rtl = ["."]
-    elif not isinstance (opt_map.rtl, list):
-        opt_map.rtl = [opt_map.rtl]
+    if global_mod.opt_map.rtl == None:
+        global_mod.opt_map.rtl = ["."]
+    elif not isinstance (global_mod.opt_map.rtl, list):
+        global_mod.opt_map.rtl = [global_mod.opt_map.rtl]
 
-    if opt_map.ise == None:
-        opt_map.ise = "13.1"
+    if global_mod.opt_map.ise == None:
+        global_mod.opt_map.ise = "13.1"
         
-    if opt_map.local != None and not isinstance(opt_map.local, (list, tuple)):
-        opt_map.local = [opt_map.local]
-    for i in opt_map.local:
-        if relpath.is_abs_path(i):
-            my_msg(sys.argv[0] + " accepts relative paths only: " + i)
-            quit()
-    #opt_map.local[:] = [x for x in opt_map.local if not relpath.is_abs_path(
-    for i in opt_map.local:
-        if not os.path.exists(manifest_path + '/' + i):
-            my_msg("Error in parsing " + manifest_file +". There is not such catalogue as "+
-                manifest_path + '/' + i)
-            quit()
-    if opt_map.svn != None and not isinstance(opt_map.svn, (list, tuple)):
-        opt_map.svn = [opt_map.svn]
-    if opt_map.git != None and not isinstance(opt_map.git, (list, tuple)):
-        opt_map.git = [opt_map.git]
-    if opt_map.files != None and not isinstance(opt_map.files, (list, tuple)):
-        opt_map.files = [opt_map.files]
-    return opt_map
+    if global_mod.opt_map.local != None: 
+        if not isinstance(global_mod.opt_map.local, (list, tuple)):
+            global_mod.opt_map.local = [global_mod.opt_map.local]
+        for i in global_mod.opt_map.local:
+            if relpath.is_abs_path(i):
+                my_msg(sys.argv[0] + " accepts relative paths only: " + i)
+                quit()
+        #global_mod.opt_map.local[:] = [x for x in global_mod.opt_map.local if not relpath.is_abs_path(
+
+    if global_mod.opt_map.svn != None and not isinstance(global_mod.opt_map.svn, (list, tuple)):
+        global_mod.opt_map.svn = [global_mod.opt_map.svn]
+    if global_mod.opt_map.git != None and not isinstance(global_mod.opt_map.git, (list, tuple)):
+        global_mod.opt_map.git = [global_mod.opt_map.git]
+    if global_mod.opt_map.files != None and not isinstance(global_mod.opt_map.files, (list, tuple)):
+        global_mod.opt_map.files = [global_mod.opt_map.files]
+    return global_mod.opt_map
  
-def transfer_files_forth(files):
+def transfer_files_forth(files, dest_folder = None):
     """
     Takes list of files and sends them to remote machine. Name of a directory, where files are put
     is returned
@@ -189,32 +182,34 @@ def transfer_files_forth(files):
     
     ssh_cmd = "ssh " + global_mod.synth_user + "@" + global_mod.synth_server
     
-    randstring = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
+    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
     #create a randstring for a new catalogue on remote machine
-    v_msg("Generated randstring " + randstring)
     
     #create a new catalogue on remote machine
-    mkdir_cmd = 'mkdir ' + randstring
-    v_msg("Connecting to " + ssh_cmd + " and creating directory " + randstring + ": " + mkdir_cmd)
+    if dest_folder == None:
+        dest_folder = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8)) 
+        
+    mkdir_cmd = 'mkdir ' + dest_folder 
+    v_msg("Connecting to " + ssh_cmd + " and creating directory " + dest_folder + ": " + mkdir_cmd)
     global_mod.ssh.system(mkdir_cmd)
     
     #create a string with filenames
-    local_files_str = ''.join(os.path.abspath(x) + ' ' for x in files)
+    from pipes import quote
+    local_files_str = ' '.join(quote(os.path.abspath(x)) for x in files)
     
-    cp_cmd = "tar -cvjf - " + local_files_str + "|" + ssh_cmd + ' "(cd ' + randstring + '; tar xjf -)"'
-    v_msg("Coping files to remote server: " + cp_cmd)
-    os.system(cp_cmd)
-    return randstring
+    rsync_cmd = "rsync -Rav " + local_files_str + " " + global_mod.synth_user + "@" + global_mod.synth_server + ":" + dest_folder 
+    #v_msg("Coping " + str(len(local_files_str)) + " files to remote server: " + rsync_cmd)
+    #os.system(rsync_cmd)
+    import subprocess
+    p = subprocess.Popen(rsync_cmd, shell=True)
+    os.waitpid(p.pid, 0)[1]
+    print "done"
+    return dest_folder 
     
-def transfer_files_back(files, randstring):
-    global synth_user
-    global synth_server
-    global ssh
-    v_msg("Creating an archive with new files on the remote machine")
-    tar_cmd = 'cd ' + randstring +'&& tar -cjvf '+randstring+'.tar '+str(files)
-    ssh.system(tar_cmd)
-    scp_cmd = "scp " + synth_user + "@" + synth_server + ":" + randstring+"/"+randstring+".tar ."
-    os.system(scp_cmd)
+def transfer_files_back(dest_folder):
+    rsync_cmd = "rsync -av " + global_mod.synth_user + "@" + global_mod.synth_server + ":" + dest_folder+" ."
+    v_msg(rsync_cmd)
+    os.system(rsync_cmd)
     
 def convert_xise(xise):
     if not os.path.exists(xise):
@@ -270,6 +265,17 @@ def search_for_manifest(search_path):
     print("Found manifest: " + os.path.abspath(files[0]).strip())
     return os.path.abspath(files[0]).strip()     
                 
+def check_address_length(module):
+    p = module.popen("uname -a")
+    p = p.readlines()
+    if "i686" in p[0]:
+        return 32
+    elif "x86_64" in p[0]:
+        return 64
+    else:
+        return None
+        
+    
 def main():
     # # # # # # #
     import depend
@@ -286,9 +292,18 @@ def main():
     parser.add_option("-o", "--convert-xise", dest="xise", default=None, help="convert paths in the given XISE_FILE", metavar="XISE_FILE")
     parser.add_option("-s", "--synth-server", dest="synth_server", default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
     parser.add_option("-u", "--synth-user", dest="synth_user", default=None, help="use given USER for remote synthesis", metavar="USER")
+    parser.add_option("--no-del", dest="no_del", default=None, help="do not delete catalog after remote synthesis")
     (global_mod.options, args) = parser.parse_args()
     
-    global hdlm_path        
+    global hdlm_path
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #Check if any option was selected
+    if global_mod.options.local == global_mod.options.fetch == global_mod.options.remote == global_mod.options.make == global_mod.options.clean == None:
+        import sys
+        my_msg("Are you sure you didn't forget to specify an option? At least one?")
+        my_msg("Maybe you should try " + sys.argv[0] + " -h") 
+        quit()
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.xise != None:
         convert_xise(global_mod.options.xise)
@@ -298,38 +313,35 @@ def main():
     # check if manifest is given in the command line
     # if yes, then use it
     # if no, the look for it in the current directory (python manifest has priority)  
-    global top_manifest
     if global_mod.options.manifest != None:
-        top_manifest = options.manifest
+        global_mod.top_manifest = options.manifest
     elif os.path.exists("./manifest.py"):
-        top_manifest = "./manifest.py"
+        global_mod.top_manifest = "./manifest.py"
     elif os.path.exists("./manifest.ini"):
-        top_manifest = "./manifest.ini"
+        global_mod.top_manifest = "./manifest.ini"
     else:
-        complain_manifest()
-    v_msg("Manifests' scan queue:"+str([top_manifest]))
-    v_msg("Parsing manifest: " +str(top_manifest))
+        my_msg("No manifest found. At least an empty one is needed")
+        quit()
+        
+    v_msg("Manifests' scan queue:"+str([global_mod.top_manifest]))
+    v_msg("Parsing manifest: " +str(global_mod.top_manifest))
     
-    global synth_server
-    global synth_user
     if global_mod.options.synth_server != None:
         global_mod.synth_server = global_mod.options.synth_server
     if global_mod.options.synth_user != None:
         global_mod.synth_user = global_mod.options.synth_user
-    global_mod.ssh = myssh.MySSH(global_mod.synth_user, global_mod.synth_server)
     
-    global opt_map
-    opt_map = parse_manifest(top_manifest) #this call sets global object opt_map    
+    global_mod.opt_map = parse_manifest(global_mod.top_manifest) #this call sets global object global_mod.opt_map    
     if global_mod.options.tcl == None:
-        if opt_map.tcl == None: #option taken, but no tcl given -> find it
+        if global_mod.opt_map.tcl == None: #option taken, but no tcl given -> find it
             tcl_pat = re.compile("^.*\.tcl$")
             for file in os.listdir("."): #try to find it in the current dir
                 if re.match(tcl_pat, file):
                     v_msg("Found .tcl file in the current directory: " + file)
-                    opt_map.tcl = file
+                    global_mod.opt_map.tcl = file
                     break
     else:
-        opt_map.tcl = options.tcl
+        global_mod.opt_map.tcl = options.tcl
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.fetch == True:
         if not os.path.exists(hdlm_path):
@@ -340,11 +352,16 @@ def main():
         new_manifests = []
         
         while True:
+            for i in global_mod.opt_map.local:
+                if not os.path.exists(manifest_path + '/' + i):
+                    my_msg("Error in parsing " + manifest_file +". There is not such catalogue as "+
+                    manifest_path + '/' + i)
+                    
             v_msg("Modules waiting in fetch queue:"+
-                str(opt_map.git) + " " + str(opt_map.svn) + " " + str(opt_map.local)) 
+                str(global_mod.opt_map.git) + " " + str(global_mod.opt_map.svn) + " " + str(global_mod.opt_map.local)) 
             
-            if opt_map.svn != None:
-                for i in opt_map.svn:
+            if global_mod.opt_map.svn != None:
+                for i in global_mod.opt_map.svn:
                     v_msg("Checking SVN url: " + i)
                     try:
                         url, revision = parse_repo_url(i) 
@@ -360,10 +377,10 @@ def main():
                         manifest = search_for_manifest(hdlm_path + "/" + url_basename(url))
                         if manifest != None:
                             new_manifests.append(manifest)
-                opt_map.svn = None
+                global_mod.opt_map.svn = None
             
-            if opt_map.git != None: 
-                for i in opt_map.git:
+            if global_mod.opt_map.git != None: 
+                for i in global_mod.opt_map.git:
                     v_msg("Checking git url: " + i)
                     try:
                         url, revision = parse_repo_url(i)
@@ -382,10 +399,10 @@ def main():
                         manifest = search_for_manifest(hdlm_path + "/" + url_basename(url))
                         if manifest != None:
                             new_manifests.append(manifest)
-                opt_map.git = None
+                global_mod.opt_map.git = None
                     
-            if opt_map.local != None:
-                for i in opt_map.local:
+            if global_mod.opt_map.local != None:
+                for i in global_mod.opt_map.local:
                     i = os.path.abspath(relpath.rel2abs(os.path.expanduser(i), os.path.dirname(cur_manifest)))
                     v_msg("Checking local url: " + i)
                     try:
@@ -404,7 +421,7 @@ def main():
                         manifest = search_for_manifest(url)
                         if manifest != None:
                             new_manifests.append(manifest)
-                opt_map.local = None
+                global_mod.opt_map.local = None
             if len(new_manifests) == 0:
                 v_msg("All found manifests have been scanned")
                 break
@@ -412,84 +429,83 @@ def main():
                 
             cur_manifest = new_manifests.pop()
             v_msg("Parsing manifest: " +str(cur_manifest))
-            opt_map = parse_manifest(cur_manifest) #this call sets global object opt_map
+            global_mod.opt_map = parse_manifest(cur_manifest) #this call sets global object global_mod.opt_map
             v_msg("Involved modules: " + str(involved_modules))        
     
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.local == True:
-        if opt_map.tcl == None:
+        if global_mod.opt_map.tcl == None:
             complain_tcl()
             quit()
-        if not os.path.exists("/opt/Xilinx/" + opt_map.ise):
-            my_msg("The script can't find demanded ISE version: " + opt_map.ise)
+        if not os.path.exists("/opt/Xilinx/" + global_mod.opt_map.ise):
+            my_msg("The script can't find demanded ISE version: " + global_mod.opt_map.ise)
             quit()
-        if opt_map.ise == "10.1":
-            os.system("source /opt/Xilinx/10.1/ISE/settings32.sh")
-        elif float(opt_map.ise) > 12.1:
-            os.system("source /opt/Xilinx/"+opt_map.ise+"/ISE_DS/ISE/settings32.sh")
+        
+        address_length = check_address_length(os)
+        if address_length == 32 or address_length == None:
+            path_ext = global_mod.ise_path_32[global_mod.opt_map.ise]  
         else:
-            my_msg("Don't know how to run settings script for ISE version: " + opt_map.ise)
-        results = os.popen("xtclsh " + opt_map.tcl + " run_process")
+            my_msg("Don't know how to run settings script for ISE version: " + global_mod.opt_map.ise)
+        results = os.popen("export PATH=$PATH:"+path_ext+" &&xtclsh " + global_mod.opt_map.tcl + " run_process")
         print results.readlines()
         quit()
             
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #            
     if global_mod.options.remote == True:
-        if opt_map.tcl == None: #option taken, but no tcl given -> find it
+        if global_mod.opt_map.tcl == None: #option taken, but no tcl given -> find it
             complain_tcl()
             quit()
-        if not os.path.exists(opt_map.tcl)
-            my_msg("Given .tcl doesn't exist: " + opt_map.tcl)
+        if not os.path.exists(global_mod.opt_map.tcl):
+            my_msg("Given .tcl doesn't exist: " + global_mod.opt_map.tcl)
             quit()
         
         if not os.path.exists(hdlm_path):
             my_msg("There are no modules fetched. Are you sure it's correct?")
-         
+        
+        v_msg("The program will be using ssh connection: "+global_mod.synth_user+"@"+global_mod.synth_server)
+        global_mod.ssh = myssh.MySSH(global_mod.synth_user, global_mod.synth_server)
+        
         apf = os.path.abspath
-        folders_to_be_scanned = [apf(*opt_map.rtl)] + [apf(hdlm_path)] + [apf(".")]
+        folders_to_be_scanned = [apf(x) for x in global_mod.opt_map.rtl] + [apf(hdlm_path)]
         folders_to_be_scanned = list(set(folders_to_be_scanned))
         
-        local_files = make_list_of_files(folders_to_be_scanned)
-        randstring = transfer_files_forth(local_files)
+        #local_files = make_list_of_files(folders_to_be_scanned)
+        if global_mod.opt_map.name != None:
+            #dest_folder = transfer_files_forth(local_files, global_mod.opt_map.name)
+            dest_folder = transfer_files_forth(folders_to_be_scanned, global_mod.opt_map.name)
+        else:
+            #dest_folder = transfer_files_forth(local_files)
+            dest_folder = transfer_files_forth(folders_to_be_scanned)
+        
         ssh_cmd = "ssh " + global_mod.synth_user + "@" + global_mod.synth_server
         
-        #generate command and run remote synthesis
-        if float(opt_map.ise) > 12.0:
-            syn_cmd = "source /opt/Xilinx/"+opt_map.ise+"/ISE_DS/settings32.sh"
-        elif float(opt_map.ise) == 10.1:
-            syn_cmd = "source /opt/Xilinx/10.1/ISE/settings32.sh"
-        else:
-            my_msg("I dont know how to support your ISE version: " + opt_map.ise)
+        ret = global_mod.ssh.system("[ -e /opt/Xilinx/"+global_mod.opt_map.ise+" ]")
+        if ret == 1:
+            my_msg("There is no "+global_mod.opt_map.ise+" ISE version installed on the remote machine")
             quit()
+        
+        address_length = check_address_length(global_mod.ssh)
+        if address_length == 32 or address_length == None:
+            path_ext = global_mod.ise_path_32[global_mod.opt_map.ise]
+        else:
+            path_ext = global_mod.ise_path_64[global_mod.opt_map.ise]
             
-        syn_cmd +=" && cd "+randstring +os.path.dirname(os.path.abspath(opt_map.tcl))+" && xtclsh "+opt_map.tcl+" run_process"
+        syn_cmd ="PATH=$PATH:"+path_ext+"&& cd "+dest_folder+global_mod.cwd+"&& xtclsh "+global_mod.opt_map.tcl+" run_process"
         v_msg("Launching synthesis on " + global_mod.synth_server + ": " + syn_cmd)
-        ssh.system(syn_cmd)
+        global_mod.ssh.system(syn_cmd)
         
-        ls_cmd = "cd "+randstring+" && find "+" -type f"
-        v_msg("Looking for files for back-transfer: " + ls_cmd)
-        remote_files = [x.strip() for x in global_mod.ssh.popen(ls_cmd).readlines()]
-        
-        #substract local files from remote files
-        new_files = list(set([x[1:] for x in remote_files]) - set([os.path.abspath(x) for x in local_files]))
-        v_msg("New files created on remote machine: " + str(new_files))
-        if len(new_files) == 0:
-            my_msg("There are no new files for back-transfer. Probably something went wrong?")
-            return
-        transfer_files_back(new_files, randstring)
-        ssh.system('rm -rf ' + randstring)
-        
-        import tarfile
-        tar = tarfile.open(randstring+".tar")
-        tar.extractall(path="/")
-        tar.close()
-        os.remove(randstring+".tar")
+        cur_dir = os.path.basename(global_mod.cwd)
+        os.chdir("..")
+        transfer_files_back(dest_folder+global_mod.cwd)
+        os.chdir(cur_dir)
+        if global_mod.options.no_del != True:
+            global_mod.ssh.system('rm -rf ' + dest_folder)
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.make == True:
         import depend
         if not os.path.exists(hdlm_path):
-            my_msg("There is no .hdl-make catalog. Probably modules are not fetched?")
+            my_msg("There is no "+hdlm_path+" catalog. Probably modules are not fetched?")
             quit()
             
         modules = os.listdir(hdlm_path)
@@ -511,18 +527,14 @@ def main():
         os.system("rm -f makefile")
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    #Check if any option was selected
-    if global_mod.options.local == global_mod.options.fetch == global_mod.options.remote == global_mod.options.make == global_mod.options.clean == None:
-        my_msg("Are you sure you didn't forget to specify an option? At least one?")
-        quit()
+
         
 if __name__ == "__main__":
     #global options' map for use in the entire script
-    opt_map = None
     t0 = None
-    hdlm_path=".hdl_make"
-    top_manifest = ""
+    hdlm_path="hdl_make"
     global_mod.synth_user = "htsynth"
     global_mod.synth_server = "htsynth"
+    global_mod.cwd = os.getcwd()
     #globa_mod.ssh = myssh.MySSH(global_mod.synth_user, global_mod.synth_server)
     main()
