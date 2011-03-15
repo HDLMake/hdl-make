@@ -5,9 +5,20 @@ import global_mod
 import time
 import os
 import sys
+import pprint as prettyprinter
 
-def my_msg(msg):
-    print "["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-global_mod.t0) + "]: " + msg
-def v_msg(msg):
+def echo(msg):
+    print "["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-global_mod.t0) + "]: " + str(msg)
+
+def vprint(msg):
     if global_mod.options.verbose == True:
-        my_msg(msg)
+        echo(msg)
+        
+def pprint(msg):
+    pp = prettyprinter.PrettyPrinter(indent = 2)
+    pp.pprint(msg)
+    
+def vpprint(msg):
+    if global_mod.options.verbose == True:
+        pp = prettyprinter.PrettyPrinter(indent = 2)
+        pp.pprint(msg)

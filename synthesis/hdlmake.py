@@ -5,44 +5,21 @@ import cfgparse
 import re
 import fileinput
 import sys
-import relpath
+from path import make_list_of_files
+import path
 import time
 import os
-import myssh
+from connection import Connection
 import random
 import string
 import global_mod
-from msg import my_msg
-from msg import v_msg
+import msg as p
 from optparse import OptionParser
+from fetch import fetch_from_local, fetch_from_svn, fetch_from_git
 
 def complain_tcl():
     print "For Xilinx synthesis a tcl file in the top module is required"
 
-def make_list_of_files(modules):
-    """
-    Make list of all files included in the list of folders
-    """
-    def getfiles(path):
-        """
-        Get lists of normal files and list folders recursively
-        """
-        ret = []
-        for filename in os.listdir(path):
-            if filename[0] == ".": #a hidden file/catalogue -> skip
-                continue
-            if os.path.isdir(path + "/" + filename):
-                ret.extend(getfiles(path + "/" + filename))
-            else:
-                ret.append(path + "/" + filename)
-        return ret
-        
-    if not isinstance(modules, list):
-        return getfiles(modules)
-    files = []
-    for module in modules:
-        files.extend(getfiles(module))
-    return files
 
 def parse_repo_url(url) :
     """
@@ -60,56 +37,7 @@ def parse_repo_url(url) :
         ret = url_match.group(1)
     return ret
     
-def url_basename(url):
-    """
-    Get basename from an url
-    """
-    if url[-1] == '/':
-        ret = os.path.basename(url[:-1])
-    else:
-        ret = os.path.basename(url)
-    return ret
-   
-def fetch_from_svn(url, revision = None):
-    basename = url_basename(url)
-    
-    global hdlm_path
-    cmd = "svn checkout {0} " + hdlm_path + "/" + basename
-    if revision:
-        cmd = cmd.format(url + '@' + revision)
-    else:
-        cmd = cmd.format(url)
-        
-    v_msg(cmd)
-    os.system(cmd)
 
-def fetch_from_local(url):
-    if not os.path.exists(url):
-        my_msg("Local URL " + url + " not found\nQuitting")
-        quit()
-    basename = url_basename(url)
-    global hdlm_path
-    if os.path.exists(hdlm_path + "/" + basename):
-        my_msg("Folder " + hdlm_path + "/" + basename + " exists. Maybe it is already fetched?")
-        return
-    os.symlink(url, hdlm_path + "/" + basename)
-
-def fetch_from_git(url, revision = None):
-    cwd = os.getcwd()
-    basename = url_basename(url)
-    
-    if basename.endswith(".git"):
-        basename = basename[:-4] #remove trailing .git
-    global hdlm_path
-    os.chdir(hdlm_path)
-    cmd = "git clone " + url
-    v_msg(cmd)
-    os.system(cmd)
-    if revision:
-        os.chdir(basename)
-        os.system("git checkout " + revision)
-        
-    os.chdir(cwd)
 
 def check_module_and_append(list, module):
     """
@@ -155,14 +83,18 @@ def parse_manifest(manifest_file):
     if global_mod.opt_map.ise == None:
         global_mod.opt_map.ise = "13.1"
         
+    if global_mod.opt_map.files != None:
+        if not isinstance(global_mod.opt_map.files, list):
+            global_mod.opt_map.files = [global_mod.opt_map.files]
+            
     if global_mod.opt_map.local != None: 
         if not isinstance(global_mod.opt_map.local, (list, tuple)):
             global_mod.opt_map.local = [global_mod.opt_map.local]
         for i in global_mod.opt_map.local:
-            if relpath.is_abs_path(i):
-                my_msg(sys.argv[0] + " accepts relative paths only: " + i)
+            if path.is_abs_path(i):
+                p.echo(sys.argv[0] + " accepts relative paths only: " + i)
                 quit()
-        #global_mod.opt_map.local[:] = [x for x in global_mod.opt_map.local if not relpath.is_abs_path(
+        #global_mod.opt_map.local[:] = [x for x in global_mod.opt_map.local if not path.is_abs_path(
 
     if global_mod.opt_map.svn != None and not isinstance(global_mod.opt_map.svn, (list, tuple)):
         global_mod.opt_map.svn = [global_mod.opt_map.svn]
@@ -172,53 +104,14 @@ def parse_manifest(manifest_file):
         global_mod.opt_map.files = [global_mod.opt_map.files]
     return global_mod.opt_map
  
-def transfer_files_forth(files, dest_folder = None):
-    """
-    Takes list of files and sends them to remote machine. Name of a directory, where files are put
-    is returned
-    """
-    if not isinstance(files, list):
-        return None;
-    
-    ssh_cmd = "ssh " + global_mod.synth_user + "@" + global_mod.synth_server
-    
-    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
-    #create a randstring for a new catalogue on remote machine
-    
-    #create a new catalogue on remote machine
-    if dest_folder == None:
-        dest_folder = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8)) 
-        
-    mkdir_cmd = 'mkdir ' + dest_folder 
-    v_msg("Connecting to " + ssh_cmd + " and creating directory " + dest_folder + ": " + mkdir_cmd)
-    global_mod.ssh.system(mkdir_cmd)
-    
-    #create a string with filenames
-    from pipes import quote
-    local_files_str = ' '.join(quote(os.path.abspath(x)) for x in files)
-    
-    rsync_cmd = "rsync -Rav " + local_files_str + " " + global_mod.synth_user + "@" + global_mod.synth_server + ":" + dest_folder 
-    #v_msg("Coping " + str(len(local_files_str)) + " files to remote server: " + rsync_cmd)
-    #os.system(rsync_cmd)
-    import subprocess
-    p = subprocess.Popen(rsync_cmd, shell=True)
-    os.waitpid(p.pid, 0)[1]
-    print "done"
-    return dest_folder 
-    
-def transfer_files_back(dest_folder):
-    rsync_cmd = "rsync -av " + global_mod.synth_user + "@" + global_mod.synth_server + ":" + dest_folder+" ."
-    v_msg(rsync_cmd)
-    os.system(rsync_cmd)
-    
+
 def convert_xise(xise):
     if not os.path.exists(xise):
-        my_msg("Given .xise file does not exist:" + xise)
+        p.echo("Given .xise file does not exist:" + xise)
         quit()
         
-    global hdlm_path
     modules = ["."]
-    modules.append(hdlm_path)
+    modules.append(global_mod.hdlm_path)
     files = make_list_of_files(modules)
     
     ise = open(xise, "r")
@@ -232,15 +125,15 @@ def convert_xise(xise):
         m = re.match(file_pattern, line)
         if m != None:
             filename = m.group(2)
-            file_basename = url_basename(m.group(2))
+            file_basename = path.url_basename(m.group(2))
             found = False
             for file in files:
                 if file_basename in file:
                     found = True
-                    new_ise.append(m.group(1) + relpath.relpath(os.path.abspath("."), file) + m.group(3))
+                    new_ise.append(m.group(1) + path.path(os.path.abspath("."), file) + m.group(3))
                     break
             if found == False:
-                my_msg("Not found proper file for " + filename)
+                p.echo("Not found proper file for " + filename)
                 new_ise.append(line)
         else:
             new_ise.append(line + "\n")
@@ -252,18 +145,18 @@ def search_for_manifest(search_path):
     Look for manifest in the given folder ans subfolders
     """
     cmd = "find -H " + search_path + " -name manifest.py"
-    v_msg(cmd)
+    p.vprint(cmd)
     files = os.popen(cmd).readlines()
     
     if len(files) == 0:
-        v_msg("No manifest found in: " + search_path)
+        p.vprint("No manifest found in: " + search_path)
         return None
     elif len(files) > 1:
-        my_msg("Too many manifests in" + search_path)
-        return files[0] 
+        p.echo("Too many manifests in" + search_path + ": " + str(files))
+        return files[0].strip()
         
-    print("Found manifest: " + os.path.abspath(files[0]).strip())
-    return os.path.abspath(files[0]).strip()     
+    p.echo("Found manifest: " + os.path.abspath(files[0]).strip())
+    return os.path.abspath(files[0].strip())     
                 
 def check_address_length(module):
     p = module.popen("uname -a")
@@ -295,14 +188,12 @@ def main():
     parser.add_option("--no-del", dest="no_del", default=None, help="do not delete catalog after remote synthesis")
     (global_mod.options, args) = parser.parse_args()
     
-    global hdlm_path
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #Check if any option was selected
     if global_mod.options.local == global_mod.options.fetch == global_mod.options.remote == global_mod.options.make == global_mod.options.clean == None:
         import sys
-        my_msg("Are you sure you didn't forget to specify an option? At least one?")
-        my_msg("Maybe you should try " + sys.argv[0] + " -h") 
+        p.echo("Are you sure you didn't forget to specify an option? At least one?")
+        p.echo("Maybe you should try " + sys.argv[0] + " -h") 
         quit()
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.xise != None:
@@ -320,11 +211,11 @@ def main():
     elif os.path.exists("./manifest.ini"):
         global_mod.top_manifest = "./manifest.ini"
     else:
-        my_msg("No manifest found. At least an empty one is needed")
+        p.echo("No manifest found. At least an empty one is needed")
         quit()
         
-    v_msg("Manifests' scan queue:"+str([global_mod.top_manifest]))
-    v_msg("Parsing manifest: " +str(global_mod.top_manifest))
+    p.vprint("Manifests' scan queue:"+str([global_mod.top_manifest]))
+    p.vprint("Parsing manifest: " +str(global_mod.top_manifest))
     
     if global_mod.options.synth_server != None:
         global_mod.synth_server = global_mod.options.synth_server
@@ -337,32 +228,33 @@ def main():
             tcl_pat = re.compile("^.*\.tcl$")
             for file in os.listdir("."): #try to find it in the current dir
                 if re.match(tcl_pat, file):
-                    v_msg("Found .tcl file in the current directory: " + file)
+                    p.vprint("Found .tcl file in the current directory: " + file)
                     global_mod.opt_map.tcl = file
                     break
     else:
         global_mod.opt_map.tcl = options.tcl
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.fetch == True:
-        if not os.path.exists(hdlm_path):
-            os.mkdir(hdlm_path)
+        if not os.path.exists(global_mod.hdlm_path):
+            os.mkdir(global_mod.hdlm_path)
             
-        cur_manifest = top_manifest 
+        cur_manifest = global_mod.top_manifest 
         involved_modules = []
         new_manifests = []
         
         while True:
-            for i in global_mod.opt_map.local:
-                if not os.path.exists(manifest_path + '/' + i):
-                    my_msg("Error in parsing " + manifest_file +". There is not such catalogue as "+
-                    manifest_path + '/' + i)
+            if global_mod.opt_map.local != None:
+                for i in global_mod.opt_map.local:
+                    if not os.path.exists(global_mod.cwd + '/' + i):
+                        p.echo("Error in parsing " + cur_manifest +". There is not such catalogue as "+
+                        global_mod.cwd + '/' + i)
                     
-            v_msg("Modules waiting in fetch queue:"+
+            p.vprint("Modules waiting in fetch queue:"+
                 str(global_mod.opt_map.git) + " " + str(global_mod.opt_map.svn) + " " + str(global_mod.opt_map.local)) 
             
             if global_mod.opt_map.svn != None:
                 for i in global_mod.opt_map.svn:
-                    v_msg("Checking SVN url: " + i)
+                    p.vprint("Checking SVN url: " + i)
                     try:
                         url, revision = parse_repo_url(i) 
                         fetch_from_svn(url, revision)
@@ -372,16 +264,16 @@ def main():
                     except RuntimeError:
                         continue
                     
-                    ret = check_module_and_append(involved_modules, os.path.abspath(hdlm_path + "/" + url_basename(url)))
+                    ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
                     if ret == 0:
-                        manifest = search_for_manifest(hdlm_path + "/" + url_basename(url))
+                        manifest = search_for_manifest(global_mod.hdlm_path + "/" + path.url_basename(url))
                         if manifest != None:
                             new_manifests.append(manifest)
                 global_mod.opt_map.svn = None
             
             if global_mod.opt_map.git != None: 
                 for i in global_mod.opt_map.git:
-                    v_msg("Checking git url: " + i)
+                    p.vprint("Checking git url: " + i)
                     try:
                         url, revision = parse_repo_url(i)
                         fetch_from_git(url, revision)
@@ -394,17 +286,17 @@ def main():
                     if url.endswith(".git"):
                         url = url[:-4]
                     
-                    ret = check_module_and_append(involved_modules, os.path.abspath(hdlm_path + "/" + url_basename(url)))
+                    ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
                     if ret == 0:
-                        manifest = search_for_manifest(hdlm_path + "/" + url_basename(url))
+                        manifest = search_for_manifest(global_mod.hdlm_path + "/" + path.url_basename(url))
                         if manifest != None:
                             new_manifests.append(manifest)
                 global_mod.opt_map.git = None
                     
             if global_mod.opt_map.local != None:
                 for i in global_mod.opt_map.local:
-                    i = os.path.abspath(relpath.rel2abs(os.path.expanduser(i), os.path.dirname(cur_manifest)))
-                    v_msg("Checking local url: " + i)
+                    i = os.path.abspath(path.rel2abs(os.path.expanduser(i), os.path.dirname(cur_manifest)))
+                    p.vprint("Checking local url: " + i)
                     try:
                         url, revision = i
                         print "Revision number not allowed in local URLs"
@@ -416,21 +308,21 @@ def main():
                             print "Ommitting"
                             continue
                         fetch_from_local(url)
-                    ret = check_module_and_append(involved_modules, os.path.abspath(hdlm_path + "/" + url_basename(url)))
+                    ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
                     if ret == 0:
                         manifest = search_for_manifest(url)
                         if manifest != None:
                             new_manifests.append(manifest)
                 global_mod.opt_map.local = None
             if len(new_manifests) == 0:
-                v_msg("All found manifests have been scanned")
+                p.vprint("All found manifests have been scanned")
                 break
-            v_msg("Manifests' scan queue: " + str(new_manifests))
+            p.vprint("Manifests' scan queue: " + str(new_manifests))
                 
             cur_manifest = new_manifests.pop()
-            v_msg("Parsing manifest: " +str(cur_manifest))
+            p.vprint("Parsing manifest: " +str(cur_manifest))
             global_mod.opt_map = parse_manifest(cur_manifest) #this call sets global object global_mod.opt_map
-            v_msg("Involved modules: " + str(involved_modules))        
+            p.vprint("Involved modules: " + str(involved_modules))        
     
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.local == True:
@@ -438,14 +330,14 @@ def main():
             complain_tcl()
             quit()
         if not os.path.exists("/opt/Xilinx/" + global_mod.opt_map.ise):
-            my_msg("The script can't find demanded ISE version: " + global_mod.opt_map.ise)
+            p.echo("The script can't find demanded ISE version: " + global_mod.opt_map.ise)
             quit()
         
         address_length = check_address_length(os)
         if address_length == 32 or address_length == None:
             path_ext = global_mod.ise_path_32[global_mod.opt_map.ise]  
         else:
-            my_msg("Don't know how to run settings script for ISE version: " + global_mod.opt_map.ise)
+            p.echo("Don't know how to run settings script for ISE version: " + global_mod.opt_map.ise)
         results = os.popen("export PATH=$PATH:"+path_ext+" &&xtclsh " + global_mod.opt_map.tcl + " run_process")
         print results.readlines()
         quit()
@@ -456,32 +348,30 @@ def main():
             complain_tcl()
             quit()
         if not os.path.exists(global_mod.opt_map.tcl):
-            my_msg("Given .tcl doesn't exist: " + global_mod.opt_map.tcl)
+            p.echo("Given .tcl doesn't exist: " + global_mod.opt_map.tcl)
             quit()
         
-        if not os.path.exists(hdlm_path):
-            my_msg("There are no modules fetched. Are you sure it's correct?")
+        if not os.path.exists(global_mod.hdlm_path):
+            p.echo("There are no modules fetched. Are you sure it's correct?")
         
-        v_msg("The program will be using ssh connection: "+global_mod.synth_user+"@"+global_mod.synth_server)
-        global_mod.ssh = myssh.MySSH(global_mod.synth_user, global_mod.synth_server)
+        p.vprint("The program will be using ssh connection: "+global_mod.synth_user+"@"+global_mod.synth_server)
+        global_mod.ssh = Connection(global_mod.synth_user, global_mod.synth_server)
         
         apf = os.path.abspath
-        folders_to_be_scanned = [apf(x) for x in global_mod.opt_map.rtl] + [apf(hdlm_path)]
+        folders_to_be_scanned = [apf(x) for x in global_mod.opt_map.rtl] + [apf(global_mod.hdlm_path)]
         folders_to_be_scanned = list(set(folders_to_be_scanned))
         
         #local_files = make_list_of_files(folders_to_be_scanned)
         if global_mod.opt_map.name != None:
             #dest_folder = transfer_files_forth(local_files, global_mod.opt_map.name)
-            dest_folder = transfer_files_forth(folders_to_be_scanned, global_mod.opt_map.name)
+            dest_folder = global_mod.ssh.transfer_files_forth(folders_to_be_scanned, global_mod.opt_map.name)
         else:
             #dest_folder = transfer_files_forth(local_files)
-            dest_folder = transfer_files_forth(folders_to_be_scanned)
-        
-        ssh_cmd = "ssh " + global_mod.synth_user + "@" + global_mod.synth_server
+            dest_folder = global_mod.ssh.transfer_files_forth(folders_to_be_scanned)
         
         ret = global_mod.ssh.system("[ -e /opt/Xilinx/"+global_mod.opt_map.ise+" ]")
         if ret == 1:
-            my_msg("There is no "+global_mod.opt_map.ise+" ISE version installed on the remote machine")
+            p.echo("There is no "+global_mod.opt_map.ise+" ISE version installed on the remote machine")
             quit()
         
         address_length = check_address_length(global_mod.ssh)
@@ -490,40 +380,48 @@ def main():
         else:
             path_ext = global_mod.ise_path_64[global_mod.opt_map.ise]
             
-        syn_cmd ="PATH=$PATH:"+path_ext+"&& cd "+dest_folder+global_mod.cwd+"&& xtclsh "+global_mod.opt_map.tcl+" run_process"
-        v_msg("Launching synthesis on " + global_mod.synth_server + ": " + syn_cmd)
-        global_mod.ssh.system(syn_cmd)
+        syn_cmd ="PATH=$PATH:"+path_ext+"&& cd "+dest_folder+global_mod.cwd+"/"+os.path.dirname(global_mod.opt_map.tcl)
+        syn_cmd += "&& xtclsh "+os.path.basename(global_mod.opt_map.tcl)+" run_process"
+        
+        p.vprint("Launching synthesis on " + global_mod.synth_server + ": " + syn_cmd)
+        ret = global_mod.ssh.system(syn_cmd)
+        if ret == 1:
+            p.echo("Synthesis failed. Nothing will be transfered back")
+            quit()
         
         cur_dir = os.path.basename(global_mod.cwd)
         os.chdir("..")
         transfer_files_back(dest_folder+global_mod.cwd)
         os.chdir(cur_dir)
         if global_mod.options.no_del != True:
+            p.echo("Deleting synthesis folder")
             global_mod.ssh.system('rm -rf ' + dest_folder)
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.make == True:
         import depend
-        if not os.path.exists(hdlm_path):
-            my_msg("There is no "+hdlm_path+" catalog. Probably modules are not fetched?")
+        if not os.path.exists(global_mod.hdlm_path):
+            p.echo("There is no "+global_mod.hdlm_path+" catalog. Probably modules are not fetched?")
             quit()
             
-        modules = os.listdir(hdlm_path)
+        modules = os.listdir(global_mod.hdlm_path)
         if len(modules) == 0:
-            v_msg("No modules were found in " + hdlm_path)
-        modules = [hdlm_path + "/" + x for x in modules] + global_mod.opt_map.rtl
-        v_msg("Modules that will be taken into account in the makefile: " + str(modules))
-        deps = depend.generate_deps_for_modules(modules)
-        depend.generate_makefile(deps)
+            p.vprint("No modules were found in " + global_mod.hdlm_path)
+        
+        modules = [global_mod.hdlm_path+"/"+x for x in modules]
+        #modules += global_mod.opt_map.rtl
+        p.vprint("Modules that will be taken into account in the makefile: " + str(modules))
+        deps, libs = depend.generate_deps_for_modules(modules)
+        depend.generate_makefile(deps, libs)
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.clean == True:
         if os.path.exists("makefile"):
-            v_msg("Running makefile clean-up")
+            p.vprint("Running makefile clean-up")
             os.system("make clean > /dev/null")
-        v_msg("Removing the fetched modules")
-        os.system("rm -rf " + hdlm_path)
-        v_msg("Removing the makefile")
+        p.vprint("Removing the fetched modules")
+        os.system("rm -rf " + global_mod.hdlm_path)
+        p.vprint("Removing the makefile")
         os.system("rm -f makefile")
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -532,7 +430,6 @@ def main():
 if __name__ == "__main__":
     #global options' map for use in the entire script
     t0 = None
-    hdlm_path="hdl_make"
     global_mod.synth_user = "htsynth"
     global_mod.synth_server = "htsynth"
     global_mod.cwd = os.getcwd()
