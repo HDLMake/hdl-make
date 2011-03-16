@@ -30,7 +30,10 @@ def is_abs_path(path):
         return True
     return False
     
-def relpath(p1, p2):
+def relpath(p1, p2 = None):
+    if p2 == None:
+        p2 = os.getcwd()
+    p1, p2 = p2, p1
     if p1[-1] == '/':
         p1 = p1[:-1]
     if p2[-1] == '/':
