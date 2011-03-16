@@ -82,7 +82,7 @@ def make_list_of_files(modules, take_files = None, base_folder = None):
         for module in modules:
             files.extend(getfiles(module))
             
-    if take_files != None:
+    if take_files != None and take_files != []:
         ret_files = []
         for file in files:
             for take_file in take_files:

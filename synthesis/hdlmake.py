@@ -54,6 +54,15 @@ def check_module_and_append(list, module):
     return 0
     
 def parse_manifest(manifest_file):
+    
+    def make_list(sth):
+        if sth != None:
+            if not isinstance(sth, (list,tuple)):
+                sth = [sth]
+        else:
+            sth = []
+        return sth
+        
     manifest_path = os.path.dirname(manifest_file)
     
     manifest_parser = cfgparse.ConfigParser(allow_py = True)
@@ -70,39 +79,30 @@ def parse_manifest(manifest_file):
     manifest_parser.add_file(manifest_file)
     
     #Take configuration parser from the global namespace
-    global_mod.opt_map = manifest_parser.parse()
+    opt_map = manifest_parser.parse()
     
-    if global_mod.opt_map.root == None:
-        global_mod.opt_map.root = "."
+    if opt_map.root == None:
+        opt_map.root = "."
         
-    if global_mod.opt_map.rtl == None:
-        global_mod.opt_map.rtl = ["."]
-    elif not isinstance (global_mod.opt_map.rtl, list):
-        global_mod.opt_map.rtl = [global_mod.opt_map.rtl]
+    if opt_map.rtl == None:
+        opt_map.rtl = ["."]
+    elif not isinstance (opt_map.rtl, list):
+        opt_map.rtl = [opt_map.rtl]
 
-    if global_mod.opt_map.ise == None:
-        global_mod.opt_map.ise = "13.1"
+    if opt_map.ise == None:
+        opt_map.ise = "13.1"
         
-    if global_mod.opt_map.files != None:
-        if not isinstance(global_mod.opt_map.files, list):
-            global_mod.opt_map.files = [global_mod.opt_map.files]
-            
-    if global_mod.opt_map.local != None: 
-        if not isinstance(global_mod.opt_map.local, (list, tuple)):
-            global_mod.opt_map.local = [global_mod.opt_map.local]
-        for i in global_mod.opt_map.local:
-            if path.is_abs_path(i):
-                p.echo(sys.argv[0] + " accepts relative paths only: " + i)
-                quit()
-        #global_mod.opt_map.local[:] = [x for x in global_mod.opt_map.local if not path.is_abs_path(
+    opt_map.local = make_list(opt_map.local) 
+    for i in opt_map.local:
+        if path.is_abs_path(i):
+            p.echo(sys.argv[0] + " accepts relative paths only: " + i)
+            quit()
+    opt_map.local = [path.rel2abs(x, manifest_path) for x in opt_map.local]
 
-    if global_mod.opt_map.svn != None and not isinstance(global_mod.opt_map.svn, (list, tuple)):
-        global_mod.opt_map.svn = [global_mod.opt_map.svn]
-    if global_mod.opt_map.git != None and not isinstance(global_mod.opt_map.git, (list, tuple)):
-        global_mod.opt_map.git = [global_mod.opt_map.git]
-    if global_mod.opt_map.files != None and not isinstance(global_mod.opt_map.files, (list, tuple)):
-        global_mod.opt_map.files = [global_mod.opt_map.files]
-    return global_mod.opt_map
+    opt_map.svn = make_list(opt_map.svn)
+    opt_map.git = make_list(opt_map.git)
+    opt_map.files = make_list(opt_map.files)
+    return opt_map
  
 
 def convert_xise(xise):
@@ -228,92 +228,72 @@ def main():
             tcl_pat = re.compile("^.*\.tcl$")
             for file in os.listdir("."): #try to find it in the current dir
                 if re.match(tcl_pat, file):
-                    p.vprint("Found .tcl file in the current directory: " + file)
+                    p.vprint("Found .tcf l file in the current directory: " + file)
                     global_mod.opt_map.tcl = file
                     break
     else:
         global_mod.opt_map.tcl = options.tcl
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.fetch == True:
-        if not os.path.exists(global_mod.hdlm_path):
-            os.mkdir(global_mod.hdlm_path)
             
         cur_manifest = global_mod.top_manifest 
         involved_modules = []
         new_manifests = []
         
         while True:
-            if global_mod.opt_map.local != None:
-                for i in global_mod.opt_map.local:
-                    if not os.path.exists(global_mod.cwd + '/' + i):
-                        p.echo("Error in parsing " + cur_manifest +". There is not such catalogue as "+
-                        global_mod.cwd + '/' + i)
+            for i in global_mod.opt_map.local:
+                if not os.path.exists(i):
+                    p.echo("Error in parsing " + cur_manifest +". There is not such catalogue as "+
+                    global_mod.cwd + '/' + i)
                     
             p.vprint("Modules waiting in fetch queue:"+
                 str(global_mod.opt_map.git) + " " + str(global_mod.opt_map.svn) + " " + str(global_mod.opt_map.local)) 
             
-            if global_mod.opt_map.svn != None:
-                for i in global_mod.opt_map.svn:
-                    p.vprint("Checking SVN url: " + i)
-                    try:
-                        url, revision = parse_repo_url(i) 
-                        fetch_from_svn(url, revision)
-                    except ValueError:
-                        url = parse_repo_url(i)
-                        fetch_from_svn(url)
-                    except RuntimeError:
-                        continue
-                    
-                    ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
-                    if ret == 0:
-                        manifest = search_for_manifest(global_mod.hdlm_path + "/" + path.url_basename(url))
-                        if manifest != None:
-                            new_manifests.append(manifest)
-                global_mod.opt_map.svn = None
+            for i in global_mod.opt_map.svn:
+                p.vprint("Checking SVN url: " + i)
+                try:
+                    url, revision = parse_repo_url(i) 
+                    fetch_from_svn(url, revision)
+                except ValueError:
+                    url = parse_repo_url(i)
+                    fetch_from_svn(url)
+                except RuntimeError:
+                    continue
+                
+                ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
+                if ret == 0:
+                    manifest = search_for_manifest(global_mod.hdlm_path + "/" + path.url_basename(url))
+                    if manifest != None:
+                        new_manifests.append(manifest)
+            global_mod.opt_map.svn = None
             
-            if global_mod.opt_map.git != None: 
-                for i in global_mod.opt_map.git:
-                    p.vprint("Checking git url: " + i)
-                    try:
-                        url, revision = parse_repo_url(i)
-                        fetch_from_git(url, revision)
-                    except ValueError:
-                        url = parse_repo_url(i)
-                        fetch_from_git(url)
-                    except RuntimeError:
-                        continue
+            for i in global_mod.opt_map.git:
+                p.vprint("Checking git url: " + i)
+                try:
+                    url, revision = parse_repo_url(i)
+                    fetch_from_git(url, revision)
+                except ValueError:
+                    url = parse_repo_url(i)
+                    fetch_from_git(url)
+                except RuntimeError:
+                    continue
+                
+                if url.endswith(".git"):
+                    url = url[:-4]
+                
+                ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
+                if ret == 0:
+                    manifest = search_for_manifest(global_mod.hdlm_path + "/" + path.url_basename(url))
+                    if manifest != None:
+                        new_manifests.append(manifest)
+            global_mod.opt_map.git = None
                     
-                    if url.endswith(".git"):
-                        url = url[:-4]
-                    
-                    ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
-                    if ret == 0:
-                        manifest = search_for_manifest(global_mod.hdlm_path + "/" + path.url_basename(url))
-                        if manifest != None:
-                            new_manifests.append(manifest)
-                global_mod.opt_map.git = None
-                    
-            if global_mod.opt_map.local != None:
-                for i in global_mod.opt_map.local:
-                    i = os.path.abspath(path.rel2abs(os.path.expanduser(i), os.path.dirname(cur_manifest)))
-                    p.vprint("Checking local url: " + i)
-                    try:
-                        url, revision = i
-                        print "Revision number not allowed in local URLs"
-                        continue
-                    except ValueError:
-                        url = i
-                        if not os.path.exists(url):
-                            print "Specified module (" + url + ") does not exist"
-                            print "Ommitting"
-                            continue
-                        fetch_from_local(url)
-                    ret = check_module_and_append(involved_modules, os.path.abspath(global_mod.hdlm_path + "/" + path.url_basename(url)))
-                    if ret == 0:
-                        manifest = search_for_manifest(url)
-                        if manifest != None:
-                            new_manifests.append(manifest)
-                global_mod.opt_map.local = None
+            for i in global_mod.opt_map.local:
+                manifest = search_for_manifest(i)
+                if manifest != None:
+                    new_manifests.append(manifest)
+            involved_modules.extend(global_mod.opt_map.local)
+                
             if len(new_manifests) == 0:
                 p.vprint("All found manifests have been scanned")
                 break
@@ -400,15 +380,30 @@ def main():
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.make == True:
         import depend
-        if not os.path.exists(global_mod.hdlm_path):
-            p.echo("There is no "+global_mod.hdlm_path+" catalog. Probably modules are not fetched?")
-            quit()
+        
+        cur_manifest = global_mod.top_manifest 
+        involved_modules = []
+        new_manifests = []
+        opt_map = global_mod.opt_map
+        while True:
+            if opt_map.local != None:
+                involved_modules.extend(opt_map.local)
+                for i in opt_map.local:
+                    manifest = search_for_manifest(i)
+                    if manifest != None:
+                        new_manifests.append(manifest)
+                    
+            if len(new_manifests) == 0:
+                break;
+            cur_manifest = new_manifests.pop()
+            opt_map = parse_manifest(cur_manifest)
             
-        modules = os.listdir(global_mod.hdlm_path)
+        modules = involved_modules
+        if os.path.exists(global_mod.hdlm_path):
+            modules += [global_mod.hdlm_path+"/"+x for x in os.listdir(global_mod.hdlm_path)]
         if len(modules) == 0:
             p.vprint("No modules were found in " + global_mod.hdlm_path)
         
-        modules = [global_mod.hdlm_path+"/"+x for x in modules]
         #modules += global_mod.opt_map.rtl
         p.vprint("Modules that will be taken into account in the makefile: " + str(modules))
         deps, libs = depend.generate_deps_for_modules(modules)
@@ -426,7 +421,6 @@ def main():
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-        
 if __name__ == "__main__":
     #global options' map for use in the entire script
     t0 = None
