@@ -18,7 +18,7 @@ from optparse import OptionParser
 from fetch import fetch_from_local, fetch_from_svn, fetch_from_git
 
 def complain_tcl():
-    print "For Xilinx synthesis a tcl file in the top module is required"
+    p.echo("For Xilinx synthesis a tcl file in the top module is required")
 
 
 def parse_repo_url(url) :
@@ -29,7 +29,7 @@ def parse_repo_url(url) :
     url_match = re.match(url_pat, url)
     
     if url_match == None:
-        print "Skipping"
+        p.echo("Skipping")
         raise RuntimeError("Not a correct repo url: " + url)
     if url_match.group(3) != None: #there is a revision given 
         ret = (url_match.group(1), url_match.group(3))
@@ -44,11 +44,11 @@ def check_module_and_append(list, module):
     Appends a module to the list if it doesn't belong to it. If it is already there, complain
     """
     if list.count(module) != 0:
-        print "Module " + module + " has been previously defined: ommiting"
+        p.echo("Module " + module + " has been previously defined: ommiting")
         return 1 
     for i in list:
         if os.path.basename(i) == os.path.basename(module):
-            print "Module " + module + " has the same name as " + i + " :ommiting"
+            p.echo("Module " + module + " has the same name as " + i + " :ommiting")
             return 1
     list.append(module)
     return 0
@@ -319,7 +319,7 @@ def main():
         else:
             p.echo("Don't know how to run settings script for ISE version: " + global_mod.opt_map.ise)
         results = os.popen("export PATH=$PATH:"+path_ext+" &&xtclsh " + global_mod.opt_map.tcl + " run_process")
-        print results.readlines()
+        p.echo(results.readlines())
         quit()
             
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #            

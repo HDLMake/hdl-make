@@ -204,8 +204,6 @@ clean:
     #list rules for all _primary.dat files
     rp = os.path.relpath
     for file in file_deps_dict:
-        print file
-        print rp(file)
         lib = file_lib_dict[file]
         basename = os.path.basename(file)
         purename = os.path.splitext(basename)[0]

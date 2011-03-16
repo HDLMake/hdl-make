@@ -8,7 +8,7 @@ import sys
 import pprint as prettyprinter
 
 def echo(msg):
-    print "["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-global_mod.t0) + "]: " + str(msg)
+    print("["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-global_mod.t0) + "]: " + str(msg))
 
 def vprint(msg):
     if global_mod.options.verbose == True:
