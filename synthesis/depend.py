@@ -133,6 +133,10 @@ def generate_deps_for_modules(modules_paths):
     p.vpprint(file_file_dict)
     return file_file_dict, file_lib_dict
     
+def modelsim_ini_path():
+    vsim_path = os.popen("which vsim").read().strip()
+    bin_path = os.path.dirname(vsim_path)
+    return os.path.abspath(bin_path+"/../")
 def generate_makefile(file_deps_dict, file_lib_dict):
     from time import gmtime, strftime
     import path
@@ -148,7 +152,7 @@ def generate_makefile(file_deps_dict, file_lib_dict):
 PWD := $(shell pwd)
 WORK_NAME := work
 
-MODELSIM_INI_PATH := /opt/modeltech_66a/modeltech
+MODELSIM_INI_PATH := """ + modelsim_ini_path() + """
 
 VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini
 VSIM_FLAGS := -voptargs="+acc"
