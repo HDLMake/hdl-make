@@ -63,7 +63,7 @@ def generate_deps_for_modules(modules_paths):
         
     from hdlmake import parse_manifest
     opt_map_dict = {}
-    for module in module_manifest_dict.keys():
+    for module in list(module_manifest_dict.keys()):
         if module_manifest_dict[module] != None:
             opt_map_dict[module] = parse_manifest(module_manifest_dict[module])
     
@@ -178,7 +178,7 @@ clean:
     f.write(notices)
     f.write(make_preambule_p1)
     
-    libs = set(v for k,v in file_lib_dict.iteritems())
+    libs = set(v for k,v in list(file_lib_dict.items()))
     #list vhdl objects (_primary.dat files)
     f.write("VHDL_OBJ := ")
     for file in file_deps_dict:
