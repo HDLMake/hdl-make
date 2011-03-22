@@ -29,7 +29,7 @@ def search_for_use(file):
     for line in use_lines:
         m = re.match(lib_pattern, line)
         if m != None:
-            if string.lower(m.group(1)) in std_libs:
+            if (m.group(1)).lower() in std_libs:
                 continue
             ret.append((m.group(1),m.group(2)))
     f.close()
@@ -51,8 +51,27 @@ def search_for_package(file):
             ret.append(m.group(1))
     f.close()
     return ret
-    
-def generate_deps_for_modules(modules_paths):
+def generate_deps_for_sv_files(files):
+    def search_for_sv_include(file):
+        f = open(file,"r")
+        text = f.readlines()
+        
+        ret = []
+        package_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \t]+)\"[ \t]*$")
+        for line in text:
+            m = re.match(package_pattern, line)
+            if m != None:
+                print("dupa")
+                ret.append(m.group(1))
+        f.close()
+        return ret
+    if not isinstance(files,list):
+        files = [files]
+    file_file_dict = {}
+    for file in files:
+        file_file_dict[file] = search_for_sv_include(file)
+        
+def generate_deps_for_vhdl_in_modules(modules_paths):
     if not isinstance(modules_paths, list):
         modules_paths = [modules_paths]
         
@@ -102,14 +121,14 @@ def generate_deps_for_modules(modules_paths):
                 if package in package_file_dict:
                     p.echo("There might be a problem... Compilation unit " + package +
                     " has several instances:\n\t" + file + "\n\t" + package_file_dict[package])
-                    package_file_dict[string.lower(package)] = [package_file_dict[string.lower(package)], file]#///////////////////////////////////////////////////
-                package_file_dict[string.lower(package)] = file #map found package to scanned file
+                    package_file_dict[package.lower()] = [package_file_dict[package.lower()], file]#///////////////////////////////////////////////////
+                package_file_dict[package.lower()] = file #map found package to scanned file
         file_basename = os.path.basename(file)
         file_purename = os.path.splitext(file_basename)[0]
-        if file_purename in package_file_dict and package_file_dict[string.lower(file_purename)] != file:
+        if file_purename in package_file_dict and package_file_dict[file_purename.lower()] != file:
             p.echo("There might be a problem... Compilation unit " + file_purename +
                 " has several instances:\n\t" + file + "\n\t" + package_file_dict[file_purename])
-        package_file_dict[string.lower(file_purename)] = file
+        package_file_dict[file_purename.lower()] = file
     
     p.vpprint(package_file_dict)
     p.vpprint(file_lib_dict)
@@ -118,12 +137,12 @@ def generate_deps_for_modules(modules_paths):
     for file in all_vhdl_files:
         file_units_list = file_use_clause_dict[file]
         for unit in file_units_list:
-            if string.lower(unit[1]) in package_file_dict:
-                if string.lower(unit[0]) == file_lib_dict[package_file_dict[string.lower(unit[1])]]:
+            if unit[1].lower() in package_file_dict:
+                if unit[0].lower() == file_lib_dict[package_file_dict[unit[1].lower()]]:
                     if file in file_file_dict:
-                        file_file_dict[file].append(package_file_dict[string.lower(unit[1])])
+                        file_file_dict[file].append(package_file_dict[unit[1].lower()])
                     else:
-                        file_file_dict[file] = [package_file_dict[string.lower(unit[1])]]
+                        file_file_dict[file] = [package_file_dict[unit[1].lower()]]
             else:
                 p.echo("Cannot resolve dependency: " + file + " depends on "
                     +"compilation unit " + str(unit) + ", which cannot be found")

@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import cfgparse
 import re
 import fileinput
 import sys
+if sys.version_info < (3,0):
+    import cfgparse2 as cfgparse
+else:
+    import cfgparse3 as cfgparse
 from path import make_list_of_files
 import path
 import time
@@ -19,7 +22,6 @@ from fetch import fetch_from_local, fetch_from_svn, fetch_from_git
 
 def complain_tcl():
     p.echo("For Xilinx synthesis a tcl file in the top module is required")
-
 
 def parse_repo_url(url) :
     """
@@ -37,8 +39,6 @@ def parse_repo_url(url) :
         ret = url_match.group(1)
     return ret
     
-
-
 def check_module_and_append(list, module):
     """
     Appends a module to the list if it doesn't belong to it. If it is already there, complain
@@ -104,7 +104,6 @@ def parse_manifest(manifest_file):
     opt_map.files = make_list(opt_map.files)
     return opt_map
  
-
 def convert_xise(xise):
     if not os.path.exists(xise):
         p.echo("Given .xise file does not exist:" + xise)
@@ -168,7 +167,6 @@ def check_address_length(module):
     else:
         return None
         
-    
 def main():
     # # # # # # #
     import depend
@@ -406,7 +404,7 @@ def main():
         
         #modules += global_mod.opt_map.rtl
         p.vprint("Modules that will be taken into account in the makefile: " + str(modules))
-        deps, libs = depend.generate_deps_for_modules(modules)
+        deps, libs = depend.generate_deps_for_vhdl_in_modules(modules)
         depend.generate_makefile(deps, libs)
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
