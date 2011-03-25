@@ -233,7 +233,7 @@ clean:
         #each .dat depends on corresponding .vhd file
         f.write(lib+"/"+purename+"/_primary.dat: "+rp(file)+'\n')
         f.write('\t\tvcom $(VCOM_FLAGS) -work '
-            +lib+' '+rp(file)+'\n')
+        +lib+' '+rp(file)+' || rm -rf '+lib+'/'+purename+'\n')
         f.write('\n')
         if len(file_deps_dict[file]) != 0:
             f.write(lib+'/'+purename+"/_primary.dat:")
