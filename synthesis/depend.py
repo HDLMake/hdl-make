@@ -197,7 +197,7 @@ clean:
 """
     pwd = os.getcwd()
     #open the file and write the above preambule (part 1)
-    f = open("makefile", "w")
+    f = open("Makefile", "w")
     f.write(notices)
     f.write(make_preambule_p1)
     
@@ -207,7 +207,7 @@ clean:
     for file in file_deps_dict:
         basename = os.path.basename(file)
         purename = os.path.splitext(basename)[0]
-        f.write(file_lib_dict[file]+'/'+purename+ "/_primary.dat"+" \\\n")
+        f.write(file_lib_dict[file]+'/'+purename+ "/."+purename+" \\\n")
     f.write('\n')
     
     f.write('LIBS := ')
@@ -220,8 +220,8 @@ clean:
     f.write(make_preambule_p2)
     for lib in libs:
         f.write(lib+"/."+lib+":\n")
-        f.write("\t(vlib "+lib+" && vmap -modelsimini modelsim.ini "+lib+" "+lib+") || rm -rf "+lib+"\n")
-        f.write("\ttouch "+lib+"/."+lib+"\n")
+        f.write("\t(vlib "+lib+" && vmap -modelsimini modelsim.ini "+lib+" "+lib+" && touch "+lib+"/."+lib+") ")
+        f.write("|| rm -rf "+lib+"\n")
         f.write('\n')
    
     #list rules for all _primary.dat files
@@ -231,15 +231,15 @@ clean:
         basename = os.path.basename(file)
         purename = os.path.splitext(basename)[0]
         #each .dat depends on corresponding .vhd file
-        f.write(lib+"/"+purename+"/_primary.dat: "+rp(file)+'\n')
-        f.write('\t\tvcom $(VCOM_FLAGS) -work '
-        +lib+' '+rp(file)+' || rm -rf '+lib+'/'+purename+'\n')
+        f.write(lib+"/"+purename+"/."+purename+": "+rp(file)+'\n')
+        f.write('\t\tvcom $(VCOM_FLAGS) -work '+lib+' '+rp(file)
+        +' && mkdir -p ' + lib +'/'+purename+ '&& touch ' + lib + '/' + purename + '/.' + purename +'\n')
         f.write('\n')
         if len(file_deps_dict[file]) != 0:
-            f.write(lib+'/'+purename+"/_primary.dat:")
+            f.write(lib+'/'+purename+"/."+purename+":")
             for dep_file in file_deps_dict[file]:
                 short_dep_file = os.path.splitext(os.path.basename(dep_file))[0]
-                f.write(" \\\n"+file_lib_dict[dep_file]+'/'+short_dep_file+"/_primary.dat")
+                f.write(" \\\n"+file_lib_dict[dep_file]+'/'+short_dep_file+"/."+short_dep_file)
             f.write('\n\n')
    
     f.close()

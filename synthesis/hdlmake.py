@@ -415,7 +415,7 @@ def main():
         p.vprint("Removing the fetched modules")
         os.system("rm -rf " + global_mod.hdlm_path)
         p.vprint("Removing the makefile")
-        os.system("rm -f makefile")
+        os.system("rm -f Makefile")
         
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
