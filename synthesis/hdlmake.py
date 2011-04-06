@@ -138,25 +138,19 @@ def convert_xise(xise):
             new_ise.append(line + "\n")
     
     new_ise_file = open(xise + ".new", "w")
-    
+
 def search_for_manifest(search_path):
     """
-    Look for manifest in the given folder ans subfolders
+    Look for manifest in the given folder
     """
-    cmd = "find -H " + search_path + " -name manifest.py"
-    p.vprint(cmd)
-    files = os.popen(cmd).readlines()
-    
-    if len(files) == 0:
-        p.vprint("No manifest found in: " + search_path)
-        return None
-    elif len(files) > 1:
-        p.echo("Too many manifests in" + search_path + ": " + str(files))
-        return files[0].strip()
-        
-    p.echo("Found manifest: " + os.path.abspath(files[0]).strip())
-    return os.path.abspath(files[0].strip())     
-                
+    p.vprint("Looking for manifest in " + search_path)
+    for filename in os.listdir(search_path):
+        if filename == "manifest.py" and not os.path.isdir(filename):
+            p.echo("Found manifest: " + os.path.abspath(search_path+'/'+filename))
+            return os.path.abspath(search_path+'/'+filename)
+    # no manifest file found
+    return None
+
 def check_address_length(module):
     p = module.popen("uname -a")
     p = p.readlines()

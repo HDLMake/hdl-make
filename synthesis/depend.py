@@ -8,6 +8,11 @@ import msg as p
 
 std_libs = ['ieee', 'altera_mf', 'cycloneiii', 'lpm', 'std', 'unisim']
 
+def try_utf8(data):
+      try:
+            return data.decode('utf-8')
+      except UnicodeDecodeError:
+            return None
 
 def search_for_use(file):
     """
@@ -15,8 +20,12 @@ def search_for_use(file):
     non-standard library a tuple (lib, file) is returned in a list.
     """
     f = open(file, "r")
-    text = f.readlines()
-    
+    data = f.read()
+    text = try_utf8(data)
+    if text is None:
+          return []
+    text = text.split("\n")
+
     ret = []
     use_pattern = re.compile("^[ \t]*use[ \t]+([^; ]+)[ \t]*;.*$")
     lib_pattern = re.compile("([^.]+)\.([^.]+)\.all")
@@ -41,7 +50,11 @@ def search_for_package(file):
     from the file
     """
     f = open(file, "r")
-    text = f.readlines()
+    data = f.read()
+    text = try_utf8(data)
+    if text is None:
+          return []
+    text = text.split("\n")
     
     ret = []
     package_pattern = re.compile("^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*$")
