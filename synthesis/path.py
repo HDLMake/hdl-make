@@ -60,11 +60,11 @@ def rel2abs(path, base = os.curdir):
     retval = os.path.join(base,path)
     return os.path.abspath(retval)
     
-def make_list_of_files(modules, take_files = None, base_folder = None):
+def make_list_of_files(modules, take_files = None, base_folder = None, file_type = None):
     """
     Make list of all files included in the list of folders
     """
-    def getfiles(path):
+    def getfiles(path, file_type = None):
         """
         Get lists of normal files and list folders recursively
         """
@@ -73,17 +73,23 @@ def make_list_of_files(modules, take_files = None, base_folder = None):
             if filename[0] == ".": #a hidden file/catalogue -> skip
                 continue
             if os.path.isdir(path + "/" + filename):
-                ret.extend(getfiles(path + "/" + filename))
+                ret.extend(getfiles(path + "/" + filename, file_type))
             else:
-                ret.append(path + "/" + filename)
+                if file_type == None:
+                    ret.append(path + "/" + filename)
+                else:
+                    tmp = filename.rsplit('.')
+                    ext = tmp[len(tmp)-1]
+                    if ext == file_type:
+                        ret.append(path + '/' + filename)
         return ret
         
     files = []
     if not isinstance(modules, list):
-        files =  getfiles(modules)
+        files =  getfiles(modules, file_type)
     else:
         for module in modules:
-            files.extend(getfiles(module))
+            files.extend(getfiles(module, file_type))
             
     if take_files != None and take_files != []:
         ret_files = []

@@ -29,7 +29,7 @@ def parse_repo_url(url) :
     """
     url_pat = re.compile("[ \t]*([^ \t]+)[ \t]*(@[ \t]*(.+))?[ \t]*")
     url_match = re.match(url_pat, url)
-    
+
     if url_match == None:
         p.echo("Skipping")
         raise RuntimeError("Not a correct repo url: " + url)
@@ -38,7 +38,31 @@ def parse_repo_url(url) :
     else:
         ret = url_match.group(1)
     return ret
-    
+
+def make_list_of_modules(top_manifest, top_opt_map):
+    cur_manifest = top_manifest 
+    modules = []
+    new_manifests = []
+    opt_map = top_opt_map
+    while True:
+        if opt_map.local != None:
+            modules.extend(opt_map.local)
+            for i in opt_map.local:
+                manifest = search_for_manifest(i)
+                if manifest != None:
+                    new_manifests.append(manifest)
+
+        if len(new_manifests) == 0:
+            break;
+        cur_manifest = new_manifests.pop()
+        opt_map = parse_manifest(cur_manifest)
+
+    if os.path.exists(global_mod.hdlm_path):
+        modules += [global_mod.hdlm_path+"/"+x for x in os.listdir(global_mod.hdlm_path)]
+    if len(modules) == 0:
+        p.vprint("No modules were found in " + global_mod.hdlm_path)
+    return modules
+
 def check_module_and_append(list, module):
     """
     Appends a module to the list if it doesn't belong to it. If it is already there, complain
@@ -52,9 +76,9 @@ def check_module_and_append(list, module):
             return 1
     list.append(module)
     return 0
-    
+
 def parse_manifest(manifest_file):
-    
+
     def make_list(sth):
         if sth != None:
             if not isinstance(sth, (list,tuple)):
@@ -62,9 +86,9 @@ def parse_manifest(manifest_file):
         else:
             sth = []
         return sth
-        
+
     manifest_path = os.path.dirname(manifest_file)
-    
+
     manifest_parser = cfgparse.ConfigParser(allow_py = True)
     manifest_parser.add_option('root', default=None)
     manifest_parser.add_option('name', default=None)
@@ -77,13 +101,13 @@ def parse_manifest(manifest_file):
     manifest_parser.add_option('rtl', default=None)
     manifest_parser.add_option('files', default=None)
     manifest_parser.add_file(manifest_file)
-    
+
     #Take configuration parser from the global namespace
     opt_map = manifest_parser.parse()
-    
+
     if opt_map.root == None:
         opt_map.root = "."
-        
+
     if opt_map.rtl == None:
         opt_map.rtl = ["."]
     elif not isinstance (opt_map.rtl, list):
@@ -91,7 +115,7 @@ def parse_manifest(manifest_file):
 
     if opt_map.ise == None:
         opt_map.ise = "13.1"
-        
+
     opt_map.local = make_list(opt_map.local) 
     for i in opt_map.local:
         if path.is_abs_path(i):
@@ -108,14 +132,14 @@ def convert_xise(xise):
     if not os.path.exists(xise):
         p.echo("Given .xise file does not exist:" + xise)
         quit()
-        
+
     modules = ["."]
     modules.append(global_mod.hdlm_path)
     files = make_list_of_files(modules)
-    
+
     ise = open(xise, "r")
     ise_lines = [x.strip() for x in ise.readlines()]
-    
+
     new_ise = []
     file_pattern = re.compile('([ \t]*<file xil_pn:name=")([^"]+)(".*>)')
     #print ise_lines
@@ -136,7 +160,7 @@ def convert_xise(xise):
                 new_ise.append(line)
         else:
             new_ise.append(line + "\n")
-    
+
     new_ise_file = open(xise + ".new", "w")
 
 def search_for_manifest(search_path):
@@ -177,16 +201,17 @@ def main():
     parser.add_option("-o", "--convert-xise", dest="xise", default=None, help="convert paths in the given XISE_FILE", metavar="XISE_FILE")
     parser.add_option("-s", "--synth-server", dest="synth_server", default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
     parser.add_option("-u", "--synth-user", dest="synth_user", default=None, help="use given USER for remote synthesis", metavar="USER")
-    parser.add_option("--no-del", dest="no_del", default=None, help="do not delete catalog after remote synthesis")
+    parser.add_option("--make-list", dest="make_list", action="store_true", default=None, help="make list of project files in ISE format")
+    parser.add_option("--no-del", dest="no_del", action="store_true", default=None, help="do not delete catalog after remote synthesis")
     (global_mod.options, args) = parser.parse_args()
     
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #Check if any option was selected
-    if global_mod.options.local == global_mod.options.fetch == global_mod.options.remote == global_mod.options.make == global_mod.options.clean == None:
-        import sys
-        p.echo("Are you sure you didn't forget to specify an option? At least one?")
-        p.echo("Maybe you should try " + sys.argv[0] + " -h") 
-        quit()
+#    if global_mod.options.local == global_mod.options.fetch == global_mod.options.remote == global_mod.options.make == global_mod.options.clean == None:
+#        import sys
+#        p.echo("Are you sure you didn't forget to specify an option? At least one?")
+#        p.echo("Maybe you should try " + sys.argv[0] + " -h") 
+#        quit()
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.xise != None:
         convert_xise(global_mod.options.xise)
@@ -368,35 +393,20 @@ def main():
         if global_mod.options.no_del != True:
             p.echo("Deleting synthesis folder")
             global_mod.ssh.system('rm -rf ' + dest_folder)
-        
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    if global_mod.options.make_list == True:
+        import depend
+        modules = make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
+
+        p.vprint("Modules that will be taken into account in the makefile: " + str(modules))
+        deps, libs = depend.generate_deps_for_vhdl_in_modules(modules)
+        depend.generate_list_makefile(deps, libs)
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.make == True:
         import depend
-        
-        cur_manifest = global_mod.top_manifest 
-        involved_modules = []
-        new_manifests = []
-        opt_map = global_mod.opt_map
-        while True:
-            if opt_map.local != None:
-                involved_modules.extend(opt_map.local)
-                for i in opt_map.local:
-                    manifest = search_for_manifest(i)
-                    if manifest != None:
-                        new_manifests.append(manifest)
-                    
-            if len(new_manifests) == 0:
-                break;
-            cur_manifest = new_manifests.pop()
-            opt_map = parse_manifest(cur_manifest)
-            
-        modules = involved_modules
-        if os.path.exists(global_mod.hdlm_path):
-            modules += [global_mod.hdlm_path+"/"+x for x in os.listdir(global_mod.hdlm_path)]
-        if len(modules) == 0:
-            p.vprint("No modules were found in " + global_mod.hdlm_path)
-        
-        #modules += global_mod.opt_map.rtl
+        modules = make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
+
         p.vprint("Modules that will be taken into account in the makefile: " + str(modules))
         deps, libs = depend.generate_deps_for_vhdl_in_modules(modules)
         depend.generate_makefile(deps, libs)
