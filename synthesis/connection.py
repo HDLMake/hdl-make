@@ -13,7 +13,7 @@ class Connection:
     def popen(self, cmd):
         return os.popen("ssh " + self.ssh_user + "@" + self.ssh_server + ' "' + cmd + '"')
         
-    def transfer_files_forth(files, dest_folder = None):
+    def transfer_files_forth(self, files, dest_folder):
         """
         Takes list of files and sends them to remote machine. Name of a directory, where files are put
         is returned
@@ -42,7 +42,7 @@ class Connection:
         os.waitpid(p.pid, 0)[1]
         return dest_folder
                 
-    def transfer_files_back(dest_folder):
+    def transfer_files_back(self, dest_folder):
         rsync_cmd = "rsync -av " + self.ssh_user + "@" + ss_server + ":" + dest_folder+" ."
         p.vprint(rsync_cmd)
         os.system(rsync_cmd)

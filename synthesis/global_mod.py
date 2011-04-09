@@ -10,6 +10,8 @@ top_manifest = None
 cwd = None
 opt_map = None
 hdlm_path = "hdl_make"
+ise_list_makefile = ".Makefile_list"
+ise_list_file = "ise_list"
 
 ise_path_64 = {
 "10.0":"/opt/Xilinx/10.1/ISE/bin/lin",

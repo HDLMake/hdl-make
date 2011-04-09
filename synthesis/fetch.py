@@ -5,46 +5,63 @@ import msg as p
 import global_mod
 import path
 
-def fetch_from_svn(url, revision = None):
+def fetch_from_svn(url, revision = None, fetchto = None):
+    if fetchto == None:
+        fetchto = global_mod.fetchto
+
+    if not os.path.exists(fetchto):
+        os.mkdir(fetchto)
+
+    cur_dir = os.getcwd()
+    os.chdir(fetchto)
+
     basename = path.url_basename(url)
-    
-    cmd = "svn checkout {0} " + global_mod.hdlm_path + "/" + basename
+
+    cmd = "svn checkout {0} " + basename
     if revision:
         cmd = cmd.format(url + '@' + revision)
     else:
         cmd = cmd.format(url)
-        
+
     p.vprint(cmd)
     os.system(cmd)
+    os.chdir(cur_dir)
 
-def fetch_from_local(url):
-    if not os.path.exists(url):
-        p.echo("Local URL " + url + " not found\nQuitting")
-        quit()
-    basename = path.url_basename(url)
-    
-    make_hdlm_dir()
-    if os.path.exists(global_mod.hdlm_path + "/" + basename):
-        p.echo("Folder " + global_mod.hdlm_path + "/" + basename + " exists. Maybe it is already fetched?")
-        return
-    os.symlink(url, global_mod.hdlm_path + "/" + basename)
+def fetch_from_git(url, revision = None, fetchto = None):
+    if fetchto == None:
+        fetchto = global_mod.fetchto
 
-def fetch_from_git(url, revision = None):
-    make_hdlm_dir()
-    
+    if not os.path.exists(fetchto):
+        os.mkdir(fetchto)
+
+    cur_dir = os.getcwd()
+    os.chdir(fetchto)
+
     basename = url_basename(url)
     if basename.endswith(".git"):
         basename = basename[:-4] #remove trailing .git
-    os.chdir(global_mod.hdlm_path)
+
     cmd = "git clone " + url
     p.vprint(cmd)
     os.system(cmd)
     if revision:
         os.chdir(basename)
         os.system("git checkout " + revision)
-        
-    os.chdir(global_mod.cwd)
-    
-def make_hdlm_dir():
-    if not os.path.exists(global_mod.hdlm_path):
-        os.mkdir(global_mod.hdlm_path)
+    os.chdir(cur_dir)
+
+
+def parse_repo_url(url) :
+    """
+    Check if link to a repo seems to be correct
+    """
+    import re
+    url_pat = re.compile("[ \t]*([^ \t]+)[ \t]*(@[ \t]*(.+))?[ \t]*")
+    url_match = re.match(url_pat, url)
+
+    if url_match == None:
+        p.echo("Not a correct repo url: {0}. Skipping".format(url))
+    if url_match.group(3) != None: #there is a revision given 
+        ret = (url_match.group(1), url_match.group(3))
+    else:
+        ret = url_match.group(1)
+    return ret
