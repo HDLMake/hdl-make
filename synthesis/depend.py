@@ -86,7 +86,7 @@ def generate_deps_for_sv_files(files):
 
 def generate_deps_for_vhdl_in_modules(module_manifest_dict):
     from path import search_for_manifest
-    from hdlmake import parse_manifest
+    from mnfst import parse_manifest
     opt_map_dict = {}
     for module in list(module_manifest_dict.keys()):
         if module_manifest_dict[module] != None:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import msg as p
-from mnfst import parse_manifest
+import mnfst
 
 def url_basename(url):
     """
@@ -113,13 +113,12 @@ def make_list_of_files(module_manifest_dict, file_type = None):
 
     files = []
     module_files_dict = {}
-    from hdlmake import parse_manifest
 
     for module in list(module_manifest_dict.keys()): #iterate over all modules
         manifest = module_manifest_dict[module]
         module_files_dict[module] = []
         if manifest != None:
-            manifest = parse_manifest(manifest) #if found, parse it
+            manifest = mnfst.parse_manifest(manifest) #if found, parse it
             if manifest.files != None and manifest.files != []:
                 for file in manifest.files:
                     if os.path.isdir(file):
@@ -180,7 +179,7 @@ def make_list_of_modules(top_manifest, top_opt_map):
             break;
         cur_manifest = new_manifests.pop()
         cur_module = os.path.dirname(cur_manifest)
-        opt_map = parse_manifest(cur_manifest)
+        opt_map = mnfst.parse_manifest(cur_manifest)
 
     #if os.path.exists(top_opt_map.fetchto):
     #    modules += [os.path.join(top_opt_map.fetchto, x) for x in os.listdir(top_opt_map.fetchto) if os.path.isdir(x)]

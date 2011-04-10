@@ -15,8 +15,7 @@ import global_mod
 import msg as p
 from optparse import OptionParser
 from fetch import fetch_from_svn, fetch_from_git, parse_repo_url
-from mnfst import parse_manifest
-
+import mnfst
 
 def inject_files_into_ise(ise_file, files_list):
     ise = open(ise_file, "r")
@@ -35,88 +34,21 @@ def inject_files_into_ise(ise_file, files_list):
     new_ise_file.write(''.join(new_ise))
     new_ise_file.close()
 
-def check_module_and_append(list, module):
-    """
-    Appends a module to the list if it doesn't belong to it. If it is already there, complain
-    """
-    if list.count(module) != 0:
-        p.echo("Module " + module + " has been previously defined: ommiting")
-        return 1 
-    for i in list:
-        if os.path.basename(i) == os.path.basename(module):
-            p.echo("Module " + module + " has the same name as " + i + " :ommiting")
-            return 1
-    list.append(module)
-    return 0
-
-
 def check_address_length(module):
     p = module.popen("uname -a")
     p = p.readlines()
-    if "i686" in p[0]:
+    if not len(p):
+        p.echo("Checking address length failed")
+        return None
+    elif "i686" in p[0]:
         return 32
     elif "x86_64" in p[0]:
         return 64
     else:
         return None
 
-def fetch_manifest(manifest_path, opt_map):
-
-    cur_manifest = manifest_path
-    cur_opt_map = opt_map
-    involved_modules = []
-    new_manifests = []
-
-    while True:
-        for i in cur_opt_map.local:
-            if not os.path.exists(path.rel2abs(i, os.path.dirname(cur_manifest))):
-                p.echo("Error in parsing " + cur_manifest +". There is not such catalogue as "+
-                path.rel2abs(i, os.path.dirname(cur_manifest)))
-
-        p.vprint("Modules waiting in fetch queue:"+
-            ' '.join([str(cur_opt_map.git), str(cur_opt_map.svn), str(cur_opt_map.local)]))
-
-        for i in cur_opt_map.svn:
-            p.vprint("Checking SVN url: " + i)
-            fetch_from_svn(parse_repo_url(i))
-
-            ret = check_module_and_append(involved_modules, os.path.abspath(os.path.join(global_mod.fetchto, path.url_basename(i))))
-            if ret == 0:
-                manifest = path.search_for_manifest(os.path.join(cur_opt_map.fetchto, path.url_basename(i)))
-                if manifest != None:
-                    new_manifests.append(manifest)
-
-        for i in cur_opt_map.git:
-            p.vprint("Checking git url: " + i)
-            fetch_from_git(parse_repo_url(i))
-
-            if url.endswith(".git"):
-                url = url[:-4]
-
-            ret = check_module_and_append(involved_modules, os.path.abspath(os.path.join(global_mod.fetchto, path.url_basename(url))))
-            if ret == 0:
-                manifest = path.search_for_manifest(os.path.join(global_mod.fetchto, path.url_basename(url)))
-                if manifest != None:
-                    new_manifests.append(manifest)
-
-        for i in cur_opt_map.local:
-            manifest = path.search_for_manifest(i)
-            if manifest != None:
-                new_manifests.append(manifest)
-        involved_modules.extend(cur_opt_map.local)
-
-        if len(new_manifests) == 0:
-            p.vprint("All found manifests have been scanned")
-            break
-        p.vprint("Manifests' scan queue: " + str(new_manifests))
-
-        cur_manifest = new_manifests.pop()
-        p.vprint("Parsing manifest: " +str(cur_manifest))
-        cur_opt_map = parse_manifest(cur_manifest) #this call sets global object global_mod.opt_map
-    p.vprint("Involved modules: " + str(involved_modules))    
 
 def main():
-    # # # # # # #
     import depend
     global_mod.t0 = time.time()
     parser = OptionParser()
@@ -155,7 +87,7 @@ def main():
     if global_mod.options.synth_user != None:
         global_mod.synth_user = global_mod.options.synth_user
 
-    global_mod.opt_map = parse_manifest(global_mod.top_manifest) #this call sets global object global_mod.opt_map
+    global_mod.opt_map = mnfst.parse_manifest(global_mod.top_manifest) 
 
     if global_mod.opt_map.fetchto != None:
         global_mod.fetchto = global_mod.opt_map.fetchto
@@ -174,7 +106,7 @@ def main():
         global_mod.opt_map.tcl = global_mod.options.tcl
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.fetch == True:
-        fetch_manifest(global_mod.top_manifest, global_mod.opt_map)
+        mnfst.fetch_manifest(global_mod.top_manifest, global_mod.opt_map)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.local == True:
@@ -203,11 +135,15 @@ def main():
             p.echo("Given .tcl doesn't exist: " + global_mod.opt_map.tcl)
             quit()
 
-        if not os.path.exists(global_mod.fetchto):
-            p.echo("There are no modules fetched. Are you sure it's correct?")
-
         p.vprint("The program will be using ssh connection: "+global_mod.synth_user+"@"+global_mod.synth_server)
         global_mod.ssh = Connection(global_mod.synth_user, global_mod.synth_server)
+
+        if not global_mod.ssh.is_good():
+            p.echo("SSH connection failure.")
+            quit()
+
+        if not os.path.exists(global_mod.fetchto):
+            p.echo("There are no modules fetched. Are you sure it's correct?")
 
         module_manifest_dict = path.make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
         p.vprint ("Modules: ")
@@ -220,7 +156,6 @@ def main():
 
         p.vprint("Files that will be transfered")
         p.vpprint(files)
-        p.vprint(global_mod.opt_map.name)
         dest_folder = global_mod.ssh.transfer_files_forth(files, global_mod.opt_map.name)
 
         ret = global_mod.ssh.system("[ -e /opt/Xilinx/"+global_mod.opt_map.ise+" ]")
@@ -246,7 +181,7 @@ def main():
 
         cur_dir = os.path.basename(global_mod.cwd)
         os.chdir("..")
-        transfer_files_back(dest_folder+global_mod.cwd)
+        global_mod.ssh.transfer_files_back(dest_folder+global_mod.cwd)
         os.chdir(cur_dir)
         if global_mod.options.no_del != True:
             p.echo("Deleting synthesis folder")
