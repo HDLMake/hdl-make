@@ -1,0 +1,236 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[dvips]{graphicx}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[usenames]{color}
+\usepackage{xcolor}
+\usepackage{comment}
+\usepackage{caption}
+\usepackage{listings}
+
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\lstset{
+    language=python,
+    tabsize=4,
+    basicstyle=\footnotesize,
+    %       basicstyle=\fontfamily{pcr}\selectfont,
+    columns=fixed,
+    morekeywords={rm,mkdir,touch,ls}
+}
+
+%\renewcommand*\DTstylecomment{\rmfamily}
+%\renewcommand*\DTstyle{\ttfamily}
+%\setlength{\DTbaselineskip}{8pt}
+\title{Hdlmake user's documentation}
+\author{Paweł Szostek \\ CERN BE-CO-HT}
+\date{\today}
+\begin{document}
+\maketitle
+%\begin{abstract}
+%This article desribes problems connected with  scripts, whose aim is to automate simulation of VHDL designs for Altera and to make synthesis faster by delegating it to dedicated server.
+%\end{abstract}
+\section*{Introduction}
+\subsection*{Rationale}
+Maintaining VHDL projects either for Altera or for Xilins is a source of many problems. When using Modelsim for simulating VHDL designs there is no tool for dependencies generation. The developer has to think up the dependencies between files and modules, as well as compilation order, on his own. This is laborious and consumes developer's time.
+
+Synthesis of large projects is a time and resource-consuming process. It makes the edit-compile-test cycle unreasonably long and makes it harder to introduce petty modifications to the hardware. Apart from that much of system resources like memory or CPU time are consumed and synthesis makes running other application harder. The solution for this problem is to set up a dedicated server for synthesis purpose only. This allows to delegate this demanding task to a fast machine, while the developer's computer remains still useful.
+
+The aim of the project is to offer multiple functionalities whose aim is to make VHDL coder's life easier. Nevertheless, its principal goal is to provide means for performing simulation and synthesis for VHDL projects.
+
+
+\subsection*{Python}
+The script is written in Python and is checked under Python 2.7. There have been some issues with compatibility in Python 3.1 but they have been resolved. Nevertheless, there can occur some unexptected problems following that the Python maintainer don't hesitate to remove functions or change calling syntax. I did my best to ensure compatibility but there is no guarantee for proper working in the newest versions of Python.
+\subsection*{Required environment}
+Hdlmake is basically written for use in Linux environment. It was tested and developed under Ubuntu 10.04. For the time being there are no perspectives for moving to Windows (there is also no need, by the way).
+
+For the most options Python is the only thing that you need to make it work.
+In order to perform remote synthesis you should equip your system with a ssh client and rsync.
+\subsection*{Way of use}
+The basis for Hdlmake are configuration files called ``manifests''. Those files have form of Python scripts and therefore must obey its syntax. They should also have Python exstension (.py). As Hdlmake supports synthesis and simulation, they are used for both testbenches and top modules. The major goal of the manifests is to describe the structure of the project:
+\begin{itemize}
+    \item what is the module's ancestor (if any),
+    \item for parent modules, what modules it is made of, where to take them from, where to store them locally,
+    \item what are the local files, that should be used in synthesis or simulation,
+    \item what is the target library for a module (in a VHDL sense),
+    \item what is the name of the project,
+    \item which ISE version should be used,
+    \item which qsh (Quartus Shell) version should be used, etc.
+\end{itemize}
+
+Whenever you want to run Hdlmake for any reason, you should have prepared manifest.py file containing all needed variables. Description of available variables you can find in the section \ref{subsec:vars}. You can also use built-in user help.
+Hdlmake makes use also of run arguments. In general, their purpose is to indicate the action that should be taken by the script. Some of them are also used for specifing additional parameteter that are not enclosed in manifests. All supported actions are listed in the section \ref{subsec:args}
+\section{Features}
+Hdlmake consists of two major ingredients which are described below.
+\paragraph*{File-based project description}
+Hdlmake defines a way to describe projects that consist of smaller modules. Usually developers kept these modules together, altough each of them ``deserved'' an own repository. When some of these modules are reused accross several projects, then there can appear a mess. Hdlmake offers easy and convenient way to specify where to find necessary modules. There is no need to store them permanently on the local hard disk.
+It is of course up to a developer how a project is divided into smaller parts. All files can be stored in one folder and kept in one repository, but this seems to be a bit inconvenient. Everyone should use a structure that he feels comfortable with.
+
+\paragraph*{Helper script for project-related operations}
+When your project is properly described with manifest files, then you can take advantage of written scripts. You can write makefiles for simulation, do synthesis on other machines over a network. You can fetch needed modules recursively and automatically and get rid of them whenever you want.
+\section{Basic run scenarios}
+In order to Hdlmake developer has to put all python files together in one directory. \verb!hdlmake.py! must have execution rights. Next it is necessary to change current directory to this one that contains a manifest. From there \verb!hdlmake.py! must be run with one or more arguments.
+\subsection*{Makefile preparation (option -k)}
+Makefile preparation is one of the most basic features that Hdlmake can be used for. It relieves a developer of creating makefiles by hand. When compiling VHDL files for simulation, one must ensure their correct order. In every project there are more or less compplicated dependecied between all project files, that can be expressed in a form of dependency tree - one file makes use of data from an other file by e.g. including it. Each file may not be compiled until all files it is dependent on are compiled, otherwise the compilation process will fail.
+
+In order to use it, Hdlmake must be run from the directory containing a manifest. It is assumed that all needed modules were previously fetched. When run, Hdlmake starts with reading the top module and recursively collecting modules that are parts of the current design. You can specify modules that are stored locally, in a git or in a SVN repository.
+
+When the list of used modules is ready, Hdlmake checks if any of those modules has in its manifest a list of files, that should be used in the testbench. If not, all of the module's files are added to the list of files. In the next step, hdlmake scans all of the listed files and tries to figure out dependencies between them by analizing each file's content. They are next written down as a makefile in the testbench's directory.
+\subsection*{Fetching submodules for a top module (option -f)}
+Hdlmake offers a short way of describing project structures. It is assumed that a projects can consist of modules, that are stored in different places (locally or a repo). The same thing is about each of those modules - they can be based on other modules. Hdlmake can fetch all of them and store them in specified places. For each module one can specify a target catalog with manifest variable \verb!fetcho!. Its value must be a name (existent or not) of a folder. The folder may be located anywhere in the filesystem. It must be then a relative path (Hdlmake support solely relative paths).
+\subsection*{Synthesizing projects remotely (option -r)}
+Another valuable feature of Hdlmake is the ability to perform VHDL synthesis on a remote machine instead of running it on your desktop. Both Altera's qsh and Xilinx' ISE-command-line-tools are suppored. In comparison with local synthesis, remote synthesis has several adventages:
+\begin{itemize}
+\item Developer can run synthesis on a fast machine, instead oh his slow machine
+\item Developer is not forced to install new software in case when his computer is not equipped with particular version of software
+\item Synthesis is a resource-consuming process. When someone runes it on a remote machine, his own computer remains usable
+\item Common synthesis server allows to unify synthesis projects. Usually, when developing a project in a team, all team members have different version of software tools. These tools are complex and their ersions are not always fully compatible with each other. When collaborating developers share the same machine for synthesis they can always be sure that the synthesis will run correctly.
+\end{itemize}
+In order to make command-line synthesis possible, for both Altera and Xilinx a project for vendor's IDE must be created - this is Quartus and ISE respectively. For Xilinx a .tcl file must exist in addition. This file can be generated when selecting ``Project'' and then ``Generate .tcl s
+Synthesis server and username for logging in on the synthesis server can be specified with run parameters: \verb!--synth-server! and \verb!--synth-user! accordingly.
+
+
+\subsection*{Synthesizing projects locally (option -l)}
+It is also possible to perform synthesis on the local machine. For this purpose server and username are not necessary.
+\section{Additional features}
+\subsection*{Verbose mode (option -v)}
+For debugging purpose and having more control over what is happening you can run Hdlmake in verbose mode. In this mode most of the intermediate data structures are printed 
+
+\section{Manifest variables description}\label{subsec:vars}
+\paragraph*{modules}
+This is probably the most import of all variables. It should be Python's dictionary containg at most three keywords: \verb!local!, \verb!svn! and \verb!git!. Values connected with these keywords can be either strings or lists containing strings. Each string indicates particular location that correct in terms of its keyword. For example, a project conisting of 4 modules: one stored locally, one in git and two in SVN can have a manifest like following:
+\begin{lstlisting}
+module = {
+    "local":"/path/to/the/module",
+    "git":"git@github.com:user/module.git",
+    "svn":["https://svn.cern.ch/trunk/cesar",
+            "http://svn.cern.ch/trunk/oasis/client@25"]
+}
+\end{lstlisting}
+\paragraph*{files}
+For each module you can specify what files (or directories) should be taken into account for synthesis or simulation. This is what \verb!files! is used for.
+\paragraph*{fetchto}
+Specifies location for fetching modules from repositories.
+\paragraph*{root\_manifest}
+Specifies root manifest for the current module. The option is especially useful for testbenches. When having multiple testbenches you may want to specify modules needed for all of them in one place. Root manifest can be there applied.
+\paragraph*{name}
+This is the name of the project that will be used for storage on synthesis server. If you want to makes synthesis faster (and avoid transfering all the time the same files) you should specify any meaningul name here.
+\paragraph*{tcl}
+Path to a .tcl file used for synthesis for Xilinx.
+\paragraph*{ise}
+Version of ISE that should be used in a synthesis
+\paragraph*{vsim\_opt, vcom\_opt, vlog\_opt, vmap\_opt}
+These 4 variables contain run parameters for vsim, vcom, vlog and vmap respectively. Used in makefile generation.
+\paragraph*{library}
+Target library for simulation for all files from the current module. All files from a module must stay in the same library.
+\section{Run arguments summary}\label{subsec:args}
+Hdlmake can be run with several arguments. The way of using them is identical with the standard one in Linux systems. The order of the arguments is not important. Hereafter you can find each argument with a short description.
+\subsection*{-h, --help}
+Shows help message that is automatically generated with Python's optparse module. Gives a short description of each available option.
+\subsection*{--manifest-help}
+Shows a short description of all variables that can be used in module's manifest. The message is generated by Python's cfgparse module.
+\subsection*{-k, --make}
+Write a simulation makefile reflecting dependencies between the current project's files.
+\subsection*{-f, --fetch}
+Extract modules' list from top manifest and its descendant. Checks if local modules are present. Downloads remote modules from repositories. All modules that were fetched are stored in appropriate destinations, as it is stated in their ancestor's manifest. 
+\subsection*{-l, --synthesize-locally}
+Performs local synthesis. Behaves exactly like by remote synthesis but keeps files and process on the local computer. Requires a .tcl file and a project manifest.
+\subsection*{-r, --synthesize-remotelly}
+Performs remote synthesis. Hdlmake makes on the besis of manifests a list of all files files that are involved in the projects. They are afterwards transferred to the synthesis server over scr with rsync. Synthesis is run remotelly over SSH and eventually all new or changed file are transfered back. Thanks to this, the results of the synthesis are displayed on-line and output files are available locally.
+\subsection*{-v, --verbose}
+Runs Hdlmake in verbose mode. Is principally used for debugging purposes. Forces Hdlmake to display intermediate internal structures.
+\subsection*{--inject}
+\textbf{Not fully tested.} Is used for ``injecting''. On the basis of manifests creates a list of all files. Those are filtered for VHDL files and written into the .xise file. This option requires specifing of .xise file with \verb!--ise-file! option.
+\subsection*{--make-list}
+\textbf{Not fully tested.} This option is used for preparing a file with ISE-friendly list of files and their target libraries (which is \verb!library;file!).
+\subsection*{--tcl-file=TCL}
+Specifies a TCL file used for synthesis.
+\subsection*{--ise-file=ISE}
+Specifies .xise file for other actions
+\subsection*{--synth-server=SERVER}
+Use given machine for remote synthesis. SERVER must be understood by the resolver.
+\subsection*{--synth-user=USER}
+Use given user for logging in to the remote server.
+\section{Use examples}
+\subsection{Makefile for simulation}
+Let's take a simple project as example. It consists of 3 modules and one testbench. Its directory looks like this:
+\begin{lstlisting}[language=bash]
+pawel@reksio:~/test/proj$ tree -d
+.
+`-- hdl
+    |-- module1
+    |-- module2
+    |-- module3
+    `-- tb
+\end{lstlisting}
+Supposing that the testbench will use all modules, the manifest in \verb!tb! directory should look like this:
+\begin{lstlisting}
+modules = {"local":
+["../module1","../module2","../module3"]
+}
+\end{lstlisting}
+\subsection*{First improvement}
+This case was very trivial. Let's try now to complicate the situation a bit. Let say, that two of our modules are stored in a repository. What is more, for module2 we would like to use revision number 25. In that case, the manfiest will look as follows:
+\begin{lstlisting}
+modules = {"local": "../module1"
+"svn":["http://path.to.repo/module2",
+    "http://path.to.repo/module3@25"]
+}
+\end{lstlisting}
+The generated makefile will work fine. The only issue is that the modules will be fetched to the directory of testbench, which is not very elegant. To make it better, add \verb!fetchto! to the manifest:
+\begin{lstlisting}
+fetchto = ".."
+\end{lstlisting}
+This will tell Hdlmake to fetch modules to the project catalog. Let's see how it works:
+\begin{lstlisting}[language=bash]
+pawel@reksio:~/test/proj$ tree -d
+.
+    `-- hdl
+    |-- module1
+    `-- tb
+pawel@reksio:~/test/proj$ cd hdl/tb
+pawel@reksio:~/test/proj/hdl/tb$ hdlmake.py -f
+pawel@reksio:~/test/proj$ cd ../..
+pawel@reksio:~/test/proj$ tree -d
+.
+`-- hdl
+    |-- module1
+    |-- module2
+    |-- module3
+    `-- tb
+\end{lstlisting}
+\subsection*{Complicating things a bit}
+Now, let's say that in our project we have three testbenches and two modules stored in SVN. We don't want to type in each manifest all needed modules. It is better now to make a root manifest that lists all the modules.
+\begin{lstlisting}
+modules = {"svn":
+["path.to.module1","path.to.module2"]
+}
+\end{lstlisting}
+Manifests in testbenches should look as follows:
+\begin{lstlisting}
+root_manfiest = "../manifest.py"
+\end{lstlisting}
+\subsection{Synthesis}
+Hdlmake can perform a synthesis only then, when it knows, what modules a project consist of. For this purpose they must be stated in the project's manifest.
+It can look as follows:
+\begin{lstlisting}
+modules = {"local":
+["module1", "module2", "module3", "module4"]
+}
+\end{lstlisting}
+If in one of the modules you want to limit valid files to only one, its manifest should look like this:
+\begin{lstlisting}
+files = "the_only_important_file.vhd"
+\end{lstlisting}
+In this situation, when Hdlmake will be parsing manifests' tree, it will encounter this statement and will take into account only the listed file.
+Let's say that we want to synthesize the project for Xilinx. Now comes the biggest inconvenience: one have to prepare .tcl file for the project. To do that, one have to create a project in ISE, add all files, and click ``Generate Tcl File''. Adding all of the sources may be anoying. This is we are trying to bypass this by semi- or full automatization. The work is not tested yet (see \verb!--inject! and \verb!--make-list! option.
+When you are done with .tcl, go to the diractory containing the main manifest and type command for synthesis:
+\begin{lstlisting}[language=bash]
+pawel@reksio:~/test/proj$ hdlmake.py -r --synth-server="htsynth" 
+--synth-user="pawel" --tcl-file="proj.tcl"
+\end{lstlisting}
+If everything with the connection went fine, you should see the results on-line. After the script finishes, new and changed files are transfered back.
+\end{document}
