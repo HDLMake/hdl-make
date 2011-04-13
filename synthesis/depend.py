@@ -229,7 +229,6 @@ clean:
 .PHONY: clean
 
 """
-    pwd = os.getcwd()
     #open the file and write the above preambule (part 1)
     f = open("Makefile", "w")
     f.write(notices)
@@ -252,22 +251,28 @@ clean:
     f.write(' '.join([lib+"/."+lib for lib in libs]))
     f.write('\n')
     f.write(make_preambule_p2)
+
+    vlo = global_mod.opt_map.vlog_opt
+    vmo = global_mod.opt_map.vmap_opt
     for lib in libs:
         f.write(lib+"/."+lib+":\n")
-        f.write("\t(vlib "+lib+" && vmap -modelsimini modelsim.ini "+lib+" "+lib+" && touch "+lib+"/."+lib+") ")
-        f.write("|| rm -rf "+lib+"\n")
+        f.write(' '.join(["\t(vlib", vlo, lib, "&&", "vmap", vmo, "-modelsimini modelsim.ini", 
+        lib, "&&", "touch", lib+"/."+lib,")"]))
+
+        f.write(' '.join(["||", "rm -rf", lib, "\n"]))
         f.write('\n')
 
     #list rules for all _primary.dat files
     rp = os.path.relpath
+    vco = global_mod.opt_map.vcom_opt
     for file in file_deps_dict:
         lib = file_lib_dict[file]
         basename = os.path.basename(file)
         purename = os.path.splitext(basename)[0]
         #each .dat depends on corresponding .vhd file
         f.write(os.path.join(lib, purename, "."+purename) + ": "+rp(file)+'\n')
-        f.write('\t\tvcom $(VCOM_FLAGS) -work '+lib+' '+rp(file)
-        +' && mkdir -p '+os.path.join(lib, purename) +'&& touch ' + os.path.join(lib, purename, '.'+ purename) +'\n')
+        f.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, rp(file),
+        "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename), '\n']))
         f.write('\n')
         if len(file_deps_dict[file]) != 0:
             f.write(os.path.join(lib, purename, "."+purename) +":")

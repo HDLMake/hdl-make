@@ -4,7 +4,7 @@
 import re
 import fileinput
 import sys
-
+import path
 import path
 import time
 import os
@@ -13,7 +13,7 @@ import random
 import string
 import global_mod
 import msg as p
-from optparse import OptionParser
+import optparse
 from fetch import fetch_from_svn, fetch_from_git, parse_repo_url
 import mnfst
 
@@ -47,40 +47,34 @@ def check_address_length(module):
     else:
         return None
 
-
 def main():
     import depend
     global_mod.t0 = time.time()
-    parser = OptionParser()
+    parser = optparse.OptionParser()
+    parser.add_option("--manifest-help", action="store_true", dest="manifest_help",
+    help="print manifest file variables description")
+    parser.add_option("-k", "--make", dest="make", action="store_true", default=None, help="prepare makefile for simulation")
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch", help="fetch files from modules listed in MANIFEST")
-    parser.add_option("-c", "--clean", action="store_true", dest="clean", help="clean the mess made by me")
     parser.add_option("-l", "--synthesize-locally", dest="local", action="store_true", help="perform a local synthesis")
     parser.add_option("-r", "--synthesize-remotelly", dest="remote", action="store_true", help="perform a remote synthesis")
-    parser.add_option("--tcl-file", dest="tcl", help="specify a TCL file used for synthesis") 
-    parser.add_option("--ise-file", dest="ise", help="specify .xise file for other actions", metavar="ISE")
-    parser.add_option("-m", "--manifest", dest="manifest", default=None, help="use given MANIFEST in all operations", metavar="MANIFEST")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default="false", help="verbose mode")
-    parser.add_option("-k", "--do-make", dest="make", action="store_true", default=None, help="prepare makefile for simulation")
+    parser.add_option("--inject", dest="inject", action="store_true", default=None, help="inject file list into ise project")
+    parser.add_option("--make-list", dest="make_list", action="store_true", default=None, help="make list of project files in ISE format")
+    parser.add_option("--tcl-file", dest="tcl", help="specify a .tcl file used for synthesis with ISE") 
+    parser.add_option("--qpf-file", dest="qpf", help="specify a .qpf file used for synthesis with QPF")
+    parser.add_option("--ise-file", dest="ise", help="specify .xise file for other actions", metavar="ISE")
     parser.add_option("--synth-server", dest="synth_server", default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
     parser.add_option("--synth-user", dest="synth_user", default=None, help="use given USER for remote synthesis", metavar="USER")
-    parser.add_option("--make-list", dest="make_list", action="store_true", default=None, help="make list of project files in ISE format")
-    parser.add_option("--no-del", dest="no_del", action="store_true", default=None, help="do not delete catalog after remote synthesis")
-    parser.add_option("--inject", dest="inject", action="store_true", default=None, help="inject file list into ise project")
     (global_mod.options, args) = parser.parse_args()
 
     # check if manifest is given in the command line
     # if yes, then use it
     # if no, the look for it in the current directory (python manifest has priority)  
-    if global_mod.options.manifest != None:
-        global_mod.top_manifest = os.path.abspath(options.manifest)
-    elif os.path.exists("manifest.py"):
+    if os.path.exists("manifest.py"):
         global_mod.top_manifest = os.path.abspath("manifest.py")
     else:
         p.echo("No manifest found. At least an empty one is needed")
         quit()
-
-    p.vprint("Manifests' scan queue:"+str([global_mod.top_manifest]))
-    p.vprint("Parsing manifest: " +str(global_mod.top_manifest))
 
     if global_mod.options.synth_server != None:
         global_mod.synth_server = global_mod.options.synth_server
@@ -99,15 +93,19 @@ def main():
             tcl_pat = re.compile("^.*\.tcl$")
             for file in os.listdir("."): #try to find it in the current dir
                 if re.match(tcl_pat, file):
-                    p.vprint("Found .tcf l file in the current directory: " + file)
                     global_mod.opt_map.tcl = file
                     break
     else:
         global_mod.opt_map.tcl = global_mod.options.tcl
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    if global_mod.options.manifest_help == True:
+        parser = mnfst.init_manifest_parser()
+        parser.print_help()
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.fetch == True:
-        mnfst.fetch_manifest(global_mod.top_manifest, global_mod.opt_map)
-
+        modules = mnfst.fetch_manifest(global_mod.top_manifest, global_mod.opt_map)
+        p.vprint("Involved modules:")
+        p.vpprint(modules)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.local == True:
         if global_mod.opt_map.tcl == None:
@@ -125,16 +123,14 @@ def main():
         results = os.popen("export PATH=$PATH:"+path_ext+" &&xtclsh " + global_mod.opt_map.tcl + " run_process")
         p.echo(results.readlines())
         quit()
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #            
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.remote == True:
         if global_mod.opt_map.tcl == None: #option not taken but mandatory
-            p.echo("For Xilinx synthesis a tcl file in the top module is required")
+            p.echo("For Xilinx synthesis a .tcl file in the top module is required")
             quit()
         if not os.path.exists(global_mod.opt_map.tcl):
             p.echo("Given .tcl doesn't exist: " + global_mod.opt_map.tcl)
             quit()
-
         p.vprint("The program will be using ssh connection: "+global_mod.synth_user+"@"+global_mod.synth_server)
         global_mod.ssh = Connection(global_mod.synth_user, global_mod.synth_server)
 
@@ -189,7 +185,7 @@ def main():
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.make_list == True:
         import depend
-        modules = make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
+        modules = path.make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
 
         p.vprint("Modules that will be taken into account in the makefile: " + str(modules))
         deps, libs = depend.generate_deps_for_vhdl_in_modules(modules)
@@ -199,46 +195,31 @@ def main():
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.make == True:
         import depend
-        module_file_dict = path.make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
+        module_manifest_dict = path.make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
         p.vprint("Modules that will be taken into account in the makefile: ")
-        p.vpprint(module_file_dict)
+        p.vpprint(module_manifest_dict)
 
-        #sv = make_list_of_files(modules = ".", file_type = "sv")
-        #p.pprint(sv)
-        #deps = depend.generate_deps_for_sv_files(sv)
-        #p.pprint(deps)
-        #quit()
-        deps, libs = depend.generate_deps_for_vhdl_in_modules(module_file_dict)
+        deps, libs = depend.generate_deps_for_vhdl_in_modules(module_manifest_dict)
         depend.generate_makefile(deps, libs)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if global_mod.options.inject == True:
-        if global_mod.options.ise == None:
+        if global_mod.options.ise_project == None:
             p.echo("You forgot to specify .xise file, didn't you?")
             quit()
-        if not os.path.exists(global_mod.options.ise):
+        if not os.path.exists(global_mod.options.ise_project):
             p.echo("Given ise file doesn't exist")
             quit()
 
         import depend
-        module_manifest_dict = make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
+        module_manifest_dict = path.make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
         p.vprint("Modules that will be taken into account in the makefile: ")
         p.vpprint(modules)
 
-        files = path.make_list_of_files(module_manifest_dict, file_type="vhd")
+        module_files_dict = path.make_list_of_files(module_manifest_dict, file_type="vhd")
         p.vprint("List of used files")
-        p.vpprint(files)
+        p.vpprint(module_files_dict)
 
-        inject_files_into_ise(global_mod.options.ise, files)
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    if global_mod.options.clean == True:
-        if os.path.exists("makefile"):
-            p.vprint("Running makefile clean-up")
-            os.system("make clean > /dev/null")
-        p.vprint("Removing the fetched modules")
-        os.system("rm -rf " + global_mod.fetchto)
-        p.vprint("Removing the makefile")
-        os.system("rm -f Makefile")
+        inject_files_into_ise(global_mod.options.ise_project, files)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 

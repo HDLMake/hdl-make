@@ -91,6 +91,7 @@ def make_list_of_files(module_manifest_dict, file_type = None):
     take_files - files specified directly in manifest. If there are some, we should take only them
     file_type - file extension for filtering - if given, only this extension will be taken into account
     """
+    p.vpprint(module_manifest_dict)
     def get_files(path, file_type = None):
         """
         Get lists of normal files and list folders recursively
@@ -141,6 +142,11 @@ def make_list_of_modules(top_manifest, top_opt_map):
 
     module_manifest_dict[os.path.dirname(top_manifest)] = top_manifest
     while True:
+        if opt_map.root_manifest != None:
+            root_manifest = opt_map.root_manifest
+            root_module = os.path.dirname(root_manifest)
+            module_manifest_dict[root_module] = root_manifest
+            new_manifests.append(root_manifest)
         if opt_map.local != []:
             modules.extend(opt_map.local)
             for i in opt_map.local:
@@ -152,28 +158,26 @@ def make_list_of_modules(top_manifest, top_opt_map):
                     module_manifest_dict[i] = None
 
         if opt_map.git != []:
-            p.echo(opt_map.git)
-            modules_git = os.path.join(opt_map.fetchto, url_basename(opt_map.git))
-            modules.extend(modules_git)
             for i in opt_map.git:
-                manifest = search_for_manifest(i)
+                module_git = os.path.join(opt_map.fetchto, url_basename(i))
+                modules.append(module_git)
+                manifest = search_for_manifest(module_git)
                 if manifest != None:
-                    module_manifest_dict[i] = manifest
+                    module_manifest_dict[module_git] = manifest
                     new_manifests.append(manifest)
                 else:
-                    module_manifest_dict[i] = None
+                    module_manifest_dict[module_git] = None
 
         if opt_map.svn != []:
-            p.echo(opt_map.svn)
-            modules_svn = os.path.join(opt_map.fetchto, url_basename(opt_map.svn))
-            modules.extend(modules_svn)
             for i in opt_map.svn:
-                manifest = search_for_manifest(i)
+                module_svn = os.path.join(opt_map.fetchto, url_basename(i))
+                modules.append(module_svn)
+                manifest = search_for_manifest(module_svn)
                 if manifest != None:
-                    module_manfiest_dict[i] = manifest
+                    module_manfiest_dict[module_svn] = manifest
                     new_manifests.append(manifest)
                 else:
-                    module_manifest_dict[i] = None
+                    module_manifest_dict[module_svn] = None
 
         if len(new_manifests) == 0:
             break;
