@@ -59,7 +59,7 @@ def relpath(p1, p2 = None):
 #def filter_files(files, extension):
 #   
 
-def rel2abs(path, base = os.curdir):
+def rel2abs(path, base = None):
     """
     converts a relative path to an absolute path.
 
