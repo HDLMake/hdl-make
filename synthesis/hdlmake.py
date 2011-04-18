@@ -42,6 +42,7 @@ def main():
     parser.add_option("-l", "--synthesize-locally", dest="local", action="store_true", help="perform a local synthesis")
     parser.add_option("-r", "--synthesize-remotelly", dest="remote", action="store_true", help="perform a remote synthesis")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default="false", help="verbose mode")
+    parser.add_option("--ipcore", dest="ipcore", action="store_true", default="false", help="generate a pseudo ip-core")
     parser.add_option("--inject", dest="inject", action="store_true", default=None, help="inject file list into ise project")
     parser.add_option("--make-list", dest="make_list", action="store_true", default=None, help="make list of project files in ISE format")
     parser.add_option("--tcl-file", dest="tcl", help="specify a .tcl file used for synthesis with ISE") 
@@ -56,7 +57,7 @@ def main():
     # if no, the look for it in the current directory (python manifest has priority)  
     file = None
     if os.path.exists("manifest.py"):
-        file = "manfiest.py"
+        file = "manifest.py"
     elif os.path.exitsts("Manifest.py"):
         file = "Manifest.py"
     
@@ -97,8 +98,14 @@ def main():
         generate_makefile()
     elif global_mod.options.inject == True:
         inject_into_ise()
+    elif global_mod.options.ipcore == True:
+        generate_pseudo_ipcore()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def generate_pseudo_ipcore():
+    file_deps_dict = global_mod.generate_deps_for_vhdl_in_modules()
+    depend.generate_pseudo_ipcore(file_deps_dict)
+
 def fetch():
     modules = global_mod.top_module.fetch()
     p.vprint("Involved modules:")
