@@ -88,41 +88,45 @@ def modelsim_ini_path():
     vsim_path = os.popen("which vsim").read().strip()
     bin_path = os.path.dirname(vsim_path)
     return os.path.abspath(bin_path+"/../")
-def generate_pseudo_ipcore(fie_deps_dict, filename="ipcore"):
+
+def generate_pseudo_ipcore(file_deps_dict, filename="ipcore"):
     import path
     rp = os.path.relpath
 
-    f = open("makefile.ipcore", "w")
-    f.write("file: create_a_file\n")
-    f.write("create_a_file:\n\t\t@printf \"\" > " + filename)
+    f = open("Makefile.ipcore", "w")
+    f.write("file: create_a_file done\n")
+    f.write("create_a_file:\n\t\t@printf \"\" > " + filename + '\n')
     f.write("file: ")
     for file in file_deps_dict:
-        f.write(rp(file)+"__cat \\\n")
+        f.write(rp(file.path)+"__cat \\\n")
     f.write("\n")
     for file in file_deps_dict:
-        f.write(rp(file)+"__cat: ")
-        f.write(' '.join(rp(x)+"__cat" for x in file_deps_dict[file]))
+        f.write(rp(file.path)+"__cat: ")
+        f.write(' '.join(rp(depfile.path)+"__cat" for depfile in file_deps_dict[file]))
         f.write('\n')
-        f.write("\t\t@cat "+ file + " >> " + filename + "\n\n")
-    f.write("\t\t@echo Done.")
+        f.write("\t\t@echo '-- " + file.name + "' >> " + filename + "\n")
+        f.write("\t\t@cat "+ rp(file.path) + " >> " + filename + "\n")
+        f.write("\t\t@echo \"\">> " +filename + "\n\n")
+
+    f.write("done:\n\t\t@echo Done.")
 
 def generate_list_makefile(file_deps_dict, filename="Makefile.list"):
     import path
 
     rp = os.path.relpath
     f = open(filename, "w")
-    f.write("file: create_a_file\n")
+    f.write("file: create_a_file done\n")
     f.write("create_a_file:\n\t\t@printf \"\" > ise_list \n")
     f.write("file: ")
     for file in file_deps_dict:
-        f.write(rp(file)+"__print \\\n")
+        f.write(rp(file.path)+"__print \\\n")
     f.write("\n")
     for file in file_deps_dict:
-        f.write(rp(file)+"__print: ")
-        f.write(' '.join( rp(x)+"__print" for x in file_deps_dict[file]))
+        f.write(rp(file.path)+"__print: ")
+        f.write(' '.join( rp(depfile.path)+"__print" for depfile in file_deps_dict[file]))
         f.write('\n')
-        f.write("\t\t@echo \'"+file.library+';'+rp(file)+"\' >> ise_list\n\n")
-    f.write("\t\t@echo Done.")
+        f.write("\t\t@echo \'"+file.library+';'+rp(file.path)+"\' >> ise_list\n\n")
+    f.write("done:\n\t\t@echo Done.")
 
 def generate_makefile(file_deps_dict, filename="Makefile"):
     from time import gmtime, strftime

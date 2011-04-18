@@ -44,6 +44,7 @@ def main():
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default="false", help="verbose mode")
     parser.add_option("--ipcore", dest="ipcore", action="store_true", default="false", help="generate a pseudo ip-core")
     parser.add_option("--inject", dest="inject", action="store_true", default=None, help="inject file list into ise project")
+    parser.add_option("--nodel", dest="nodel", action="store_true", default="false", help="don't delete intermediate makefiles")
     parser.add_option("--make-list", dest="make_list", action="store_true", default=None, help="make list of project files in ISE format")
     parser.add_option("--tcl-file", dest="tcl", help="specify a .tcl file used for synthesis with ISE") 
     parser.add_option("--qpf-file", dest="qpf", help="specify a .qpf file used for synthesis with QPF")
@@ -103,9 +104,13 @@ def main():
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def generate_pseudo_ipcore():
-    file_deps_dict = global_mod.generate_deps_for_vhdl_in_modules()
+    import depend
+    tm = global_mod.top_module
+    file_deps_dict = tm.generate_deps_for_vhdl_in_modules()
     depend.generate_pseudo_ipcore(file_deps_dict)
 
+    if global_mod.options.nodel != True:
+        os.remove("Makefile.ipcore")
 def fetch():
     modules = global_mod.top_module.fetch()
     p.vprint("Involved modules:")
@@ -218,13 +223,12 @@ def local_synthesis():
 def generate_list_makefile():
     import depend
     tm = global_mod.top_module
-    modules = tm.make_list_of_modules()
-
-    p.vprint("Modules that will be taken into account in the makefile: " + str([str(i) for i in modules]))
-    deps = depend.generate_deps_for_vhdl_in_modules(modules)
+    deps = tm.generate_deps_for_vhdl_in_modules()
     depend.generate_list_makefile(deps)
     os.system("make -f Makefile.list")
-    os.remove("Makefile.list")
+    
+    if global_mod.options.nodel != True:
+        os.remove("Makefile.list")
 if __name__ == "__main__":
     #global options' map for use in the entire script
     t0 = None
