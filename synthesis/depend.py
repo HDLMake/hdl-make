@@ -89,6 +89,58 @@ def modelsim_ini_path():
     bin_path = os.path.dirname(vsim_path)
     return os.path.abspath(bin_path+"/../")
 
+def inject_files_into_ise(ise_file, files_list):
+    ise = open(ise_file, "r")
+    ise_lines = ise.readlines()
+    file_template = '    '+ "<file xil_pn:name=\"{0}\" xil_pn:type=\"file_vhdl\"/>\n"
+    files_pattern = re.compile('[ \t]*<files>[ \t]*')
+    new_ise = []
+    for line in ise_lines:
+        new_ise.append(line)
+        if re.match(files_pattern, line) != none:
+            for file in files_list:
+                new_ise.append(file_template.format(os.path.relpath(file)))
+
+    new_ise_file = open(ise_file + ".new", "w")
+    new_ise_file.write(''.join(new_ise))
+    new_ise_file.close()
+
+def generate_fetch_makefile(top_module):
+    import path
+    rp = os.path.relpath
+
+    f = open("Makefile.fetch", "w")
+
+    f.write("fetch: ")
+    for m in top_module.svn:
+        basename = path.url_basename(m.url)
+        f.write(basename+"__fetch \n")
+    for m in top_module.git:
+        basename = path.url_basename(m.url)
+        f.write(basename+"__fetch \n")
+
+    f.write("\n")
+    for m in top_module.svn:
+        basename = path.url_basename(m.url)
+        dir = os.path.join(m.fetchto, basename)
+        f.write(basename+"__fetch:\n")
+        f.write("\t\t")
+        f.write("PWD=$(shell pwd) ; ")
+        f.write("cd " + rp(m.fetchto) + ' ; ')
+        f.write("svn checkout "+ m.url + ' ; ')
+        f.write("cd $(PWD) \n\n")
+
+    for m in top_module.git:
+        basename = path.url_basename(m.url)
+        dir = os.path.join(m.fetchto, basename)
+        f.write(basename+"__fetch:\n")
+        f.write("\t\t")
+        f.write("PWD=$(shell pwd) ; ")
+        f.write("cd " + rp(m.fetchto) + ' ; ')
+        f.write("git clone "+ m.url + ' ; ')
+        f.write("cd $(PWD) \n\n")
+    f.close()
+
 def generate_pseudo_ipcore(file_deps_dict, filename="ipcore"):
     import path
     rp = os.path.relpath

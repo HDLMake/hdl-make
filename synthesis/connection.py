@@ -54,3 +54,16 @@ class Connection:
             return 0
         else:
             return 1
+            
+def check_address_length(module):
+    p = module.popen("uname -a")
+    p = p.readlines()
+    if not len(p):
+        p.echo("Checking address length failed")
+        return None
+    elif "i686" in p[0]:
+        return 32
+    elif "x86_64" in p[0]:
+        return 64
+    else:
+        return None

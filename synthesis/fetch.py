@@ -14,7 +14,6 @@ def fetch_from_svn(url, revision = None, fetchto = None):
 
     cur_dir = os.getcwd()
     os.chdir(fetchto)
-    p.echo(os.getcwd())
     basename = path.url_basename(url)
 
     cmd = "svn checkout {0} " + basename

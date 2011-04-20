@@ -3,16 +3,16 @@ import path as path_mod
 import msg as p
 import os
 import cfgparse2 as cfg
-from helper_classes import Manifest, ManifestParser, SourceFile, IseProjectFile, VHDLFile, ModuleOptions
+from helper_classes import Manifest, ManifestParser, SourceFile, IseProjectFile, ManifestOptions
 
 class Module(object):
-    def __init__(self, url=None, files=None, manifest=None,
+    def __init__(self, parent, url=None, files=None, manifest=None,
     path=None, isfetched=False, source=None, fetchto=None):
-        self.options = ModuleOptions()
+        self.options = ManifestOptions()
         if source == "local" and path != None:
             if not os.path.exists(path):
                 raise ValueError("There is no such local module: " + path)
-
+        self.parent = parent
         if files == None:
             self.options["files"] = []
         elif not isinstance(files, list):
@@ -49,15 +49,23 @@ class Module(object):
             self.options["source"] = source
         else:
             self.options["source"] = "local"
-        self.options["fetchto"] = fetchto
+
+        if fetchto != None:
+            self.options["fetchto"] = fetchto
+        else:
+            self.options["fetchto"] = parent
 
         self.options["isparsed"] = False
         basename = path_mod.url_basename(self.options["url"])
-        if self.options["path"] != None:
+        if source == "local":
+            self.options["isfetched"] = True
+        elif self.options["path"] != None:
             self.options["isfetched"] = True
         elif os.path.exists(os.path.join(self.options["fetchto"], basename)):
             self.options["isfetched"] = True
             self.path = os.path.join(self.options["fetchto"], basename)
+        else:
+            print os.path.join(self.options["fetchto"], basename)
         self.options["library"] = "work"
         self.parse_manifest()
 
@@ -109,19 +117,19 @@ class Module(object):
             quit()
         if opt_map.root_module != None:
             root_path = path_mod.rel2abs(opt_map.root_module, self.path)
-            self.root_module = Module(path=root_path, source="local", isfetched=True)
+            self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
             self.root_module.parse_manifest()
             #if not os.path.exists(opt_map.root_manifest.path):
             #    p.echo("Error while parsing " + self.manifest + ". Root manifest doesn't exist: "
             #    + opt_map.root_manifest)
             #   quit()
         if opt_map.fetchto == None:
-            self.fetchto = self.path
+            fetchto = self.path
         else:
             if not path_mod.is_rel_path(opt_map.fetchto):
                 p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map.fetchto]))
                 quit()
-            self.fetchto = path_mod.rel2abs(opt_map.fetchto, self.path)
+            fetchto = path_mod.rel2abs(opt_map.fetchto, self.path)
 
         if self.ise == None:
             self.ise = "13.1"
@@ -129,7 +137,7 @@ class Module(object):
         local_mods = []
         for path in local_paths:
             path = path_mod.rel2abs(path, self.path)
-            local_mods.append(Module(path=path, source="local"))
+            local_mods.append(Module(path=path, source="local", parent=self))
         self.local = local_mods
 
         if opt_map.files == None:
@@ -152,13 +160,13 @@ class Module(object):
         opt_map.svn = self.make_list_(opt_map.svn)
         svn = []
         for url in opt_map.svn:
-            svn.append(Module(url=url, source="svn", fetchto=self.fetchto))
+            svn.append(Module(url=url, source="svn", fetchto=fetchto, parent=self))
         self.svn = svn
 
         opt_map.git = self.make_list_(opt_map.git)
         git = []
         for url in opt_map.git:
-            git.append(Module(url=url, source="git", fetchto=self.fetchto))
+            git.append(Module(url=url, source="git", fetchto=fetchto, parent=self))
         self.git = git
 
         self.vmap_opt = opt_map.vmap_opt
@@ -167,8 +175,8 @@ class Module(object):
 
         self.isparsed = True
         self.library = opt_map.library
-        if self.isfetched == True:
-            self.make_list_of_files_()
+        #if self.isfetched == True:  <- avoid getting all files
+        #    self.make_list_of_files()
 
     def is_fetched(self):
         return self.isfetched
@@ -177,13 +185,9 @@ class Module(object):
         if self.source == "local":
             self.path = self.url
         elif self.source == "svn":
-            self.__fetch_from_svn(fetchto=fetchto)
+            self.__fetch_from_svn()
         elif self.source == "git":
-            self.__fetch_from_git(fetchto=fetchto)
-
-        if self.isparsed != True:
-            self.parse_manifest()
-            self.make_list_of_files_()
+            self.__fetch_from_git()
 
         involved_modules = [self]
         modules_queue = [self]
@@ -193,7 +197,6 @@ class Module(object):
         while len(modules_queue) > 0:
             cur_mod = modules_queue.pop()
             cur_mod.parse_manifest()
-            print str(cur_mod)
 
             if cur_mod.root_module != None:
                 root_module = cur_mod.root_module
@@ -207,14 +210,14 @@ class Module(object):
                 ' '.join([str(cur_mod.git), str(cur_mod.svn), str(cur_mod.local)]))
 
             for module in cur_mod.svn:
-                p.vprint("Fetching to " + cur_mod.fetchto)
+                p.vprint("Fetching to " + module.fetchto)
                 path = module.__fetch_from_svn()
                 module.path = path
                 involved_modules.append(module)
                 modules_queue.append(module)
 
             for module in cur_mod.git:
-                p.vprint("Fetching to " + cur_mod.fetchto)
+                p.vprint("Fetching to " + module.fetchto)
                 path = module.__fetch_from_git()
                 module.path = path
                 involved_modules.append(module)
@@ -241,12 +244,13 @@ class Module(object):
 
         cmd = "svn checkout {0} {1}"
         cmd = cmd.format(self.url, basename)
-      
 
         p.vprint(cmd)
         os.system(cmd)
         os.chdir(cur_dir)
         self.isfetched = True
+        self.path = os.path.join(fetchto, basename)
+
         return os.path.join(fetchto, basename)
 
     def __fetch_from_git(self):
@@ -257,7 +261,7 @@ class Module(object):
         cur_dir = os.getcwd()
         os.chdir(fetchto)
 
-        basename = url_basename(self.url)
+        basename = path_mod.url_basename(self.url)
         if basename.endswith(".git"):
             basename = basename[:-4] #remove trailing .git
 
@@ -305,7 +309,7 @@ class Module(object):
             p.vprint("No modules were found in " + self.fetchto)
         return modules
 
-    def make_list_of_files_(self, file_type = None, ret_class = SourceFile):
+    def make_list_of_files(self, file_type = None, ret_class = SourceFile):
         def get_files_(path, file_type = None, ret_class = SourceFile):
             """
             Get lists of normal files and list folders recursively
@@ -391,3 +395,52 @@ class Module(object):
                 file_file_dict[file] = []
         p.vpprint(file_file_dict)
         return file_file_dict
+# THE METHOD IS NOT FINISHED
+    def check_correctness(manifest_file):
+        raise RuntimeError("Method is not finished")
+        m = parse_manifest(manifest_file)
+        if m.fetchto != None:
+            if is_abs_path(m.fetchto):
+                p.echo("fetchto parameter should be a relative path")
+            if not os.path.exists(m.fetchto):
+                p.echo("fetchto parameter should exist")
+        if m.root_manifest != None:
+            if not os.path.exists(m.root_manifest):
+                p.echo("root_manifest should exist")
+            if not os.path.basename(m.root_manfiest) == "manifest.py":
+                p.echo("root_manifest should be called \"manfiest.py\"")
+        if not isinstance(m.name, basestring):
+            p.echo("name parameter should be a string")
+        if m.tcl != None:
+            if is_abs_path(m.fetchto):
+                p.echo("tcl parameter should be a relative path")
+            if not os.path.exists(m.fetchto):
+                p.echo("tcl parameter should indicate exisiting tcl file")
+        if m.ise != None:
+            try:
+                tcl = float(m.tcl)
+            except ValueError:
+                p.echo("tcl parameter must have %4.1f format")
+
+        if m.vsim_opt != "":
+            if not isinstance(m.vsim_opt, basestring):
+                p.echo("vsim_opt must be a string")
+        if m.vcom_opt != "":
+            if not isinstance(m.vcom_opt, basestring):
+                p.echo("vcom_opt must be a string")
+        if m.vlog_opt != "":
+            if not isinstance(m.vlog_opt, basestring):
+                p.echo("vlog_opt must be a string")
+        if m.vmap_opt != "":
+            if not isinstance(m.vmap_opt, basestring):
+                p.echo("vmap_opt must be a string")
+
+        if m.svn != None:
+            if not isinstance(m.svn, [basestring,list]):
+                p.echo("modules.svn has strange format (neither string nor list)")
+        if m.git != None:
+            if not isinstance(m.git, [basestring,list]):
+                p.echo("modules.svn has strange format (neither string nor list)")
+        if m.local != None:
+            if not isinstance(m.local, [basestring,list]):
+                p.echo("modules.svn has strange format (neither string nor list)")

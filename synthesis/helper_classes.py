@@ -149,16 +149,13 @@ class IseProjectFile(SourceFile):
                 for file in files_list:
                     new_ise.append(file_template.format(os.path.relpath(file)))
         new_ise_file = SourceFile(path=self.path, name=self.name+".new")
-        new_ise_file.write(new_ise)
-
-class VHDLFile(SourceFile):
     def __init__(self, path=None, type="vhdl", library="work"):
         SourceFile.__init__(self,path= path, type=type)
         self.library = library
         self.use = self.search_for_use_()
         self.package = self.search_for_package_()
 
-class ModuleOptions(object):
+class ManifestOptions(object):
     def __init__(self):
         self.items = { "files" : None, #files from the module that should be taken
                 "fetchto" : None, #where this module should be fetched to, when fetching

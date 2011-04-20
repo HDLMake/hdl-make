@@ -8,6 +8,7 @@ import path
 import path
 import time
 import os
+from connection import check_address_length
 from connection import Connection
 import random
 import string
@@ -16,29 +17,15 @@ import msg as p
 import optparse
 from module import Module
 from helper_classes import Manifest, SourceFile
-#from fetch import fetch_from_svn, fetch_from_git, parse_repo_url
-#import mnfst
 
-def check_address_length(module):
-    p = module.popen("uname -a")
-    p = p.readlines()
-    if not len(p):
-        p.echo("Checking address length failed")
-        return None
-    elif "i686" in p[0]:
-        return 32
-    elif "x86_64" in p[0]:
-        return 64
-    else:
-        return None
 def main():
-    #import depend
     global_mod.t0 = time.time()
     parser = optparse.OptionParser()
     parser.add_option("--manifest-help", action="store_true", dest="manifest_help",
     help="print manifest file variables description")
     parser.add_option("-k", "--make", dest="make", action="store_true", default=None, help="prepare makefile for simulation")
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch", help="fetch files from modules listed in MANIFEST")
+    parser.add_option("--make-fetch", action="store_true", dest="make_fetch", help="generate makefile for fetching needed modules")
     parser.add_option("-l", "--synthesize-locally", dest="local", action="store_true", help="perform a local synthesis")
     parser.add_option("-r", "--synthesize-remotelly", dest="remote", action="store_true", help="perform a remote synthesis")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default="false", help="verbose mode")
@@ -64,7 +51,7 @@ def main():
     
     if file != None:
         top_manifest = Manifest(path=os.path.abspath(file))
-        global_mod.top_module = Module(manifest=top_manifest, source="local", fetchto=".")
+        global_mod.top_module = Module(manifest=top_manifest, parent=None, source="local", fetchto=".")
         global_mod.top_module.parse_manifest()
     else:
         p.echo("No manifest found. At least an empty one is needed")
@@ -101,6 +88,8 @@ def main():
         inject_into_ise()
     elif global_mod.options.ipcore == True:
         generate_pseudo_ipcore()
+    elif global_mod.options.make_fetch == True:
+        generate_fetch_makefile()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def generate_pseudo_ipcore():
@@ -111,11 +100,29 @@ def generate_pseudo_ipcore():
 
     if global_mod.options.nodel != True:
         os.remove("Makefile.ipcore")
+    os.system("make -f Makefile.ipcore")
+
 def fetch():
     modules = global_mod.top_module.fetch()
     p.vprint("Involved modules:")
     p.vprint([str(m) for m in modules])
 
+def generate_fetch_makefile():
+    import depend
+    tm = global_mod.top_module
+    modules = [tm]
+    while len(modules) > 0:
+        module = modules.pop()
+        for repo_module in module.svn+module.git:
+            if not repo_module.isfetched:
+                p.echo("Module remains unfetched: " + str(repo_module) +
+                ". Fetching must be done prior to makefile generation")
+                return
+            modules.append(repo_module)
+
+    depend.generate_fetch_makefile(tm)
+
+#NOT YET PORTED
 def inject_into_ise():
     if global_mod.options.ise_project == None:
         p.echo("You forgot to specify .xise file, didn't you?")
@@ -124,22 +131,19 @@ def inject_into_ise():
         p.echo("Given ise file doesn't exist")
         quit()
 
-    import depend
-    module_manifest_dict = path.make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
-    p.vprint("Modules that will be taken into account in the makefile: ")
-    p.vpprint(modules)
-
-    module_files_dict = path.make_list_of_files(module_manifest_dict, file_type="vhd")
+    tm = global_mod.top_module
+    module_files_dict = make_list_of_files(file_type="vhd")
     p.vprint("List of used files")
     p.vpprint(module_files_dict)
 
-    inject_files_into_ise(global_mod.options.ise_project, files)
+    depend.inject_files_into_ise(global_mod.options.ise_project, files)
 
 def generate_makefile():
     import depend
     tm = global_mod.top_module
-    deps = tm.generate_deps_for_vhdl_in_modules()
-    depend.generate_makefile(deps)
+    vhdl_deps = tm.generate_deps_for_vhdl_in_modules()
+    sv_files = tm.make_lsit_of
+    depend.generate_makefile(vhdl_deps)
 
     #NOT YET TRANSFORMED INTO CLASSES
 def remote_synthesis():
@@ -226,9 +230,10 @@ def generate_list_makefile():
     deps = tm.generate_deps_for_vhdl_in_modules()
     depend.generate_list_makefile(deps)
     os.system("make -f Makefile.list")
-    
+
     if global_mod.options.nodel != True:
         os.remove("Makefile.list")
+
 if __name__ == "__main__":
     #global options' map for use in the entire script
     t0 = None
