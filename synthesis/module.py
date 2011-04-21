@@ -2,7 +2,7 @@
 import path as path_mod
 import msg as p
 import os
-import cfgparse2 as cfg
+import configparser
 from helper_classes import Manifest, ManifestParser, SourceFile, IseProjectFile, ManifestOptions
 
 class Module(object):
@@ -115,32 +115,35 @@ class Module(object):
         except NameError as ne:
             p.echo("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
-        if opt_map.root_module != None:
-            root_path = path_mod.rel2abs(opt_map.root_module, self.path)
+        if opt_map["root_module"] != None:
+            root_path = path_mod.rel2abs(opt_map["root_module"], self.path)
             self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
             self.root_module.parse_manifest()
             #if not os.path.exists(opt_map.root_manifest.path):
             #    p.echo("Error while parsing " + self.manifest + ". Root manifest doesn't exist: "
             #    + opt_map.root_manifest)
             #   quit()
-        if opt_map.fetchto == None:
+        if opt_map["fetchto"] == None:
             fetchto = self.path
         else:
-            if not path_mod.is_rel_path(opt_map.fetchto):
-                p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map.fetchto]))
+            if not path_mod.is_rel_path(opt_map["fetchto"]):
+                p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map["fetchto"]]))
                 quit()
-            fetchto = path_mod.rel2abs(opt_map.fetchto, self.path)
+            fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
 
         if self.ise == None:
             self.ise = "13.1"
-        local_paths = self.make_list_(opt_map.local)
-        local_mods = []
-        for path in local_paths:
-            path = path_mod.rel2abs(path, self.path)
-            local_mods.append(Module(path=path, source="local", parent=self))
-        self.local = local_mods
+        if "local" in opt_map["modules"]:
+            local_paths = self.make_list_(opt_map["modules"]["local"])
+            local_mods = []
+            for path in local_paths:
+                path = path_mod.rel2abs(path, self.path)
+                local_mods.append(Module(path=path, source="local", parent=self))
+            self.local = local_mods
+        else:
+            self.local = []
 
-        if opt_map.files == None:
+        if opt_map["files"] == None:
             directory = os.path.dirname(self.path)
             print "listing" + directory
             files = []
@@ -150,31 +153,37 @@ class Module(object):
             self.files = files
         else:
             files = []
-            for path in opt_map.files:
+            for path in opt_map["files"]:
                 if not path_mod.is_abs_path(path):
                     files.append(path_mod.rel2abs(path, self.path))
                 else:
                     p.echo(path + " is an absolute path. Omitting.")
             self.files = files
 
-        opt_map.svn = self.make_list_(opt_map.svn)
-        svn = []
-        for url in opt_map.svn:
-            svn.append(Module(url=url, source="svn", fetchto=fetchto, parent=self))
-        self.svn = svn
+        if "svn" in opt_map["modules"]:
+            opt_map["modules"]["svn"] = self.make_list_(opt_map["modules"]["svn"])
+            svn = []
+            for url in opt_map.svn:
+                svn.append(Module(url=url, source="svn", fetchto=fetchto, parent=self))
+            self.svn = svn
+        else:
+            self.svn = []
 
-        opt_map.git = self.make_list_(opt_map.git)
-        git = []
-        for url in opt_map.git:
-            git.append(Module(url=url, source="git", fetchto=fetchto, parent=self))
-        self.git = git
+        if "git" in opt_map["modules"]:
+            opt_map["modules"]["git"] = self.make_list_(opt_map["modules"]["git"])
+            git = []
+            for url in opt_map.git:
+                git.append(Module(url=url, source="git", fetchto=fetchto, parent=self))
+            self.git = git
+        else:
+            self.git = []
 
-        self.vmap_opt = opt_map.vmap_opt
-        self.vcom_opt = opt_map.vcom_opt
-        self.vlog_opt = opt_map.vlog_opt
+        self.vmap_opt = opt_map["vmap_opt"]
+        self.vcom_opt = opt_map["vcom_opt"]
+        self.vlog_opt = opt_map["vlog_opt"]
 
         self.isparsed = True
-        self.library = opt_map.library
+        self.library = opt_map["library"]
         #if self.isfetched == True:  <- avoid getting all files
         #    self.make_list_of_files()
 

@@ -2,7 +2,7 @@
 import path as path_mod
 import msg as p
 import os
-import cfgparse2 as cfg
+from configparser import ConfigParser
 
 class Manifest:
     def __init__(self, path = None, url = None):
@@ -22,37 +22,34 @@ class Manifest:
     def exists(self):
         return os.path.exists(self.path)
 
-class ManifestParser:
-    def __init__(self, manifest = None):
-        manifest_parser = cfg.ConfigParser(description="Configuration options description", allow_py = True)
-        manifest_parser.add_option('fetchto', default=None, help="Destination for fetched modules") 
-        manifest_parser.add_option('root_module', default=None, help="Path to root module for currently parsed")
-        manifest_parser.add_option('name', default=None, help="Name of the folder at remote synthesis machine")
-        manifest_parser.add_option('tcl', default=None, help="Path to .tcl file used in synthesis")
-        manifest_parser.add_option('ise', default=None, help="Version of ISE to be used in synthesis")
-        manifest_parser.add_option('vsim_opt', default="", help="Additional options for vsim")
-        manifest_parser.add_option('vcom_opt', default="", help="Additional options for vcom")
-        manifest_parser.add_option('vlog_opt', default="", help="Additional options for vlog")
-        manifest_parser.add_option('vmap_opt', default="", help="Additional options for vmap")
-        manifest_parser.add_option('modules', dest="svn", keys="svn", default=list(),
-        help="List of modules to be fetched from SVN")
-        manifest_parser.add_option('modules', dest="git", keys="git", default=[],
-        help="List of modules to be fetched from git")
-        manifest_parser.add_option('modules', dest="local", keys="local", default=[],
-        help="List of local modules")
-        manifest_parser.add_option('library', dest="library", default="work",
-        help="Destination library for module's VHDL files")
-        manifest_parser.add_option('files', default=[], help="List of files from the current module")
-        self.parser = manifest_parser
+class ManifestParser(ConfigParser):
+    def __init__(self):
+        ConfigParser.__init__(self,description="Configuration options description")
+        self.add_option('fetchto', default=None, help="Destination for fetched modules", type='')
+        self.add_option('root_module', default=None, help="Path to root module for currently parsed", type='')
+        self.add_option('name', default=None, help="Name of the folder at remote synthesis machine", type='')
+        self.add_option('tcl', default=None, help="Path to .tcl file used in synthesis", type='')
+        self.add_option('ise', default=None, help="Version of ISE to be used in synthesis", type='')
+        self.add_type('ise', type=1)
+        self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
+        self.add_option('vcom_opt', default="", help="Additional options for vcom", type='')
+        self.add_option('vlog_opt', default="", help="Additional options for vlog", type='')
+        self.add_option('vmap_opt', default="", help="Additional options for vmap", type='')
+        self.add_option('modules', default={}, help="List of local modules", type={})
+        self.add_option('library', default="work",
+        help="Destination library for module's VHDL files", type="")
+        self.add_option('files', default=[], help="List of files from the current module", type='')
+        self.add_type('files', type=[])
+        self.parser = self
 
     def add_manifest(self, manifest):
-        self.parser.add_file(manifest.path)
+        return self.add_config_file(manifest.path)
 
     def parse(self):
-        return self.parser.parse()
+        return ConfigParser.parse(self)
 
-    def print_help():
-        self.parser.print_help()
+    #def print_help():
+    #    self.parser.print_help()
 
 class SourceFile:
     def __init__(self, path, type=None):

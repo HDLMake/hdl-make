@@ -13,11 +13,11 @@ def echo(msg):
 def vprint(msg):
     if global_mod.options.verbose == True:
         echo(msg)
-        
+
 def pprint(msg):
     pp = prettyprinter.PrettyPrinter(indent = 2)
     pp.pprint(msg)
-    
+
 def vpprint(msg):
     if global_mod.options.verbose == True:
         pp = prettyprinter.PrettyPrinter(indent = 2)

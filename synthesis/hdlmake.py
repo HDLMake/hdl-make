@@ -21,8 +21,9 @@ from helper_classes import Manifest, SourceFile
 def main():
     global_mod.t0 = time.time()
     parser = optparse.OptionParser()
-    parser.add_option("--manifest-help", action="store_true", dest="manifest_help",
-    help="print manifest file variables description")
+    #disabled due to introducing a new parser class. Help msg printing is not ready yet.
+    #parser.add_option("--manifest-help", action="store_true", dest="manifest_help",
+    #help="print manifest file variables description")
     parser.add_option("-k", "--make", dest="make", action="store_true", default=None, help="prepare makefile for simulation")
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch", help="fetch files from modules listed in MANIFEST")
     parser.add_option("--make-fetch", action="store_true", dest="make_fetch", help="generate makefile for fetching needed modules")
@@ -46,7 +47,7 @@ def main():
     file = None
     if os.path.exists("manifest.py"):
         file = "manifest.py"
-    elif os.path.exitsts("Manifest.py"):
+    elif os.path.exists("Manifest.py"):
         file = "Manifest.py"
     
     if file != None:
@@ -72,9 +73,9 @@ def main():
     #else:
     #    global_mod.opt_map.tcl = global_mod.options.tcl
 
-    if global_mod.options.manifest_help == True:
-        ManifestParser().print_help()
-    elif global_mod.options.fetch == True:
+    #if global_mod.options.manifest_help == True:
+    #    ManifestParser().print_help()
+    if global_mod.options.fetch == True:
         fetch()
     elif global_mod.options.local == True:
         local_synthesis()
