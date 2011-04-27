@@ -8,7 +8,6 @@ import path
 import path
 import time
 import os
-from connection import check_address_length
 from connection import Connection
 import random
 import string
@@ -16,14 +15,14 @@ import global_mod
 import msg as p
 import optparse
 from module import Module
-from helper_classes import Manifest, SourceFile
+from helper_classes import Manifest, SourceFile, ManifestParser
 
 def main():
     global_mod.t0 = time.time()
     parser = optparse.OptionParser()
     #disabled due to introducing a new parser class. Help msg printing is not ready yet.
-    #parser.add_option("--manifest-help", action="store_true", dest="manifest_help",
-    #help="print manifest file variables description")
+    parser.add_option("--manifest-help", action="store_true", dest="manifest_help",
+    help="print manifest file variables description")
     parser.add_option("-k", "--make", dest="make", action="store_true", default=None, help="prepare makefile for simulation")
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch", help="fetch files from modules listed in MANIFEST")
     parser.add_option("--make-fetch", action="store_true", dest="make_fetch", help="generate makefile for fetching needed modules")
@@ -39,9 +38,13 @@ def main():
     parser.add_option("--ise-file", dest="ise", help="specify .xise file for other actions", metavar="ISE")
     parser.add_option("--synth-server", dest="synth_server", default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
     parser.add_option("--synth-user", dest="synth_user", default=None, help="use given USER for remote synthesis", metavar="USER")
-    (global_mod.options, args) = parser.parse_args()
+    (options, args) = parser.parse_args()
+    global_mod.options = options
 
-    # check if manifest is given in the command line
+    if options.manifest_help == True:
+        ManifestParser().help()
+        quit()
+    # check if manifest is given in the command line 
     # if yes, then use it
     # if no, the look for it in the current directory (python manifest has priority)  
     file = None
@@ -49,7 +52,7 @@ def main():
         file = "manifest.py"
     elif os.path.exists("Manifest.py"):
         file = "Manifest.py"
-    
+
     if file != None:
         top_manifest = Manifest(path=os.path.abspath(file))
         global_mod.top_module = Module(manifest=top_manifest, parent=None, source="local", fetchto=".")
@@ -58,10 +61,7 @@ def main():
         p.echo("No manifest found. At least an empty one is needed")
         quit()
 
-    if global_mod.options.synth_server != None:
-        global_mod.synth_server = global_mod.options.synth_server
-    if global_mod.options.synth_user != None:
-        global_mod.synth_user = global_mod.options.synth_user
+    global_mod.ssh = Connection(options.synth_user, options.synth_server)
 
     #if global_mod.options.tcl == None:
     #    if global_mod.opt_map.tcl == None: #option taken, but no tcl given -> find it
@@ -73,8 +73,7 @@ def main():
     #else:
     #    global_mod.opt_map.tcl = global_mod.options.tcl
 
-    #if global_mod.options.manifest_help == True:
-    #    ManifestParser().print_help()
+
     if global_mod.options.fetch == True:
         fetch()
     elif global_mod.options.local == True:
@@ -133,78 +132,62 @@ def inject_into_ise():
         quit()
 
     tm = global_mod.top_module
-    module_files_dict = make_list_of_files(file_type="vhd")
-    p.vprint("List of used files")
-    p.vpprint(module_files_dict)
-
     depend.inject_files_into_ise(global_mod.options.ise_project, files)
 
 def generate_makefile():
     import depend
     tm = global_mod.top_module
     vhdl_deps = tm.generate_deps_for_vhdl_in_modules()
-    sv_files = tm.make_lsit_of
     depend.generate_makefile(vhdl_deps)
 
     #NOT YET TRANSFORMED INTO CLASSES
 def remote_synthesis():
-    if global_mod.opt_map.tcl == None: #option not taken but mandatory
-        p.echo("For Xilinx synthesis a .tcl file in the top module is required")
-        quit()
-    if not os.path.exists(global_mod.opt_map.tcl):
-        p.echo("Given .tcl doesn't exist: " + global_mod.opt_map.tcl)
-        quit()
-    p.vprint("The program will be using ssh connection: "+global_mod.synth_user+"@"+global_mod.synth_server)
-    global_mod.ssh = Connection(global_mod.synth_user, global_mod.synth_server)
+    ssh = global_mod.ssh
+    tm = global_mod.top_module
 
-    if not global_mod.ssh.is_good():
-        p.echo("SSH connection failure.")
+    p.vprint("The program will be using ssh connection: "+str(ssh))
+    if not ssh.is_good():
+        p.echo("SSH connection failure. Remote host doesn't response.")
         quit()
 
-    if not os.path.exists(global_mod.fetchto):
+    if not os.path.exists(tm.fetchto):
         p.echo("There are no modules fetched. Are you sure it's correct?")
 
-    module_manifest_dict = path.make_list_of_modules(global_mod.top_manifest, global_mod.opt_map)
-    p.vprint ("Modules: ")
-    p.vpprint(module_manifest_dict)
+    modules = global_mod.top_module.make_list_of_modules()
 
-    module_files_dict = path.make_list_of_files(module_manifest_dict)
-    files = []
-    for module in module_files_dict:
-        files.extend(module_files_dict[module])
+    files = [file for mod in modules for file in mod.files]
+    dest_folder = ssh.transfer_files_forth(files, tm.name)
 
-    p.vprint("Files that will be transfered")
-    p.vpprint(files)
-    dest_folder = global_mod.ssh.transfer_files_forth(files, global_mod.opt_map.name)
-
-    ret = global_mod.ssh.system("[ -e /opt/Xilinx/"+global_mod.opt_map.ise+" ]")
+    ret = ssh.system("[ -e /opt/Xilinx/" + tm.ise + " ]")
     if ret == 1:
-        p.echo("There is no "+global_mod.opt_map.ise+" ISE version installed on the remote machine")
+        p.echo("There is no " + tm.ise + " ISE version installed on the remote machine")
         quit()
 
     p.vprint("Checking address length at synthesis server")
-    address_length = check_address_length(global_mod.ssh)
+    address_length = ssh.check_address_length()
     if address_length == 32 or address_length == None:
-        path_ext = global_mod.ise_path_32[global_mod.opt_map.ise]
+        path_ext = global_mod.ise_path_32[tm.ise]
     else:
-        path_ext = global_mod.ise_path_64[global_mod.opt_map.ise]
-
-    syn_cmd ="PATH=$PATH:"+path_ext+"&& cd "+dest_folder+global_mod.cwd+"/"+os.path.dirname(global_mod.opt_map.tcl)
+        path_ext = global_mod.ise_path_64[tm.ise]
+    cwd = os.getcwd()
+    quit()
+#### tu zmienic (jak Tomek rozczai)
+    syn_cmd ="PATH=$PATH:"+path_ext+"&& cd "+dest_folder+cwd+"/"+os.path.dirname(global_mod.opt_map.tcl)
     syn_cmd += "&& xtclsh "+os.path.basename(global_mod.opt_map.tcl)+" run_process"
-
-    p.vprint("Launching synthesis on " + global_mod.synth_server + ": " + syn_cmd)
-    ret = global_mod.ssh.system(syn_cmd)
+###
+    p.vprint("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
+    ret = ssh.system(syn_cmd)
     if ret == 1:
         p.echo("Synthesis failed. Nothing will be transfered back")
         quit()
 
     cur_dir = os.path.basename(global_mod.cwd)
     os.chdir("..")
-    global_mod.ssh.transfer_files_back(dest_folder+global_mod.cwd)
+    ssh.transfer_files_back(dest_folder+global_mod.cwd)
     os.chdir(cur_dir)
     if global_mod.options.no_del != True:
         p.echo("Deleting synthesis folder")
-        global_mod.ssh.system('rm -rf ' + dest_folder)
+        ssh.system('rm -rf ' + dest_folder)
 
 def local_synthesis():
     if global_mod.options.tcl == None:
@@ -238,8 +221,5 @@ def generate_list_makefile():
 if __name__ == "__main__":
     #global options' map for use in the entire script
     t0 = None
-    global_mod.synth_user = "htsynth"
-    global_mod.synth_server = "htsynth"
     global_mod.cwd = os.getcwd()
-    #globa_mod.ssh = myssh.MySSH(global_mod.synth_user, global_mod.synth_server)
     main()

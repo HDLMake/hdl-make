@@ -64,8 +64,7 @@ class Module(object):
         elif os.path.exists(os.path.join(self.options["fetchto"], basename)):
             self.options["isfetched"] = True
             self.path = os.path.join(self.options["fetchto"], basename)
-        else:
-            print os.path.join(self.options["fetchto"], basename)
+
         self.options["library"] = "work"
         self.parse_manifest()
 
@@ -143,27 +142,30 @@ class Module(object):
         else:
             self.local = []
 
-        if opt_map["files"] == None:
-            directory = os.path.dirname(self.path)
-            print "listing" + directory
+        self.library = opt_map["library"]
+        if opt_map["files"] == []:
             files = []
-            for file in os.listdir(directory):
-               path = os.path.join(directory, file)
-               files.append(path)
+            for filename in os.listdir(self.path):
+                path = os.path.join(self.path, filename)
+                if not os.path.isdir(path):
+                    file = SourceFile(path=path)
+                    file.library = self.library
+                    files.append(file)
             self.files = files
         else:
-            files = []
+            paths = []
             for path in opt_map["files"]:
                 if not path_mod.is_abs_path(path):
-                    files.append(path_mod.rel2abs(path, self.path))
+                    path = path_mod.rel2abs(path, self.path)
+                    paths.append(path)
                 else:
                     p.echo(path + " is an absolute path. Omitting.")
-            self.files = files
+            self.__make_list_of_files(paths=paths)
 
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.make_list_(opt_map["modules"]["svn"])
             svn = []
-            for url in opt_map.svn:
+            for url in opt_map["modules"]["svn"]:
                 svn.append(Module(url=url, source="svn", fetchto=fetchto, parent=self))
             self.svn = svn
         else:
@@ -172,7 +174,7 @@ class Module(object):
         if "git" in opt_map["modules"]:
             opt_map["modules"]["git"] = self.make_list_(opt_map["modules"]["git"])
             git = []
-            for url in opt_map.git:
+            for url in opt_map["modules"]["git"]:
                 git.append(Module(url=url, source="git", fetchto=fetchto, parent=self))
             self.git = git
         else:
@@ -183,7 +185,9 @@ class Module(object):
         self.vlog_opt = opt_map["vlog_opt"]
 
         self.isparsed = True
-        self.library = opt_map["library"]
+
+
+        self.name = opt_map["name"]
         #if self.isfetched == True:  <- avoid getting all files
         #    self.make_list_of_files()
 
@@ -318,7 +322,7 @@ class Module(object):
             p.vprint("No modules were found in " + self.fetchto)
         return modules
 
-    def make_list_of_files(self, file_type = None, ret_class = SourceFile):
+    def __make_list_of_files(self, paths, file_type = None, ret_class = SourceFile):
         def get_files_(path, file_type = None, ret_class = SourceFile):
             """
             Get lists of normal files and list folders recursively
@@ -340,18 +344,17 @@ class Module(object):
             return ret
 
         files = []
-
-        if self.manifest != None:
-            if self.files != []:
-                for file in self.files:
-                    if os.path.isdir(file):
-                        files.extend(get_files_(path=file, file_type=file_type, ret_class=ret_class))
-                    else:
-                        files.append(ret_class(file))
+        for path in paths:
+            if os.path.isdir(path):
+                files.extend(get_files_(path, file_type=file_type, ret_class=ret_class))
             else:
-               files.extend(get_files_(path=self.path, file_type=file_type, ret_class=ret_class))
-        else:
-            files = get_files_(path=self.path, file_type=file_type, ret_class=ret_class)
+                if file_type == None:
+                    files.append(ret_class(path=path))
+                else:
+                    tmp = filename.rsplit('.')
+                    ext = tmp[len(tmp)-1]
+                    if ext == file_type:
+                        files.append( ret_class(path=path) )
         for file in files:
             file.library = self.library
         self.files = files

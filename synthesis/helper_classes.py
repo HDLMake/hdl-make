@@ -31,11 +31,16 @@ class ManifestParser(ConfigParser):
         self.add_option('tcl', default=None, help="Path to .tcl file used in synthesis", type='')
         self.add_option('ise', default=None, help="Version of ISE to be used in synthesis", type='')
         self.add_type('ise', type=1)
+
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
         self.add_option('vcom_opt', default="", help="Additional options for vcom", type='')
         self.add_option('vlog_opt', default="", help="Additional options for vlog", type='')
         self.add_option('vmap_opt', default="", help="Additional options for vmap", type='')
         self.add_option('modules', default={}, help="List of local modules", type={})
+        self.add_allowed_key('modules', key="svn")
+        self.add_allowed_key('modules', key="git")
+        self.add_allowed_key('modules', key="local")
+
         self.add_option('library', default="work",
         help="Destination library for module's VHDL files", type="")
         self.add_option('files', default=[], help="List of files from the current module", type='')
@@ -70,6 +75,9 @@ class SourceFile:
         tmp = self.path.rsplit('.')
         ext = tmp[len(tmp)-1]
         return ext
+
+    def isdir(self):
+        return os.path.isdir(self.path)
 
     def search_for_use(self):
         """

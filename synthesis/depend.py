@@ -111,34 +111,42 @@ def generate_fetch_makefile(top_module):
 
     f = open("Makefile.fetch", "w")
 
+    modules = [top_module]
     f.write("fetch: ")
-    for m in top_module.svn:
-        basename = path.url_basename(m.url)
-        f.write(basename+"__fetch \n")
-    for m in top_module.git:
-        basename = path.url_basename(m.url)
-        f.write(basename+"__fetch \n")
 
-    f.write("\n")
-    for m in top_module.svn:
-        basename = path.url_basename(m.url)
-        dir = os.path.join(m.fetchto, basename)
-        f.write(basename+"__fetch:\n")
-        f.write("\t\t")
-        f.write("PWD=$(shell pwd) ; ")
-        f.write("cd " + rp(m.fetchto) + ' ; ')
-        f.write("svn checkout "+ m.url + ' ; ')
-        f.write("cd $(PWD) \n\n")
+    while(len(modules) > 0):
+        module = modules.pop()
+        for m in module.svn:
+            modules.append(m)
+            basename = path.url_basename(m.url)
+            f.write(basename+"__fetch \\\n")
+        for m in module.git:
+            modules.append(m)
+            basename = path.url_basename(m.url)
+            f.write(basename+"__fetch \\\n")
 
-    for m in top_module.git:
-        basename = path.url_basename(m.url)
-        dir = os.path.join(m.fetchto, basename)
-        f.write(basename+"__fetch:\n")
-        f.write("\t\t")
-        f.write("PWD=$(shell pwd) ; ")
-        f.write("cd " + rp(m.fetchto) + ' ; ')
-        f.write("git clone "+ m.url + ' ; ')
-        f.write("cd $(PWD) \n\n")
+        f.write("\n")
+        for m in module.svn:
+            basename = path.url_basename(m.url)
+            dir = os.path.join(m.fetchto, basename)
+            f.write(basename+"__fetch:\n")
+            f.write("\t\t")
+            f.write("PWD=$(shell pwd); ")
+            f.write("cd " + rp(m.fetchto) + '; ')
+            f.write("svn checkout "+ m.url + '; ')
+            f.write("cd $(PWD) \n\n")
+
+        for m in module.git:
+            basename = path.url_basename(m.url)
+            dir = os.path.join(m.fetchto, basename)
+            f.write(basename+"__fetch:\n")
+            f.write("\t\t")
+            f.write("PWD=$(shell pwd); ")
+            f.write("cd " + rp(m.fetchto) + '; ')
+            f.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
+            f.write("git pull; ")
+            f.write("else git clone "+ m.url + '; fi; ')
+            f.write("cd $(PWD) \n\n")
     f.close()
 
 def generate_pseudo_ipcore(file_deps_dict, filename="ipcore"):
