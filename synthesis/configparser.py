@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import msg as p
+import global_mod
 
 class ConfigParser(object):
     """Class for parsing python configuration files
@@ -124,6 +125,7 @@ class ConfigParser(object):
                 raise ValueError("Description should be a string!")
         self.description = description
         self.options = {}
+        self.add_arbitrary_code(global_mod.options.arbitrary_code)
 
     def help(self):
         p.rawprint("Variables available in a manifest:")
@@ -181,16 +183,35 @@ class ConfigParser(object):
         ret = {}
 
         try:
-            self.file
+            file = open(self.file, "r")
+            content = file.readlines()
+            content = ''.join(content)
         except AttributeError:
-            self.file = "/dev/null"
+            content = ''
+        try:
+            content = self.arbitrary_code + '\n' + content
+        except AttributeError:
+            pass
 
-        execfile(self.file, options)
+        #now the trick:
+        #I take the arbitrary code and parse it
+        #the values are not important, but thanks to it I can check
+        #if a variable came from the arbitrary code.
+        #This is important because in the manifests only certain group
+        #of variables is allowed. In arbitrary code all of them can be used.
+        arbitrary_options = {}
+        exec(self.arbitrary_code, arbitrary_options)
+        exec(content, options)
+
         for opt_name, val in list(options.items()): #check delivered options
             if opt_name.startswith('__'):
                 continue
             if opt_name not in self.options:
-                raise NameError("Unrecognized option: " + opt_name)
+                print opt_name
+                if opt_name in arbitrary_options:
+                    continue
+                else:
+                    raise NameError("Unrecognized option: " + opt_name)
             opt = self.options[opt_name]
             if type(val) not in opt.types:
                 raise RuntimeError("Given option: "+str(type(val))+" doesn't match specified types:"+str(opt.types))

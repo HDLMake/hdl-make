@@ -22,6 +22,40 @@ class Manifest:
     def exists(self):
         return os.path.exists(self.path)
 
+class ManifestOptions(object):
+    def __init__(self):
+        self.items = { "files" : None, #files from the module that should be taken
+                "fetchto" : None, #where this module should be fetched to, when fetching
+                "path" : None, #where the module is storek
+                "url" : None, #URL to the module
+                "manifest" : None, #manifest object
+                "source" : None, #where it should be fetched from
+                "isparsed" : None, #
+                "isfetched" : None,
+                "library" : None, #target library for the vhdl compilation
+                "root_module" : None, #root module object
+                "local" : None, #local modules
+                "target" : None,
+                "git" : None, #git modules
+                "svn" : None, #svn modules
+                "ise" : None,
+                "tcl" : None,
+                "vmap_opt" : None,
+                "vlog_opt" : None,
+                "vcom_opt" : None
+                }
+    def __setitem__(self, key, value):
+        if key in self.items:
+            self.items[key] = value
+        else:
+            raise KeyError("__setitem__: there is no such key: "+str(key))
+
+    def __getitem__(self, key):
+        if key in self.items:
+            return self.items[key]
+        else:
+            raise KeyError("__getitem__:there is no such key: "+str(key))
+
 class ManifestParser(ConfigParser):
     def __init__(self):
         ConfigParser.__init__(self,description="Configuration options description")
@@ -37,6 +71,7 @@ class ManifestParser(ConfigParser):
         self.add_option('vlog_opt', default="", help="Additional options for vlog", type='')
         self.add_option('vmap_opt', default="", help="Additional options for vmap", type='')
         self.add_option('modules', default={}, help="List of local modules", type={})
+        self.add_option('target', default=None, help="Target architecture for synthesis", type='')
         self.add_allowed_key('modules', key="svn")
         self.add_allowed_key('modules', key="git")
         self.add_allowed_key('modules', key="local")
@@ -45,7 +80,6 @@ class ManifestParser(ConfigParser):
         help="Destination library for module's VHDL files", type="")
         self.add_option('files', default=[], help="List of files from the current module", type='')
         self.add_type('files', type=[])
-        self.parser = self
 
     def add_manifest(self, manifest):
         return self.add_config_file(manifest.path)
@@ -159,36 +193,3 @@ class IseProjectFile(SourceFile):
         self.library = library
         self.use = self.search_for_use_()
         self.package = self.search_for_package_()
-
-class ManifestOptions(object):
-    def __init__(self):
-        self.items = { "files" : None, #files from the module that should be taken
-                "fetchto" : None, #where this module should be fetched to, when fetching
-                "path" : None, #where the module is storek
-                "url" : None, #URL to the module
-                "manifest" : None, #manifest object
-                "source" : None, #where it should be fetched from
-                "isparsed" : None, #
-                "isfetched" : None,
-                "library" : None, #target library for the vhdl compilation
-                "root_module" : None, #root module object
-                "local" : None, #local modules
-                "git" : None, #git modules
-                "svn" : None, #svn modules
-                "ise" : None,
-                "tcl" : None,
-                "vmap_opt" : None,
-                "vlog_opt" : None,
-                "vcom_opt" : None
-                }
-    def __setitem__(self, key, value):
-        if key in self.items:
-            self.items[key] = value
-        else:
-            raise KeyError("__setitem__: there is no such key: "+str(key))
-
-    def __getitem__(self, key):
-        if key in self.items:
-            return self.items[key]
-        else:
-            raise KeyError("__getitem__:there is no such key: "+str(key))

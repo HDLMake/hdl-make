@@ -21,23 +21,58 @@ def main():
     global_mod.t0 = time.time()
     parser = optparse.OptionParser()
     #disabled due to introducing a new parser class. Help msg printing is not ready yet.
-    parser.add_option("--manifest-help", action="store_true", dest="manifest_help",
-    help="print manifest file variables description")
-    parser.add_option("-k", "--make", dest="make", action="store_true", default=None, help="prepare makefile for simulation")
-    parser.add_option("-f", "--fetch", action="store_true", dest="fetch", help="fetch files from modules listed in MANIFEST")
-    parser.add_option("--make-fetch", action="store_true", dest="make_fetch", help="generate makefile for fetching needed modules")
-    parser.add_option("-l", "--synthesize-locally", dest="local", action="store_true", help="perform a local synthesis")
-    parser.add_option("-r", "--synthesize-remotelly", dest="remote", action="store_true", help="perform a remote synthesis")
-    parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default="false", help="verbose mode")
-    parser.add_option("--ipcore", dest="ipcore", action="store_true", default="false", help="generate a pseudo ip-core")
-    parser.add_option("--inject", dest="inject", action="store_true", default=None, help="inject file list into ise project")
-    parser.add_option("--nodel", dest="nodel", action="store_true", default="false", help="don't delete intermediate makefiles")
-    parser.add_option("--make-list", dest="make_list", action="store_true", default=None, help="make list of project files in ISE format")
-    parser.add_option("--tcl-file", dest="tcl", help="specify a .tcl file used for synthesis with ISE") 
-    parser.add_option("--qpf-file", dest="qpf", help="specify a .qpf file used for synthesis with QPF")
-    parser.add_option("--ise-file", dest="ise", help="specify .xise file for other actions", metavar="ISE")
-    parser.add_option("--synth-server", dest="synth_server", default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
-    parser.add_option("--synth-user", dest="synth_user", default=None, help="use given USER for remote synthesis", metavar="USER")
+
+    parser.add_option("--manifest-help", action="store_true",
+    dest="manifest_help", help="print manifest file variables description")
+
+    parser.add_option("-k", "--make", dest="make", action="store_true",
+    default=None, help="prepare makefile for simulation")
+
+    parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
+    help="fetch files from modules listed in MANIFEST")
+
+    parser.add_option("--make-fetch", action="store_true", dest="make_fetch",
+    help="generate makefile for fetching needed modules")
+
+    parser.add_option("-l", "--synthesize-locally", dest="local",
+    action="store_true", help="perform a local synthesis")
+
+    parser.add_option("-r", "--synthesize-remotelly", dest="remote",
+    action="store_true", help="perform a remote synthesis")
+
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
+    default="false", help="verbose mode")
+
+    parser.add_option("--ipcore", dest="ipcore", action="store_true",
+    default="false", help="generate a pseudo ip-core")
+
+    parser.add_option("--inject", dest="inject", action="store_true",
+    default=None, help="inject file list into ise project")
+
+    parser.add_option("--nodel", dest="nodel", action="store_true",
+    default="false", help="don't delete intermediate makefiles")
+
+    parser.add_option("--make-list", dest="make_list", action="store_true",
+    default=None, help="make list of project files in ISE format")
+
+    parser.add_option("--tcl-file", dest="tcl",
+    help="specify a .tcl file used for synthesis with ISE")
+
+    parser.add_option("--qpf-file", dest="qpf",
+    help="specify a .qpf file used for synthesis with QPF")
+
+    parser.add_option("--ise-file", dest="ise",
+    help="specify .xise file for other actions", metavar="ISE")
+ 
+    parser.add_option("--synth-server", dest="synth_server",
+    default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
+
+    parser.add_option("--synth-user", dest="synth_user",
+    default=None, help="use given USER for remote synthesis", metavar="USER")
+
+    parser.add_option("--py", dest="arbitrary_code",
+    default="", help="add arbitrary code to all manifests' evaluation")
+
     (options, args) = parser.parse_args()
     global_mod.options = options
 

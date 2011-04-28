@@ -189,8 +189,8 @@ class Module(object):
 
         self.isparsed = True
 
-
         self.name = opt_map["name"]
+        self.target = opt_map["target"]
         #if self.isfetched == True:  <- avoid getting all files
         #    self.make_list_of_files()
 
@@ -410,7 +410,8 @@ class Module(object):
                 file_file_dict[file] = []
         p.vpprint(file_file_dict)
         return file_file_dict
-# THE METHOD IS NOT FINISHED
+
+    # THE METHOD IS NOT FINISHED
     def check_correctness(manifest_file):
         raise RuntimeError("Method is not finished")
         m = parse_manifest(manifest_file)
