@@ -173,6 +173,9 @@ class ConfigParser(object):
 
         raise RuntimeError("Config file should be added only once")
 
+    def add_arbitrary_code(self, code):
+        self.arbitrary_code = code
+
     def parse(self):
         options = {}
         ret = {}

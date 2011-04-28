@@ -21,6 +21,7 @@ class Module(object):
             self.options["files"] = files
         if manifest != None and fetchto == None:
             options["fetchto"] = os.path.dirname(manifest.path)
+
         if manifest != None and url == None and path == None:
             self.options["url"] = os.path.dirname(manifest.path)
             self.options["path"] = os.path.dirname(manifest.path)
@@ -32,7 +33,7 @@ class Module(object):
                 self.options["path"] = path
                 self.options["url"] = url
         if manifest == None:
-            if self.options["path"] != None:
+            if path != None:
                 self.options["manifest"] = self.search_for_manifest()
             else:
                 self.options["manifest"] = None
@@ -43,6 +44,7 @@ class Module(object):
             self.options["isfetched"] = True
         else:
             self.options["isfetched"] = isfetched
+
         if source != None:
             if source not in ["local", "svn", "git"]:
                 raise ValueError("Inproper source: " + source)
@@ -81,9 +83,10 @@ class Module(object):
         """
         p.vprint("Looking for manifest in " + self.path)
         for filename in os.listdir(self.path):
-            if filename == "manifest.py" and not os.path.isdir(filename):
-                manifest = Manifest(path=os.path.abspath(os.path.join(self.path, filename)))
-                return manifest
+            if filename == "manifest.py" or filename == "Manifest.py":
+                if not os.path.isdir(filename):
+                    manifest = Manifest(path=os.path.abspath(os.path.join(self.path, filename)))
+                    return manifest
         # no manifest file found
         return None
 
