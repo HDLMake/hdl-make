@@ -92,6 +92,7 @@ def main():
         top_manifest = Manifest(path=os.path.abspath(file))
         global_mod.top_module = Module(manifest=top_manifest, parent=None, source="local", fetchto=".")
         global_mod.top_module.parse_manifest()
+        global_mod.global_target = global_mod.top_module.target
     else:
         p.echo("No manifest found. At least an empty one is needed")
         quit()

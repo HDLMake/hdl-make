@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import msg as p
-import global_mod
 
 class ConfigParser(object):
     """Class for parsing python configuration files
@@ -104,6 +103,7 @@ class ConfigParser(object):
             self.keys = []
             self.types = []
             self.help = ""
+            self.arbitrary_code = ""
 
             for key in others:
                 if key == "help":
@@ -125,7 +125,7 @@ class ConfigParser(object):
                 raise ValueError("Description should be a string!")
         self.description = description
         self.options = {}
-        self.add_arbitrary_code(global_mod.options.arbitrary_code)
+        self.arbitrary_code = ""
 
     def help(self):
         p.rawprint("Variables available in a manifest:")
@@ -176,7 +176,7 @@ class ConfigParser(object):
         raise RuntimeError("Config file should be added only once")
 
     def add_arbitrary_code(self, code):
-        self.arbitrary_code = code
+        self.arbitrary_code += code + '\n'
 
     def parse(self):
         options = {}
@@ -188,10 +188,7 @@ class ConfigParser(object):
             content = ''.join(content)
         except AttributeError:
             content = ''
-        try:
-            content = self.arbitrary_code + '\n' + content
-        except AttributeError:
-            pass
+        content = self.arbitrary_code + '\n' + content
 
         #now the trick:
         #I take the arbitrary code and parse it

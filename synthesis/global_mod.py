@@ -4,7 +4,8 @@
 options = None
 t0 = None
 ssh = None
-top_manifest = None
+top_module = None
+global_target = "''"
 cwd = None
 opt_map = None
 hdlm_path = "hdl_make"

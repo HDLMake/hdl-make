@@ -3,6 +3,7 @@ import path as path_mod
 import msg as p
 import os
 import configparser
+import global_mod
 from helper_classes import Manifest, ManifestParser, SourceFile, IseProjectFile, ManifestOptions
 
 class Module(object):
@@ -105,6 +106,9 @@ class Module(object):
             return
 
         manifest_parser = ManifestParser()
+        manifest_parser.add_arbitrary_code("target="+global_mod.global_target)
+        manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
+
         if self.manifest == None:
             p.vprint(' '.join(["In module",str(self),"there is no manifest."]))
         else:
@@ -187,12 +191,10 @@ class Module(object):
         self.vcom_opt = opt_map["vcom_opt"]
         self.vlog_opt = opt_map["vlog_opt"]
 
-        self.isparsed = True
-
         self.name = opt_map["name"]
         self.target = opt_map["target"]
-        #if self.isfetched == True:  <- avoid getting all files
-        #    self.make_list_of_files()
+
+        self.isparsed = True
 
     def is_fetched(self):
         return self.isfetched
