@@ -164,8 +164,8 @@ def generate_makefile():
     tm = global_mod.top_module
     vhdl_deps = tm.generate_deps_for_vhdl_in_modules()
     sv_files = tm.make_list_of_sv_files()
-    print sv_files
-    quit()
+    #print sv_files
+    #quit()
     depend.generate_makefile(vhdl_deps)
 
     #NOT YET TRANSFORMED INTO CLASSES
