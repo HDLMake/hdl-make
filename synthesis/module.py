@@ -91,7 +91,7 @@ class Module(object):
         # no manifest file found
         return None
 
-    def make_list_(self, sth):
+    def __make_list(self, sth):
         if sth != None:
             if not isinstance(sth, (list,tuple)):
                 sth = [sth]
@@ -140,7 +140,7 @@ class Module(object):
         if self.ise == None:
             self.ise = "13.1"
         if "local" in opt_map["modules"]:
-            local_paths = self.make_list_(opt_map["modules"]["local"])
+            local_paths = self.__make_list(opt_map["modules"]["local"])
             local_mods = []
             for path in local_paths:
                 path = path_mod.rel2abs(path, self.path)
@@ -160,6 +160,7 @@ class Module(object):
                     files.append(file)
             self.files = files
         else:
+            opt_map["files"] = self.__make_list(opt_map["files"])
             paths = []
             for path in opt_map["files"]:
                 if not path_mod.is_abs_path(path):
@@ -167,10 +168,14 @@ class Module(object):
                     paths.append(path)
                 else:
                     p.echo(path + " is an absolute path. Omitting.")
+                if not os.path.exists(path):
+                    p.echo("File listed in " + self.manifest.path + " doesn't exist: "
+                    + path +".\nExiting.")
+                    quit()
             self.__make_list_of_files(paths=paths)
 
         if "svn" in opt_map["modules"]:
-            opt_map["modules"]["svn"] = self.make_list_(opt_map["modules"]["svn"])
+            opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
             svn = []
             for url in opt_map["modules"]["svn"]:
                 svn.append(Module(url=url, source="svn", fetchto=fetchto, parent=self))
@@ -179,7 +184,7 @@ class Module(object):
             self.svn = []
 
         if "git" in opt_map["modules"]:
-            opt_map["modules"]["git"] = self.make_list_(opt_map["modules"]["git"])
+            opt_map["modules"]["git"] = self.__make_list(opt_map["modules"]["git"])
             git = []
             for url in opt_map["modules"]["git"]:
                 git.append(Module(url=url, source="git", fetchto=fetchto, parent=self))
@@ -363,6 +368,11 @@ class Module(object):
         for file in files:
             file.library = self.library
         self.files = files
+
+    def make_list_of_sv_files(self):
+        modules = self.make_list_of_modules()
+        sv_files = [f for module in modules for f in module.files if f.extension() == "sv"]
+        return sv_files
 
     def generate_deps_for_vhdl_in_modules(self):
         modules = self.make_list_of_modules()

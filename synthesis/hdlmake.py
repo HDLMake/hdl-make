@@ -99,17 +99,6 @@ def main():
 
     global_mod.ssh = Connection(options.synth_user, options.synth_server)
 
-    #if global_mod.options.tcl == None:
-    #    if global_mod.opt_map.tcl == None: #option taken, but no tcl given -> find it
-    #        tcl_pat = re.compile("^.*\.tcl$")
-    #        for file in os.listdir("."): #try to find it in the current dir
-    #            if re.match(tcl_pat, file):
-    #                global_mod.opt_map.tcl = file
-    #                break
-    #else:
-    #    global_mod.opt_map.tcl = global_mod.options.tcl
-
-
     if global_mod.options.fetch == True:
         fetch()
     elif global_mod.options.local == True:
@@ -174,6 +163,9 @@ def generate_makefile():
     import depend
     tm = global_mod.top_module
     vhdl_deps = tm.generate_deps_for_vhdl_in_modules()
+    sv_files = tm.make_list_of_sv_files()
+    print sv_files
+    quit()
     depend.generate_makefile(vhdl_deps)
 
     #NOT YET TRANSFORMED INTO CLASSES
