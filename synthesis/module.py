@@ -369,17 +369,26 @@ class Module(object):
             file.library = self.library
         self.files = files
 
-    def make_list_of_sv_files(self):
+    def extract_files_from_module(self, extensions):
+        p.vprint("Extracting files from the module: " + str(self))
+        from copy import copy
+        if isinstance(extensions, list):
+            files = [copy(f) for module in modules for f in module.files if f.extension() in extensions]
+        elif isinstance(extensions, basestring):
+            files = [copy(f) for module in modules for f in module.files if f.extension() == extensions]
+        return files
+
+    def extract_files_from_all_modules(self, extensions):
         modules = self.make_list_of_modules()
-        sv_files = [f for module in modules for f in module.files if f.extension() in ["sv", "v"]]
-        return sv_files
+        files = []
+        for module in modules:
+            tmp = module.extract_file_from_module(extensions=extensions)
+            files.extend(tmp)
+
+        return files
 
     def generate_deps_for_vhdl_in_modules(self):
-        modules = self.make_list_of_modules()
-        p.vprint("Using following modules for dependencies:" + str([str(i) for i in modules]))
-
-        from copy import copy #shallow object copying
-        all_files = [copy(f) for module in modules for f in module.files if f.extension() =="vhd"]
+        all_files = self.extract_files_from_all_modules(extensions="vhd")
         p.vprint("All vhdl files:")
         for file in all_files:
             p.vprint(str(file) + ':' + file.library)
