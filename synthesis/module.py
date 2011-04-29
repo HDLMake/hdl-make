@@ -125,17 +125,23 @@ class Module(object):
             root_path = path_mod.rel2abs(opt_map["root_module"], self.path)
             self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
             self.root_module.parse_manifest()
-            #if not os.path.exists(opt_map.root_manifest.path):
-            #    p.echo("Error while parsing " + self.manifest + ". Root manifest doesn't exist: "
-            #    + opt_map.root_manifest)
-            #   quit()
-        if opt_map["fetchto"] == None:
-            fetchto = self.path
+
+        #derivate fetchto from the root_module
+        if opt_map["root_module"] != None:
+            self.fetchto = self.root_module.fetchto
         else:
             if not path_mod.is_rel_path(opt_map["fetchto"]):
                 p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map["fetchto"]]))
                 quit()
             fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
+        #this is the previous solution - no derivation 
+        #if opt_map["fetchto"] == None:
+        #    fetchto = self.path
+        # else:
+        #    if not path_mod.is_rel_path(opt_map["fetchto"]):
+        #       p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map["fetchto"]]))
+        #       quit()
+        #   fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
 
         if self.ise == None:
             self.ise = "13.1"
