@@ -373,9 +373,9 @@ class Module(object):
         p.vprint("Extracting files from the module: " + str(self))
         from copy import copy
         if isinstance(extensions, list):
-            files = [copy(f) for module in modules for f in module.files if f.extension() in extensions]
+            files = [copy(f) for f in self.files if f.extension() in extensions]
         elif isinstance(extensions, basestring):
-            files = [copy(f) for module in modules for f in module.files if f.extension() == extensions]
+            files = [copy(f) for f in self.files if f.extension() == extensions]
         return files
 
     def extract_files_from_all_modules(self, extensions):
