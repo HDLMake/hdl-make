@@ -382,7 +382,7 @@ class Module(object):
         modules = self.make_list_of_modules()
         files = []
         for module in modules:
-            tmp = module.extract_file_from_module(extensions=extensions)
+            tmp = module.extract_files_from_module(extensions=extensions)
             files.extend(tmp)
 
         return files
