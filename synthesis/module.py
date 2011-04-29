@@ -371,7 +371,7 @@ class Module(object):
 
     def make_list_of_sv_files(self):
         modules = self.make_list_of_modules()
-        sv_files = [f for module in modules for f in module.files if f.extension() == "sv"]
+        sv_files = [f for module in modules for f in module.files if f.extension() in ["sv", "v"]]
         return sv_files
 
     def generate_deps_for_vhdl_in_modules(self):
