@@ -166,7 +166,7 @@ def generate_makefile():
     sv_files = tm.make_list_of_sv_files()
     #print sv_files
     #quit()
-    depend.generate_makefile(vhdl_deps)
+    depend.generate_makefile(file_deps=vhdl_deps, sv_files=sv_files)
 
     #NOT YET TRANSFORMED INTO CLASSES
 def remote_synthesis():

@@ -188,7 +188,7 @@ def generate_list_makefile(file_deps_dict, filename="Makefile.list"):
         f.write("\t\t@echo \'"+file.library+';'+rp(file.path)+"\' >> ise_list\n\n")
     f.write("done:\n\t\t@echo Done.")
 
-def generate_makefile(file_deps_dict, filename="Makefile"):
+def generate_makefile(file_deps, sv_files, filename="Makefile"):
     from time import gmtime, strftime
     import path
     #from path import relpath as rp
@@ -209,17 +209,13 @@ VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini
 VSIM_FLAGS := -voptargs="+acc"
 VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini
 
-#VHDL_OBJ is defined below
-SV_SRC := $(wildcard $(PWD)/*.sv)
-SV_OBJ := $(foreach svfile, $(SV_SRC), work/$(patsubst %.sv,%/_primary.dat,$(notdir $(svfile))))
+
 """
     make_preambule_p2 = """## rules #################################
 all: modelsim.ini $(LIB_IND) $(SV_OBJ) $(VHDL_OBJ)
 $(SV_OBJ): $(VHDL_OBJ) 
 $(VHDL_OBJ): $(LIB_IND) modelsim.ini
 
-work/%/_primary.dat: %.sv
-\t\tvlog -work work $(VLOG_FLAGS) $<
 modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
 \t\tcp $< .
 clean:
@@ -232,11 +228,26 @@ clean:
     f.write(notices)
     f.write(make_preambule_p1)
 
-    libs = set(file.library for file in list(file_deps_dict.keys()))
+    rp = os.path.relpath
+    f.write("SV_SRC := ")
+
+#    SV_SRC := $(wildcard $(PWD)/*.sv)
+#    SV_OBJ := $(foreach svfile, $(SV_SRC), work/$(patsubst %.sv,%/_primary.dat,$(notdir $(svfile))))
+
+    for file in sv_files:
+        f.write(rp(file.path) + " \\\n")
+    f.write("\n")
+
+    f.write("SV_OBJ := ")
+    for file in sv_files:
+        f.write(os.path.join(file.library, file.purename, "."+file.purename) + " \\\n")
+    f.write('\n')
+
+    libs = set(file.library for file in list(file_deps.keys()))
     #list vhdl objects (_primary.dat files)
     f.write("VHDL_OBJ := ")
-    for file in file_deps_dict:
-        f.write(file.library+'/'+file.purename+ "/."+file.purename+" \\\n")
+    for file in file_deps:
+        f.write(os.path.join(file.library, file.purename,"."+file.purename) + " \\\n")
     f.write('\n')
 
     f.write('LIBS := ')
@@ -258,10 +269,16 @@ clean:
         f.write(' '.join(["||", "rm -rf", lib, "\n"]))
         f.write('\n')
 
-    #list rules for all _primary.dat files
-    rp = os.path.relpath
+    #rules for all _primary.dat files for sv
+    for file in sv_files:
+        f.write(os.path.join(file.library, file.purename, '.'+file.purename)+': '+rp(file.path)+"\n")
+        f.write("\t\tvlog -work "+file.library+" $(VLOG_FLAGS) $<")
+        f.write(" && mkdir -p "+os.path.join(file.library+'/'+file.purename) )
+        f.write(" && touch "+ os.path.join(file.library, file.purename, '.'+file.purename)+'\n')
+    f.write("\n")
+    #list rules for all _primary.dat files for vhdl
     vco = global_mod.top_module.vcom_opt
-    for file in file_deps_dict:
+    for file in file_deps:
         lib = file.library
         basename = file.name
         purename = file.purename 
@@ -270,9 +287,9 @@ clean:
         f.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, rp(file.path),
         "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename), '\n']))
         f.write('\n')
-        if len(file_deps_dict[file]) != 0:
+        if len(file_deps[file]) != 0:
             f.write(os.path.join(lib, purename, "."+purename) +":")
-            for dep_file in file_deps_dict[file]:
+            for dep_file in file_deps[file]:
                 name = dep_file.purename
                 f.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
             f.write('\n\n')
