@@ -8,248 +8,260 @@ import msg as p
 from srcfile import *
 
 
-def try_utf8(data):
-    try:
-        return data.decode('utf-8')
-    except UnicodeDecodeError:
-            return None
+class MakefileWriter(object):
+
+    def __modelsim_ini_path(self):
+        vsim_path = os.popen("which vsim").read().strip()
+        bin_path = os.path.dirname(vsim_path)
+        return os.path.abspath(bin_path+"/../")
+
+    def generate_ise_makefile(self, filename=None):
+        if filename == None:
+            filename = "Makefile"
+        f=open(filename,"w");
+        
+        mk_text = """
+PROJECT=""" + top_mod.syn_project + """
+ISE_CRAP = \
+*.bgn \
+*.html \
+*.tcl \
+*.bld \
+*.cmd_log \
+*.drc \
+*.lso \
+*.ncd \
+*.ngc \
+*.ngd \
+*.ngr \
+*.pad \
+*.par \
+*.pcf \
+*.prj \
+*.ptwx \
+*.stx \
+*.syr \
+*.twr \
+*.twx \
+*.gise \
+*.unroutes \
+*.ut \
+*.xpi \
+*.xst \
+*_bitgen.xwbt \
+*_envsettings.html \
+*_guide.ncd \
+*_map.map \
+*_map.mrp \
+*_map.ncd \
+*_map.ngm \
+*_map.xrpt \
+*_ngdbuild.xrpt \
+*_pad.csv \
+*_pad.txt \
+*_par.xrpt \
+*_summary.html \
+*_summary.xml \
+*_usage.xml \
+*_xst.xrpt \
+usage_statistics_webtalk.html \
+webtalk.log \
+webtalk_pn.xml \
+run.tcl
 
 
-def generate_deps_for_sv_files(files):
-    def search_for_sv_include(file):
-        f = open(file,"r")
-        text = f.readlines()
+all: syn
 
-        ret = []
-        package_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \t]+)\"[ \t]*$")
-        for line in text:
-            m = re.match(package_pattern, line)
-            if m != None:
-                ret.append(m.group(1))
-        f.close()
-        return ret
-
-    if not isinstance(files,list):
-        files = [files]
-    file_files_dict = {}
-    for file in files:
-        file_files_dict[file] = search_for_sv_include(file)
-    return file_files_dict
-
-def modelsim_ini_path():
-    vsim_path = os.popen("which vsim").read().strip()
-    bin_path = os.path.dirname(vsim_path)
-    return os.path.abspath(bin_path+"/../")
-
-def inject_files_into_ise(ise_file, files_list):
-    ise = open(ise_file, "r")
-    ise_lines = ise.readlines()
-    file_template = '    '+ "<file xil_pn:name=\"{0}\" xil_pn:type=\"file_vhdl\"/>\n"
-    files_pattern = re.compile('[ \t]*<files>[ \t]*')
-    new_ise = []
-    for line in ise_lines:
-        new_ise.append(line)
-        if re.match(files_pattern, line) != none:
-            for file in files_list:
-                new_ise.append(file_template.format(os.path.relpath(file)))
-
-    new_ise_file = open(ise_file + ".new", "w")
-    new_ise_file.write(''.join(new_ise))
-    new_ise_file.close()
-
-def generate_fetch_makefile(top_module):
-    import path
-    rp = os.path.relpath
-
-    f = open("Makefile.fetch", "w")
-
-    modules = [top_module]
-    f.write("fetch: ")
-
-    while(len(modules) > 0):
-        module = modules.pop()
-        for m in module.svn:
-            modules.append(m)
-            basename = path.url_basename(m.url)
-            f.write(basename+"__fetch \\\n")
-        for m in module.git:
-            modules.append(m)
-            basename = path.url_basename(m.url)
-            f.write(basename+"__fetch \\\n")
-
-        f.write("\n")
-        for m in module.svn:
-            basename = path.url_basename(m.url)
-            dir = os.path.join(m.fetchto, basename)
-            f.write(basename+"__fetch:\n")
-            f.write("\t\t")
-            f.write("PWD=$(shell pwd); ")
-            f.write("cd " + rp(m.fetchto) + '; ')
-            f.write("svn checkout "+ m.url + '; ')
-            f.write("cd $(PWD) \n\n")
-
-        for m in module.git:
-            basename = path.url_basename(m.url)
-            dir = os.path.join(m.fetchto, basename)
-            f.write(basename+"__fetch:\n")
-            f.write("\t\t")
-            f.write("PWD=$(shell pwd); ")
-            f.write("cd " + rp(m.fetchto) + '; ')
-            f.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
-            f.write("git pull; ")
-            f.write("else git clone "+ m.url + '; fi; ')
-            f.write("cd $(PWD) \n\n")
-    f.close()
-
-def generate_pseudo_ipcore(file_deps_dict, filename="ipcore"):
-    import path
-    rp = os.path.relpath
-
-    f = open("Makefile.ipcore", "w")
-    f.write("file: create_a_file done\n")
-    f.write("create_a_file:\n\t\t@printf \"\" > " + filename + '\n')
-    f.write("file: ")
-    for file in file_deps_dict:
-        f.write(rp(file.path)+"__cat \\\n")
-    f.write("\n")
-    for file in file_deps_dict:
-        f.write(rp(file.path)+"__cat: ")
-        f.write(' '.join(rp(depfile.path)+"__cat" for depfile in file_deps_dict[file]))
-        f.write('\n')
-        f.write("\t\t@echo '-- " + file.name + "' >> " + filename + "\n")
-        f.write("\t\t@cat "+ rp(file.path) + " >> " + filename + "\n")
-        f.write("\t\t@echo \"\">> " +filename + "\n\n")
-
-    f.write("done:\n\t\t@echo Done.")
-
-def generate_list_makefile(file_deps_dict, filename="Makefile.list"):
-    import path
-
-    rp = os.path.relpath
-    f = open(filename, "w")
-    f.write("file: create_a_file done\n")
-    f.write("create_a_file:\n\t\t@printf \"\" > ise_list \n")
-    f.write("file: ")
-    for file in file_deps_dict:
-        f.write(rp(file.path)+"__print \\\n")
-    f.write("\n")
-    for file in file_deps_dict:
-        f.write(rp(file.path)+"__print: ")
-        f.write(' '.join( rp(depfile.path)+"__print" for depfile in file_deps_dict[file]))
-        f.write('\n')
-        f.write("\t\t@echo \'"+file.library+';'+rp(file.path)+"\' >> ise_list\n\n")
-    f.write("done:\n\t\t@echo Done.")
-
-def emit_string(s):
-    if not s:
-        return ""
-    else:
-        return s
-
-def generate_modelsim_makefile(fileset, module, filename="Makefile"):
-    from time import gmtime, strftime
-    import path
-    #from path import relpath as rp
-    date = strftime("%a, %d %b %Y %H:%M:%S", gmtime())
-    notices = """#######################################################################
-#   This makefile has been automatically generated by hdl-make 
-#   on """ + date + """
-#######################################################################
-"""
-
-    make_preambule_p1 = """## variables #############################
-PWD := $(shell pwd)
-WORK_NAME := work
-
-MODELSIM_INI_PATH := """ + modelsim_ini_path() + """
-
-VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini """ + emit_string(module.vcom_opt) + """
-VSIM_FLAGS := """ + emit_string(module.vsim_opt) + """
-VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + emit_string(module.vlog_opt) + """
-
-
-""" 
-    make_preambule_p2 = """## rules #################################
-all: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
-$(VERILOG_OBJ): $(VHDL_OBJ) 
-$(VHDL_OBJ): $(LIB_IND) modelsim.ini
-
-modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
-\t\tcp $< .
 clean:
-\t\trm -rf ./modelsim.ini $(LIBS) $(WORK_NAME)
-.PHONY: clean
+\t\trm -f $(ISE_CRAP)
+\t\trm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
+    
+mrproper:
+\trm -f *.bit *.bin *.mcs
+    
+syn:
+\t\techo "project open $(PROJECT)" > run.tcl
+\t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
+\t\txtclsh run.tcl
+        """
+        f.write(mk_text);
+        f.close()
 
-"""
-    #open the file and write the above preambule (part 1)
-    f = open(filename, "w")
-    f.write(notices)
-    f.write(make_preambule_p1)
+    def generate_fetch_makefile(self, top_module):
+        import path
+        rp = os.path.relpath
 
-    rp = os.path.relpath
-    f.write("VERILOG_SRC := ")
+        f = open("Makefile.fetch", "w")
 
-#    print(str(fileset.files))
-    for file in fileset.filter(VerilogFile):
-        f.write(rp(file.path) + " \\\n")
-    f.write("\n")
+        modules = [top_module]
+        f.write("fetch: ")
 
-    f.write("VERILOG_OBJ := ")
-    for file in fileset.filter(VerilogFile):
-        f.write(os.path.join(file.library, file.purename, "."+file.purename) + " \\\n")
-    f.write('\n')
+        while(len(modules) > 0):
+            module = modules.pop()
+            for m in module.svn:
+                modules.append(m)
+                basename = path.url_basename(m.url)
+                f.write(basename+"__fetch \\\n")
+            for m in module.git:
+                modules.append(m)
+                basename = path.url_basename(m.url)
+                f.write(basename+"__fetch \\\n")
 
-    libs = set(file.library for file in fileset.files)
+            f.write("\n")
+            for m in module.svn:
+                basename = path.url_basename(m.url)
+                dir = os.path.join(m.fetchto, basename)
+                f.write(basename+"__fetch:\n")
+                f.write("\t\t")
+                f.write("PWD=$(shell pwd); ")
+                f.write("cd " + rp(m.fetchto) + '; ')
+                f.write("svn checkout "+ m.url + '; ')
+                f.write("cd $(PWD) \n\n")
 
-    #list vhdl objects (_primary.dat files)
-    f.write("VHDL_OBJ := ")
-    for file in fileset.filter(VHDLFile):
-        f.write(os.path.join(file.library, file.purename,"."+file.purename) + " \\\n")
-    f.write('\n')
+            for m in module.git:
+                basename = path.url_basename(m.url)
+                dir = os.path.join(m.fetchto, basename)
+                f.write(basename+"__fetch:\n")
+                f.write("\t\t")
+                f.write("PWD=$(shell pwd); ")
+                f.write("cd " + rp(m.fetchto) + '; ')
+                f.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
+                f.write("git pull; ")
+                f.write("else git clone "+ m.url + '; fi; ')
+                f.write("cd $(PWD) \n\n")
+        f.close()
 
-    f.write('LIBS := ')
-    f.write(' '.join(libs))
-    f.write('\n')
-    #tell how to make libraries
-    f.write('LIB_IND := ')
-    f.write(' '.join([lib+"/."+lib for lib in libs]))
-    f.write('\n')
-    f.write(make_preambule_p2)
+    def generate_pseudo_ipcore_makefile(self, file_deps_dict, filename="ipcore"):
+        import path
+        rp = os.path.relpath
 
-    vlo = global_mod.top_module.vlog_opt
-    vmo = global_mod.top_module.vmap_opt
-    for lib in libs:
-        f.write(lib+"/."+lib+":\n")
-        f.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
-        lib, "&&", "touch", lib+"/."+lib,")"]))
+        f = open("Makefile.ipcore", "w")
+        f.write("file: create_a_file done\n")
+        f.write("create_a_file:\n\t\t@printf \"\" > " + filename + '\n')
+        f.write("file: ")
+        for file in file_deps_dict:
+            f.write(rp(file.path)+"__cat \\\n")
+        f.write("\n")
+        for file in file_deps_dict:
+            f.write(rp(file.path)+"__cat: ")
+            f.write(' '.join(rp(depfile.path)+"__cat" for depfile in file_deps_dict[file]))
+            f.write('\n')
+            f.write("\t\t@echo '-- " + file.name + "' >> " + filename + "\n")
+            f.write("\t\t@cat "+ rp(file.path) + " >> " + filename + "\n")
+            f.write("\t\t@echo \"\">> " +filename + "\n\n")
 
-        f.write(' '.join(["||", "rm -rf", lib, "\n"]))
+        f.write("done:\n\t\t@echo Done.")
+
+    def __emit_string(self, s):
+        if not s:
+            return ""
+        else:
+            return s
+
+    def generate_modelsim_makefile(self, fileset, module, filename="Makefile"):
+        from time import gmtime, strftime
+        import path
+        #from path import relpath as rp
+        date = strftime("%a, %d %b %Y %H:%M:%S", gmtime())
+        notices = """#######################################################################
+    #   This makefile has been automatically generated by hdl-make 
+    #   on """ + date + """
+    #######################################################################
+    """
+
+        make_preambule_p1 = """## variables #############################
+    PWD := $(shell pwd)
+    WORK_NAME := work
+
+    MODELSIM_INI_PATH := """ + self.__modelsim_ini_path() + """
+
+    VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini """ + self.__emit_string(module.vcom_opt) + """
+    VSIM_FLAGS := """ + self.__emit_string(module.vsim_opt) + """
+    VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__emit_string(module.vlog_opt) + """
+
+
+    """ 
+        make_preambule_p2 = """## rules #################################
+    all: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
+    $(VERILOG_OBJ): $(VHDL_OBJ) 
+    $(VHDL_OBJ): $(LIB_IND) modelsim.ini
+
+    modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
+    \t\tcp $< .
+    clean:
+    \t\trm -rf ./modelsim.ini $(LIBS) $(WORK_NAME)
+    .PHONY: clean
+
+    """
+        #open the file and write the above preambule (part 1)
+        f = open(filename, "w")
+        f.write(notices)
+        f.write(make_preambule_p1)
+
+        rp = os.path.relpath
+        f.write("VERILOG_SRC := ")
+
+    #    print(str(fileset.files))
+        for file in fileset.filter(VerilogFile):
+            f.write(rp(file.path) + " \\\n")
+        f.write("\n")
+
+        f.write("VERILOG_OBJ := ")
+        for file in fileset.filter(VerilogFile):
+            f.write(os.path.join(file.library, file.purename, "."+file.purename) + " \\\n")
         f.write('\n')
 
-    #rules for all _primary.dat files for sv
-    for file in fileset.filter(VerilogFile):
-        f.write(os.path.join(file.library, file.purename, '.'+file.purename)+': '+rp(file.path)+"\n")
-        f.write("\t\tvlog -work "+file.library+" $(VLOG_FLAGS) $<")
-        f.write(" && mkdir -p "+os.path.join(file.library+'/'+file.purename) )
-        f.write(" && touch "+ os.path.join(file.library, file.purename, '.'+file.purename)+'\n')
-    f.write("\n")
+        libs = set(file.library for file in fileset.files)
 
-    #list rules for all _primary.dat files for vhdl
-    vco = global_mod.top_module.vcom_opt
-    for file in fileset.filter(VHDLFile):
-        lib = file.library
-        basename = file.name
-        purename = file.purename 
-        #each .dat depends on corresponding .vhd file
-        f.write(os.path.join(lib, purename, "."+purename) + ": "+rp(file.path)+'\n')
-        f.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, rp(file.path),
-        "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename), '\n']))
+        #list vhdl objects (_primary.dat files)
+        f.write("VHDL_OBJ := ")
+        for file in fileset.filter(VHDLFile):
+            f.write(os.path.join(file.library, file.purename,"."+file.purename) + " \\\n")
         f.write('\n')
-        if len(file.dep_depends_on) != 0:
-            f.write(os.path.join(lib, purename, "."+purename) +":")
-            for dep_file in file.dep_depends_on:
-                name = dep_file.purename
-                f.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
-            f.write('\n\n')
 
-    f.close()
+        f.write('LIBS := ')
+        f.write(' '.join(libs))
+        f.write('\n')
+        #tell how to make libraries
+        f.write('LIB_IND := ')
+        f.write(' '.join([lib+"/."+lib for lib in libs]))
+        f.write('\n')
+        f.write(make_preambule_p2)
+
+        vlo = global_mod.top_module.vlog_opt
+        vmo = global_mod.top_module.vmap_opt
+        for lib in libs:
+            f.write(lib+"/."+lib+":\n")
+            f.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
+            lib, "&&", "touch", lib+"/."+lib,")"]))
+
+            f.write(' '.join(["||", "rm -rf", lib, "\n"]))
+            f.write('\n')
+
+        #rules for all _primary.dat files for sv
+        for file in fileset.filter(VerilogFile):
+            f.write(os.path.join(file.library, file.purename, '.'+file.purename)+': '+rp(file.path)+"\n")
+            f.write("\t\tvlog -work "+file.library+" $(VLOG_FLAGS) $<")
+            f.write(" && mkdir -p "+os.path.join(file.library+'/'+file.purename) )
+            f.write(" && touch "+ os.path.join(file.library, file.purename, '.'+file.purename)+'\n')
+        f.write("\n")
+
+        #list rules for all _primary.dat files for vhdl
+        vco = global_mod.top_module.vcom_opt
+        for file in fileset.filter(VHDLFile):
+            lib = file.library
+            basename = file.name
+            purename = file.purename 
+            #each .dat depends on corresponding .vhd file
+            f.write(os.path.join(lib, purename, "."+purename) + ": "+rp(file.path)+'\n')
+            f.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, rp(file.path),
+            "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename), '\n']))
+            f.write('\n')
+            if len(file.dep_depends_on) != 0:
+                f.write(os.path.join(lib, purename, "."+purename) +":")
+                for dep_file in file.dep_depends_on:
+                    name = dep_file.purename
+                    f.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
+                f.write('\n\n')
+
+        f.close()

@@ -98,14 +98,13 @@ def main():
     elif global_mod.options.make == True:
         generate_makefile()
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def generate_pseudo_ipcore():
-    import depend
+    from depend import MakefileWriter
     tm = global_mod.top_module
+    make_writer = MakefileWriter()
 
-    
     file_deps_dict = tm.generate_deps_for_vhdl_in_modules()
-    depend.generate_pseudo_ipcore(file_deps_dict)
+    make_writer.generate_pseudo_ipcore_makefile(file_deps_dict)
 
     if global_mod.options.nodel != True:
         os.remove("Makefile.ipcore")
@@ -117,8 +116,10 @@ def fetch():
     p.vprint([str(m) for m in modules])
 
 def generate_fetch_makefile():
-    import depend
+    from depend import MakefileWriter
     tm = global_mod.top_module
+    make_writer = MakefileWriter()
+
     modules = [tm]
     while len(modules) > 0:
         module = modules.pop()
@@ -129,106 +130,28 @@ def generate_fetch_makefile():
                 return
             modules.append(repo_module)
 
-    depend.generate_fetch_makefile(tm)
-
-#NOT YET PORTED
-def inject_into_ise():
-    if global_mod.options.ise_project == None:
-        p.echo("You forgot to specify .xise file, didn't you?")
-        quit()
-    if not os.path.exists(global_mod.options.ise_project):
-        p.echo("Given ise file doesn't exist")
-        quit()
-
-    tm = global_mod.top_module
-    depend.inject_files_into_ise(global_mod.options.ise_project, files)
+    make_writer.generate_fetch_makefile(tm)
 
 def generate_makefile():
     from dep_solver import DependencySolver
-    import depend
+    from depend import MakefileWriter
     solver = DependencySolver()
+    make_writer = MakefileWriter()
 
     tm = global_mod.top_module
     flist = tm.build_global_file_list();
     flist_sorted = solver.solve(flist);
 
     if(tm.target == "simulation"):
-        depend.generate_modelsim_makefile(flist_sorted, tm)
+        make_writer.generate_modelsim_makefile(flist_sorted, tm)
     elif (tm.target == "xilinx"):
         generate_ise_project(flist_sorted, tm);
         generate_ise_makefile(tm)
 
 def generate_ise_makefile(top_mod):
-    filename = "Makefile"
-    f=open(filename,"w");
-    
-    mk_text = """
-PROJECT=""" + top_mod.syn_project + """
-ISE_CRAP = \
-*.bgn \
-*.html \
-*.tcl \
-*.bld \
-*.cmd_log \
-*.drc \
-*.lso \
-*.ncd \
-*.ngc \
-*.ngd \
-*.ngr \
-*.pad \
-*.par \
-*.pcf \
-*.prj \
-*.ptwx \
-*.stx \
-*.syr \
-*.twr \
-*.twx \
-*.gise \
-*.unroutes \
-*.ut \
-*.xpi \
-*.xst \
-*_bitgen.xwbt \
-*_envsettings.html \
-*_guide.ncd \
-*_map.map \
-*_map.mrp \
-*_map.ncd \
-*_map.ngm \
-*_map.xrpt \
-*_ngdbuild.xrpt \
-*_pad.csv \
-*_pad.txt \
-*_par.xrpt \
-*_summary.html \
-*_summary.xml \
-*_usage.xml \
-*_xst.xrpt \
-usage_statistics_webtalk.html \
-webtalk.log \
-webtalk_pn.xml \
-run.tcl
-
-
-all:		syn
-
-clean:
-		rm -f $(ISE_CRAP)
-		rm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
-
-mrproper:
-\trm -f *.bit *.bin *.mcs
-
-syn:
-		echo "project open $(PROJECT)" > run.tcl
-		echo "process run {Generate Programming File} -force rerun_all" >> run.tcl
-		xtclsh run.tcl
-"""
-    f.write(mk_text);
-    f.close()
-				
+    from depend import MakefileWriter
+    make_writer = MakefileWriter()
+    make_writer.
 
 def generate_ise_project(fileset, top_mod):
     from flow import ISEProject, ISEProjectProperty
@@ -248,7 +171,7 @@ def generate_ise_project(fileset, top_mod):
     prj.add_property(ISEProjectProperty("Implementation Top Instance Path", "/"+top_mod.syn_top))
     prj.emit_xml(top_mod.syn_project)
 
-    #NOT YET TRANSFORMED INTO CLASSES
+    #NOT YET TRANSFORMED INTO CLASSES AND NOT YET PORTED
 def remote_synthesis():
     ssh = global_mod.ssh
     tm = global_mod.top_module
@@ -311,9 +234,5 @@ def local_synthesis():
         local_run_xilinx_flow(tm)
     else:
         p.echo("Target " + tm.target + " is not synthesizable")
-
-
-def generate_list_makefile():
-    pass
 
 main()
