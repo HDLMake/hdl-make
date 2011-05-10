@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 import re
@@ -15,10 +15,15 @@ import global_mod
 import msg as p
 import optparse
 from module import Module
-from helper_classes import Manifest, SourceFile, ManifestParser
+from helper_classes import Manifest, ManifestParser
+from fetch import *
+
 
 def main():
+#    print("Start");
+
     global_mod.t0 = time.time()
+
     parser = optparse.OptionParser()
     #disabled due to introducing a new parser class. Help msg printing is not ready yet.
 
@@ -26,13 +31,10 @@ def main():
     dest="manifest_help", help="print manifest file variables description")
 
     parser.add_option("-k", "--make", dest="make", action="store_true",
-    default=None, help="prepare makefile for simulation")
+    default=None, help="Generate a Makefile (simulation/synthesis)")
 
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
-    help="fetch files from modules listed in MANIFEST")
-
-    parser.add_option("--make-fetch", action="store_true", dest="make_fetch",
-    help="generate makefile for fetching needed modules")
+    help="fetch and/or update remote modules listed in Manifet")
 
     parser.add_option("-l", "--synthesize-locally", dest="local",
     action="store_true", help="perform a local synthesis")
@@ -46,24 +48,9 @@ def main():
     parser.add_option("--ipcore", dest="ipcore", action="store_true",
     default="false", help="generate a pseudo ip-core")
 
-    parser.add_option("--inject", dest="inject", action="store_true",
-    default=None, help="inject file list into ise project")
-
     parser.add_option("--nodel", dest="nodel", action="store_true",
     default="false", help="don't delete intermediate makefiles")
 
-    parser.add_option("--make-list", dest="make_list", action="store_true",
-    default=None, help="make list of project files in ISE format")
-
-    parser.add_option("--tcl-file", dest="tcl",
-    help="specify a .tcl file used for synthesis with ISE")
-
-    parser.add_option("--qpf-file", dest="qpf",
-    help="specify a .qpf file used for synthesis with QPF")
-
-    parser.add_option("--ise-file", dest="ise",
-    help="specify .xise file for other actions", metavar="ISE")
- 
     parser.add_option("--synth-server", dest="synth_server",
     default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
 
@@ -75,6 +62,8 @@ def main():
 
     (options, args) = parser.parse_args()
     global_mod.options = options
+
+#    print("Parsed");
 
     if options.manifest_help == True:
         ManifestParser().help()
@@ -89,37 +78,32 @@ def main():
         file = "Manifest.py"
 
     if file != None:
+        p.vprint("LoadTopManifest");
         top_manifest = Manifest(path=os.path.abspath(file))
         global_mod.top_module = Module(manifest=top_manifest, parent=None, source="local", fetchto=".")
+
         global_mod.top_module.parse_manifest()
         global_mod.global_target = global_mod.top_module.target
+        global_mod.top_module.fetch()
     else:
         p.echo("No manifest found. At least an empty one is needed")
         quit()
 
     global_mod.ssh = Connection(options.synth_user, options.synth_server)
 
-    if global_mod.options.fetch == True:
-        fetch()
-    elif global_mod.options.local == True:
+    if global_mod.options.local == True:
         local_synthesis()
     elif global_mod.options.remote == True:
         remote_synthesis()
-    elif global_mod.options.make_list == True:
-        generate_list_makefile()
     elif global_mod.options.make == True:
         generate_makefile()
-    elif global_mod.options.inject == True:
-        inject_into_ise()
-    elif global_mod.options.ipcore == True:
-        generate_pseudo_ipcore()
-    elif global_mod.options.make_fetch == True:
-        generate_fetch_makefile()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def generate_pseudo_ipcore():
     import depend
     tm = global_mod.top_module
+
+    
     file_deps_dict = tm.generate_deps_for_vhdl_in_modules()
     depend.generate_pseudo_ipcore(file_deps_dict)
 
@@ -160,11 +144,109 @@ def inject_into_ise():
     depend.inject_files_into_ise(global_mod.options.ise_project, files)
 
 def generate_makefile():
+    from dep_solver import DependencySolver
     import depend
+    solver = DependencySolver()
+
     tm = global_mod.top_module
-    vhdl_deps = tm.generate_deps_for_vhdl_in_modules()
-    sv_files = tm.extract_files_from_all_modules(extensions=['v','sv'])
-    depend.generate_makefile(file_deps=vhdl_deps, sv_files=sv_files)
+    flist = tm.build_global_file_list();
+    flist_sorted = solver.solve(flist);
+
+    if(tm.target == "simulation"):
+        depend.generate_modelsim_makefile(flist_sorted, tm)
+    elif (tm.target == "xilinx"):
+        generate_ise_project(flist_sorted, tm);
+        generate_ise_makefile(tm)
+
+def generate_ise_makefile(top_mod):
+    filename = "Makefile"
+    f=open(filename,"w");
+    
+    mk_text = """
+PROJECT=""" + top_mod.syn_project + """
+ISE_CRAP = \
+*.bgn \
+*.html \
+*.tcl \
+*.bld \
+*.cmd_log \
+*.drc \
+*.lso \
+*.ncd \
+*.ngc \
+*.ngd \
+*.ngr \
+*.pad \
+*.par \
+*.pcf \
+*.prj \
+*.ptwx \
+*.stx \
+*.syr \
+*.twr \
+*.twx \
+*.gise \
+*.unroutes \
+*.ut \
+*.xpi \
+*.xst \
+*_bitgen.xwbt \
+*_envsettings.html \
+*_guide.ncd \
+*_map.map \
+*_map.mrp \
+*_map.ncd \
+*_map.ngm \
+*_map.xrpt \
+*_ngdbuild.xrpt \
+*_pad.csv \
+*_pad.txt \
+*_par.xrpt \
+*_summary.html \
+*_summary.xml \
+*_usage.xml \
+*_xst.xrpt \
+usage_statistics_webtalk.html \
+webtalk.log \
+webtalk_pn.xml \
+run.tcl
+
+
+all:		syn
+
+clean:
+		rm -f $(ISE_CRAP)
+		rm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
+
+mrproper:
+\trm -f *.bit *.bin *.mcs
+
+syn:
+		echo "project open $(PROJECT)" > run.tcl
+		echo "process run {Generate Programming File} -force rerun_all" >> run.tcl
+		xtclsh run.tcl
+"""
+    f.write(mk_text);
+    f.close()
+				
+
+def generate_ise_project(fileset, top_mod):
+    from flow import ISEProject, ISEProjectProperty
+    
+    prj = ISEProject()
+    prj.add_files(fileset.files)
+    prj.add_libs(fileset.get_libs())
+
+    prj.add_property(ISEProjectProperty("Device", top_mod.syn_device))
+    prj.add_property(ISEProjectProperty("Device Family", "Spartan6"))
+    prj.add_property(ISEProjectProperty("Speed Grade", top_mod.syn_grade))
+    prj.add_property(ISEProjectProperty("Package", top_mod.syn_package))
+#    prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
+    prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
+    prj.add_property(ISEProjectProperty("Manual Implementation Compile Order", "true"))
+    prj.add_property(ISEProjectProperty("Auto Implementation Top", "false"))
+    prj.add_property(ISEProjectProperty("Implementation Top Instance Path", "/"+top_mod.syn_top))
+    prj.emit_xml(top_mod.syn_project)
 
     #NOT YET TRANSFORMED INTO CLASSES
 def remote_synthesis():
@@ -215,37 +297,23 @@ def remote_synthesis():
         p.echo("Deleting synthesis folder")
         ssh.system('rm -rf ' + dest_folder)
 
-def local_synthesis():
-    if global_mod.options.tcl == None:
-        p.echo("No .tcl file found. Exiting")
-        quit()
-    ise = global_mod.top_module.ise
-    tcl = global_mod.options.tcl
-    if not os.path.exists("/opt/Xilinx/" + ise):
-        p.echo("The script can't find demanded ISE version: " + ise)
-        quit()
+def local_run_xilinx_flow(tm):
+    f = open("run.tcl","w");
+    f.write("project open " + tm.syn_project);
+    f.write("process run {Generate Programming Files} -force rerun_all");
+    f.close()
+    os.system("xtclsh run.tcl");
 
-    address_length = check_address_length(os)
-    if address_length == 32 or address_length == None:
-        path_ext = global_mod.ise_path_32[ise]
+
+def local_synthesis():
+    tm = global_mod.top_module
+    if tm.target == "xilinx":
+        local_run_xilinx_flow(tm)
     else:
-        p.echo("Don't know how to run settings script for ISE version: " + ise)
-    results = os.popen("export PATH=$PATH:"+path_ext+" && xtclsh " + tcl + " run_process")
-    p.echo(results.readlines())
-    quit()
+        p.echo("Target " + tm.target + " is not synthesizable")
+
 
 def generate_list_makefile():
-    import depend
-    tm = global_mod.top_module
-    deps = tm.generate_deps_for_vhdl_in_modules()
-    depend.generate_list_makefile(deps)
-    os.system("make -f Makefile.list")
+    pass
 
-    if global_mod.options.nodel != True:
-        os.remove("Makefile.list")
-
-if __name__ == "__main__":
-    #global options' map for use in the entire script
-    t0 = None
-    global_mod.cwd = os.getcwd()
-    main()
+main()

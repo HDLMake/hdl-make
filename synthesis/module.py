@@ -4,7 +4,11 @@ import msg as p
 import os
 import configparser
 import global_mod
-from helper_classes import Manifest, ManifestParser, SourceFile, IseProjectFile, ManifestOptions
+from helper_classes import Manifest, ManifestParser, IseProjectFile, ManifestOptions
+from srcfile import *
+
+from fetch import *
+
 
 class Module(object):
     def __init__(self, parent, url=None, files=None, manifest=None,
@@ -12,14 +16,17 @@ class Module(object):
         self.options = ManifestOptions()
         if source == "local" and path != None:
             if not os.path.exists(path):
-                raise ValueError("There is no such local module: " + path)
+                raise ValueError("Path to the local module doesn't exist: " + path)
+
         self.parent = parent
+
         if files == None:
             self.options["files"] = []
         elif not isinstance(files, list):
             self.options["files"] = [files]
         else:
             self.options["files"] = files
+
         if manifest != None and fetchto == None:
             options["fetchto"] = os.path.dirname(manifest.path)
 
@@ -75,8 +82,8 @@ class Module(object):
         #options = object.__getattribute__(self, "options")
         return self.options[attr]
 
-    def __str__(self):
-        return self.url
+  #  def __str__(self):
+  #      return self.url
 
     def search_for_manifest(self):
         """
@@ -86,6 +93,7 @@ class Module(object):
         for filename in os.listdir(self.path):
             if filename == "manifest.py" or filename == "Manifest.py":
                 if not os.path.isdir(filename):
+                    p.vprint("*** found manifest for module "+self.path);
                     manifest = Manifest(path=os.path.abspath(os.path.join(self.path, filename)))
                     return manifest
         # no manifest file found
@@ -100,17 +108,26 @@ class Module(object):
         return sth
 
     def parse_manifest(self):
+        p.vprint(self);
+        p.vprint("IsParsed "+str(self.isparsed)+" isFetched " + str(self.isfetched));
         if self.isparsed == True:
             return
         if self.isfetched == False:
             return
 
         manifest_parser = ManifestParser()
-        manifest_parser.add_arbitrary_code("target="+global_mod.global_target)
+        if(self.parent != None):
+            print("GlobMod " +str(global_mod.top_module))
+            manifest_parser.add_arbitrary_code("target=\""+global_mod.top_module.target+"\"")
+        else:
+            print("NoParent")
+            global_mod.top_module = self
+
+        manifest_parser.add_arbitrary_code("__manifest=\""+self.url+"\"")
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
 
         if self.manifest == None:
-            p.vprint(' '.join(["In module",str(self),"there is no manifest."]))
+            p.vprint("No manifest found in module "+str(self))
         else:
             manifest_parser.add_manifest(self.manifest)
             p.vprint("Parsing manifest file: " + str(self.manifest))
@@ -126,6 +143,9 @@ class Module(object):
             self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
             self.root_module.parse_manifest()
 
+        self.target = opt_map["target"]
+
+
         #derivate fetchto from the root_module
         if opt_map["root_module"] != None:
             self.fetchto = self.root_module.fetchto
@@ -133,7 +153,12 @@ class Module(object):
             if not path_mod.is_rel_path(opt_map["fetchto"]):
                 p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map["fetchto"]]))
                 quit()
-            fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
+
+            if(opt_map["fetchto"] != None):
+                fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
+            else:
+                fetchto = None
+
         #this is the previous solution - no derivation 
         #if opt_map["fetchto"] == None:
         #    fetchto = self.path
@@ -157,14 +182,20 @@ class Module(object):
 
         self.library = opt_map["library"]
         if opt_map["files"] == []:
-            files = []
-            for filename in os.listdir(self.path):
-                path = os.path.join(self.path, filename)
-                if not os.path.isdir(path):
-                    file = SourceFile(path=path)
-                    file.library = self.library
-                    files.append(file)
-            self.files = files
+
+# don't scan if there a manifest exists but contains no files (i.e. only sub-modules)
+#            fact = SourceFileFactory ()
+
+#            files = []
+#            for filename in os.listdir(self.path):
+#                path = os.path.join(self.path, filename)
+#                if not os.path.isdir(path):
+#                    file = fact.new(path=path)
+#                    file.library = self.library
+#                    files.append(file)
+#            self.files = files
+            self.fileset = SourceFileSet()
+            pass
         else:
             opt_map["files"] = self.__make_list(opt_map["files"])
             paths = []
@@ -178,8 +209,9 @@ class Module(object):
                     p.echo("File listed in " + self.manifest.path + " doesn't exist: "
                     + path +".\nExiting.")
                     quit()
-            self.__make_list_of_files(paths=paths)
 
+            self.fileset = self.create_flat_file_list(paths=paths);
+            
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
             svn = []
@@ -201,9 +233,16 @@ class Module(object):
         self.vmap_opt = opt_map["vmap_opt"]
         self.vcom_opt = opt_map["vcom_opt"]
         self.vlog_opt = opt_map["vlog_opt"]
+        self.vsim_opt = opt_map["vsim_opt"]
 
         self.name = opt_map["name"]
         self.target = opt_map["target"]
+
+        self.syn_device = opt_map["syn_device"];
+        self.syn_grade = opt_map["syn_grade"];
+        self.syn_package= opt_map["syn_package"];
+        self.syn_project = opt_map["syn_project"];
+        self.syn_top = opt_map["syn_top"];
 
         self.isparsed = True
 
@@ -211,12 +250,9 @@ class Module(object):
         return self.isfetched
 
     def fetch(self):
+
         if self.source == "local":
             self.path = self.url
-        elif self.source == "svn":
-            self.__fetch_from_svn()
-        elif self.source == "git":
-            self.__fetch_from_git()
 
         involved_modules = [self]
         modules_queue = [self]
@@ -224,9 +260,11 @@ class Module(object):
         p.vprint("Fetching manifest: " + str(self.manifest))
 
         while len(modules_queue) > 0:
-            cur_mod = modules_queue.pop()
-            cur_mod.parse_manifest()
-
+            if(self.source == "local"):
+                cur_mod = modules_queue.pop()
+                p.vprint("ModPath: " + cur_mod.path);
+                cur_mod.parse_manifest()
+            
             if cur_mod.root_module != None:
                 root_module = cur_mod.root_module
                 p.vprint("Encountered root manifest: " + str(root_module))
@@ -242,13 +280,19 @@ class Module(object):
                 p.vprint("Fetching to " + module.fetchto)
                 path = module.__fetch_from_svn()
                 module.path = path
+                module.source = "local"
+                module.isparsed = False;
                 involved_modules.append(module)
                 modules_queue.append(module)
 
             for module in cur_mod.git:
-                p.vprint("Fetching to " + module.fetchto)
+                p.vprint("[git] Fetching to " + module.fetchto)
                 path = module.__fetch_from_git()
                 module.path = path
+                module.source = "local"
+                module.isparsed = False;
+                module.manifest = module.search_for_manifest();
+                p.vprint("[git] Local path " + module.path);
                 involved_modules.append(module)
                 modules_queue.append(module)
 
@@ -283,26 +327,10 @@ class Module(object):
         return os.path.join(fetchto, basename)
 
     def __fetch_from_git(self):
-        fetchto = self.fetchto
-        if not os.path.exists(fetchto):
-            os.mkdir(fetchto)
-
-        cur_dir = os.getcwd()
-        os.chdir(fetchto)
-
+#        p.vprint(self.fetchto);
         basename = path_mod.url_basename(self.url)
-        if basename.endswith(".git"):
-            basename = basename[:-4] #remove trailing .git
-
-        cmd = "git clone " + self.url
-        p.vprint(cmd)
-        os.system(cmd)
-        #if revision:
-        #    os.chdir(basename)
-        #    os.system("git checkout " + revision)
-        os.chdir(cur_dir)
-        self.isfetched = True
-        return os.path.join(fetchto, basename)
+        self.isfetched = fetch_from_git(self.url, None, self.fetchto);
+        return os.path.join(self.fetchto, basename)
 
     def make_list_of_modules(self):
         p.vprint("Making list of modules for " + str(self))
@@ -310,8 +338,9 @@ class Module(object):
         modules = [self]
         while len(new_modules) > 0:
             cur_module = new_modules.pop()
+#            p.vprint("Current: " + str(cur_module))
             if not cur_module.isfetched:
-                p.echo("Error in modules list - unfetched module: " + cur_mod)
+                p.echo("Error in modules list - unfetched module: " + str(cur_module))
                 quit()
             if cur_module.manifest == None:
                 p.vprint("No manifest in " + str(cur_module))
@@ -338,60 +367,23 @@ class Module(object):
             p.vprint("No modules were found in " + self.fetchto)
         return modules
 
-    def __make_list_of_files(self, paths, file_type = None, ret_class = SourceFile):
-        def get_files_(path, file_type = None, ret_class = SourceFile):
-            """
-            Get lists of normal files and list folders recursively
-            """
-            ret = []
-            for filename in os.listdir(path):
-                if filename[0] == ".": #a hidden file/catalogue -> skip
-                    continue
-                if os.path.isdir(os.path.join(path, filename)):
-                    ret.extend(get_files_(os.path.join(path, filename), file_type))
-                else:
-                    if file_type == None:
-                        ret.append(ret_class(path=os.path.abspath(os.path.join(path, filename))))
-                    else:
-                        tmp = filename.rsplit('.')
-                        ext = tmp[len(tmp)-1]
-                        if ext == file_type:
-                            ret.append( ret_class(path=os.path.abspath(os.path.join(path, filename))) )
-            return ret
 
-        files = []
-        for path in paths:
-            if os.path.isdir(path):
-                files.extend(get_files_(path, file_type=file_type, ret_class=ret_class))
-            else:
-                if file_type == None:
-                    files.append(ret_class(path=path))
-                else:
-                    tmp = filename.rsplit('.')
-                    ext = tmp[len(tmp)-1]
-                    if ext == file_type:
-                        files.append( ret_class(path=path) )
-        for file in files:
-            file.library = self.library
-        self.files = files
+    def create_flat_file_list(self, paths):
+        fact = SourceFileFactory();
+        srcs = SourceFileSet();
+        for p in paths:
+            srcs.add(fact.new(p, self.library))
+        return srcs
 
-    def extract_files_from_module(self, extensions):
-        p.vprint("Extracting files from the module: " + str(self))
-        from copy import copy
-        if isinstance(extensions, list):
-            files = [copy(f) for f in self.files if f.extension() in extensions]
-        elif isinstance(extensions, basestring):
-            files = [copy(f) for f in self.files if f.extension() == extensions]
-        return files
 
-    def extract_files_from_all_modules(self, extensions):
+    def build_global_file_list(self):
+        f_set = SourceFileSet();
+#        self.create_flat_file_list();
         modules = self.make_list_of_modules()
-        files = []
-        for module in modules:
-            tmp = module.extract_files_from_module(extensions=extensions)
-            files.extend(tmp)
+        for m in modules:
+            f_set.add(m.fileset);
 
-        return files
+        return f_set
 
     def generate_deps_for_vhdl_in_modules(self):
         all_files = self.extract_files_from_all_modules(extensions="vhd")

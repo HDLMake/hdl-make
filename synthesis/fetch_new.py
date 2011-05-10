@@ -5,6 +5,24 @@ import msg as p
 import global_mod
 import path
 
+
+class ModuleFetcher:
+
+    def __init__(self, fetch_dir = None):
+        pass
+
+# inputs:
+# - type of the module (local/git/svn)
+    def fetch(self, mod_type, mod_url):
+        pass
+
+    def 
+
+class ModulePool:
+
+
+
+
 def fetch_from_svn(url, revision = None, fetchto = None):
     if fetchto == None:
         fetchto = global_mod.fetchto
@@ -35,53 +53,34 @@ def fetch_from_git(url, revision = None, fetchto = None):
         basename = basename[:-4] #remove trailing .git
 
     if not os.path.exists(fetchto):
-        if not global_mod.fetch:
-            return None;
         os.mkdir(fetchto)
 
-    if os.path.exists(fetchto+"/"+basename):
-        if global_mod.options.fetch:
-            update_only = True;
-            do_fetch = True;
-        else:
-            return True;
+    if not os.path.exists(fetchto+"/"+basename):
+        update_only = False
     else:
-        if(global_mod.options.fetch):
-            update_only = False;
-            do_fetch = True;
-        else:
-            return None
+        update_only = True
 
-    rval = True
-    if do_fetch:
+    cur_dir = os.getcwd()
+    os.chdir(fetchto)
 
-        cur_dir = os.getcwd()
-        os.chdir(fetchto)
 
-        if update_only:
-            fdir = fetchto+"/"+basename;
-            os.chdir(fdir);
-            cmd = "git pull"
-            p.vprint(cmd);
-            if os.system(cmd) != 0:
-                rval = False
-            os.chdir(fetchto)
-
-        else:  		
-            cmd = "git clone " + url
-            p.vprint(cmd);
-            if os.system(cmd) != 0:
-                rval = False
+    if update_only:
+        cmd = "git --git-dir="+basename+"/.git pull"
+    else:  		
+        cmd = "git clone " + url
 	    
+    rval = True
+    if os.system(cmd) != 0:
+        rval = False
 
-        if revision and rval:
-            os.chdir(basename)
-            if os.system("git checkout " + revision) != 0:
-                rval = False
+    if revision and rval:
+        os.chdir(basename)
+        if os.system("git checkout " + revision) != 0:
+            rval = False
             
-        os.chdir(cur_dir)
-
+    os.chdir(cur_dir)
     return rval
+
 
 def parse_repo_url(url) :
     """

@@ -62,9 +62,14 @@ class ManifestParser(ConfigParser):
         self.add_option('fetchto', default=None, help="Destination for fetched modules", type='')
         self.add_option('root_module', default=None, help="Path to root module for currently parsed", type='')
         self.add_option('name', default=None, help="Name of the folder at remote synthesis machine", type='')
-        self.add_option('tcl', default=None, help="Path to .tcl file used in synthesis", type='')
-        self.add_option('ise', default=None, help="Version of ISE to be used in synthesis", type='')
-        self.add_type('ise', type=1)
+
+
+        self.add_option('syn_device', default=None, help = "Target FPGA device", type = '');
+        self.add_option('syn_grade', default=None, help = "Speed grade of target FPGA", type = '');
+        self.add_option('syn_package', default=None, help = "Package variant of target FPGA", type = '');
+        self.add_option('syn_top', default=None, help = "Top level module for synthesis", type = '');
+        self.add_option('syn_project', default=None, help = "Vendor flow project file", type = '');
+
 
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
         self.add_option('vcom_opt', default="", help="Additional options for vcom", type='')
@@ -90,7 +95,7 @@ class ManifestParser(ConfigParser):
     #def print_help():
     #    self.parser.print_help()
 
-class SourceFile:
+class PawelSourceFile:
     def __init__(self, path, type=None):
         self.path = path
         self.name = os.path.basename(self.path)
@@ -170,7 +175,7 @@ class SourceFile:
         f.close()
         self.package = ret
 
-class IseProjectFile(SourceFile):
+class IseProjectFile(PawelSourceFile):
     def __init__(self, path=None, type="ise"):
         SourceFile.__init__(self, path=path, type=type)
 
