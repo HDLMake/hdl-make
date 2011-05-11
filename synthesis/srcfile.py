@@ -31,17 +31,16 @@ class SourceFile(IDependable):
                 return self.__class__.cur_index
 
         def show(self):
-                print(self.path);
-                pass
+                p.rawprint(self.path);
 
 class VHDLFile(SourceFile):
         def __init__(self, path, library = None):
                 SourceFile.__init__(self, path, library);
                 self.create_deps();
 #                if self.dep_fixed:
- #                       print("File " + self.path + " fixed dep [idx " + str(self.dep_index) + "]")
+ #                       p.rawprint("File " + self.path + " fixed dep [idx " + str(self.dep_index) + "]")
 #                else:
-#                        print("File " + self.path + " uses: " + str(self.dep_requires) + " provides: " + str(self.dep_provides))
+#                        p.rawprint("File " + self.path + " uses: " + str(self.dep_requires) + " provides: " + str(self.dep_provides))
 
         def check_encryption(self):
                 f = open(self.path, "rb");
@@ -194,7 +193,7 @@ class SourceFileFactory:
         def new (self, path, library = None):
                 tmp = path.rsplit('.')
                 extension = tmp[len(tmp)-1]
-                print(">>>> " + path);
+                p.vprint("SFF> " + path);
 
                 if extension == 'vhd' or extension == 'vhdl':
                         nf = VHDLFile(path, library)

@@ -60,8 +60,6 @@ def main():
     (options, args) = parser.parse_args()
     global_mod.options = options
 
-#    print("Parsed");
-
     if options.manifest_help == True:
         ManifestParser().help()
         quit()

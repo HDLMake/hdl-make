@@ -92,8 +92,8 @@ class ManifestParser(ConfigParser):
     def parse(self):
         return ConfigParser.parse(self)
 
-    #def print_help():
-    #    self.parser.print_help()
+    def print_help():
+        self.parser.print_help()
 
 class PawelSourceFile:
     def __init__(self, path, type=None):

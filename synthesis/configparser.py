@@ -204,7 +204,6 @@ class ConfigParser(object):
             if opt_name.startswith('__'):
                 continue
             if opt_name not in self.options:
-                print opt_name
                 if opt_name in arbitrary_options:
                     continue
                 else:

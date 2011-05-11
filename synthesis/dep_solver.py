@@ -95,7 +95,7 @@ class DependencySolver:
                 newobj.add(f)
 
         for k in newobj.files:
-            print(str(k.dep_index) + " " + k.path + str(k.dep_fixed))
+            p.vprint(str(k.dep_index) + " " + k.path + str(k.dep_fixed))
         return newobj
                 
             

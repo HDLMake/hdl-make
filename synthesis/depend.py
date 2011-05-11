@@ -201,7 +201,6 @@ syn:
         rp = os.path.relpath
         f.write("VERILOG_SRC := ")
 
-    #    print(str(fileset.files))
         for file in fileset.filter(VerilogFile):
             f.write(rp(file.path) + " \\\n")
         f.write("\n")
