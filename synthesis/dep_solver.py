@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import msg as p
 
 
@@ -60,7 +61,8 @@ class DependencySolver:
                         fset[idx] = fset[idx][1]
 
         if(n_iter == max_iter):
-            p.vprint("Maximum number of iterations reached when trying to solve the dependencies. Perhaps a cyclic inter-dependency problem...");
+            p.rawprint("Maximum number of iterations reached when trying to solve the dependencies."+
+            "Perhaps a cyclic inter-dependency problem...");
             return None
 
         for f in fset:

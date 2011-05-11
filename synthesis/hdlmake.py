@@ -20,12 +20,9 @@ from fetch import *
 
 
 def main():
-#    print("Start");
-
     global_mod.t0 = time.time()
 
     parser = optparse.OptionParser()
-    #disabled due to introducing a new parser class. Help msg printing is not ready yet.
 
     parser.add_option("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")

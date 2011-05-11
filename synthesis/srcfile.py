@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from dep_solver import *
 import os
 
@@ -125,7 +126,6 @@ class VerilogFile(SourceFile):
                 if not library:
                         library = "work"
                 SourceFile.__init__(self, path, library);
-#                self.path = path;
                 self.create_deps();
 
         def create_deps(self):
@@ -147,21 +147,37 @@ class WBGenFile(SourceFile):
         def __init__(self, path):
                 SourceFile.__init__(self, path);
 
-
-
-class SourceFileSet:
+class SourceFileSet(list):
         def __init__(self):
                 self.files = [];
 
+        def __iter__(self):
+                return self.files.__iter__()
+            
+        def __len__(self):
+                return len(self.files)
+            
+        def __contains__(self,v):
+                return v in self.files
+            
+        def __getitem__(self,v):
+                return self.files(v)
+
         def add(self, files):
-                if(isinstance(files, SourceFileSet)):
-                        for f in files.files:
-                                self.files.append(f)
-                elif(isinstance(files, list)):
-                        for f in files:
-                                self.files.append(f)
-                else:
+                if isinstance(files, basestring):
+                        raise RuntimeError("Expected object, not a string")
+                elif isinstance(files, list):
+                        self.files.extend(files)
+                else: #single file, not a list
                         self.files.append(files)
+                #if(isinstance(files, SourceFileSet)):
+                #        for f in files.files:
+                #               self.files.append(f)
+                #elif(isinstance(files, list)):
+                #        for f in files:
+                #                self.files.append(f)
+                #else:
+                #        self.files.append(files)
 
         def filter(self, type):
                 out = []
@@ -172,7 +188,6 @@ class SourceFileSet:
       
         def get_libs(self):
                 return set(file.library for file in self.files)
-
 
 class SourceFileFactory:
 
