@@ -49,6 +49,7 @@ class Module(object):
             self.options["manifest"] = manifest
 
         if source == "local":
+            self.path = self.url
             self.options["isfetched"] = True
         else:
             self.options["isfetched"] = isfetched
@@ -63,7 +64,7 @@ class Module(object):
         if fetchto != None:
             self.options["fetchto"] = fetchto
         else:
-            self.options["fetchto"] = parent
+            self.options["fetchto"] = parent.fetchto
 
         self.options["isparsed"] = False
         basename = path_mod.url_basename(self.options["url"])
@@ -246,91 +247,13 @@ class Module(object):
 
         self.isparsed = True
 
-    def is_fetched(self):
-        return self.isfetched
-
-    def fetch(self):
-
-        if self.source == "local":
-            self.path = self.url
-
-        involved_modules = [self]
-        modules_queue = [self]
-
-        p.vprint("Fetching manifest: " + str(self.manifest))
-
-        while len(modules_queue) > 0:
-            if(self.source == "local"):
-                cur_mod = modules_queue.pop()
-                p.vprint("ModPath: " + cur_mod.path);
-                cur_mod.parse_manifest()
-            
-            if cur_mod.root_module != None:
-                root_module = cur_mod.root_module
-                p.vprint("Encountered root manifest: " + str(root_module))
-                new_modules = root_module.fetch()
-                involved_modules.extend(new_modules)
-                modules_queue.extend(new_modules)
-
-            for i in cur_mod.local:
-                p.vprint("Modules waiting in fetch queue:"+
-                ' '.join([str(cur_mod.git), str(cur_mod.svn), str(cur_mod.local)]))
-
-            for module in cur_mod.svn:
-                p.vprint("Fetching to " + module.fetchto)
-                path = module.__fetch_from_svn()
-                module.path = path
-                module.source = "local"
-                module.isparsed = False;
-                involved_modules.append(module)
-                modules_queue.append(module)
-
-            for module in cur_mod.git:
-                p.vprint("[git] Fetching to " + module.fetchto)
-                path = module.__fetch_from_git()
-                module.path = path
-                module.source = "local"
-                module.isparsed = False;
-                module.manifest = module.search_for_manifest();
-                p.vprint("[git] Local path " + module.path);
-                involved_modules.append(module)
-                modules_queue.append(module)
-
-            for module in cur_mod.local:
-                involved_modules.append(module)
-                modules_queue.append(module)
-
-            p.vprint("Modules scan queue: " + str(modules_queue))
-
-        p.vprint("All found manifests have been scanned")
-        return involved_modules
-
-    def __fetch_from_svn(self):
-        fetchto = self.fetchto
-        if not os.path.exists(fetchto):
-            os.mkdir(fetchto)
-
-        cur_dir = os.getcwd()
-        os.chdir(fetchto)
-        p.echo(os.getcwd())
-        basename = path_mod.url_basename(self.url)
-
-        cmd = "svn checkout {0} {1}"
-        cmd = cmd.format(self.url, basename)
-
-        p.vprint(cmd)
-        os.system(cmd)
-        os.chdir(cur_dir)
-        self.isfetched = True
-        self.path = os.path.join(fetchto, basename)
-
-        return os.path.join(fetchto, basename)
-
-    def __fetch_from_git(self):
-#        p.vprint(self.fetchto);
-        basename = path_mod.url_basename(self.url)
-        self.isfetched = fetch_from_git(self.url, None, self.fetchto);
-        return os.path.join(self.fetchto, basename)
+    def is_fetched_recursively(self):
+        if not self.isfetched:
+            return False
+        for mod in self.local + self.svn + self.git:
+            if mod.is_fetched_recursively() == False:
+                return False
+        return True
 
     def make_list_of_modules(self):
         p.vprint("Making list of modules for " + str(self))
@@ -384,7 +307,7 @@ class Module(object):
             f_set.add(m.fileset);
 
         return f_set
-
+#obsolete
     def generate_deps_for_vhdl_in_modules(self):
         all_files = self.extract_files_from_all_modules(extensions="vhd")
         p.vprint("All vhdl files:")

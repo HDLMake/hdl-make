@@ -6,6 +6,7 @@ t0 = None
 ssh = None
 top_module = None
 global_target = "''"
+modules_pool = None
 cwd = None
 opt_map = None
 hdlm_path = "hdl_make"

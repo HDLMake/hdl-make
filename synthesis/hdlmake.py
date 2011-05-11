@@ -16,7 +16,7 @@ import msg as p
 import optparse
 from module import Module
 from helper_classes import Manifest, ManifestParser
-from fetch import *
+from fetch import ModulePool 
 
 
 def main():
@@ -79,14 +79,17 @@ def main():
 
         global_mod.top_module.parse_manifest()
         global_mod.global_target = global_mod.top_module.target
-        global_mod.top_module.fetch()
+        #global_mod.top_module.fetch()
     else:
         p.echo("No manifest found. At least an empty one is needed")
         quit()
 
+    global_mod.modules_pool = ModulePool(global_mod.top_module)
     global_mod.ssh = Connection(options.synth_user, options.synth_server)
 
-    if global_mod.options.local == True:
+    if global_mod.options.fetch == True:
+        fetch()
+    elif global_mod.options.local == True:
         local_synthesis()
     elif global_mod.options.remote == True:
         remote_synthesis()
@@ -106,9 +109,9 @@ def generate_pseudo_ipcore():
     os.system("make -f Makefile.ipcore")
 
 def fetch():
-    modules = global_mod.top_module.fetch()
-    p.vprint("Involved modules:")
-    p.vprint([str(m) for m in modules])
+    pool = global_mod.modules_pool
+    pool.fetch_all()
+    p.vprint(str(pool))
 
 def generate_fetch_makefile():
     from depend import MakefileWriter
@@ -146,11 +149,11 @@ def generate_makefile():
 def generate_ise_makefile(top_mod):
     from depend import MakefileWriter
     make_writer = MakefileWriter()
-    make_writer.
+    make_writer.generate_ise_makefile()
 
 def generate_ise_project(fileset, top_mod):
     from flow import ISEProject, ISEProjectProperty
-    
+
     prj = ISEProject()
     prj.add_files(fileset.files)
     prj.add_libs(fileset.get_libs())
