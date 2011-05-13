@@ -162,6 +162,9 @@ class SourceFileSet(list):
         def __getitem__(self,v):
                 return self.files(v)
 
+        def __str__(self):
+                return str([str(f) for f in self.files])
+
         def add(self, files):
                 if isinstance(files, basestring):
                         raise RuntimeError("Expected object, not a string")
