@@ -4,11 +4,44 @@ import msg as p
 import os
 import configparser
 import global_mod
-from helper_classes import Manifest, ManifestParser, IseProjectFile, ManifestOptions
+from helper_classes import Manifest, ManifestParser, IseProjectFile
 from srcfile import *
 
-from fetch import *
+from fetch import ModuleFetcher, ModulePool 
 
+class ManifestOptions(object):
+    def __init__(self):
+        self.items = { "files" : None, #files from the module that should be taken
+                "fetchto" : None, #where this module should be fetched to, when fetching
+                "path" : None, #where the module is storek
+                "url" : None, #URL to the module
+                "manifest" : None, #manifest object
+                "source" : None, #where it should be fetched from
+                "isparsed" : None, #
+                "isfetched" : None,
+                "library" : None, #target library for the vhdl compilation
+                "root_module" : None, #root module object
+                "local" : None, #local modules
+                "target" : None,
+                "git" : None, #git modules
+                "svn" : None, #svn modules
+                "ise" : None,
+                "tcl" : None,
+                "vmap_opt" : None,
+                "vlog_opt" : None,
+                "vcom_opt" : None
+                }
+    def __setitem__(self, key, value):
+        if key in self.items:
+            self.items[key] = value
+        else:
+            raise KeyError("__setitem__: there is no such key: "+str(key))
+
+    def __getitem__(self, key):
+        if key in self.items:
+            return self.items[key]
+        else:
+            raise KeyError("__getitem__:there is no such key: "+str(key))
 
 class Module(object):
     def __init__(self, parent, url=None, files=None, manifest=None,
@@ -42,7 +75,7 @@ class Module(object):
                 self.options["url"] = url
         if manifest == None:
             if path != None:
-                self.options["manifest"] = self.search_for_manifest()
+                self.options["manifest"] = self.__search_for_manifest()
             else:
                 self.options["manifest"] = None
         else:
@@ -75,6 +108,7 @@ class Module(object):
         elif os.path.exists(os.path.join(self.options["fetchto"], basename)):
             self.options["isfetched"] = True
             self.path = os.path.join(self.options["fetchto"], basename)
+            self.manifest = self.__search_for_manifest()
 
         self.options["library"] = "work"
         self.parse_manifest()
@@ -83,10 +117,10 @@ class Module(object):
         #options = object.__getattribute__(self, "options")
         return self.options[attr]
 
-  #  def __str__(self):
-  #      return self.url
+    def __str__(self):
+        return self.url
 
-    def search_for_manifest(self):
+    def __search_for_manifest(self):
         """
         Look for manifest in the given folder
         """
@@ -109,8 +143,6 @@ class Module(object):
         return sth
 
     def parse_manifest(self):
-        p.vprint(self);
-        p.vprint("IsParsed "+str(self.isparsed)+" isFetched " + str(self.isfetched));
         if self.isparsed == True:
             return
         if self.isfetched == False:
@@ -119,7 +151,7 @@ class Module(object):
         manifest_parser = ManifestParser()
         if(self.parent != None):
             print("GlobMod " +str(global_mod.top_module))
-            manifest_parser.add_arbitrary_code("target=\""+global_mod.top_module.target+"\"")
+            manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
         else:
             print("NoParent")
             global_mod.top_module = self
