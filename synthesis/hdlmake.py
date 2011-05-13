@@ -86,7 +86,7 @@ def main():
         quit()
 
     global_mod.modules_pool = ModulePool(global_mod.top_module)
-    global_mod.ssh = Connection(options.synth_user, options.synth_server)
+    global_mod.ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
 
     tm = global_mod.top_module
     pool = global_mod.modules_pool

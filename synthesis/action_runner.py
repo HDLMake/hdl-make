@@ -66,7 +66,6 @@ class ActionRunner(object):
 
     def generate_ise_project(self, top_mod):
         from flow import ISEProject, ISEProjectProperty
-        print "GenIseProj"
         if not self.modules_pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
@@ -123,13 +122,11 @@ class ActionRunner(object):
         else:
             p.echo("Target " + tm.target + " is not synthesizable")
 
-    ####################################################
-    ####################################################
-    ####################################################
-    #NOT YET TRANSFORMED INTO CLASSES AND NOT YET PORTED
     def run_remote_synthesis(self):
+        from srcfile import SourceFileFactory, TCLFile
         ssh = self.connection
-        tm = self.top_module
+        tm = self.modules_pool.get_top_module()
+        cwd = os.getcwd()
 
         p.vprint("The program will be using ssh connection: "+str(ssh))
         if not ssh.is_good():
@@ -139,41 +136,53 @@ class ActionRunner(object):
         if not os.path.exists(tm.fetchto):
             p.echo("There are no modules fetched. Are you sure it's correct?")
 
-        modules = global_mod.top_module.make_list_of_modules()
+        files = self.modules_pool.build_global_file_list()
+        tcl = self.__search_tcl_file()
+        if tcl == None:
+            self.__generate_tcl()
+            tcl = "run.tcl"
 
-        files = [file for mod in modules for file in mod.files]
+        sff = SourceFileFactory()
+        files.add(sff.new(tcl))
+        files.add(sff.new(tm.syn_project))
+
         dest_folder = ssh.transfer_files_forth(files, tm.name)
+        syn_cmd = "cd "+dest_folder+cwd+" && xtclsh run.tcl"
+        if not os.path.exists("run.tcl"):
+            self.__generate_tcl()
 
-        ret = ssh.system("[ -e /opt/Xilinx/" + tm.ise + " ]")
-        if ret == 1:
-            p.echo("There is no " + tm.ise + " ISE version installed on the remote machine")
-            quit()
-
-        p.vprint("Checking address length at synthesis server")
-        address_length = ssh.check_address_length()
-        if address_length == 32 or address_length == None:
-            path_ext = global_mod.ise_path_32[tm.ise]
-        else:
-            path_ext = global_mod.ise_path_64[tm.ise]
-        cwd = os.getcwd()
-        quit()
-    #### tu zmienic (jak Tomek rozczai)
-        syn_cmd ="PATH=$PATH:"+path_ext+"&& cd "+dest_folder+cwd+"/"+os.path.dirname(global_mod.opt_map.tcl)
-        syn_cmd += "&& xtclsh "+os.path.basename(global_mod.opt_map.tcl)+" run_process"
-    ###
         p.vprint("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
         ret = ssh.system(syn_cmd)
         if ret == 1:
             p.echo("Synthesis failed. Nothing will be transfered back")
             quit()
 
-        cur_dir = os.path.basename(global_mod.cwd)
+        cur_dir = os.path.basename(cwd)
         os.chdir("..")
-        ssh.transfer_files_back(dest_folder+global_mod.cwd)
+        ssh.transfer_files_back(what=dest_folder+cwd, where=".")
         os.chdir(cur_dir)
-        if global_mod.options.no_del != True:
+        if global_mod.options.nodel != True:
             p.echo("Deleting synthesis folder")
             ssh.system('rm -rf ' + dest_folder)
+
+    def __search_tcl_file(self, directory = None):
+        import re
+        pat = re.compile("^.*?\.tcl$")
+        if directory == None:
+            directory = "."
+        dir = os.listdir(directory)
+        tcls = []
+        for file in dir:
+            match = re.match(pat, file)
+            if match != None:
+                tcls.append(file)
+        if len(tcls) == 0:
+            return None
+        if len(tcls) > 1:
+            p.rawprint("Multiple tcls in the current directory!")
+            p.rawprint(str(tcls))
+            quit()
+        return tcls[0]
 
     def __generate_tcl(self):
         tm = self.modules_pool.get_top_module()

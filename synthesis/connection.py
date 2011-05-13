@@ -2,7 +2,7 @@
 import os
 import random
 import string
-import msg
+import msg as p
 
 class Connection:
     def __init__(self, ssh_user, ssh_server):
@@ -49,16 +49,16 @@ class Connection:
         local_files_str = ' '.join(quote(file.path) for file in files)
 
         rsync_cmd = "rsync -Rav " + local_files_str + " " + self.ssh_user + "@" + self.ssh_server + ":" + dest_folder
-        rsync_cmd += " > /dev/null"
+        #rsync_cmd += " > /dev/null"
         p.vprint("Coping files to remote machine: "+rsync_cmd) 
         import subprocess
         p = subprocess.Popen(rsync_cmd, shell=True)
         os.waitpid(p.pid, 0)[1]
         return dest_folder
 
-    def transfer_files_back(self, dest_folder):
+    def transfer_files_back(self, what, where):
         self.__check()
-        rsync_cmd = "rsync -av " + self.ssh_user + "@" + self.ssh_server + ":" + dest_folder + ' /'
+        rsync_cmd = "rsync -av " + self.ssh_user + "@" + self.ssh_server + ":" + what + ' ' + where
         p.vprint(rsync_cmd)
         os.system(rsync_cmd)
 

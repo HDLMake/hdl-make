@@ -150,10 +150,10 @@ class Module(object):
 
         manifest_parser = ManifestParser()
         if(self.parent != None):
-            print("GlobMod " +str(global_mod.top_module))
+            #print("GlobMod " +str(global_mod.top_module))
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
         else:
-            print("NoParent")
+            #print("NoParent")
             global_mod.top_module = self
 
         manifest_parser.add_arbitrary_code("__manifest=\""+self.url+"\"")
