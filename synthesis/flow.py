@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import xml.dom.minidom as xml
 import sys
@@ -30,6 +31,9 @@ class ISEProject:
                 self.files = []
                 self.libs = []
                 self.xml_doc = None
+                self.xml_files = []
+                self.xml_props = []
+                self.xml_libs = []
                 self.top_mod = top_mod
 
         def add_files(self, files):
@@ -42,7 +46,6 @@ class ISEProject:
         def add_property(self, prop):
                 self.props.append(prop)
 
-
         def _parse_props(self):
                 for p in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
                         prop = ISEProjectProperty(
@@ -53,16 +56,20 @@ class ISEProject:
 
                         self.props.append(prop)
 
-                
-
         def load_xml(self, filename):
                 f = open(filename)
                 self.xml_doc = xml.parse(f) 
                 self.xml_project =  self.xml_doc.getElementsByTagName("project")[0];
                 self._parse_props()
-                purge_dom_node(self.xml_project.getElementsByTagName("files")[0]);
-                purge_dom_node(self.xml_project.getElementsByTagName("properties")[0]);
+                self.xml_files = self.__purge_dom_node(name="files", where=self.xml_doc.documentElement)
                 f.close()
+
+        def __purge_dom_node(self, name, where):
+                node = where.getElementsByTagName(name)[0]
+                where.removeChild(node)
+                new = self.xml_doc.createElement(name)
+                where.appendChild(new)
+                return new
 
         def _output_files(self, node):
 
@@ -104,13 +111,11 @@ class ISEProject:
                 if not self.xml_doc:
                         self.create_empty_project()
 
-                self._output_files(self.xml_files);
-                self._output_props(self.xml_props);
-                self._output_libs(self.xml_libs);
+                self._output_files(self.xml_files)
+                self._output_props(self.xml_props)
+                self._output_libs(self.xml_libs)
 
-                        
-                self.xml_doc.writexml(open(filename,"w"), newl="\n")
-
+                self.xml_doc.writexml(open(filename,"w"), newl="\n", addindent="\t")
 
         def create_empty_project(self):
                 self.xml_doc = xmlimpl.createDocument("http://www.xilinx.com/XMLSchema", "project", None)
@@ -134,6 +139,3 @@ class ISEProject:
                 top_element.appendChild(self.xml_files)
                 top_element.appendChild(self.xml_props)
                 top_element.appendChild(self.xml_libs)
-                
-
-
