@@ -52,6 +52,7 @@ class Module(object):
                 raise ValueError("Path to the local module doesn't exist: " + path)
 
         self.parent = parent
+        self.revision = None
 
         if files == None:
             self.options["files"] = []
@@ -119,6 +120,10 @@ class Module(object):
 
     def __str__(self):
         return self.url
+
+    def basename(self):
+        import path
+        return path.url_basename(self.url)
 
     def __search_for_manifest(self):
         """
