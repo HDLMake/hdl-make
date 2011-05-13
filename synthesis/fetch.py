@@ -71,6 +71,7 @@ class ModuleFetcher:
         os.chdir(cur_dir)
 
         module.isfetched = True
+        module.revision = rev
         module.path = os.path.join(fetchto, basename)
         return rval
 
@@ -113,6 +114,7 @@ class ModuleFetcher:
 
         os.chdir(cur_dir)
         module.isfetched = True
+        module.revision = rev
         module.path = os.path.join(fetchto, basename)
         return rval
 
@@ -132,11 +134,12 @@ class ModuleFetcher:
             ret = (url_match.group(1), None)
         return ret
 
-class ModulePool:
+class ModulePool(list):
     def __init__(self, top_module):
         self.top_module = top_module
         self.modules = []
-
+        self.add(module=top_module)
+        
     def __iter__(self):
         return self.modules.__iter__()
 
@@ -144,10 +147,10 @@ class ModulePool:
         return len(self.modules)
 
     def __contains__(self,v):
-        return v in self.files
+        return v in self.modules
 
     def __getitem__(self,v):
-        return self.files(v)
+        return self.modules[v]
 
     def __str__(self):
         return str([str(m) for m in self.modules])
@@ -160,6 +163,8 @@ class ModulePool:
             if mod.url == module.url:
                 return False
         self.modules.append(module)
+        for m in module.git + module.svn + module.local:
+            self.add(m)
         return True
 
     def fetch_all(self):
