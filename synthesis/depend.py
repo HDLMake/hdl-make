@@ -240,7 +240,7 @@ syn:
         #rules for all _primary.dat files for sv
         for file in fileset.filter(VerilogFile):
             f.write(os.path.join(file.library, file.purename, '.'+file.purename)+': '+rp(file.path)+"\n")
-            f.write("\t\tvlog -work "+file.library+" $(VLOG_FLAGS) $<")
+            f.write("\t\tvlog -work "+file.library+" $(VLOG_FLAGS) +incdir+ "+os.path.dirname(file.path)+" $<")
             f.write(" && mkdir -p "+os.path.join(file.library+'/'+file.purename) )
             f.write(" && touch "+ os.path.join(file.library, file.purename, '.'+file.purename)+'\n')
         f.write("\n")
