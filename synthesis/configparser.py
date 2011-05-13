@@ -197,8 +197,17 @@ class ConfigParser(object):
         #This is important because in the manifests only certain group
         #of variables is allowed. In arbitrary code all of them can be used.
         arbitrary_options = {}
-        exec(self.arbitrary_code, arbitrary_options)
-        exec(content, options)
+        try:
+            exec(self.arbitrary_code, arbitrary_options)
+        except SyntaxError as e:
+            p.rawprint(str(e) + "\nInvalid syntax in the arbitraty code")
+            quit()
+
+        try:
+            exec(content, options)
+        except SyntaxError as e:
+            p.rawprint(str(e)+ "\nInvalid syntax in the manifest file: " + self.file)
+            quit()
 
         for opt_name, val in list(options.items()): #check delivered options
             if opt_name.startswith('__'):
