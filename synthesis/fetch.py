@@ -5,7 +5,6 @@ import msg as p
 import global_mod
 import path
 
-
 class ModuleFetcher:
 
     def __init__(self):
@@ -18,21 +17,16 @@ class ModuleFetcher:
         if(module.source == "local"):
             p.vprint("ModPath: " + module.path);
             module.parse_manifest()
-        
+
         if module.root_module != None:
             root_module = module.root_module
             p.vprint("Encountered root manifest: " + str(root_module))
             new_modules = self.fetch_recursively(root_module)
             involved_modules.extend(new_modules)
 
-        for i in module.local:
-            p.vprint("Modules waiting in fetch queue:"+
-            ' '.join([str(module.git), str(module.svn), str(module.local)]))
-
         for module in module.svn:
             p.vprint("[svn] Fetching to " + module.fetchto)
-            path = self.__fetch_from_svn(module)
-            module.path = path
+            self.__fetch_from_svn(module)
             module.source = "local"
             module.isparsed = False
             p.vprint("[svn] Local path " + module.path)
@@ -40,15 +34,14 @@ class ModuleFetcher:
 
         for module in module.git:
             p.vprint("[git] Fetching to " + module.fetchto)
-            path = self.__fetch_from_git(module)
-            module.path = path
+            self.__fetch_from_git(module)
             module.source = "local"
             module.isparsed = False
             module.manifest = module.search_for_manifest();
             p.vprint("[git] Local path " + module.path);
             involved_modules.append(module)
 
-        for module in modle.local:
+        for module in module.local:
             involved_modules.append(module)
 
         return involved_modules
@@ -88,7 +81,7 @@ class ModuleFetcher:
 
         cur_dir = os.getcwd()
         os.chdir(fetchto)
-        url, rev = __parse_repo_url(module.url)
+        url, rev = self.__parse_repo_url(module.url)
 
         basename = path.url_basename(url)
 
@@ -113,7 +106,9 @@ class ModuleFetcher:
 
         if rev and rval:
             os.chdir(basename)
-            if os.system("git checkout " + revision) != 0:
+            cmd = "git checkout " + revision
+            p.vprint(cmd)
+            if os.system(cmd) != 0:
                 rval = False
 
         os.chdir(cur_dir)
@@ -135,6 +130,7 @@ class ModuleFetcher:
             ret = (url_match.group(1), url_match.group(3))
         else:
             ret = (url_match.group(1), None)
+        return ret
 
 class ModulePool:
     def __init__(self, top_module):
@@ -143,20 +139,21 @@ class ModulePool:
 
     def __iter__(self):
         return self.modules.__iter__()
-        
+
     def __len__(self):
         return len(self.modules)
-        
+
     def __contains__(self,v):
         return v in self.files
-        
+
     def __getitem__(self,v):
         return self.files(v)
-    
+
     def __str__(self):
         return str([str(m) for m in self.modules])
-    
+
     def add(self, module):
+        from module import Module
         if not isinstance(module, Module):
             raise RuntimeError("Expecting a Module instance")
         for mod in self.modules:
@@ -178,6 +175,12 @@ class ModulePool:
                     fetch_queue.append(mod)
                 else:
                     pass
+
+    def build_global_file_list(self):
+        return self.top_module.build_global_file_list()
+
+    def get_top_module(self):
+        return self.top_module
 
     def is_everything_fetched(self):
         for mod in self.modules:
