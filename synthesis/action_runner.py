@@ -192,12 +192,11 @@ class ActionRunner(object):
         f.close()
 
 
-    def generate_fetch_makefile():
+    def generate_fetch_makefile(self):
         from depend import MakefileWriter
-        tm = global_mod.top_module
-        pool = global_mod.modules_pool
+        pool = self.modules_pool
         if not pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
         make_writer = MakefileWriter()
-        make_writer.generate_fetch_makefile(tm)
+        make_writer.generate_fetch_makefile(pool)
