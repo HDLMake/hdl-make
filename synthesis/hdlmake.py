@@ -29,6 +29,9 @@ def main():
 
     parser.add_option("-k", "--make", dest="make", action="store_true",
     default=None, help="Generate a Makefile (simulation/synthesis)")
+    
+    parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
+    default=None, help="Generate a makefile for modules' fetching")
 
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
     help="fetch and/or update remote modules listed in Manifet")
@@ -92,19 +95,20 @@ def main():
     pool = global_mod.modules_pool
     ssh = global_mod.ssh
     from action_runner import ActionRunner
-
     action_runner = ActionRunner(modules_pool=pool, connection=ssh)
 
-    if global_mod.options.fetch == True:
+    if options.fetch == True:
         action_runner.fetch()
-    elif global_mod.options.local == True:
+    elif options.local == True:
         action_runner.run_local_synthesis()
-    elif global_mod.options.remote == True:
+    elif options.remote == True:
         action_runner.run_remote_synthesis()
-    elif global_mod.options.make == True:
-        action_runner.generate_makefile()
-    elif global_mod.options.ise_proj == True:
+    elif options.make == True:
+        action_runner.generate_modelsim_makefile()
+    elif options.ise_proj == True:
         action_runner.generate_ise_project(top_mod=tm)
+    elif options.make_fetch == True:
+        action_runner.generate_fetch_makefile()
 
 if __name__ == "__main__":
     main()
