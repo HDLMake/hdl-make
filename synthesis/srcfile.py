@@ -167,7 +167,7 @@ class SourceFileSet(list):
                 return v in self.files
             
         def __getitem__(self,v):
-                return self.files(v)
+                return self.files[v]
 
         def __str__(self):
                 return str([str(f) for f in self.files])
