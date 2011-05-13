@@ -87,47 +87,43 @@ syn:
         f.write(mk_text);
         f.close()
 
-    def generate_fetch_makefile(self, top_module):
+    def generate_fetch_makefile(self, modules_pool):
         import path
         rp = os.path.relpath
 
         f = open("Makefile.fetch", "w")
-
-        modules = [top_module]
         f.write("fetch: ")
+        f.write(' \\\n'.join([m.basename()+"__fetch" for m in modules_pool if m.source in ["svn","git"]]))
+        f.write("\n\n")
 
-        while(len(modules) > 0):
-            module = modules.pop()
-            for m in module.svn:
-                modules.append(m)
-                basename = path.url_basename(m.url)
-                f.write(basename+"__fetch \\\n")
-            for m in module.git:
-                modules.append(m)
-                basename = path.url_basename(m.url)
-                f.write(basename+"__fetch \\\n")
-
-            f.write("\n")
-            for m in module.svn:
-                basename = path.url_basename(m.url)
-                dir = os.path.join(m.fetchto, basename)
+        for module in modules_pool:
+            basename = module.basename()
+            dir = os.path.join(module.fetchto, basename)
+            if module.source == "svn":
                 f.write(basename+"__fetch:\n")
                 f.write("\t\t")
                 f.write("PWD=$(shell pwd); ")
-                f.write("cd " + rp(m.fetchto) + '; ')
-                f.write("svn checkout "+ m.url + '; ')
+                f.write("cd " + rp(module.fetchto) + '; ')
+                c = "svn checkout {0} {1};"
+                if module.revision:
+                    c.format(module.url, module.revision)
+                else:
+                    c.format(module.url, "")
+                f.write(c)
                 f.write("cd $(PWD) \n\n")
 
-            for m in module.git:
-                basename = path.url_basename(m.url)
-                dir = os.path.join(m.fetchto, basename)
+            elif module.source == "git":
                 f.write(basename+"__fetch:\n")
                 f.write("\t\t")
                 f.write("PWD=$(shell pwd); ")
-                f.write("cd " + rp(m.fetchto) + '; ')
+                f.write("cd " + rp(module.fetchto) + '; ')
                 f.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
                 f.write("git pull; ")
-                f.write("else git clone "+ m.url + '; fi; ')
+                if module.revision:
+                    f.write("git checkout " + module.revision +';')
+                f.write("else git clone "+ module.url + '; fi; ')
+                if module.revision:
+                    f.write("git checkout " + module.revision + ';')
                 f.write("cd $(PWD) \n\n")
         f.close()
 
