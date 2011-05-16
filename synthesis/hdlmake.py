@@ -28,16 +28,16 @@ def main():
     dest="manifest_help", help="print manifest file variables description")
 
     parser.add_option("-k", "--make", dest="make", action="store_true",
-    default=None, help="Generate a Makefile (simulation/synthesis)")
+    default=None, help="generate a Makefile (simulation/synthesis)")
     
     parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
-    default=None, help="Generate a makefile for modules' fetching")
+    default=None, help="generate a makefile for modules' fetching")
 
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
     help="fetch and/or update remote modules listed in Manifet")
 
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
-    help="create an ise project including list of project files")
+    help="create/update an ise project including list of project files")
 
     parser.add_option("-l", "--synthesize-locally", dest="local",
     action="store_true", help="perform a local synthesis")
@@ -45,14 +45,14 @@ def main():
     parser.add_option("-r", "--synthesize-remotelly", dest="remote",
     action="store_true", help="perform a remote synthesis")
 
-    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
-    default="false", help="verbose mode")
-
-    parser.add_option("--ipcore", dest="ipcore", action="store_true",
-    default="false", help="generate a pseudo ip-core")
+#    parser.add_option("--ipcore", dest="ipcore", action="store_true",
+#    default="false", help="generate a pseudo ip-core")
 
     parser.add_option("--nodel", dest="nodel", action="store_true",
     default="false", help="don't delete intermediate makefiles")
+
+    parser.add_option("--py", dest="arbitrary_code",
+    default="", help="add arbitrary code to all manifests' evaluation")
 
     parser.add_option("--synth-server", dest="synth_server",
     default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
@@ -60,8 +60,8 @@ def main():
     parser.add_option("--synth-user", dest="synth_user",
     default=None, help="use given USER for remote synthesis", metavar="USER")
 
-    parser.add_option("--py", dest="arbitrary_code",
-    default="", help="add arbitrary code to all manifests' evaluation")
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
+    default="false", help="verbose mode")
 
     (options, args) = parser.parse_args()
     global_mod.options = options
