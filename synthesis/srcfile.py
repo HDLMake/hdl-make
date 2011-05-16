@@ -25,6 +25,7 @@ class File(object):
 class SourceFile(IDependable, File):
         cur_index = 0
         def __init__(self, path, library = None):
+                IDependable.__init__(self)
                 File.__init__(self, path)
                 if not library:
                         library = "work"

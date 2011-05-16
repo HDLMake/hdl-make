@@ -39,7 +39,7 @@ class ActionRunner(object):
         self.modules_pool.fetch_all()
         p.vprint(str(self.modules_pool))
 
-    def generate_makefile(self):
+    def generate_modelsim_makefile(self):
         from dep_solver import DependencySolver
         from depend import MakefileWriter
         solver = DependencySolver()
@@ -53,11 +53,7 @@ class ActionRunner(object):
         flist = tm.build_global_file_list();
         flist_sorted = solver.solve(flist);
 
-        if(tm.target == "simulation"):
-            make_writer.generate_modelsim_makefile(flist_sorted, tm)
-        elif (tm.target == "xilinx"):
-            generate_ise_project(flist_sorted, tm);
-            generate_ise_makefile(tm)
+        make_writer.generate_modelsim_makefile(flist_sorted, tm)
 
     def generate_ise_makefile(self, top_mod):
         from depend import MakefileWriter
