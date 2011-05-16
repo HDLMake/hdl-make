@@ -248,7 +248,7 @@ class Module(object):
                     + path +".\nExiting.")
                     quit()
 
-            self.fileset = self.create_flat_file_list(paths=paths);
+            self.fileset = self.__create_flat_file_list(paths=paths);
             
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
@@ -328,7 +328,7 @@ class Module(object):
         return modules
 
 
-    def create_flat_file_list(self, paths):
+    def __create_flat_file_list(self, paths):
         fact = SourceFileFactory();
         srcs = SourceFileSet();
         for p in paths:
