@@ -178,6 +178,8 @@ class SourceFileSet(list):
                         raise RuntimeError("Expected object, not a string")
                 elif isinstance(files, list):
                         self.files.extend(files)
+                elif files == None:
+                        p.vprint("Got None as a file.\n Ommiting")
                 else: #single file, not a list
                         self.files.append(files)
                 #if(isinstance(files, SourceFileSet)):
@@ -210,6 +212,7 @@ class SourceFileFactory:
                 extension = tmp[len(tmp)-1]
                 p.vprint("SFF> " + path);
 
+                nf = None
                 if extension == 'vhd' or extension == 'vhdl':
                         nf = VHDLFile(path, library)
                 elif extension == 'v' or extension == 'sv':

@@ -6,45 +6,31 @@ import global_mod
 import path
 
 class ModuleFetcher:
-
     def __init__(self):
         pass
 
     def fetch_single_module(self, module):
-        involved_modules = []
+        new_modules = []
         p.vprint("Fetching manifest: " + str(module.manifest))
 
-        if(module.source == "local"):
+        if module.source == "local":
             p.vprint("ModPath: " + module.path);
-            module.parse_manifest()
-
-        if module.root_module != None:
-            root_module = module.root_module
-            p.vprint("Encountered root manifest: " + str(root_module))
-            new_modules = self.fetch_recursively(root_module)
-            involved_modules.extend(new_modules)
-
-        for module in module.svn:
+        if module.source == "svn":
             p.vprint("[svn] Fetching to " + module.fetchto)
             self.__fetch_from_svn(module)
-            module.source = "local"
-            module.isparsed = False
-            p.vprint("[svn] Local path " + module.path)
-            involved_modules.append(module)
-
-        for module in module.git:
+        if module.source == "git":
             p.vprint("[git] Fetching to " + module.fetchto)
             self.__fetch_from_git(module)
-            module.source = "local"
-            module.isparsed = False
-            module.manifest = module.search_for_manifest();
-            p.vprint("[git] Local path " + module.path);
-            involved_modules.append(module)
 
-        for module in module.local:
-            involved_modules.append(module)
+        module.parse_manifest()
 
-        return involved_modules
+        if module.root_module != None:
+            p.vprint("Encountered root manifest: " + str(root_module))
+            new_modules.append(module.root_module)
+
+        new_modules.extend(module.svn)
+        new_modules.extend(module.git)
+        return new_modules 
 
     def __fetch_from_svn(self, module):
         fetchto = module.fetchto
@@ -135,11 +121,128 @@ class ModuleFetcher:
         return ret
 
 class ModulePool(list):
+    class ModuleFetcher:
+        def __init__(self):
+            pass
+
+        def fetch_single_module(self, module):
+            new_modules = []
+            p.vprint("Fetching manifest: " + str(module.manifest))
+
+            if module.source == "local":
+                print "local module in fetching"
+                p.vprint("ModPath: " + module.path);
+            if module.source == "svn":
+                p.vprint("[svn] Fetching to " + module.fetchto)
+                self.__fetch_from_svn(module)
+                module.manifest = module.search_for_manifest()
+            if module.source == "git":
+                p.vprint("[git] Fetching to " + module.fetchto)
+                self.__fetch_from_git(module)
+                module.manifest = module.search_for_manifest()
+
+            module.parse_manifest()
+
+            if module.root_module != None:
+                p.vprint("Encountered root manifest: " + str(root_module))
+                new_modules.append(module.root_module)
+
+            new_modules.extend(module.svn)
+            new_modules.extend(module.git)
+            return new_modules 
+
+        def __fetch_from_svn(self, module):
+            fetchto = module.fetchto
+            if not os.path.exists(fetchto):
+                os.mkdir(fetchto)
+
+            cur_dir = os.getcwd()
+            os.chdir(fetchto)
+            url, rev = __parse_repo_url(module.url)
+
+            basename = path.url_basename(url)
+
+            cmd = "svn checkout {0} " + basename
+            if rev:
+                cmd = cmd.format(url + '@' + rev)
+            else:
+                cmd = cmd.format(url)
+
+            rval = True
+
+            p.vprint(cmd)
+            if os.system(cmd) != 0:
+                rval = False
+            os.chdir(cur_dir)
+
+            module.isfetched = True
+            module.revision = rev
+            module.path = os.path.join(fetchto, basename)
+            return rval
+
+        def __fetch_from_git(self, module):
+            fetchto = module.fetchto
+            if not os.path.exists(fetchto):
+                os.mkdir(fetchto)
+
+            cur_dir = os.getcwd()
+            os.chdir(fetchto)
+            url, rev = self.__parse_repo_url(module.url)
+
+            basename = path.url_basename(url)
+
+            if basename.endswith(".git"):
+                basename = basename[:-4] #remove trailing .git
+
+            if not os.path.exists(os.path.join(fetchto, basename)):
+                update_only = False
+            else:
+                update_only = True
+
+            if update_only:
+                cmd = "git --git-dir="+basename+"/.git pull"
+            else:
+                cmd = "git clone " + url
+
+            rval = True
+
+            p.vprint(cmd)
+            if os.system(cmd) != 0:
+                rval = False
+
+            if rev and rval:
+                os.chdir(basename)
+                cmd = "git checkout " + revision
+                p.vprint(cmd)
+                if os.system(cmd) != 0:
+                    rval = False
+
+            os.chdir(cur_dir)
+            module.isfetched = True
+            module.revision = rev
+            module.path = os.path.join(fetchto, basename)
+            return rval
+    #end class ModuleFetcher
+    def __parse_repo_url(self, url) :
+        """
+        Check if link to a repo seems to be correct. Filter revision number
+        """
+        import re
+        url_pat = re.compile("[ \t]*([^ \t]+)[ \t]*(@[ \t]*(.+))?[ \t]*")
+        url_match = re.match(url_pat, url)
+
+        if url_match == None:
+            p.echo("Not a correct repo url: {0}. Skipping".format(url))
+        if url_match.group(3) != None: #there is a revision given 
+            ret = (url_match.group(1), url_match.group(3))
+        else:
+            ret = (url_match.group(1), None)
+        return ret
     def __init__(self, top_module):
         self.top_module = top_module
         self.modules = []
-        self.add(module=top_module)
-        
+        self.add(new_module=top_module)
+
     def __iter__(self):
         return self.modules.__iter__()
 
@@ -155,15 +258,19 @@ class ModulePool(list):
     def __str__(self):
         return str([str(m) for m in self.modules])
 
-    def add(self, module):
-        from module import Module
-        if not isinstance(module, Module):
-            raise RuntimeError("Expecting a Module instance")
+    def __contains(self, module):
         for mod in self.modules:
             if mod.url == module.url:
                 return False
-        self.modules.append(module)
-        for m in module.git + module.svn + module.local:
+        return True
+
+    def add(self, new_module):
+        from module import Module
+        if not isinstance(new_module, Module):
+            raise RuntimeError("Expecting a Module instance")
+        if self.__contains(new_module):
+            return
+        for m in new_module.isfetched:
             self.add(m)
         return True
 
@@ -173,10 +280,12 @@ class ModulePool(list):
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
+            self.add(cur_mod)
+            print "<<<<<<" + cur_mod.url
             new_modules = fetcher.fetch_single_module(cur_mod)
+
             for mod in new_modules:
-                ret = self.add(mod)
-                if ret == True:
+                if self.__contains(mod):
                     fetch_queue.append(mod)
                 else:
                     pass

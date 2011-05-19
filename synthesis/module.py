@@ -148,10 +148,14 @@ class Module(object):
         return sth
 
     def parse_manifest(self):
+        print ">>>>>Parsing manifest " + self.url
         if self.isparsed == True:
             return
         if self.isfetched == False:
             return
+        if self.manifest == None:
+            self.manifest = self.__search_for_manifest()
+            print "MMM"+str(self.manifest)
 
         manifest_parser = ManifestParser()
         if(self.parent != None):
@@ -259,6 +263,7 @@ class Module(object):
         else:
             self.svn = []
 
+        print self.svn
         if "git" in opt_map["modules"]:
             opt_map["modules"]["git"] = self.__make_list(opt_map["modules"]["git"])
             git = []
@@ -344,48 +349,3 @@ class Module(object):
             f_set.add(m.fileset);
 
         return f_set
-#obsolete
-    def generate_deps_for_vhdl_in_modules(self):
-        all_files = self.extract_files_from_all_modules(extensions="vhd")
-        p.vprint("All vhdl files:")
-        for file in all_files:
-            p.vprint(str(file) + ':' + file.library)
-        for file in all_files:
-            file.search_for_package()
-            file.search_for_use()
-
-        package_file_dict = {}
-        for file in all_files:
-            packages = file.package #look for package definitions
-            if len(packages) != 0: #if there are some packages in the file
-                for package in packages:
-                    if package in package_file_dict:
-                        p.echo("There might be a problem... Compilation unit " + package +
-                        " has several instances:\n\t" + str(file) + "\n\t" + str(package_file_dict[package]))
-                        package_file_dict[package.lower()] = [package_file_dict[package.lower()], file]#///////////////////////////////////////////////////
-                    package_file_dict[package.lower()] = file #map found package to scanned file
-            file_purename = os.path.splitext(file.name)[0]
-            if file_purename in package_file_dict and package_file_dict[file_purename.lower()] != file:
-                p.echo("There might be a problem... Compilation unit " + file_purename +
-                    " has several instances:\n\t" + str(file) + "\n\t" + str(package_file_dict[file_purename]))
-            package_file_dict[file_purename.lower()] = file
-
-        p.vpprint(package_file_dict)
-
-        file_file_dict = {}
-        for file in all_files:
-            for unit in file.use:
-                if unit[1].lower() in package_file_dict:
-                    if unit[0].lower() == package_file_dict[unit[1].lower()].library:
-                        if file in file_file_dict:
-                            file_file_dict[file].append(package_file_dict[unit[1].lower()])
-                        else:
-                            file_file_dict[file] = [package_file_dict[unit[1].lower()]]
-                else:
-                    p.echo("Cannot resolve dependency: " + str(file) + " depends on "
-                        +"compilation unit " + str(unit) + ", which cannot be found")
-        for file in all_files:
-            if file not in file_file_dict:
-                file_file_dict[file] = []
-        p.vpprint(file_file_dict)
-        return file_file_dict

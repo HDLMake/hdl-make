@@ -31,19 +31,20 @@ class ManifestParser(ConfigParser):
         self.add_option('root_module', default=None, help="Path to root module for currently parsed", type='')
         self.add_option('name', default=None, help="Name of the folder at remote synthesis machine", type='')
 
-
+        self.add_delimiter()
         self.add_option('syn_device', default=None, help = "Target FPGA device", type = '');
         self.add_option('syn_grade', default=None, help = "Speed grade of target FPGA", type = '');
         self.add_option('syn_package', default=None, help = "Package variant of target FPGA", type = '');
         self.add_option('syn_top', default=None, help = "Top level module for synthesis", type = '');
         self.add_option('syn_project', default=None, help = "Vendor flow project file", type = '');
 
-
+        self.add_delimiter()
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
         self.add_option('vcom_opt', default="", help="Additional options for vcom", type='')
         self.add_option('vlog_opt', default="", help="Additional options for vlog", type='')
         self.add_option('vmap_opt', default="", help="Additional options for vmap", type='')
 
+        self.add_delimiter()
         self.add_option('modules', default={}, help="List of local modules", type={})
         self.add_option('target', default=None, help="Target architecture for synthesis", type='')
 
@@ -51,6 +52,7 @@ class ManifestParser(ConfigParser):
         self.add_allowed_key('modules', key="git")
         self.add_allowed_key('modules', key="local")
 
+        #self.add_delimiter()
         self.add_option('library', default="work",
         help="Destination library for module's VHDL files", type="")
         self.add_option('files', default=[], help="List of files from the current module", type='')

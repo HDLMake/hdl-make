@@ -124,44 +124,62 @@ class ConfigParser(object):
             if not isinstance(description, basestring):
                 raise ValueError("Description should be a string!")
         self.description = description
-        self.options = {}
+        self.options = []
         self.arbitrary_code = ""
+
+    def __setitem__(self, name, value):
+        if name in self.__names():
+            filter(lambda x: x.name == name, self.options)[0] = value
+        else:
+            self.options.append(value)
+
+    def __getitem__(self, name):
+        if name in self.__names():
+            return filter(lambda x: x != None and x.name == name, self.options)[0]
+        else:
+            raise RuntimeException("No such option as " + str(name))
 
     def help(self):
         p.rawprint("Variables available in a manifest:")
-        for key in self.options:
-            opt = self.options[key]
-            line = '  {0:10}; {1:15}; {2:40}{3}{4:10}'
+        for opt in self.options:
+            if opt == None:
+                p.rawprint("")
+                continue
+
+            line = '  {0:15}; {1:29}; {2:45}{3}{4:10}'
             try:
                 tmp_def = opt.default
                 if tmp_def == "":
                     tmp_def = '""'
-                line = line.format(key, str(opt.types), opt.help,', default=', tmp_def)
+                line = line.format(opt.name, str(opt.types), opt.help,', default=', tmp_def)
             except AttributeError: #no default value
                 line = line.format(key, str(opt.types), opt.help, "","")
             p.rawprint(line)
 
     def add_option(self, name, **others):
-        if name in self.options:
+        if name in self.__names():
             raise ValueError("Option already added: " + name)
-        self.options[name] = ConfigParser.Option(name, **others)
+        self.options.append(ConfigParser.Option(name, **others))
 
     def add_type(self, name, type):
-        if name not in self.options:
+        if name not in self.__names():
             raise RuntimeError("Can't add type to a non-existing option")
-        self.options[name].add_type(type_obj=type)
+        self[name].add_type(type)
+
+    def add_delimiter(self):
+        self.options.append(None)
 
     def add_allowed_key(self, name, key):
         if not isinstance(key, basestring):
             raise ValueError("Allowed key must be a string")
         try:
-            self.options[name].allowed_keys.append(key)
+            self[name].allowed_keys.append(key)
         except AttributeError:
-            if type(dict()) not in self.options[name].types:
+            if type(dict()) not in self[name].types:
                 raise RuntimeError("Allowing a key makes sense for dictionaries only")
-            self.options[name].allowed_keys = [key]
+            self[name].allowed_keys = [key]
 
-        self.options[name].allowed_keys.append(key)
+        self[name].allowed_keys.append(key)
 
     def add_config_file(self, config_file):
         try:
@@ -177,6 +195,9 @@ class ConfigParser(object):
 
     def add_arbitrary_code(self, code):
         self.arbitrary_code += code + '\n'
+
+    def __names(self):
+        return [o.name for o in self.options if o != None]
 
     def parse(self):
         options = {}
@@ -212,24 +233,24 @@ class ConfigParser(object):
         for opt_name, val in list(options.items()): #check delivered options
             if opt_name.startswith('__'):
                 continue
-            if opt_name not in self.options:
+            if opt_name not in self.__names():
                 if opt_name in arbitrary_options:
                     continue
                 else:
                     raise NameError("Unrecognized option: " + opt_name)
-            opt = self.options[opt_name]
+            opt = self[opt_name]
             if type(val) not in opt.types:
                 raise RuntimeError("Given option: "+str(type(val))+" doesn't match specified types:"+str(opt.types))
             ret[opt_name] = val
             if type(val) == type(dict()):
                 try:
                     for key in val:
-                        if key not in self.options[opt_name].allowed_keys:
+                        if key not in self[opt_name].allowed_keys:
                             raise RuntimeError("Encountered unallowed key: " +key+ " for options '"+opt_name+"'")
                 except AttributeError: #no allowed_keys member - don't perform any check
                     pass
 
-        for name, opt in self.options.items(): #set values for not listed items with defaults
+        for opt in self.options: #set values for not listed items with defaults
             try:
                 if opt.name not in ret:
                     ret[opt.name] = opt.default
