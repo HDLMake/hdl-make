@@ -26,7 +26,7 @@ class ISEProjectProperty:
 
 
 class ISEProject:
-        def __init__(self, top_mod = None):
+        def __init__(self, ise, top_mod = None):
                 self.props = []
                 self.files = []
                 self.libs = []
@@ -35,12 +35,18 @@ class ISEProject:
                 self.xml_props = []
                 self.xml_libs = []
                 self.top_mod = top_mod
+                self.ise = ise
 
         def add_files(self, files):
                 self.files.extend(files);
 
+        def __add_lib(self, lib):
+            if lib not in self.libs:
+                self.libs.append(lib)
+
         def add_libs(self, libs):
-                self.libs.extend(libs);
+                for l in libs:
+                    self.__add_lib(l)
                 self.libs.remove('work')
 
         def add_property(self, prop):
@@ -55,12 +61,19 @@ class ISEProject:
                                 )
 
                         self.props.append(prop)
+                self.xml_props = self.__purge_dom_node(name="properties", where=self.xml_doc.documentElement)
+
+        def _parse_libs(self):
+                for l in self.xml_project.getElementsByTagName("libraries")[0].getElementsByTagName("library"):
+                        self.__add_lib(l.getAttribute("xil_pn:name"))
+                self.xml_libs = self.__purge_dom_node(name="libraries", where=self.xml_doc.documentElement)
 
         def load_xml(self, filename):
                 f = open(filename)
-                self.xml_doc = xml.parse(f) 
+                self.xml_doc = xml.parse(f)
                 self.xml_project =  self.xml_doc.getElementsByTagName("project")[0];
                 self._parse_props()
+                self._parse_libs()
                 self.xml_files = self.__purge_dom_node(name="files", where=self.xml_doc.documentElement)
                 f.close()
 
@@ -108,14 +121,15 @@ class ISEProject:
 
 
         def emit_xml(self, filename = None):
+
                 if not self.xml_doc:
                         self.create_empty_project()
 
                 self._output_files(self.xml_files)
                 self._output_props(self.xml_props)
                 self._output_libs(self.xml_libs)
-
                 self.xml_doc.writexml(open(filename,"w"), newl="\n", addindent="\t")
+
 
         def create_empty_project(self):
                 self.xml_doc = xmlimpl.createDocument("http://www.xilinx.com/XMLSchema", "project", None)
@@ -124,7 +138,7 @@ class ISEProject:
                 top_element.setAttribute("xmlns:xil_pn", "http://www.xilinx.com/XMLSchema")
 
                 version = self.xml_doc.createElement( "version")
-                version.setAttribute("xil_pn:ise_version", "13.1");
+                version.setAttribute("xil_pn:ise_version", self.ise);
                 version.setAttribute("xil_pn:schema_version", "2");
 
                 header = self.xml_doc.createElement("header")
