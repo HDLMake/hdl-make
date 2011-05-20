@@ -52,7 +52,7 @@ class ISEProject:
         def add_property(self, prop):
                 self.props.append(prop)
 
-        def _parse_props(self):
+        def __parse_props(self):
                 for p in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
                         prop = ISEProjectProperty(
                                 p.getAttribute("xil_pn:name"),
@@ -63,7 +63,7 @@ class ISEProject:
                         self.props.append(prop)
                 self.xml_props = self.__purge_dom_node(name="properties", where=self.xml_doc.documentElement)
 
-        def _parse_libs(self):
+        def __parse_libs(self):
                 for l in self.xml_project.getElementsByTagName("libraries")[0].getElementsByTagName("library"):
                         self.__add_lib(l.getAttribute("xil_pn:name"))
                 self.xml_libs = self.__purge_dom_node(name="libraries", where=self.xml_doc.documentElement)
@@ -72,8 +72,8 @@ class ISEProject:
                 f = open(filename)
                 self.xml_doc = xml.parse(f)
                 self.xml_project =  self.xml_doc.getElementsByTagName("project")[0];
-                self._parse_props()
-                self._parse_libs()
+                self.__parse_props()
+                self.__parse_libs()
                 self.xml_files = self.__purge_dom_node(name="files", where=self.xml_doc.documentElement)
                 f.close()
 
@@ -84,7 +84,7 @@ class ISEProject:
                 where.appendChild(new)
                 return new
 
-        def _output_files(self, node):
+        def __output_files(self, node):
 
                 for f in self.files:
                         import os
@@ -109,11 +109,11 @@ class ISEProject:
                         fp.appendChild(assoc)
                         node.appendChild(fp);
 
-        def _output_props(self, node):
+        def __output_props(self, node):
                 for p in self.props:
                         node.appendChild(p.emit_xml(self.xml_doc))
 
-        def _output_libs(self, node):
+        def __output_libs(self, node):
                 for l in self.libs:
                         ll =  self.xml_doc.createElement("library")
                         ll.setAttribute("xil_pn:name", l);
@@ -125,9 +125,9 @@ class ISEProject:
                 if not self.xml_doc:
                         self.create_empty_project()
 
-                self._output_files(self.xml_files)
-                self._output_props(self.xml_props)
-                self._output_libs(self.xml_libs)
+                self.__output_files(self.xml_files)
+                self.__output_props(self.xml_props)
+                self.__output_libs(self.xml_libs)
                 self.xml_doc.writexml(open(filename,"w"), newl="\n", addindent="\t")
 
 
