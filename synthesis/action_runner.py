@@ -62,15 +62,37 @@ class ActionRunner(object):
 
     def generate_ise_project(self, top_mod):
         from flow import ISEProject, ISEProjectProperty
+        if self.__is_xilinx_screwed():
+            p.rawprint("Xilinx environment variable is unset or is wrong.\nCannot generate ise project")
+            quit()
         if not self.modules_pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
+        ise = self.__check_xilinx()
         if os.path.exists(top_mod.syn_project):
-            self.__update_existing_ise_project()
+            self.__update_existing_ise_project(ise=ise)
         else:
-            self.__create_new_ise_project()
+            self.__create_new_ise_project(ise=ise)
 
-    def __update_existing_ise_project(self):
+    def __is_xilinx_screwed(self):
+        if self.__check_xilinx() == None:
+            return True
+        else:
+            return False
+
+    def __check_xilinx(self):
+        xilinx = os.getenv("XILINX")
+        if xilinx == None:
+            return None
+        else:
+            import re
+            vp = re.compile(".*?(\d\d\.\d).*")
+            m = re.match(vp, xilinx)
+            if m == None:
+                return None
+            return m.group(1)
+
+    def __update_existing_ise_project(self, ise):
         from dep_solver import DependencySolver
         from flow import ISEProject, ISEProjectProperty
 
@@ -79,13 +101,13 @@ class ActionRunner(object):
         solver = DependencySolver()
         fileset = solver.solve(fileset)
 
-        prj = ISEProject()
+        prj = ISEProject(ise=ise)
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
         prj.load_xml(top_mod.syn_project)
         prj.emit_xml(top_mod.syn_project)
 
-    def __create_new_ise_project(self):
+    def __create_new_ise_project(self, ise):
         from dep_solver import DependencySolver
         from flow import ISEProject, ISEProjectProperty
 
@@ -94,7 +116,7 @@ class ActionRunner(object):
         solver = DependencySolver()
         fileset = solver.solve(fileset)
 
-        prj = ISEProject()
+        prj = ISEProject(ise=ise)
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
 
