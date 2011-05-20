@@ -148,14 +148,12 @@ class Module(object):
         return sth
 
     def parse_manifest(self):
-        print ">>>>>Parsing manifest " + self.url
         if self.isparsed == True:
             return
         if self.isfetched == False:
             return
         if self.manifest == None:
             self.manifest = self.__search_for_manifest()
-            print "MMM"+str(self.manifest)
 
         manifest_parser = ManifestParser()
         if(self.parent != None):
@@ -263,7 +261,6 @@ class Module(object):
         else:
             self.svn = []
 
-        print self.svn
         if "git" in opt_map["modules"]:
             opt_map["modules"]["git"] = self.__make_list(opt_map["modules"]["git"])
             git = []

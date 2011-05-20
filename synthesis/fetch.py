@@ -130,7 +130,6 @@ class ModulePool(list):
             p.vprint("Fetching manifest: " + str(module.manifest))
 
             if module.source == "local":
-                print "local module in fetching"
                 p.vprint("ModPath: " + module.path);
             if module.source == "svn":
                 p.vprint("[svn] Fetching to " + module.fetchto)
@@ -281,7 +280,6 @@ class ModulePool(list):
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
             self.add(cur_mod)
-            print "<<<<<<" + cur_mod.url
             new_modules = fetcher.fetch_single_module(cur_mod)
 
             for mod in new_modules:
