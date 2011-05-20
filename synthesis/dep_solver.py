@@ -9,7 +9,7 @@ class IDependable:
         self.dep_provides = [];
         self.dep_requires = [];
         self.dep_depends_on = [];
-        
+
 class DependencySolver:
     def __init__(self):
         self.entities = {};
@@ -35,7 +35,7 @@ class DependencySolver:
                     return f;
 
         return None
-        
+
     def solve(self, fileset):
         n_iter = 0
         max_iter = 100
@@ -79,7 +79,7 @@ class DependencySolver:
                 for req in f.dep_requires:
                     pf = self._find_provider_file(fset, req)
                     if not pf:
-                        p.vprint("Missing dependency: " + req)
+                        p.rawprint("Missing dependency in file "+str(f)+": " + req)
                         quit()
                     else:
                         p.vprint("--> " + pf.path);

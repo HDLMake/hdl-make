@@ -49,8 +49,8 @@ class Module(object):
         self.options = ManifestOptions()
         if source == "local" and path != None:
             if not os.path.exists(path):
-                raise ValueError("Path to the local module doesn't exist: " + path)
-
+                p.rawprint("Path to the local module doesn't exist:\n" + path)
+                p.rawprint("This module was instantiated in: " + str(parent))
         self.parent = parent
         self.revision = None
 
