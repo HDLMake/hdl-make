@@ -218,16 +218,25 @@ class ConfigParser(object):
         #This is important because in the manifests only certain group
         #of variables is allowed. In arbitrary code all of them can be used.
         arbitrary_options = {}
+        import sys
         try:
             exec(self.arbitrary_code, arbitrary_options)
         except SyntaxError as e:
             p.rawprint(str(e) + "\nInvalid syntax in the arbitraty code")
+            quit()
+        except:
+            p.rawprint("Unexpted error while parsing arbitrary code")
+            p.rawprint(str(sys.exc_info()[0])+':'+str(sys.exc_info()[1]))
             quit()
 
         try:
             exec(content, options)
         except SyntaxError as e:
             p.rawprint(str(e)+ "\nInvalid syntax in the manifest file: " + self.file)
+            quit()
+        except:
+            p.rawprint("Encountered unexpected error while parsing " + self.file)
+            p.rawprint(str(sys.exc_info()[0]) +':'+ str(sys.exc_info()[1]))
             quit()
 
         for opt_name, val in list(options.items()): #check delivered options
