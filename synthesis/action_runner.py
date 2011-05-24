@@ -24,7 +24,7 @@ class ActionRunner(object):
         self.connection = connection
 
     def generate_pseudo_ipcore(self):
-        from depend import MakefileWriter
+        from makefile_writer import MakefileWriter
         tm = modules_pool.get_top_module()
         make_writer = MakefileWriter()
 
@@ -41,7 +41,7 @@ class ActionRunner(object):
 
     def generate_modelsim_makefile(self):
         from dep_solver import DependencySolver
-        from depend import MakefileWriter
+        from makefile_writer import MakefileWriter
         solver = DependencySolver()
         make_writer = MakefileWriter()
 
@@ -56,9 +56,34 @@ class ActionRunner(object):
         make_writer.generate_modelsim_makefile(flist_sorted, tm)
 
     def generate_ise_makefile(self, top_mod):
-        from depend import MakefileWriter
+        from makefile_writer import MakefileWriter
         make_writer = MakefileWriter()
-        make_writer.generate_ise_makefile()
+        make_writer.generate_ise_makefile(top_mod=top_mod)
+
+    def generate_transfer_makefile(self):
+        from makefile_writer import MakefileWriter
+        from srcfile import SourceFileFactory, VerilogFile
+        if self.connection.ssh_user == None or self.connection.ssh_server == None:
+            p.rawprint("Connection data is not given. Use launch arguments")
+            quit()
+
+        top_mod = self.modules_pool.get_top_module()
+        if not os.path.exists(top_mod.fetchto):
+            p.echo("There are no modules fetched. Are you sure it's correct?")
+
+        make_writer = MakefileWriter()
+        tcl = self.__search_tcl_file()
+        if tcl == None:
+            self.__generate_tcl()
+            tcl = "run.tcl"
+        files = self.modules_pool.build_very_global_file_list()
+
+        sff = SourceFileFactory()
+        files.add(sff.new(tcl))
+        files.add(sff.new(top_mod.syn_project))
+
+        make_writer.generate_transfer_makefile(files=files, name=top_mod.name, 
+        user=self.connection.ssh_user, server=self.connection.ssh_server)
 
     def generate_ise_project(self, top_mod):
         from flow import ISEProject, ISEProjectProperty
@@ -68,19 +93,19 @@ class ActionRunner(object):
         if not self.modules_pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
-        ise = self.__check_xilinx()
+        ise = self.__check_ise_version()
         if os.path.exists(top_mod.syn_project):
             self.__update_existing_ise_project(ise=ise)
         else:
             self.__create_new_ise_project(ise=ise)
 
     def __is_xilinx_screwed(self):
-        if self.__check_xilinx() == None:
+        if self.__check_ise_version() == None:
             return True
         else:
             return False
 
-    def __check_xilinx(self):
+    def __check_ise_version(self):
         xilinx = os.getenv("XILINX")
         if xilinx == None:
             return None
@@ -154,7 +179,7 @@ class ActionRunner(object):
         if not os.path.exists(tm.fetchto):
             p.echo("There are no modules fetched. Are you sure it's correct?")
 
-        files = self.modules_pool.build_global_file_list()
+        files = self.modules_pool.build_very_global_file_list()
         tcl = self.__search_tcl_file()
         if tcl == None:
             self.__generate_tcl()
@@ -164,10 +189,8 @@ class ActionRunner(object):
         files.add(sff.new(tcl))
         files.add(sff.new(tm.syn_project))
 
-        dest_folder = ssh.transfer_files_forth(files, tm.name)
+        dest_folder = ssh.transfer_files_forth(files, dest_folder=tm.name)
         syn_cmd = "cd "+dest_folder+cwd+" && xtclsh run.tcl"
-        if not os.path.exists("run.tcl"):
-            self.__generate_tcl()
 
         p.vprint("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
         ret = ssh.system(syn_cmd)
@@ -179,9 +202,9 @@ class ActionRunner(object):
         os.chdir("..")
         ssh.transfer_files_back(what=dest_folder+cwd, where=".")
         os.chdir(cur_dir)
-        if global_mod.options.nodel != True:
-            p.echo("Deleting synthesis folder")
-            ssh.system('rm -rf ' + dest_folder)
+     #   if global_mod.options.del == True:
+     #       p.echo("Deleting synthesis folder")
+     #       ssh.system('rm -rf ' + dest_folder)
 
     def __search_tcl_file(self, directory = None):
         import re
@@ -206,12 +229,12 @@ class ActionRunner(object):
         tm = self.modules_pool.get_top_module()
         f = open("run.tcl","w");
         f.write("project open " + tm.syn_project + '\n')
-        f.write("process run {Generate Programming Files} -force rerun_all\n")
+        f.write("process run {Generate Programming File} -force rerun_all\n")
         f.close()
 
 
     def generate_fetch_makefile(self):
-        from depend import MakefileWriter
+        from makefile_writer import MakefileWriter
         pool = self.modules_pool
         if not pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
