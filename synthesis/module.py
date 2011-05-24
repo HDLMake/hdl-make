@@ -157,10 +157,8 @@ class Module(object):
 
         manifest_parser = ManifestParser()
         if(self.parent != None):
-            #print("GlobMod " +str(global_mod.top_module))
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
         else:
-            #print("NoParent")
             global_mod.top_module = self
 
         manifest_parser.add_arbitrary_code("__manifest=\""+self.url+"\"")
@@ -336,7 +334,6 @@ class Module(object):
         for p in paths:
             srcs.add(fact.new(p, self.library))
         return srcs
-
 
     def build_global_file_list(self):
         f_set = SourceFileSet();
