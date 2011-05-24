@@ -29,9 +29,15 @@ def main():
 
     parser.add_option("-k", "--make", dest="make", action="store_true",
     default=None, help="generate a Makefile (simulation/synthesis)")
-    
+
     parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
     default=None, help="generate a makefile for modules' fetching")
+
+    parser.add_option("--make-ise", dest="make_ise", action="store_true",
+    default=None, help="generate a makefile for local ISE synthesis")
+
+    parser.add_option("--make-remote", dest="make_remote", action="store_true",
+    default=None, help="generate a makefile for sending files to a remote location")
 
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
     help="fetch and/or update remote modules listed in Manifet")
@@ -47,9 +53,6 @@ def main():
 
 #    parser.add_option("--ipcore", dest="ipcore", action="store_true",
 #    default="false", help="generate a pseudo ip-core")
-
-    parser.add_option("--nodel", dest="nodel", action="store_true",
-    default="false", help="don't delete intermediate makefiles")
 
     parser.add_option("--py", dest="arbitrary_code",
     default="", help="add arbitrary code to all manifests' evaluation")
@@ -109,6 +112,10 @@ def main():
         action_runner.generate_ise_project(top_mod=tm)
     elif options.make_fetch == True:
         action_runner.generate_fetch_makefile()
+    elif options.make_ise == True:
+        action_runner.generate_ise_makefile(top_mod=tm)
+    elif options.make_remote == True:
+        action_runner.generate_transfer_makefile()
 
 if __name__ == "__main__":
     main()
