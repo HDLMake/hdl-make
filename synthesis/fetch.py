@@ -291,6 +291,29 @@ class ModulePool(list):
     def build_global_file_list(self):
         return self.top_module.build_global_file_list()
 
+    def build_very_global_file_list(self):
+        from srcfile import SourceFileFactory, VerilogFile
+        sff = SourceFileFactory()
+
+        files = self.top_module.build_global_file_list()
+        extra_verilog_files = set() 
+        queue = files.filter(VerilogFile)
+
+        while len(queue) > 0:
+            vl = queue.pop()
+            extra_verilog_files.add(vl)
+            for f in vl.dep_requires:
+                nvl = sff.new(os.path.join(vl.dirname, f))
+                if f not in extra_verilog_files and f not in files:
+                    queue.append(nvl)
+
+        p.vprint("Extra verilog files, not listed in manifests:")
+        for file in extra_verilog_files:
+            p.vprint(str(file))
+        for file in extra_verilog_files:
+            files.add(file)
+        return files
+
     def get_top_module(self):
         return self.top_module
 
