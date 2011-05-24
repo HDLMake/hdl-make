@@ -32,14 +32,10 @@ class Connection:
         is returned
         """
         self.__check()
-        if not isinstance(files, list):
-            return None;
-
         #create a new catalogue on remote machine
         if dest_folder == None:
             dest_folder = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8)) 
-
-        mkdir_cmd = 'mkdir ' + dest_folder 
+        mkdir_cmd = 'mkdir -p ' + dest_folder 
         import msg as p
         p.vprint("Connecting to " + str(self) + " and creating directory " + dest_folder + ": " + mkdir_cmd)
         self.system(mkdir_cmd)
