@@ -27,7 +27,7 @@ def main():
     parser.add_option("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")
 
-    parser.add_option("-k", "--make", dest="make", action="store_true",
+    parser.add_option("--make-sim", dest="make_sim", action="store_true",
     default=None, help="generate a Makefile (simulation/synthesis)")
 
     parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
@@ -37,7 +37,7 @@ def main():
     default=None, help="generate a makefile for local ISE synthesis")
 
     parser.add_option("--make-remote", dest="make_remote", action="store_true",
-    default=None, help="generate a makefile for sending files to a remote location")
+    default=None, help="generate a makefile for remote synthesis")
 
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
     help="fetch and/or update remote modules listed in Manifet")
@@ -51,17 +51,14 @@ def main():
     parser.add_option("-r", "--synthesize-remotelly", dest="remote",
     action="store_true", help="perform a remote synthesis")
 
-#    parser.add_option("--ipcore", dest="ipcore", action="store_true",
-#    default="false", help="generate a pseudo ip-core")
-
-    parser.add_option("--py", dest="arbitrary_code",
-    default="", help="add arbitrary code to all manifests' evaluation")
-
     parser.add_option("--synth-server", dest="synth_server",
     default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
 
     parser.add_option("--synth-user", dest="synth_user",
     default=None, help="use given USER for remote synthesis", metavar="USER")
+
+    parser.add_option("--py", dest="arbitrary_code",
+    default="", help="add arbitrary code to all manifests' evaluation")
 
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
     default="false", help="verbose mode")
@@ -86,7 +83,6 @@ def main():
 
         global_mod.top_module.parse_manifest()
         global_mod.global_target = global_mod.top_module.target
-        #global_mod.top_module.fetch()
     else:
         p.echo("No manifest found. At least an empty one is needed")
         quit()
@@ -106,7 +102,7 @@ def main():
         action_runner.run_local_synthesis()
     elif options.remote == True:
         action_runner.run_remote_synthesis()
-    elif options.make == True:
+    elif options.make_sim == True:
         action_runner.generate_modelsim_makefile()
     elif options.ise_proj == True:
         action_runner.generate_ise_project(top_mod=tm)
@@ -115,7 +111,7 @@ def main():
     elif options.make_ise == True:
         action_runner.generate_ise_makefile(top_mod=tm)
     elif options.make_remote == True:
-        action_runner.generate_transfer_makefile()
+        action_runner.generate_remote_synthesis_makefile()
 
 if __name__ == "__main__":
     main()
