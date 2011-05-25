@@ -70,8 +70,20 @@ class ISEProject:
                 f = open(filename)
                 self.xml_doc = xml.parse(f)
                 self.xml_project =  self.xml_doc.getElementsByTagName("project")[0];
-                self.__parse_props()
-                self.__parse_libs()
+                try:
+                    self.__parse_props()
+                except xml.parsers.expat.ExpatError:
+                    p.rawprint("Error while parsing existng file's properties:")
+                    p.rawprint(str(sys.exc_info()))
+                    quit()
+
+                try:
+                    self.__parse_libs()
+                except xml.parsers.expat.ExpatError:
+                    p.rawprint("Error while parsing existng file's libraries:")
+                    p.rawprint(str(sys.exc_info()))
+                    quit()
+
                 self.xml_files = self.__purge_dom_node(name="files", where=self.xml_doc.documentElement)
                 f.close()
 

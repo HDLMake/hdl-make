@@ -150,6 +150,7 @@ class HdlmakeKernel(object):
         prj.add_property(ISEProjectProperty("Speed Grade", top_mod.syn_grade))
         prj.add_property(ISEProjectProperty("Package", top_mod.syn_package))
         #    prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
+        prj.add_property(ISEProjectProperty("Enable Multi-Threading", "4"))
         prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
         prj.add_property(ISEProjectProperty("Manual Implementation Compile Order", "true"))
         prj.add_property(ISEProjectProperty("Auto Implementation Top", "false"))

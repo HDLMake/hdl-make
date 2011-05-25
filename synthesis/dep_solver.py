@@ -69,11 +69,11 @@ class DependencySolver:
             if f.dep_fixed:
                 f_nondep.append(copy.copy(f))
                 del f
-        
 
         f_nondep.sort(key=lambda f: f.dep_index)
 
-        for f in fset:
+        from srcfile import VHDLFile
+        for f in [file for file in fset if isinstance(file, VHDLFile)]:
             p.vprint(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
@@ -97,5 +97,3 @@ class DependencySolver:
         for k in newobj.files:
             p.vprint(str(k.dep_index) + " " + k.path + str(k.dep_fixed))
         return newobj
-                
-            
