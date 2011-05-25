@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import string
-import global_mod
 import msg as p
-from srcfile import *
 
 class MakefileWriter(object):
 
@@ -177,8 +175,9 @@ mrproper:
 #
 #        f.write("done:\n\t\t@echo Done.")
 
-    def generate_modelsim_makefile(self, fileset, module, file=None):
+    def generate_modelsim_makefile(self, fileset, top_module, file=None):
         from time import gmtime, strftime
+        from srcfile import VerilogFile, VHDLFile
         import path
         if file == None:
             file = open("Makefile.sim","w")
@@ -196,9 +195,9 @@ WORK_NAME := work
 
 MODELSIM_INI_PATH := """ + self.__modelsim_ini_path() + """
 
-VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini """ + self.__emit_string(module.vcom_opt) + """
-VSIM_FLAGS := """ + self.__emit_string(module.vsim_opt) + """
-VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__emit_string(module.vlog_opt) + """
+VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini """ + self.__emit_string(top_module.vcom_opt) + """
+VSIM_FLAGS := """ + self.__emit_string(top_module.vsim_opt) + """
+VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__emit_string(top_module.vlog_opt) + """
 """ 
         make_preambule_p2 = """## rules #################################
 sim: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
@@ -245,8 +244,8 @@ clean:
         file.write('\n')
         file.write(make_preambule_p2)
 
-        vlo = global_mod.top_module.vlog_opt
-        vmo = global_mod.top_module.vmap_opt
+        vlo = top_module.vlog_opt
+        vmo = top_module.vmap_opt
         for lib in libs:
             file.write(lib+"/."+lib+":\n")
             file.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
@@ -264,7 +263,7 @@ clean:
         file.write("\n")
 
         #list rules for all _primary.dat files for vhdl
-        vco = global_mod.top_module.vcom_opt
+        vco = top_module.vcom_opt
         for vhdl in fileset.filter(VHDLFile):
             lib = vhdl.library
             basename = vhdl.name

@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import xml.dom.minidom as xml
-import sys
-from srcfile import *
 
 xmlimpl = xml.getDOMImplementation()
 
@@ -88,6 +86,7 @@ class ISEProject:
 
                 for f in self.files:
                         import os
+                        from srcfile import UCFFile, VHDLFile, VerilogFile
                         fp = self.xml_doc.createElement("file")
                         fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
                         if (isinstance(f, VHDLFile)):

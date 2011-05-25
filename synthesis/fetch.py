@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import msg as p
-import global_mod
 import path
 
 class ModuleFetcher:

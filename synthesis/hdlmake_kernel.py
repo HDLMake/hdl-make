@@ -232,7 +232,6 @@ class HdlmakeKernel(object):
         f.write("process run {Generate Programming File} -force rerun_all\n")
         f.close()
 
-
     def generate_fetch_makefile(self):
         from makefile_writer import MakefileWriter
         pool = self.modules_pool

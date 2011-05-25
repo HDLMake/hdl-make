@@ -1,23 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import re
 import fileinput
 import sys
-import path
 import path
 import time
 import os
 from connection import Connection
-import random
-import string
 import global_mod
 import msg as p
 import optparse
 from module import Module
 from helper_classes import Manifest, ManifestParser
-from fetch import ModulePool 
-
+from fetch import ModulePool
 
 def main():
     global_mod.t0 = time.time()
@@ -27,8 +22,11 @@ def main():
     parser.add_option("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")
 
+#    parser.add_option("-k", "--make", dest="make", action="store_true",
+#    default=None, help="generate an universal Makefile")
+
     parser.add_option("--make-sim", dest="make_sim", action="store_true",
-    default=None, help="generate a Makefile (simulation/synthesis)")
+    default=None, help="generate a simulation Makefile")
 
     parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
     default=None, help="generate a makefile for modules' fetching")
@@ -102,6 +100,8 @@ def main():
         kernel.run_local_synthesis()
     elif options.remote == True:
         kernel.run_remote_synthesis()
+#    elif options.make == True:
+#        kernel.generate_makefile()
     elif options.make_sim == True:
         kernel.generate_modelsim_makefile()
     elif options.ise_proj == True:

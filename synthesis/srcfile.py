@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from dep_solver import *
+from dep_solver import IDependable 
 import os
+import msg as p
 
 class File(object):
         def __init__(self, path):
