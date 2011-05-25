@@ -93,25 +93,25 @@ def main():
     tm = global_mod.top_module
     pool = global_mod.modules_pool
     ssh = global_mod.ssh
-    from action_runner import ActionRunner
-    action_runner = ActionRunner(modules_pool=pool, connection=ssh)
+    from hdlmake_kernel import HdlmakeKernel
+    kernel = HdlmakeKernel(modules_pool=pool, connection=ssh)
 
     if options.fetch == True:
-        action_runner.fetch()
+        kernel.fetch()
     elif options.local == True:
-        action_runner.run_local_synthesis()
+        kernel.run_local_synthesis()
     elif options.remote == True:
-        action_runner.run_remote_synthesis()
+        kernel.run_remote_synthesis()
     elif options.make_sim == True:
-        action_runner.generate_modelsim_makefile()
+        kernel.generate_modelsim_makefile()
     elif options.ise_proj == True:
-        action_runner.generate_ise_project(top_mod=tm)
+        kernel.generate_ise_project(top_mod=tm)
     elif options.make_fetch == True:
-        action_runner.generate_fetch_makefile()
+        kernel.generate_fetch_makefile()
     elif options.make_ise == True:
-        action_runner.generate_ise_makefile(top_mod=tm)
+        kernel.generate_ise_makefile(top_mod=tm)
     elif options.make_remote == True:
-        action_runner.generate_remote_synthesis_makefile()
+        kernel.generate_remote_synthesis_makefile()
 
 if __name__ == "__main__":
     main()

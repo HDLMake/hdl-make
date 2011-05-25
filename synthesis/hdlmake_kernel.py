@@ -18,7 +18,7 @@ from module import Module
 from helper_classes import Manifest, ManifestParser
 from fetch import ModulePool
 
-class ActionRunner(object):
+class HdlmakeKernel(object):
     def __init__(self, modules_pool, connection):
         self.modules_pool = modules_pool
         self.connection = connection
@@ -50,7 +50,7 @@ class ActionRunner(object):
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
         tm = pool.get_top_module()
-        flist = tm.build_global_file_list();
+        flist = pool.build_very_global_file_list();
         flist_sorted = solver.solve(flist);
 
         make_writer.generate_modelsim_makefile(flist_sorted, tm)
@@ -60,7 +60,7 @@ class ActionRunner(object):
         make_writer = MakefileWriter()
         make_writer.generate_ise_makefile(top_mod=top_mod)
 
-    def generate_transfer_makefile(self):
+    def generate_remote_synthesis_makefile(self):
         from makefile_writer import MakefileWriter
         from srcfile import SourceFileFactory, VerilogFile
         if self.connection.ssh_user == None or self.connection.ssh_server == None:
@@ -82,8 +82,8 @@ class ActionRunner(object):
         files.add(sff.new(tcl))
         files.add(sff.new(top_mod.syn_project))
 
-        make_writer.generate_transfer_makefile(files=files, name=top_mod.name, 
-        user=self.connection.ssh_user, server=self.connection.ssh_server)
+        make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.name, 
+        cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server)
 
     def generate_ise_project(self, top_mod):
         from flow import ISEProject, ISEProjectProperty
