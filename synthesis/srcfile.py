@@ -152,7 +152,7 @@ class VerilogFile(SourceFile):
 
         def __create_deps(self):
                 self.dep_requires = self.__search_includes()
-                self.dep_provides = os.path.basename(self.path);
+                self.dep_provides = self.name 
 
         def __search_includes(self):
             import re
@@ -192,7 +192,7 @@ class WBGenFile(SourceFile):
 
 class SourceFileSet(object):
         def __init__(self):
-                self.files = set();
+                self.files = [];
 
         def __iter__(self):
                 return self.files.__iter__()
@@ -203,8 +203,8 @@ class SourceFileSet(object):
         def __contains__(self,v):
                 return v in self.files
 
-#        def __getitem__(self,v):
-#                return self.files[v]
+        def __getitem__(self,v):
+                return self.files[v]
 
         def __str__(self):
                 return str([str(f) for f in self.files])
@@ -217,9 +217,11 @@ class SourceFileSet(object):
                 else:
                         try:
                                 for f in files:
-                                        self.files.add(f)
+                                        if f not in self.files:
+                                                self.files.append(f)
                         except: #single file, not a list
-                                self.files.add(files)
+                                if files not in self.files:
+                                        self.files.append(files)
 
         def filter(self, type):
                 out = []
