@@ -1,58 +1,55 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import os
-import re
 import string
 import global_mod
 import msg as p
 from srcfile import *
 
-
 class MakefileWriter(object):
 
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, filename=None):
+    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, file=None):
         if files == None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
-        if filename == None:
-            filename = "Makefile.remote"
-        f=open(filename, "w")
+        if file== None:
+            file = open("Makefile.remote","w")
         credentials_tmpl = "USER = {0}\nSERVER = {1}\nR_NAME= {2}\n"
         files_tmpl = "FILES = {0}"
 
-        f.write(credentials_tmpl.format(user, server, name))
-        f.write("CWD=$(shell pwd)\n")
-        f.write("\n\n")
-        f.write(files_tmpl.format(' \\\n'.join([str(s) for s in files])))
-        f.write("\n\n")
-        f.write("remote_synthesis: send do_synthesis send_back\n")
-        f.write("send_back: do_synthesis\n")
-        f.write("do_synthesis: send\n\n")
+        file.write(credentials_tmpl.format(user, server, name))
+        file.write("CWD=$(shell pwd)\n")
+        file.write("\n\n")
+        file.write(files_tmpl.format(' \\\n'.join([str(s) for s in files])))
+        file.write("\n\n")
+        file.write("remote_synthesis: send do_synthesis send_back\n")
+        file.write("send_back: do_synthesis\n")
+        file.write("do_synthesis: send\n\n")
 
         mkdir_cmd = "ssh $(USER)@$(SERVER) 'mkdir -p $(R_NAME)'"
         rsync_cmd = "rsync -Rav $(FILES) $(USER)@$(SERVER):$(R_NAME)"
         send_cmd = "send:\n\t\t{0}\n\t\t{1}".format(mkdir_cmd, rsync_cmd)
-        f.write(send_cmd)
-        f.write("\n\n")
+        file.write(send_cmd)
+        file.write("\n\n")
 
         tcl = "run.tcl"
         synthesis_cmd = "do_synthesis:\n\t\t"
         synthesis_cmd += "ssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && xtclsh {1}'"
-        f.write(synthesis_cmd.format(os.path.join(name, cwd), tcl))
-        f.write("\n\n")
+        file.write(synthesis_cmd.format(os.path.join(name, cwd), tcl))
+        file.write("\n\n")
  
         send_back_cmd = "send_back: \n\t\tcd ..\n\t\trsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) .\n\t\tcd $(CWD)"
-        f.write(send_back_cmd)
-        f.write("\n\n")
+        file.write(send_back_cmd)
+        file.write("\n\n")
 
         cln_cmd = "clean:\n\t\tssh $(USER)@$(SERVER) 'rm -rf $(R_NAME)'"
-        f.write(cln_cmd)
-        f.write("\n")
+        file.write(cln_cmd)
+        file.write("\n")
+        file.close()
 
-    def generate_ise_makefile(self, top_mod, filename=None):
-        if filename == None:
-            filename = "Makefile.ise"
-        f=open(filename,"w");
+    def generate_ise_makefile(self, top_mod, file=None):
+        if file == None:
+            file = open("Makefile.ise","w")
 
         mk_text = """
 PROJECT=""" + top_mod.syn_project + """
@@ -116,87 +113,76 @@ mrproper:
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
 \t\txtclsh run.tcl
         """
-        f.write(mk_text);
-        f.close()
+        file.write(mk_text);
+        file.close()
 
-    def generate_fetch_makefile(self, modules_pool):
+    def generate_fetch_makefile(self, modules_pool, file=None):
         import path
         rp = os.path.relpath
-
-        f = open("Makefile.fetch", "w")
-        f.write("fetch: ")
-        f.write(' \\\n'.join([m.basename()+"__fetch" for m in modules_pool if m.source in ["svn","git"]]))
-        f.write("\n\n")
+        if file == None:
+            file = open("Makefile.fetch", "w")
+        file.write("fetch: ")
+        file.write(' \\\n'.join([m.basename()+"__fetch" for m in modules_pool if m.source in ["svn","git"]]))
+        file.write("\n\n")
 
         for module in modules_pool:
             basename = module.basename()
             dir = os.path.join(module.fetchto, basename)
             if module.source == "svn":
-                f.write(basename+"__fetch:\n")
-                f.write("\t\t")
-                f.write("PWD=$(shell pwd); ")
-                f.write("cd " + rp(module.fetchto) + '; ')
+                file.write(basename+"__fetch:\n")
+                file.write("\t\t")
+                file.write("PWD=$(shell pwd); ")
+                file.write("cd " + rp(module.fetchto) + '; ')
                 c = "svn checkout {0} {1};"
                 if module.revision:
                     c.format(module.url, module.revision)
                 else:
                     c.format(module.url, "")
-                f.write(c)
-                f.write("cd $(PWD) \n\n")
+                file.write(c)
+                file.write("cd $(PWD) \n\n")
 
             elif module.source == "git":
-                f.write(basename+"__fetch:\n")
-                f.write("\t\t")
-                f.write("PWD=$(shell pwd); ")
-                f.write("cd " + rp(module.fetchto) + '; ')
-                f.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
-                f.write("git pull; ")
+                file.write(basename+"__fetch:\n")
+                file.write("\t\t")
+                file.write("PWD=$(shell pwd); ")
+                file.write("cd " + rp(module.fetchto) + '; ')
+                file.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
+                file.write("git pull; ")
                 if module.revision:
-                    f.write("git checkout " + module.revision +';')
-                f.write("else git clone "+ module.url + '; fi; ')
+                    file.write("git checkout " + module.revision +';')
+                file.write("else git clone "+ module.url + '; fi; ')
                 if module.revision:
-                    f.write("git checkout " + module.revision + ';')
-                f.write("cd $(PWD) \n\n")
-        f.close()
+                    file.write("git checkout " + module.revision + ';')
+                file.write("cd $(PWD) \n\n")
+        file.close()
 
-    def generate_pseudo_ipcore_makefile(self, file_deps_dict, filename="ipcore"):
-        import path
-        rp = os.path.relpath
+#    def generate_pseudo_ipcore_makefile(self, file_deps_dict, filename="ipcore"):
+#        import path
+#        rp = os.path.relpath
+#
+#        f = open("Makefile.ipcore", "w")
+#        f.write("file: create_a_file done\n")
+#        f.write("create_a_file:\n\t\t@printf \"\" > " + filename + '\n')
+#        f.write("file: ")
+#        for file in file_deps_dict:
+#            f.write(rp(file.path)+"__cat \\\n")
+#        f.write("\n")
+#        for file in file_deps_dict:
+#            f.write(rp(file.path)+"__cat: ")
+#            f.write(' '.join(rp(depfile.path)+"__cat" for depfile in file_deps_dict[file]))
+#            f.write('\n')
+#            f.write("\t\t@echo '-- " + file.name + "' >> " + filename + "\n")
+#            f.write("\t\t@cat "+ rp(file.path) + " >> " + filename + "\n")
+#            f.write("\t\t@echo \"\">> " +filename + "\n\n")
+#
+#        f.write("done:\n\t\t@echo Done.")
 
-        f = open("Makefile.ipcore", "w")
-        f.write("file: create_a_file done\n")
-        f.write("create_a_file:\n\t\t@printf \"\" > " + filename + '\n')
-        f.write("file: ")
-        for file in file_deps_dict:
-            f.write(rp(file.path)+"__cat \\\n")
-        f.write("\n")
-        for file in file_deps_dict:
-            f.write(rp(file.path)+"__cat: ")
-            f.write(' '.join(rp(depfile.path)+"__cat" for depfile in file_deps_dict[file]))
-            f.write('\n')
-            f.write("\t\t@echo '-- " + file.name + "' >> " + filename + "\n")
-            f.write("\t\t@cat "+ rp(file.path) + " >> " + filename + "\n")
-            f.write("\t\t@echo \"\">> " +filename + "\n\n")
-
-        f.write("done:\n\t\t@echo Done.")
-
-    def __emit_string(self, s):
-        if not s:
-            return ""
-        else:
-            return s
-
-    def __modelsim_ini_path(self):
-        vsim_path = os.popen("which vsim").read().strip()
-        bin_path = os.path.dirname(vsim_path)
-        return os.path.abspath(bin_path+"/../")
-
-    def generate_modelsim_makefile(self, fileset, module, filename=None):
+    def generate_modelsim_makefile(self, fileset, module, file=None):
         from time import gmtime, strftime
         import path
-        #from path import relpath as rp
-        if filename == None:
-            filename = "Makefile.sim"
+        if file == None:
+            file = open("Makefile.sim","w")
+
         date = strftime("%a, %d %b %Y %H:%M:%S", gmtime())
         notices = """#######################################################################
 #   This makefile has been automatically generated by hdl-make 
@@ -227,73 +213,83 @@ clean:
 
 """
         #open the file and write the above preambule (part 1)
-        f = open(filename, "w")
-        f.write(notices)
-        f.write(make_preambule_p1)
+        file.write(notices)
+        file.write(make_preambule_p1)
 
         rp = os.path.relpath
-        f.write("VERILOG_SRC := ")
+        file.write("VERILOG_SRC := ")
 
-        for file in fileset.filter(VerilogFile):
-            f.write(rp(file.path) + " \\\n")
-        f.write("\n")
+        for vl in fileset.filter(VerilogFile):
+            file.write(rp(vl.path) + " \\\n")
+        file.write("\n")
 
-        f.write("VERILOG_OBJ := ")
-        for file in fileset.filter(VerilogFile):
-            f.write(os.path.join(file.library, file.purename, "."+file.purename) + " \\\n")
-        f.write('\n')
+        file.write("VERILOG_OBJ := ")
+        for vl in fileset.filter(VerilogFile):
+            file.write(os.path.join(vl.library, vl.purename, "."+vl.purename) + " \\\n")
+        file.write('\n')
 
-        libs = set(file.library for file in fileset.files)
+        libs = set(f.library for f in fileset.files)
 
         #list vhdl objects (_primary.dat files)
-        f.write("VHDL_OBJ := ")
-        for file in fileset.filter(VHDLFile):
-            f.write(os.path.join(file.library, file.purename,"."+file.purename) + " \\\n")
-        f.write('\n')
+        file.write("VHDL_OBJ := ")
+        for vhdl in fileset.filter(VHDLFile):
+            file.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename) + " \\\n")
+        file.write('\n')
 
-        f.write('LIBS := ')
-        f.write(' '.join(libs))
-        f.write('\n')
+        file.write('LIBS := ')
+        file.write(' '.join(libs))
+        file.write('\n')
         #tell how to make libraries
-        f.write('LIB_IND := ')
-        f.write(' '.join([lib+"/."+lib for lib in libs]))
-        f.write('\n')
-        f.write(make_preambule_p2)
+        file.write('LIB_IND := ')
+        file.write(' '.join([lib+"/."+lib for lib in libs]))
+        file.write('\n')
+        file.write(make_preambule_p2)
 
         vlo = global_mod.top_module.vlog_opt
         vmo = global_mod.top_module.vmap_opt
         for lib in libs:
-            f.write(lib+"/."+lib+":\n")
-            f.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
+            file.write(lib+"/."+lib+":\n")
+            file.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
             lib, "&&", "touch", lib+"/."+lib,")"]))
 
-            f.write(' '.join(["||", "rm -rf", lib, "\n"]))
-            f.write('\n')
+            file.write(' '.join(["||", "rm -rf", lib, "\n"]))
+            file.write('\n')
 
         #rules for all _primary.dat files for sv
-        for file in fileset.filter(VerilogFile):
-            f.write(os.path.join(file.library, file.purename, '.'+file.purename)+': '+rp(file.path)+"\n")
-            f.write("\t\tvlog -work "+file.library+" $(VLOG_FLAGS) +incdir+ "+os.path.dirname(file.path)+" $<")
-            f.write(" && mkdir -p "+os.path.join(file.library+'/'+file.purename) )
-            f.write(" && touch "+ os.path.join(file.library, file.purename, '.'+file.purename)+'\n')
-        f.write("\n")
+        for vl in fileset.filter(VerilogFile):
+            file.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': '+rp(vl.path)+"\n")
+            file.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+ "+os.path.dirname(vl.path)+" $<")
+            file.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
+            file.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename)+'\n')
+        file.write("\n")
 
         #list rules for all _primary.dat files for vhdl
         vco = global_mod.top_module.vcom_opt
-        for file in fileset.filter(VHDLFile):
-            lib = file.library
-            basename = file.name
-            purename = file.purename 
+        for vhdl in fileset.filter(VHDLFile):
+            lib = vhdl.library
+            basename = vhdl.name
+            purename = vhdl.purename 
             #each .dat depends on corresponding .vhd file
-            f.write(os.path.join(lib, purename, "."+purename) + ": "+rp(file.path)+'\n')
-            f.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, rp(file.path),
+            file.write(os.path.join(lib, purename, "."+purename) + ": "+rp(vhdl.path)+'\n')
+            file.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, rp(vhdl.path),
             "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename), '\n']))
-            f.write('\n')
-            if len(file.dep_depends_on) != 0:
-                f.write(os.path.join(lib, purename, "."+purename) +":")
-                for dep_file in file.dep_depends_on:
+            file.write('\n')
+            if len(vhdl.dep_depends_on) != 0:
+                file.write(os.path.join(lib, purename, "."+purename) +":")
+                for dep_file in vhdl.dep_depends_on:
                     name = dep_file.purename
-                    f.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
-                f.write('\n\n')
+                    file.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
+                file.write('\n\n')
 
-        f.close()
+        file.close()
+
+    def __emit_string(self, s):
+        if not s:
+            return ""
+        else:
+            return s
+
+    def __modelsim_ini_path(self):
+        vsim_path = os.popen("which vsim").read().strip()
+        bin_path = os.path.dirname(vsim_path)
+        return os.path.abspath(bin_path+"/../")
