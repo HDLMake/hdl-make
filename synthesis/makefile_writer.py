@@ -36,7 +36,7 @@ class MakefileWriter(object):
         file.write(synthesis_cmd.format(os.path.join(name, cwd), tcl))
         file.write("\n\n")
  
-        send_back_cmd = "send_back: \n\t\tcd ..\n\t\trsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) .\n\t\tcd $(CWD)"
+        send_back_cmd = "send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
         file.write(send_back_cmd)
         file.write("\n\n")
 
@@ -100,6 +100,8 @@ run.tcl
 
 syn:
 \t\techo "project open $(PROJECT)" > run.tcl
+\t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
+\t\txtclsh run.tcl
 
 clean:
 \t\trm -f $(ISE_CRAP)
@@ -108,8 +110,6 @@ clean:
 mrproper:
 \trm -f *.bit *.bin *.mcs
     
-\t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
-\t\txtclsh run.tcl
         """
         file.write(mk_text);
         file.close()
