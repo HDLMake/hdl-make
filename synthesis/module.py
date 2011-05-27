@@ -4,7 +4,7 @@ import msg as p
 import os
 import configparser
 import global_mod
-from helper_classes import Manifest, ManifestParser, IseProjectFile
+from helper_classes import Manifest, ManifestParser
 from srcfile import *
 
 from fetch import ModuleFetcher, ModulePool 
@@ -136,7 +136,6 @@ class Module(object):
                     p.vprint("*** found manifest for module "+self.path);
                     manifest = Manifest(path=os.path.abspath(os.path.join(self.path, filename)))
                     return manifest
-        # no manifest file found
         return None
 
     def __make_list(self, sth):
@@ -197,15 +196,6 @@ class Module(object):
             else:
                 fetchto = None
 
-        #this is the previous solution - no derivation 
-        #if opt_map["fetchto"] == None:
-        #    fetchto = self.path
-        # else:
-        #    if not path_mod.is_rel_path(opt_map["fetchto"]):
-        #       p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map["fetchto"]]))
-        #       quit()
-        #   fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
-
         if self.ise == None:
             self.ise = "13.1"
         if "local" in opt_map["modules"]:
@@ -220,20 +210,7 @@ class Module(object):
 
         self.library = opt_map["library"]
         if opt_map["files"] == []:
-
-# don't scan if there a manifest exists but contains no files (i.e. only sub-modules)
-#            fact = SourceFileFactory ()
-
-#            files = []
-#            for filename in os.listdir(self.path):
-#                path = os.path.join(self.path, filename)
-#                if not os.path.isdir(path):
-#                    file = fact.new(path=path)
-#                    file.library = self.library
-#                    files.append(file)
-#            self.files = files
             self.fileset = SourceFileSet()
-            pass
         else:
             opt_map["files"] = self.__make_list(opt_map["files"])
             paths = []
@@ -249,7 +226,7 @@ class Module(object):
                     quit()
 
             self.fileset = self.__create_flat_file_list(paths=paths);
-            
+
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
             svn = []

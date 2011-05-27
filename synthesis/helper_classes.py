@@ -67,63 +67,6 @@ class ManifestParser(ConfigParser):
     def print_help():
         self.parser.print_help()
 
-class PawelSourceFile:
-    def __init__(self, path, type=None):
-        self.path = path
-        self.name = os.path.basename(self.path)
-        self.type = type
-        self.purename = os.path.splitext(self.name)[0]
-
-    def __str__(self):
-        return self.path
-
-    def write(self, lines):
-        file = open(os.path.join(self.path,self.name), "w")
-        file.write(''.join(new_ise))
-        file.close()
-
-    def extension(self):
-        tmp = self.path.rsplit('.')
-        ext = tmp[len(tmp)-1]
-        return ext
-
-    def isdir(self):
-        return os.path.isdir(self.path)
-
-    def search_for_use(self):
-        """
-        Reads a file and looks for 'use' clause. For every 'use' with
-        non-standard library a tuple (lib, file) is returned in a list.
-        """
-        import re
-        std_libs = ['ieee', 'altera_mf', 'cycloneiii', 'lpm', 'std', 'unisim']
-
-        f = open(self.path, "r")
-        try:
-            text = f.readlines()
-        except UnicodeDecodeError:
-            return []
-
-        use_pattern = re.compile("^[ \t]*use[ \t]+([^; ]+)[ \t]*;.*$")
-        lib_pattern = re.compile("([^.]+)\.([^.]+)\.all")
-
-        use_lines = []
-        for line in text:
-            m = re.match(use_pattern, line)
-            if m != None:
-                use_lines.append(m.group(1))
-
-        ret = []
-        for line in use_lines:
-            m = re.match(lib_pattern, line)
-            if m != None:
-                if (m.group(1)).lower() in std_libs:
-                    continue
-                ret.append((m.group(1),m.group(2)))
-
-        f.close()
-        self.use = ret
-
     def search_for_package(self):
         """
         Reads a file and looks for package clase. Returns list of packages' names
@@ -146,27 +89,3 @@ class PawelSourceFile:
 
         f.close()
         self.package = ret
-
-class IseProjectFile(PawelSourceFile):
-    def __init__(self, path=None, type="ise"):
-        SourceFile.__init__(self, path=path, type=type)
-
-    def inject_file_list(self, files_list):
-        ise = open(self.path, "r")
-        ise_lines = ise.readlines()
-
-        file_template = '    '+ "<file xil_pn:name=\"{0}\" xil_pn:type=\"FILE_VHDL\"/>\n"
-        files_pattern = re.compile('[ \t]*<files>[ \t]*')
-        new_ise = []
-        for line in ise_lines:
-            new_ise.append(line)
-
-            if re.match(files_pattern, line) != None:
-                for file in files_list:
-                    new_ise.append(file_template.format(os.path.relpath(file)))
-        new_ise_file = SourceFile(path=self.path, name=self.name+".new")
-    def __init__(self, path=None, type="vhdl", library="work"):
-        SourceFile.__init__(self,path= path, type=type)
-        self.library = library
-        self.use = self.search_for_use_()
-        self.package = self.search_for_package_()
