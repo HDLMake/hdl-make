@@ -251,10 +251,13 @@ class Module(object):
         self.vlog_opt = opt_map["vlog_opt"]
         self.vsim_opt = opt_map["vsim_opt"]
 
-        self.name = opt_map["name"]
         self.target = opt_map["target"]
         self.action = opt_map["action"]
 
+        if opt_map["syn_name"] == None and opt_map["syn_project"] != None:
+            self.syn_name = opt_map["syn_project"][:-5] #cut out .xise from the end
+        else:
+            self.syn_name = opt_map["syn_name"]
         self.syn_device = opt_map["syn_device"];
         self.syn_grade = opt_map["syn_grade"];
         self.syn_package= opt_map["syn_package"];

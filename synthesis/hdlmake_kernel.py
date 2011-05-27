@@ -88,7 +88,7 @@ class HdlmakeKernel(object):
         files.add(sff.new(tcl))
         files.add(sff.new(top_mod.syn_project))
 
-        make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.name, 
+        make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name, 
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server)
 
     def generate_ise_project(self):
@@ -198,7 +198,7 @@ class HdlmakeKernel(object):
         files.add(sff.new(tcl))
         files.add(sff.new(tm.syn_project))
 
-        dest_folder = ssh.transfer_files_forth(files, dest_folder=tm.name)
+        dest_folder = ssh.transfer_files_forth(files, dest_folder=tm.syn_name)
         syn_cmd = "cd "+dest_folder+cwd+" && xtclsh run.tcl"
 
         p.vprint("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
