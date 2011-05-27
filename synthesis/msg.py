@@ -8,7 +8,7 @@ import sys
 import pprint as prettyprinter
 
 def rawprint(msg):
-    print msg
+    print(msg)
 
 def echo(msg):
     print(("["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-global_mod.t0) + "]: " + str(msg)))
