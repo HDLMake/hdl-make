@@ -105,13 +105,16 @@ def main():
     elif options.make_sim == True:
         kernel.generate_modelsim_makefile()
     elif options.ise_proj == True:
-        kernel.generate_ise_project(top_mod=tm)
+        kernel.generate_ise_project()
     elif options.make_fetch == True:
         kernel.generate_fetch_makefile()
     elif options.make_ise == True:
-        kernel.generate_ise_makefile(top_mod=tm)
+        kernel.generate_ise_makefile()
     elif options.make_remote == True:
         kernel.generate_remote_synthesis_makefile()
+    else:
+        p.echo("Running automatic flow")
+        kernel.run()
 
 if __name__ == "__main__":
     main()

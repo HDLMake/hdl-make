@@ -104,6 +104,7 @@ class ConfigParser(object):
             self.types = []
             self.help = ""
             self.arbitrary_code = ""
+            self.global_code = ""
 
             for key in others:
                 if key == "help":
@@ -246,6 +247,8 @@ class ConfigParser(object):
                 if opt_name in arbitrary_options:
                     continue
                 else:
+                    #if opt_name.startswith("global_"):
+                    #    continue
                     raise NameError("Unrecognized option: " + opt_name)
             opt = self[opt_name]
             if type(val) not in opt.types:

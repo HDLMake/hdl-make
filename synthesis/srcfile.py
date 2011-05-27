@@ -178,7 +178,7 @@ class UCFFile(SourceFile):
 class TCLFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
-                
+
 class XISEFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
@@ -233,7 +233,6 @@ class SourceFileSet(object):
 
         def get_libs(self):
                 return set(file.library for file in self.files)
-
 
 class SourceFileFactory:
         def new (self, path, library = None):
