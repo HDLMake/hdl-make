@@ -23,25 +23,29 @@ class HdlmakeKernel(object):
         self.modules_pool = modules_pool
         self.connection = connection
 
-    def generate_pseudo_ipcore(self):
-        from makefile_writer import MakefileWriter
-        tm = modules_pool.get_top_module()
-        make_writer = MakefileWriter()
-
-        file_deps_dict = tm.generate_deps_for_vhdl_in_modules()
-        make_writer.generate_pseudo_ipcore_makefile(file_deps_dict)
-
-        if global_mod.options.nodel != True:
-            os.remove("Makefile.ipcore")
-        os.system("make -f Makefile.ipcore")
+    def run(self):
+        tm = self.modules_pool.get_top_module()
+        if tm.action == "simulation":
+            self.generate_modelsim_makefile()
+        elif tm.action == "synthesis":
+            self.fetch()
+            self.generate_ise_project()
+            self.generate_ise_makefile()
+            self.generate_remote_synthesis_makefile()
+        else:
+            p.rawprint("Unrecognized action: " + str(tm.action))
+            p.rawprint("Allowed actions are:\n\tsimulation\n\tsynthesis")
+            quit()
 
     def fetch(self):
+        p.rawprint("Fetching needed modules...")
         self.modules_pool.fetch_all()
         p.vprint(str(self.modules_pool))
 
     def generate_modelsim_makefile(self):
         from dep_solver import DependencySolver
         from makefile_writer import MakefileWriter
+        p.rawprint("Generating makefile for simulation...")
         solver = DependencySolver()
         make_writer = MakefileWriter()
 
@@ -57,6 +61,7 @@ class HdlmakeKernel(object):
 
     def generate_ise_makefile(self):
         from makefile_writer import MakefileWriter
+        p.rawprint("Generating makefile for local synthesis...")
         make_writer = MakefileWriter()
         make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module())
 

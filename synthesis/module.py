@@ -23,6 +23,7 @@ class ManifestOptions(object):
                 "root_module" : None, #root module object
                 "local" : None, #local modules
                 "target" : None,
+                "action" : None,
                 "git" : None, #git modules
                 "svn" : None, #svn modules
                 "ise" : None,
@@ -252,6 +253,7 @@ class Module(object):
 
         self.name = opt_map["name"]
         self.target = opt_map["target"]
+        self.action = opt_map["action"]
 
         self.syn_device = opt_map["syn_device"];
         self.syn_grade = opt_map["syn_grade"];
