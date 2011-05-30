@@ -54,7 +54,7 @@ class HdlmakeKernel(object):
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
         tm = pool.get_top_module()
-        flist = pool.build_very_global_file_list();
+        flist = pool.build_global_file_list();
         flist_sorted = solver.solve(flist);
 
         make_writer.generate_modelsim_makefile(flist_sorted, tm)
