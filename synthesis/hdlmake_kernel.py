@@ -17,14 +17,17 @@ import optparse
 from module import Module
 from helper_classes import Manifest, ManifestParser
 from fetch import ModulePool
+from makefile_writer import MakefileWriter
 
 class HdlmakeKernel(object):
     def __init__(self, modules_pool, connection):
         self.modules_pool = modules_pool
         self.connection = connection
+        self.make_writer = MakefileWriter("Makefile")
 
     def run(self):
         tm = self.modules_pool.get_top_module()
+
         if tm.action == "simulation":
             self.generate_modelsim_makefile()
         elif tm.action == "synthesis":
@@ -44,10 +47,8 @@ class HdlmakeKernel(object):
 
     def generate_modelsim_makefile(self):
         from dep_solver import DependencySolver
-        from makefile_writer import MakefileWriter
         p.rawprint("Generating makefile for simulation...")
         solver = DependencySolver()
-        make_writer = MakefileWriter()
 
         pool = self.modules_pool
         if not pool.is_everything_fetched():
@@ -57,16 +58,13 @@ class HdlmakeKernel(object):
         flist = pool.build_global_file_list();
         flist_sorted = solver.solve(flist);
 
-        make_writer.generate_modelsim_makefile(flist_sorted, tm)
+        self.make_writer.generate_modelsim_makefile(flist_sorted, tm)
 
     def generate_ise_makefile(self):
-        from makefile_writer import MakefileWriter
         p.rawprint("Generating makefile for local synthesis...")
-        make_writer = MakefileWriter()
-        make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module())
+        self.make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module())
 
     def generate_remote_synthesis_makefile(self):
-        from makefile_writer import MakefileWriter
         from srcfile import SourceFileFactory, VerilogFile
         if self.connection.ssh_user == None or self.connection.ssh_server == None:
             p.rawprint("Connection data is not given. Cannot do a makefile for the remote synthesis")
@@ -77,7 +75,6 @@ class HdlmakeKernel(object):
         if not os.path.exists(top_mod.fetchto):
             p.echo("There are no modules fetched. Are you sure it's correct?")
 
-        make_writer = MakefileWriter()
         tcl = self.__search_tcl_file()
         if tcl == None:
             self.__generate_tcl()
@@ -88,7 +85,7 @@ class HdlmakeKernel(object):
         files.add(sff.new(tcl))
         files.add(sff.new(top_mod.syn_project))
 
-        make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name, 
+        self.make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name, 
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server)
 
     def generate_ise_project(self):
@@ -242,10 +239,8 @@ class HdlmakeKernel(object):
         f.close()
 
     def generate_fetch_makefile(self):
-        from makefile_writer import MakefileWriter
         pool = self.modules_pool
         if not pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
-        make_writer = MakefileWriter()
-        make_writer.generate_fetch_makefile(pool)
+        self.make_writer.generate_fetch_makefile(pool)
