@@ -6,9 +6,21 @@ import msg as p
 class File(object):
         def __init__(self, path):
                 self.path = path
-                self.name = os.path.basename(self.path)
-                self.purename = os.path.splitext(self.name)[0]
-                self.dirname = os.path.dirname(self.path)
+        @property
+        def name(self):
+            return os.path.basename(self.path)
+        @property
+        def purename(self):
+            return os.path.splitext(self.name)[0]
+        @property
+        def dirname(self):
+            return os.path.dirname(self.path)
+        
+        def rel_path(self, dir=None):
+            import path
+            if dir == None:
+                dir = os.getcwd()
+            return path.relpath(self.path, dir)
 
         def __str__(self):
                 return self.path

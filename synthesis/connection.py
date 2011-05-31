@@ -6,12 +6,12 @@ import msg as p
 
 class Connection:
     def __init__(self, ssh_user, ssh_server):
-        if ssh_user == None:
-            ssh_user = os.getenv("HDLMAKE_USER")
+        #if ssh_user == None:
+        #    ssh_user = os.getenv("HDLMAKE_USER")
         self.ssh_user = ssh_user
 
-        if ssh_server == None:
-            ssh_server = os.getenv("HDLMAKE_SERVER")
+        #if ssh_server == None:
+        #    ssh_server = os.getenv("HDLMAKE_SERVER")
         self.ssh_server = ssh_server
 
     def __str__(self):

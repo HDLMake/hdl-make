@@ -22,21 +22,37 @@ class MakefileWriter(object):
         if files == None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
-        credentials_tmpl = "USER = {0}\nSERVER = {1}\nR_NAME= {2}\n"
-        files_tmpl = "FILES = {0}"
+        user_tmpl = "USER := {0}\n"
+        server_tmpl = "SERVER := {0}\n"
+        remote_name_tmpl = "R_NAME := {0}\n"
+        files_tmpl = "FILES := {0}"
 
         file = self._file
-        file.write(credentials_tmpl.format(user, server, name))
+        if  user == None:
+            user_tmpl = user_tmpl.format("$(HDLMAKE_USER)")
+        else:
+            user_tmpl = user_tmpl.format(user)
+            
+        if server == None:
+            server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)")
+        else:
+            print dupa
+            server_tmpl = server_tmpl.format(server)
+            
+        remote_name_tmpl = remote_name_tmpl.format(name)
+        file.write(user_tmpl)
+        file.write(server_tmpl)
+        file.write(remote_name_tmpl)
         file.write("CWD=$(shell pwd)\n")
         file.write("\n\n")
-        file.write(files_tmpl.format(' \\\n'.join([str(s) for s in files])))
+        file.write(files_tmpl.format(' \\\n'.join([s.rel_path() for s in files])))
         file.write("\n\n")
         file.write("remote: send do_synthesis send_back\n")
         file.write("send_back: do_synthesis\n")
         file.write("do_synthesis: send\n\n")
 
         mkdir_cmd = "ssh $(USER)@$(SERVER) 'mkdir -p $(R_NAME)'"
-        rsync_cmd = "rsync -Rav $(FILES) $(USER)@$(SERVER):$(R_NAME)"
+        rsync_cmd = "rsync -Rav $(foreach file, $(FILES), $(shell readlink -f $(file))) $(USER)@$(SERVER):$(R_NAME)"
         send_cmd = "send:\n\t\t{0}\n\t\t{1}".format(mkdir_cmd, rsync_cmd)
         file.write(send_cmd)
         file.write("\n\n")
@@ -199,7 +215,7 @@ clean:
         file.write("VERILOG_SRC := ")
 
         for vl in fileset.filter(VerilogFile):
-            file.write(rp(vl.path) + " \\\n")
+            file.write(vl.rel_path() + " \\\n")
         file.write("\n")
 
         file.write("VERILOG_OBJ := ")
@@ -236,8 +252,8 @@ clean:
 
         #rules for all _primary.dat files for sv
         for vl in fileset.filter(VerilogFile):
-            file.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': '+rp(vl.path)+"\n")
-            file.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+ "+os.path.dirname(vl.path)+" $<")
+            file.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': '+vl.rel_path()+"\n")
+            file.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" $<")
             file.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
             file.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename)+'\n')
         file.write("\n")
@@ -249,8 +265,8 @@ clean:
             basename = vhdl.name
             purename = vhdl.purename 
             #each .dat depends on corresponding .vhd file
-            file.write(os.path.join(lib, purename, "."+purename) + ": "+rp(vhdl.path)+'\n')
-            file.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, rp(vhdl.path),
+            file.write(os.path.join(lib, purename, "."+purename) + ": "+vhdl.rel_path()+'\n')
+            file.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, vhdl.rel_path(),
             "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename), '\n']))
             file.write('\n')
             if len(vhdl.dep_depends_on) != 0:

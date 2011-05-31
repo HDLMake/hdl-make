@@ -67,8 +67,7 @@ class HdlmakeKernel(object):
     def generate_remote_synthesis_makefile(self):
         from srcfile import SourceFileFactory, VerilogFile
         if self.connection.ssh_user == None or self.connection.ssh_server == None:
-            p.rawprint("Connection data is not given. Cannot do a makefile for the remote synthesis")
-            quit()
+            p.rawprint("Connection data is not given. Accessing environmental variables in the makefile")
         p.rawprint("Generating makefile for remote synthesis...")
 
         top_mod = self.modules_pool.get_top_module()
@@ -155,8 +154,9 @@ class HdlmakeKernel(object):
         prj.add_property(ISEProjectProperty("Speed Grade", top_mod.syn_grade))
         prj.add_property(ISEProjectProperty("Package", top_mod.syn_package))
         #    prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
-        prj.add_property(ISEProjectProperty("Enable Multi-Threading", "4"))
-        prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
+        prj.add_property(ISEProjectProperty("Enable Multi-Threading", "2"))
+        prj.add_property(ISEProjectProperty("Enable Multi-Threading par", "4"))
+        prj.add_property(ISEProjectProperty("Impementation Top", "Architecture|"+top_mod.syn_top))
         prj.add_property(ISEProjectProperty("Manual Implementation Compile Order", "true"))
         prj.add_property(ISEProjectProperty("Auto Implementation Top", "false"))
         prj.add_property(ISEProjectProperty("Implementation Top Instance Path", "/"+top_mod.syn_top))
