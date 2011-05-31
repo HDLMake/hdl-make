@@ -6,8 +6,8 @@ from configparser import ConfigParser
 
 class Manifest:
     def __init__(self, path = None, url = None):
-        if not isinstance(path, basestring):
-            raise ValueError("Path must be an instance of basestring")
+        if not isinstance(path, str):
+            raise ValueError("Path must be an instance of str")
         if path == None and url == None:
             raise ValueError("When creating a manifest a path or an URL must be given")
         if path != None and url == None:

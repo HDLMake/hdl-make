@@ -67,8 +67,7 @@ class HdlmakeKernel(object):
     def generate_remote_synthesis_makefile(self):
         from srcfile import SourceFileFactory, VerilogFile
         if self.connection.ssh_user == None or self.connection.ssh_server == None:
-            p.rawprint("Connection data is not given. Cannot do a makefile for the remote synthesis")
-            quit()
+            p.rawprint("Connection data is not given. Accessing environmental variables in the makefile")
         p.rawprint("Generating makefile for remote synthesis...")
 
         top_mod = self.modules_pool.get_top_module()

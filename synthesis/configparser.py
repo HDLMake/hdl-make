@@ -122,7 +122,7 @@ class ConfigParser(object):
 
     def __init__(self, description = None):
         if description != None:
-            if not isinstance(description, basestring):
+            if not isinstance(description, str):
                 raise ValueError("Description should be a string!")
         self.description = description
         self.options = []
@@ -171,7 +171,7 @@ class ConfigParser(object):
         self.options.append(None)
 
     def add_allowed_key(self, name, key):
-        if not isinstance(key, basestring):
+        if not isinstance(key, str):
             raise ValueError("Allowed key must be a string")
         try:
             self[name].allowed_keys.append(key)
