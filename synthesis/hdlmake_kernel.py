@@ -208,9 +208,6 @@ class HdlmakeKernel(object):
         os.chdir("..")
         ssh.transfer_files_back(what=dest_folder+cwd, where=".")
         os.chdir(cur_dir)
-     #   if global_mod.options.del == True:
-     #       p.echo("Deleting synthesis folder")
-     #       ssh.system('rm -rf ' + dest_folder)
 
     def __search_tcl_file(self, directory = None):
         import re

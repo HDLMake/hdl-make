@@ -123,6 +123,9 @@ class Module(object):
     def __str__(self):
         return self.url
 
+    def submodules(self):
+        return self.local + self.git + self.svn
+
     def basename(self):
         import path
         return path.url_basename(self.url)

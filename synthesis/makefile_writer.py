@@ -152,9 +152,9 @@ mrproper:
                 file.write("cd " + rp(module.fetchto) + '; ')
                 c = "svn checkout {0} {1};"
                 if module.revision:
-                    c.format(module.url, module.revision)
+                    c=c.format(module.url, module.revision)
                 else:
-                    c.format(module.url, "")
+                    c=c.format(module.url, "")
                 file.write(c)
                 file.write("cd $(PWD) \n\n")
 

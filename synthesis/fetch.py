@@ -270,6 +270,9 @@ class ModulePool(list):
             raise RuntimeError("Expecting a Module instance")
         if self.__contains(new_module):
             return
+        for mod in new_module.submodules():
+            self.add(mod)
+
         if new_module.isfetched:
             self.modules.append(new_module)
         return True
