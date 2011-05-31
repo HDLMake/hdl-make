@@ -11,7 +11,7 @@ class File(object):
             return os.path.basename(self.path)
         @property
         def purename(self):
-            return os.pat.splitext(self.name)[0]
+            return os.path.splitext(self.name)[0]
         @property
         def dirname(self):
             return os.path.dirname(self.path)

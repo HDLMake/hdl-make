@@ -52,7 +52,7 @@ class MakefileWriter(object):
         file.write("do_synthesis: send\n\n")
 
         mkdir_cmd = "ssh $(USER)@$(SERVER) 'mkdir -p $(R_NAME)'"
-        rsync_cmd = "rsync -Rav $(FILES) $(USER)@$(SERVER):$(R_NAME)"
+        rsync_cmd = "rsync -Rav $(foreach file, $(FILES), $(shell readlink -f $(file))) $(USER)@$(SERVER):$(R_NAME)"
         send_cmd = "send:\n\t\t{0}\n\t\t{1}".format(mkdir_cmd, rsync_cmd)
         file.write(send_cmd)
         file.write("\n\n")
@@ -253,7 +253,7 @@ clean:
         #rules for all _primary.dat files for sv
         for vl in fileset.filter(VerilogFile):
             file.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': '+vl.rel_path()+"\n")
-            file.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+ "+os.path.dirname(vl.path)+" $<")
+            file.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" $<")
             file.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
             file.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename)+'\n')
         file.write("\n")
