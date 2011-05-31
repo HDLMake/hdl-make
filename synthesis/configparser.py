@@ -136,7 +136,7 @@ class ConfigParser(object):
 
     def __getitem__(self, name):
         if name in self.__names():
-            return filter(lambda x: x != None and x.name == name, self.options)[0]
+            return [x for x in self.options if x!= None and x.name == name][0]
         else:
             raise RuntimeException("No such option as " + str(name))
 

@@ -36,7 +36,6 @@ class MakefileWriter(object):
         if server == None:
             server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)")
         else:
-            print dupa
             server_tmpl = server_tmpl.format(server)
             
         remote_name_tmpl = remote_name_tmpl.format(name)
