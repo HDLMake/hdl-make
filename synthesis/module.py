@@ -103,6 +103,7 @@ class Module(object):
 
         self.options["isparsed"] = False
         basename = path_mod.url_basename(self.options["url"])
+        
         if source == "local":
             self.options["isfetched"] = True
         elif self.options["path"] != None:

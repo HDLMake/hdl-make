@@ -27,6 +27,7 @@ class ModuleFetcher:
             p.vprint("Encountered root manifest: " + str(root_module))
             new_modules.append(module.root_module)
 
+        new_modules.extend(module.local)
         new_modules.extend(module.svn)
         new_modules.extend(module.git)
         return new_modules 
@@ -38,7 +39,7 @@ class ModuleFetcher:
 
         cur_dir = os.getcwd()
         os.chdir(fetchto)
-        url, rev = __parse_repo_url(module.url)
+        url, rev = self.__parse_repo_url(module.url)
 
         basename = path.url_basename(url)
 
@@ -145,6 +146,7 @@ class ModulePool(list):
                 p.vprint("Encountered root manifest: " + str(root_module))
                 new_modules.append(module.root_module)
 
+            new_modules.extend(module.local)
             new_modules.extend(module.svn)
             new_modules.extend(module.git)
             return new_modules 
@@ -259,8 +261,8 @@ class ModulePool(list):
     def __contains(self, module):
         for mod in self.modules:
             if mod.url == module.url:
-                return False
-        return True
+                return True
+        return False
 
     def add(self, new_module):
         from module import Module
@@ -268,8 +270,8 @@ class ModulePool(list):
             raise RuntimeError("Expecting a Module instance")
         if self.__contains(new_module):
             return
-        for m in new_module.isfetched:
-            self.add(m)
+        if new_module.isfetched:
+            self.modules.append(new_module)
         return True
 
     def fetch_all(self):
@@ -282,7 +284,7 @@ class ModulePool(list):
             new_modules = fetcher.fetch_single_module(cur_mod)
 
             for mod in new_modules:
-                if self.__contains(mod):
+                if not self.__contains(mod):
                     fetch_queue.append(mod)
                 else:
                     pass
