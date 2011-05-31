@@ -211,7 +211,7 @@ class SourceFileSet(object):
                 return str([str(f) for f in self.files])
 
         def add(self, files):
-                if isinstance(files, basestring):
+                if isinstance(files, str):
                         raise RuntimeError("Expected object, not a string")
                 elif files == None:
                         p.vprint("Got None as a file.\n Ommiting")
