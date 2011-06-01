@@ -21,7 +21,8 @@ class HdlmakeKernel(object):
         if tm.action == "simulation":
             self.generate_modelsim_makefile()
         elif tm.action == "synthesis":
-            self.fetch()
+            if not self.modules_pool.is_everything_fetched():
+                self.fetch()
             self.generate_ise_project()
             self.generate_ise_makefile()
             self.generate_remote_synthesis_makefile()

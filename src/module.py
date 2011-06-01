@@ -271,7 +271,7 @@ class Module(object):
     def is_fetched_recursively(self):
         if not self.isfetched:
             return False
-        for mod in self.local + self.svn + self.git:
+        for mod in self.submodules():
             if mod.is_fetched_recursively() == False:
                 return False
         return True
