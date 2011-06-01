@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import fileinput
-import sys
-import path
 import time
 import os
 from connection import Connection
@@ -21,9 +18,6 @@ def main():
 
     parser.add_option("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")
-
-#    parser.add_option("-k", "--make", dest="make", action="store_true",
-#    default=None, help="generate an universal Makefile")
 
     parser.add_option("--make-sim", dest="make_sim", action="store_true",
     default=None, help="generate a simulation Makefile")
@@ -88,7 +82,6 @@ def main():
     global_mod.modules_pool = ModulePool(global_mod.top_module)
     global_mod.ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
 
-    tm = global_mod.top_module
     pool = global_mod.modules_pool
     ssh = global_mod.ssh
     from hdlmake_kernel import HdlmakeKernel

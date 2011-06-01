@@ -2,12 +2,9 @@
 import path as path_mod
 import msg as p
 import os
-import configparser
 import global_mod
 from helper_classes import Manifest, ManifestParser
-from srcfile import *
-
-from fetch import ModuleFetcher, ModulePool 
+from srcfile import SourceFileSet, SourceFileFactory 
 
 class ManifestOptions(object):
     def __init__(self):
@@ -63,7 +60,7 @@ class Module(object):
             self.options["files"] = files
 
         if manifest != None and fetchto == None:
-            options["fetchto"] = os.path.dirname(manifest.path)
+            self.options["fetchto"] = os.path.dirname(manifest.path)
 
         if manifest != None and url == None and path == None:
             self.options["url"] = os.path.dirname(manifest.path)
@@ -189,6 +186,7 @@ class Module(object):
 
 
         #derivate fetchto from the root_module
+        import sys
         if opt_map["root_module"] != None:
             self.fetchto = self.root_module.fetchto
         else:

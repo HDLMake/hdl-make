@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import path as path_mod
-import msg as p
 import os
 from configparser import ConfigParser
 
@@ -59,14 +58,15 @@ class ManifestParser(ConfigParser):
         self.add_option('files', default=[], help="List of files from the current module", type='')
         self.add_type('files', type=[])
         self.add_option('root', default=None, type='', help="Root catalog for local modules")
+
     def add_manifest(self, manifest):
         return self.add_config_file(manifest.path)
 
     def parse(self):
         return ConfigParser.parse(self)
 
-    def print_help():
-        self.parser.print_help()
+    def print_help(self):
+        self.ConfigParser.print_help()
 
     def search_for_package(self):
         """

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import xml.dom.minidom as xml
+import msg as p
 
 xmlimpl = xml.getDOMImplementation()
 
@@ -51,11 +52,11 @@ class ISEProject:
                 self.props.append(prop)
 
         def __parse_props(self):
-                for p in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
+                for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
                         prop = ISEProjectProperty(
-                                p.getAttribute("xil_pn:name"),
-                                p.getAttribute("xil_pn:value"),
-                                p.getAttribute("xil_pn:valueState") == "default"
+                                xmlp.getAttribute("xil_pn:name"),
+                                xmlp.getAttribute("xil_pn:value"),
+                                xmlp.getAttribute("xil_pn:valueState") == "default"
                                 )
 
                         self.props.append(prop)
@@ -70,6 +71,7 @@ class ISEProject:
                 f = open(filename)
                 self.xml_doc = xml.parse(f)
                 self.xml_project =  self.xml_doc.getElementsByTagName("project")[0];
+                import sys
                 try:
                     self.__parse_props()
                 except xml.parsers.expat.ExpatError:

@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import os
-import msg as p
 
 def url_basename(url):
     """
@@ -78,6 +77,7 @@ def search_for_manifest(search_path):
     """
     Look for manifest in the given folder
     """
+    import msg as p 
     p.vprint("Looking for manifest in " + search_path)
     for filename in os.listdir(search_path):
         if filename == "manifest.py" and not os.path.isdir(filename):

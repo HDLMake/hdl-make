@@ -1,22 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import re
-import fileinput
-import sys
-import path
-import path
-import time
 import os
-from connection import Connection
-import random
-import string
-import global_mod
 import msg as p
-import optparse
-from module import Module
-from helper_classes import Manifest, ManifestParser
-from fetch import ModulePool
 from makefile_writer import MakefileWriter
 
 class HdlmakeKernel(object):
@@ -25,8 +11,12 @@ class HdlmakeKernel(object):
         self.connection = connection
         self.make_writer = MakefileWriter("Makefile")
 
+    @property
+    def top_module(self):
+        return self.modules_pool.get_top_module()
+
     def run(self):
-        tm = self.modules_pool.get_top_module()
+        tm = self.top_module
 
         if tm.action == "simulation":
             self.generate_modelsim_makefile()
@@ -65,7 +55,7 @@ class HdlmakeKernel(object):
         self.make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module())
 
     def generate_remote_synthesis_makefile(self):
-        from srcfile import SourceFileFactory, VerilogFile
+        from srcfile import SourceFileFactory
         if self.connection.ssh_user == None or self.connection.ssh_server == None:
             p.rawprint("Connection data is not given. Accessing environmental variables in the makefile")
         p.rawprint("Generating makefile for remote synthesis...")
@@ -88,8 +78,6 @@ class HdlmakeKernel(object):
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server)
 
     def generate_ise_project(self):
-        from flow import ISEProject, ISEProjectProperty
-        top_mod = self.modules_pool.get_top_module()
         p.rawprint("Generating/updating ISE project...")
         if self.__is_xilinx_screwed():
             p.rawprint("Xilinx environment variable is unset or is wrong.\nCannot generate ise project")
@@ -98,7 +86,7 @@ class HdlmakeKernel(object):
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
         ise = self.__check_ise_version()
-        if os.path.exists(top_mod.syn_project):
+        if os.path.exists(self.top_module.syn_project):
             self.__update_existing_ise_project(ise=ise)
         else:
             self.__create_new_ise_project(ise=ise)
@@ -123,7 +111,7 @@ class HdlmakeKernel(object):
 
     def __update_existing_ise_project(self, ise):
         from dep_solver import DependencySolver
-        from flow import ISEProject, ISEProjectProperty
+        from flow import ISEProject
 
         top_mod = self.modules_pool.get_top_module()
         fileset = top_mod.build_global_file_list()
@@ -172,7 +160,7 @@ class HdlmakeKernel(object):
             p.echo("Target " + tm.target + " is not synthesizable")
 
     def run_remote_synthesis(self):
-        from srcfile import SourceFileFactory, TCLFile
+        from srcfile import SourceFileFactory
         ssh = self.connection
         tm = self.modules_pool.get_top_module()
         cwd = os.getcwd()

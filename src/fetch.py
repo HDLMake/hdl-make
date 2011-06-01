@@ -93,7 +93,7 @@ class ModuleFetcher:
 
         if rev and rval:
             os.chdir(basename)
-            cmd = "git checkout " + revision
+            cmd = "git checkout " + rev
             p.vprint(cmd)
             if os.system(cmd) != 0:
                 rval = False
@@ -158,7 +158,7 @@ class ModulePool(list):
 
             cur_dir = os.getcwd()
             os.chdir(fetchto)
-            url, rev = __parse_repo_url(module.url)
+            url, rev = self.__parse_repo_url(module.url)
 
             basename = path.url_basename(url)
 
@@ -212,7 +212,7 @@ class ModulePool(list):
 
             if rev and rval:
                 os.chdir(basename)
-                cmd = "git checkout " + revision
+                cmd = "git checkout " + rev
                 p.vprint(cmd)
                 if os.system(cmd) != 0:
                     rval = False

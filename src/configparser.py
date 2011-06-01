@@ -138,7 +138,7 @@ class ConfigParser(object):
         if name in self.__names():
             return [x for x in self.options if x!= None and x.name == name][0]
         else:
-            raise RuntimeException("No such option as " + str(name))
+            raise RuntimeError("No such option as " + str(name))
 
     def help(self):
         p.rawprint("Variables available in a manifest:")
@@ -154,7 +154,7 @@ class ConfigParser(object):
                     tmp_def = '""'
                 line = line.format(opt.name, str(opt.types), opt.help,', default=', tmp_def)
             except AttributeError: #no default value
-                line = line.format(key, str(opt.types), opt.help, "","")
+                line = line.format(opt.name, str(opt.types), opt.help, "","")
             p.rawprint(line)
 
     def add_option(self, name, **others):
