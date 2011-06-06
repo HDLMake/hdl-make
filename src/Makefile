@@ -5,7 +5,7 @@ srcfile.py
 
 ARCH := hdlmake
 
-../$(ARCH): $(SRC)
+../$(ARCH): check $(SRC)
 	zip $(ARCH) $(SRC)
 	echo '#!/usr/bin/python' > ../$(ARCH)
 	cat $(ARCH).zip >> ../$(ARCH)
@@ -15,5 +15,8 @@ ARCH := hdlmake
 push: ../$(ARCH) $(SRC)
 	cd .. && git push && cd src				
 
+check:
+	pyflakes $(SRC)
 clean:
-	rm ../$(ARCH)
+	(test -f ../$(ARCH) && rm ../$(ARCH)) || true
+	rm -f *~ *pyc
