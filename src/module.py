@@ -53,64 +53,67 @@ class Module(object):
         self.revision = None
 
         if files == None:
-            self.options["files"] = []
+            self.files = []
         elif not isinstance(files, list):
-            self.options["files"] = [files]
+            self.files = [files]
         else:
-            self.options["files"] = files
+            self.files = files
 
         if manifest != None and fetchto == None:
-            self.options["fetchto"] = os.path.dirname(manifest.path)
+            self.fetchto = os.path.dirname(manifest.path)
 
         if manifest != None and url == None and path == None:
-            self.options["url"] = os.path.dirname(manifest.path)
-            self.options["path"] = os.path.dirname(manifest.path)
+            self.url = os.path.dirname(manifest.path)
+            self.path = os.path.dirname(manifest.path)
         else:
             if path != None and url == None:
-                self.options["path"] = path
-                self.options["url"] = path
+                self.path = path
+                self.url = path
             else:
-                self.options["path"] = path
-                self.options["url"] = url
+                self.path = path
+                self.url = url
         if manifest == None:
             if path != None:
-                self.options["manifest"] = self.__search_for_manifest()
+                self.manifest = self.__search_for_manifest()
             else:
-                self.options["manifest"] = None
+                self.manifest = None
         else:
-            self.options["manifest"] = manifest
+            self.manifest = manifest
 
         if source == "local":
             self.path = self.url
-            self.options["isfetched"] = True
+            self.isfetched = True
         else:
-            self.options["isfetched"] = isfetched
+            self.isfetched = isfetched
 
         if source != None:
             if source not in ["local", "svn", "git"]:
                 raise ValueError("Inproper source: " + source)
-            self.options["source"] = source
+            self.source = source
         else:
-            self.options["source"] = "local"
+            self.source = "local"
 
         if fetchto != None:
-            self.options["fetchto"] = fetchto
+            self.fetchto = fetchto
         else:
-            self.options["fetchto"] = parent.fetchto
+            if parent == None:
+                self.fetchto = self.path
+            else:
+                self.fetchto = parent.fetchto
 
-        self.options["isparsed"] = False
-        basename = path_mod.url_basename(self.options["url"])
-        
+        self.isparsed = False
+        basename = path_mod.url_basename(self.url)
+
         if source == "local":
-            self.options["isfetched"] = True
-        elif self.options["path"] != None:
-            self.options["isfetched"] = True
-        elif os.path.exists(os.path.join(self.options["fetchto"], basename)):
-            self.options["isfetched"] = True
-            self.path = os.path.join(self.options["fetchto"], basename)
+            self.isfetched = True
+        elif self.path != None:
+            self.isfetched = True
+        elif os.path.exists(os.path.join(self.fetchto, basename)):
+            self.isfetched = True
+            self.path = os.path.join(self.fetchto, basename)
             self.manifest = self.__search_for_manifest()
 
-        self.options["library"] = "work"
+        self.library = "work"
         self.parse_manifest()
 
     def __getattr__(self, attr):
@@ -120,8 +123,18 @@ class Module(object):
     def __str__(self):
         return self.url
 
+    @property
+    def is_fetched_to(self):
+        return os.path.dirname(self.path)
+
     def submodules(self):
-        return self.local + self.git + self.svn
+        def __nonull(x):
+            if not x:
+                return []
+            else:
+                return x
+
+        return __nonull(self.local) + __nonull(self.git) + __nonull(self.svn)
 
     def basename(self):
         import path
@@ -184,20 +197,14 @@ class Module(object):
 
         self.target = opt_map["target"]
 
-
-        #derivate fetchto from the root_module
-        import sys
-        if opt_map["root_module"] != None:
-            self.fetchto = self.root_module.fetchto
+        if(opt_map["fetchto"] != None):
+            print ">>>" + opt_map["fetchto"]
+            fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
         else:
-            if not path_mod.is_rel_path(opt_map["fetchto"]):
-                p.echo(' '.join([os.path.basename(sys.argv[0]), "accepts relative paths only:", opt_map["fetchto"]]))
-                quit()
-
-            if(opt_map["fetchto"] != None):
-                fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
+            if self.fetchto == None:
+                fetchto = self.is_fetched_to
             else:
-                fetchto = None
+                fetchto = self.fetchto
 
         if self.ise == None:
             self.ise = "13.1"
@@ -206,7 +213,7 @@ class Module(object):
             local_mods = []
             for path in local_paths:
                 path = path_mod.rel2abs(path, self.path)
-                local_mods.append(Module(path=path, source="local", parent=self))
+                local_mods.append(Module(path=path, source="local", parent=self, fetchto=fetchto))
             self.local = local_mods
         else:
             self.local = []

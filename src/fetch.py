@@ -18,16 +18,14 @@ class ModulePool(list):
             if module.source == "svn":
                 p.vprint("[svn] Fetching to " + module.fetchto)
                 self.__fetch_from_svn(module)
-                module.manifest = module.search_for_manifest()
             if module.source == "git":
                 p.vprint("[git] Fetching to " + module.fetchto)
                 self.__fetch_from_git(module)
-                module.manifest = module.search_for_manifest()
 
             module.parse_manifest()
 
             if module.root_module != None:
-                p.vprint("Encountered root manifest: " + str(root_module))
+                p.vprint("Encountered root manifest: " + str(module.root_module))
                 new_modules.append(module.root_module)
 
             new_modules.extend(module.local)
