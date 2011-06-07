@@ -154,7 +154,6 @@ class Module(object):
        #     self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
        #     self.root_module.parse_manifest()
 
-        self.target = opt_map["target"]
 
         if(opt_map["fetchto"] != None):
             fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
@@ -219,6 +218,7 @@ class Module(object):
         for m in self.submodules():
             m.parse_manifest()
 
+        self.target = opt_map["target"]
         self.vmap_opt = opt_map["vmap_opt"]
         self.vcom_opt = opt_map["vcom_opt"]
         self.vlog_opt = opt_map["vlog_opt"]

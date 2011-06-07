@@ -104,7 +104,9 @@ class ModulePool(list):
             if update_only:
                 cmd = "git --git-dir="+basename+"/.git pull"
             else:
+                os.chdir(module.fetchto)
                 cmd = "git clone " + url
+                os.chdir(cur_dir)
 
             rval = True
 
