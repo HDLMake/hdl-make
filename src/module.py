@@ -26,34 +26,6 @@ from helper_classes import Manifest, ManifestParser
 from srcfile import SourceFileSet, SourceFileFactory 
 
 class Module(object):
-#    @property
-#    def manifest(self):
-#        return self._manifest
-#    @manifest.setter
-#    def manifest(self, value):
-#        self._manifest = value
-#        if value != None:
-#            self.url = os.path.dirname(manifest.path)
-##            self.path = os.path.dirname(manifest.path)
-#    @manifest.deleter
-#    def manifest(self):
-#        del self._manifest
-###
-#    @property
-#    def files(self):
-#        return self._files
-#    @files.setter
-#    def files(self, value):
-#        if value == None:
-##            self._files = []
-#        elif not isinstance(value, list):
-#            self._files = [value]
-#        else:
-##            self._files = value
-#    @files.deleter
-#    def files(self):
-#        del self._files
-###
     @property
     def source(self):
         return self._source
@@ -111,7 +83,6 @@ class Module(object):
             self.parse_manifest()
         else:
             self.manifest = None
-        
 
     def __str__(self):
         return self.url
@@ -155,21 +126,16 @@ class Module(object):
         return sth
 
     def parse_manifest(self):
-        if self.isparsed == True:
-            return
-        if self.isfetched == False:
+        if self.isparsed == True or self.isfetched == False:
             return
         if self.manifest == None:
             self.manifest = self.__search_for_manifest()
         if self.path == None:
             raise RuntimeError()
         manifest_parser = ManifestParser()
+
         if(self.parent != None):
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
-        else:
-            global_mod.top_module = self
-
-        manifest_parser.add_arbitrary_code("__manifest=\""+self.url+"\"")
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
 
         if self.manifest == None:
@@ -193,11 +159,9 @@ class Module(object):
 
         if(opt_map["fetchto"] != None):
             fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
+            self.fetchto = fetchto
         else:
-            if self.fetchto == None:
-                fetchto = self.is_fetched_to
-            else:
-                fetchto = self.fetchto
+            fetchto = self.fetchto
 
         if self.ise == None:
             self.ise = "13.1"
@@ -325,6 +289,6 @@ class Module(object):
 #        self.create_flat_file_list();
         modules = self.make_list_of_modules()
         for m in modules:
-            f_set.add(m.fileset);
+            f_set.add(m.files);
 
         return f_set

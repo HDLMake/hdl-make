@@ -84,16 +84,15 @@ def main():
         ManifestParser().help()
         quit()
 
-    if file != None:
-        p.vprint("LoadTopManifest");
-        m = Module(parent=None, url=os.getcwd(), source="local", fetchto=".", ) 
-        global_mod.top_module = m
-        global_mod.top_module.parse_manifest()
-        global_mod.global_target = global_mod.top_module.target
-    else:
+    p.vprint("LoadTopManifest");
+    m = Module(parent=None, url=os.getcwd(), source="local", fetchto=".", ) 
+    if m.manifest == None:
         p.echo("No manifest found. At least an empty one is needed")
         quit()
+    global_mod.top_module = m
+    global_mod.top_module.parse_manifest()
 
+    global_mod.global_target = global_mod.top_module.target
     global_mod.modules_pool = ModulePool(global_mod.top_module)
     global_mod.ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
 
