@@ -68,7 +68,6 @@ class HdlmakeKernel(object):
         tm = pool.get_top_module()
         flist = pool.build_global_file_list();
         flist_sorted = solver.solve(flist);
-
         self.make_writer.generate_modelsim_makefile(flist_sorted, tm)
 
     def generate_ise_makefile(self):

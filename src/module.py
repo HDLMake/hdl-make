@@ -80,7 +80,6 @@ class Module(object):
 
         if self.path != None:
             self.manifest = self.__search_for_manifest()
-            self.parse_manifest()
         else:
             self.manifest = None
 
@@ -170,6 +169,10 @@ class Module(object):
             local_paths = self.__make_list(opt_map["modules"]["local"])
             local_mods = []
             for path in local_paths:
+                if path_mod.is_abs_path(path):
+                    p.echo("Found an absolute path (" + path + ") in a manifest")
+                    p.echo("(" + self.path + ")")
+                    quit()
                 path = path_mod.rel2abs(path, self.path)
                 local_mods.append(Module(parent=self, url=path, source="local", fetchto=fetchto))
             self.local = local_mods
@@ -212,6 +215,9 @@ class Module(object):
             self.git = git_mods
         else:
             self.git = []
+
+        for m in self.submodules():
+            m.parse_manifest()
 
         self.vmap_opt = opt_map["vmap_opt"]
         self.vcom_opt = opt_map["vcom_opt"]

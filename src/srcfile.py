@@ -146,7 +146,7 @@ class VHDLFile(SourceFile):
                         if m != None:
                                 if (m.group(1)).lower() in std_libs:
                                         continue
-                                ret.append(m.group(1)+"::"+m.group(2))
+                                ret.append(m.group(1).lower()+"::"+m.group(2).lower())
 
                 f.close()
                 return ret
@@ -164,13 +164,13 @@ class VHDLFile(SourceFile):
                 except UnicodeDecodeError:
                         return []
 
-                package_pattern = re.compile("^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*$")
+                package_pattern = re.compile("^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*.*$")
 
                 ret = []
                 for line in text:
                         m = re.match(package_pattern, line)
                         if m != None:
-                                ret.append(self.library+"::"+m.group(1))
+                                ret.append(self.library.lower()+"::"+m.group(1).lower())
 
                 f.close()
                 return ret
@@ -193,7 +193,7 @@ class VerilogFile(SourceFile):
                 text = f.readlines()
             except UnicodeDecodeError:
                 return []
-            include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\"[ \t]*$")
+            include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\"[ \t]+.*$")
             ret = []
             for line in text:
                     m = re.match(include_pattern, line)
@@ -273,7 +273,7 @@ class SourceFileFactory:
                     path = os.path.abspath(path)
                 tmp = path.rsplit('.')
                 extension = tmp[len(tmp)-1]
-                #p.vprint("SFF> " + path);
+                p.vprint("SFF> " + path);
 
                 nf = None
                 if extension == 'vhd' or extension == 'vhdl':
