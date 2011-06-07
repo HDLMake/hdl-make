@@ -25,119 +25,93 @@ import global_mod
 from helper_classes import Manifest, ManifestParser
 from srcfile import SourceFileSet, SourceFileFactory 
 
-class ManifestOptions(object):
-    def __init__(self):
-        self.items = { "files" : None, #files from the module that should be taken
-                "fetchto" : None, #where this module should be fetched to, when fetching
-                "path" : None, #where the module is storek
-                "url" : None, #URL to the module
-                "manifest" : None, #manifest object
-                "source" : None, #where it should be fetched from
-                "isparsed" : None, #
-                "isfetched" : None,
-                "library" : None, #target library for the vhdl compilation
-                "root_module" : None, #root module object
-                "local" : None, #local modules
-                "target" : None,
-                "action" : None,
-                "git" : None, #git modules
-                "svn" : None, #svn modules
-                "ise" : None,
-                "tcl" : None,
-                "vmap_opt" : None,
-                "vlog_opt" : None,
-                "vcom_opt" : None
-                }
-    def __setitem__(self, key, value):
-        if key in self.items:
-            self.items[key] = value
-        else:
-            raise KeyError("__setitem__: there is no such key: "+str(key))
-
-    def __getitem__(self, key):
-        if key in self.items:
-            return self.items[key]
-        else:
-            raise KeyError("__getitem__:there is no such key: "+str(key))
-
 class Module(object):
-    def __init__(self, parent, url=None, files=None, manifest=None,
-    path=None, isfetched=False, source=None, fetchto=None):
-        self.options = ManifestOptions()
-        if source == "local" and path != None:
-            if not os.path.exists(path):
-                p.rawprint("Path to the local module doesn't exist:\n" + path)
-                p.rawprint("This module was instantiated in: " + str(parent))
+#    @property
+#    def manifest(self):
+#        return self._manifest
+#    @manifest.setter
+#    def manifest(self, value):
+#        self._manifest = value
+#        if value != None:
+#            self.url = os.path.dirname(manifest.path)
+##            self.path = os.path.dirname(manifest.path)
+#    @manifest.deleter
+#    def manifest(self):
+#        del self._manifest
+###
+#    @property
+#    def files(self):
+#        return self._files
+#    @files.setter
+#    def files(self, value):
+#        if value == None:
+##            self._files = []
+#        elif not isinstance(value, list):
+#            self._files = [value]
+#        else:
+##            self._files = value
+#    @files.deleter
+#    def files(self):
+#        del self._files
+###
+    @property
+    def source(self):
+        return self._source
+    @source.setter
+    def source(self, value):
+        if value not in ["svn","git","local"]:
+            raise ValueError("Inproper source: " + value)
+        self._source = value
+    @source.deleter
+    def source(self):
+        del self._source
+###
+    @property
+    def basename(self):
+        return path_mod.url_basename(self.url)
+
+    def __init__(self, parent, url, source, fetchto):
+        #self.options = ManifestOptions()
+        self.fetchto = fetchto
+        self.source = source
         self.parent = parent
-        self.revision = None
-
-        if files == None:
-            self.files = []
-        elif not isinstance(files, list):
-            self.files = [files]
-        else:
-            self.files = files
-
-        if manifest != None and fetchto == None:
-            self.fetchto = os.path.dirname(manifest.path)
-
-        if manifest != None and url == None and path == None:
-            self.url = os.path.dirname(manifest.path)
-            self.path = os.path.dirname(manifest.path)
-        else:
-            if path != None and url == None:
-                self.path = path
-                self.url = path
-            else:
-                self.path = path
-                self.url = url
-        if manifest == None:
-            if path != None:
-                self.manifest = self.__search_for_manifest()
-            else:
-                self.manifest = None
-        else:
-            self.manifest = manifest
-
-        if source == "local":
-            self.path = self.url
-            self.isfetched = True
-        else:
-            self.isfetched = isfetched
-
-        if source != None:
-            if source not in ["local", "svn", "git"]:
-                raise ValueError("Inproper source: " + source)
-            self.source = source
-        else:
-            self.source = "local"
-
-        if fetchto != None:
-            self.fetchto = fetchto
-        else:
-            if parent == None:
-                self.fetchto = self.path
-            else:
-                self.fetchto = parent.fetchto
-
         self.isparsed = False
-        basename = path_mod.url_basename(self.url)
+        self.library = "work"
+        self.local = []
+        self.git = []
+        self.svn = []
+        self.ise = []
+        self.target = None
+        self.action = None
+        self.vmap_opt = None
+        self.vlog_opt = None
+        self.vcom_opt = None
+        self.revision = None
+        self._files = None
+        self.manifest = None
+        self.url = url
+
+        if source == "local" and not os.path.exists(url):
+            p.rawprint("Path to the local module doesn't exist:\n" + url)
+            p.rawprint("This module was instantiated in: " + str(parent))
 
         if source == "local":
+            self.path = url
             self.isfetched = True
-        elif self.path != None:
-            self.isfetched = True
-        elif os.path.exists(os.path.join(self.fetchto, basename)):
-            self.isfetched = True
-            self.path = os.path.join(self.fetchto, basename)
+        else:
+            if os.path.exists(os.path.join(fetchto, self.basename())):
+                self.path = os.path.join(fetchto, self.basename())
+                self.isfetched = True
+            else:
+                self.path = None
+                self.isfetched = False
+
+        if self.path != None:
             self.manifest = self.__search_for_manifest()
-
-        self.library = "work"
-        self.parse_manifest()
-
-    def __getattr__(self, attr):
-        #options = object.__getattribute__(self, "options")
-        return self.options[attr]
+            self.parse_manifest()
+        else:
+            self.manifest = None
+        
 
     def __str__(self):
         return self.url
@@ -187,7 +161,8 @@ class Module(object):
             return
         if self.manifest == None:
             self.manifest = self.__search_for_manifest()
-
+        if self.path == None:
+            raise RuntimeError()
         manifest_parser = ManifestParser()
         if(self.parent != None):
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
@@ -209,15 +184,14 @@ class Module(object):
         except NameError as ne:
             p.echo("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
-        if opt_map["root_module"] != None:
-            root_path = path_mod.rel2abs(opt_map["root_module"], self.path)
-            self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
-            self.root_module.parse_manifest()
+       #if opt_map["root_module"] != None:
+       #     root_path = path_mod.rel2abs(opt_map["root_module"], self.path)
+       #     self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
+       #     self.root_module.parse_manifest()
 
         self.target = opt_map["target"]
 
         if(opt_map["fetchto"] != None):
-            print ">>>" + opt_map["fetchto"]
             fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
         else:
             if self.fetchto == None:
@@ -227,19 +201,20 @@ class Module(object):
 
         if self.ise == None:
             self.ise = "13.1"
+
         if "local" in opt_map["modules"]:
             local_paths = self.__make_list(opt_map["modules"]["local"])
             local_mods = []
             for path in local_paths:
                 path = path_mod.rel2abs(path, self.path)
-                local_mods.append(Module(path=path, source="local", parent=self, fetchto=fetchto))
+                local_mods.append(Module(parent=self, url=path, source="local", fetchto=fetchto))
             self.local = local_mods
         else:
             self.local = []
 
         self.library = opt_map["library"]
         if opt_map["files"] == []:
-            self.fileset = SourceFileSet()
+            self.files = SourceFileSet()
         else:
             opt_map["files"] = self.__make_list(opt_map["files"])
             paths = []
@@ -254,23 +229,23 @@ class Module(object):
                     + path +".\nExiting.")
                     quit()
 
-            self.fileset = self.__create_flat_file_list(paths=paths);
+            self.files = self.__create_flat_file_list(paths=paths);
 
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
-            svn = []
+            svn_mods = []
             for url in opt_map["modules"]["svn"]:
-                svn.append(Module(url=url, source="svn", fetchto=fetchto, parent=self))
-            self.svn = svn
+                svn_mods.append(Module(parent=self, url=url, source="svn", fetchto=fetchto))
+            self.svn = svn_mods
         else:
             self.svn = []
 
         if "git" in opt_map["modules"]:
             opt_map["modules"]["git"] = self.__make_list(opt_map["modules"]["git"])
-            git = []
+            git_mods = []
             for url in opt_map["modules"]["git"]:
-                git.append(Module(url=url, source="git", fetchto=fetchto, parent=self))
-            self.git = git
+                git_mods.append(Module(parent=self, url=url, source="git", fetchto=fetchto))
+            self.git = git_mods
         else:
             self.git = []
 
@@ -316,10 +291,10 @@ class Module(object):
                 p.vprint("No manifest in " + str(cur_module))
                 continue
             cur_module.parse_manifest()
-            if cur_module.root_module != None:
-                root_module = cur_module.root_module
-                modules_from_root = root_module.make_list_of_modules()
-                modules.extend(modules_from_root)
+#            if cur_module.root_module != None:
+#                root_module = cur_module.root_module
+#                modules_from_root = root_module.make_list_of_modules()
+#                modules.extend(modules_from_root)
 
             for module in cur_module.local:
                 modules.append(module)

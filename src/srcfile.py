@@ -273,7 +273,7 @@ class SourceFileFactory:
                     path = os.path.abspath(path)
                 tmp = path.rsplit('.')
                 extension = tmp[len(tmp)-1]
-                p.vprint("SFF> " + path);
+                #p.vprint("SFF> " + path);
 
                 nf = None
                 if extension == 'vhd' or extension == 'vhdl':

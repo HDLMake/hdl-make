@@ -27,7 +27,6 @@ import global_mod
 import msg as p
 import optparse
 from module import Module
-from helper_classes import Manifest, ManifestParser
 from fetch import ModulePool
 
 def main():
@@ -52,6 +51,9 @@ def main():
 
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
     help="fetch and/or update remote modules listed in Manifet")
+
+    parser.add_option("--clean", action="store_true", dest="clean",
+    help="remove all modules fetched for this one")
 
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
     help="create/update an ise project including list of project files")
@@ -78,20 +80,14 @@ def main():
     global_mod.options = options
 
     if options.manifest_help == True:
+        from helper_classes import ManifestParser
         ManifestParser().help()
         quit()
 
-    file = None
-    if os.path.exists("manifest.py"):
-        file = "manifest.py"
-    elif os.path.exists("Manifest.py"):
-        file = "Manifest.py"
-
     if file != None:
         p.vprint("LoadTopManifest");
-        top_manifest = Manifest(path=os.path.abspath(file))
-        global_mod.top_module = Module(manifest=top_manifest, parent=None, source="local", fetchto=".")
-
+        m = Module(parent=None, url=os.getcwd(), source="local", fetchto=".", ) 
+        global_mod.top_module = m
         global_mod.top_module.parse_manifest()
         global_mod.global_target = global_mod.top_module.target
     else:
@@ -122,6 +118,8 @@ def main():
         kernel.generate_ise_makefile()
     elif options.make_remote == True:
         kernel.generate_remote_synthesis_makefile()
+    elif options.clean == True:
+        kernel.clean_modules()
     else:
         p.echo("Running automatic flow")
         kernel.run()

@@ -63,6 +63,7 @@ class HdlmakeKernel(object):
         pool = self.modules_pool
         if not pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         tm = pool.get_top_module()
         flist = pool.build_global_file_list();
@@ -104,6 +105,7 @@ class HdlmakeKernel(object):
             quit()
         if not self.modules_pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         ise = self.__check_ise_version()
         if os.path.exists(self.top_module.syn_project):

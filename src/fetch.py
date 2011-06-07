@@ -29,8 +29,9 @@ class ModulePool(list):
             pass
 
         def fetch_single_module(self, module):
+            import global_mod
             new_modules = []
-            p.vprint("Fetching manifest: " + str(module.manifest))
+            p.vprint("Fetching module: " + str(module))
 
             if module.source == "local":
                 p.vprint("ModPath: " + module.path);
@@ -43,9 +44,9 @@ class ModulePool(list):
 
             module.parse_manifest()
 
-            if module.root_module != None:
-                p.vprint("Encountered root manifest: " + str(module.root_module))
-                new_modules.append(module.root_module)
+#            if module.root_module != None:
+#                p.vprint("Encountered root manifest: " + str(module.root_module))
+#                new_modules.append(module.root_module)
 
             new_modules.extend(module.local)
             new_modules.extend(module.svn)
@@ -95,10 +96,10 @@ class ModulePool(list):
             if basename.endswith(".git"):
                 basename = basename[:-4] #remove trailing .git
 
-            if not os.path.exists(os.path.join(fetchto, basename)):
-                update_only = False
-            else:
+            if module.isfetched:
                 update_only = True
+            else:
+                update_only = False
 
             if update_only:
                 cmd = "git --git-dir="+basename+"/.git pull"
@@ -195,7 +196,8 @@ class ModulePool(list):
 
     def fetch_all(self):
         fetcher = self.ModuleFetcher()
-        fetch_queue = [mod for mod in self.modules if not mod.isfetched]
+        from copy import copy
+        fetch_queue = copy(self.modules)
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
@@ -203,6 +205,7 @@ class ModulePool(list):
 
             for mod in new_modules:
                 if not self.__contains(mod):
+                    self.add(mod)
                     fetch_queue.append(mod)
                 else:
                     pass

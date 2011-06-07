@@ -24,7 +24,7 @@ srcfile.py
 
 ARCH := hdlmake
 
-../$(ARCH): check $(SRC)
+../$(ARCH): $(SRC)
 	zip $(ARCH) $(SRC)
 	echo '#!/usr/bin/python' > ../$(ARCH)
 	cat $(ARCH).zip >> ../$(ARCH)
