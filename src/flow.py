@@ -52,6 +52,7 @@ class ISEProject:
                 self.xml_files = []
                 self.xml_props = []
                 self.xml_libs = []
+                self.xml_ise = None
                 self.top_mod = top_mod
                 self.ise = ise
 
@@ -104,8 +105,11 @@ class ISEProject:
                     p.rawprint("Error while parsing existng file's libraries:")
                     p.rawprint(str(sys.exc_info()))
                     quit()
-
-                self.xml_files = self.__purge_dom_node(name="files", where=self.xml_doc.documentElement)
+                    
+                where = self.xml_doc.documentElement
+                self.xml_files = self.__purge_dom_node(name="files", where=where)
+                node = where.getElementsByTagName("version")[0]
+                where.removeChild(node)
                 f.close()
 
         def __purge_dom_node(self, name, where):
@@ -151,12 +155,18 @@ class ISEProject:
                         ll.setAttribute("xil_pn:name", l);
                         node.appendChild(ll);
 
+        def __output_ise(self, node):
+            i = self.xml_doc.createElement("version")
+            i.setAttribute("xil_pn:ise_version", str(self.ise))
+            i.setAttribute("xil_pn:schema_version", "2")
+            node.appendChild(i)
 
         def emit_xml(self, filename = None):
 
                 if not self.xml_doc:
                         self.create_empty_project()
-
+                else:
+                        self.__output_ise(self.xml_doc.documentElement)
                 self.__output_files(self.xml_files)
                 self.__output_props(self.xml_props)
                 self.__output_libs(self.xml_libs)
