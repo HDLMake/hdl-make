@@ -99,7 +99,7 @@ class ModulePool(list):
                 update_only = False
 
             if update_only:
-                cmd = "git --git-dir="+basename+"/.git pull"
+                cmd = "git --git-dir="+os.path.join(module.fetchto, basename)+"/.git pull"
             else:
                 print module.fetchto
                 os.chdir(module.fetchto)
@@ -114,7 +114,7 @@ class ModulePool(list):
             os.chdir(cur_dir)
 
             if rev and rval:
-                os.chdir(basename)
+                os.chdir(os.path.join(module.fetchto, basename))
                 cmd = "git checkout " + rev
                 p.vprint(cmd)
                 if os.system(cmd) != 0:
