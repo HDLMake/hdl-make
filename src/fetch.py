@@ -54,12 +54,11 @@ class ModulePool(list):
             return new_modules 
 
         def __fetch_from_svn(self, module):
-            fetchto = module.fetchto
-            if not os.path.exists(fetchto):
-                os.mkdir(fetchto)
+            if not os.path.exists(module.fetchto):
+                os.mkdir(module.fetchto)
 
             cur_dir = os.getcwd()
-            os.chdir(fetchto)
+            os.chdir(module.fetchto)
             url, rev = self.__parse_repo_url(module.url)
 
             basename = path.url_basename(url)
@@ -83,12 +82,10 @@ class ModulePool(list):
             return rval
 
         def __fetch_from_git(self, module):
-            fetchto = module.fetchto
-            if not os.path.exists(fetchto):
-                os.mkdir(fetchto)
+            if not os.path.exists(module.fetchto):
+                os.mkdir(module.fetchto)
 
             cur_dir = os.getcwd()
-            os.chdir(fetchto)
             url, rev = self.__parse_repo_url(module.url)
 
             basename = path.url_basename(url)
@@ -104,9 +101,9 @@ class ModulePool(list):
             if update_only:
                 cmd = "git --git-dir="+basename+"/.git pull"
             else:
+                print module.fetchto
                 os.chdir(module.fetchto)
                 cmd = "git clone " + url
-                os.chdir(cur_dir)
 
             rval = True
 
@@ -114,17 +111,19 @@ class ModulePool(list):
             if os.system(cmd) != 0:
                 rval = False
 
+            os.chdir(cur_dir)
+
             if rev and rval:
                 os.chdir(basename)
                 cmd = "git checkout " + rev
                 p.vprint(cmd)
                 if os.system(cmd) != 0:
                     rval = False
+                os.chdir(cur_dir)
 
-            os.chdir(cur_dir)
             module.isfetched = True
             module.revision = rev
-            module.path = os.path.join(fetchto, basename)
+            module.path = os.path.join(module.fetchto, basename)
             return rval
 
         def __parse_repo_url(self, url) :
