@@ -61,7 +61,7 @@ class ModulePool(list):
             os.chdir(module.fetchto)
             url, rev = self.__parse_repo_url(module.url)
 
-            basename = path.url_basename(url)
+            basename = path.svn_basename(url)
 
             cmd = "svn checkout {0} " + basename
             if rev:
@@ -78,7 +78,7 @@ class ModulePool(list):
 
             module.isfetched = True
             module.revision = rev
-            module.path = os.path.join(fetchto, basename)
+            module.path = os.path.join(module.fetchto, basename)
             return rval
 
         def __fetch_from_git(self, module):
@@ -101,7 +101,6 @@ class ModulePool(list):
             if update_only:
                 cmd = "git --git-dir="+os.path.join(module.fetchto, basename)+"/.git pull"
             else:
-                print module.fetchto
                 os.chdir(module.fetchto)
                 cmd = "git clone " + url
 
@@ -141,26 +140,15 @@ class ModulePool(list):
             else:
                 ret = (url_match.group(1), None)
             return ret
-    #end class ModuleFetcher
-    def __parse_repo_url(self, url) :
-        """
-        Check if link to a repo seems to be correct. Filter revision number
-        """
-        import re
-        url_pat = re.compile("[ \t]*([^ \t]+)[ \t]*(@[ \t]*(.+))?[ \t]*")
-        url_match = re.match(url_pat, url)
 
-        if url_match == None:
-            p.echo("Not a correct repo url: {0}. Skipping".format(url))
-        if url_match.group(3) != None: #there is a revision given 
-            ret = (url_match.group(1), url_match.group(3))
-        else:
-            ret = (url_match.group(1), None)
-        return ret
+    #end class ModuleFetcher
     def __init__(self, top_module):
         self.top_module = top_module
         self.modules = []
         self.add(new_module=top_module)
+
+    def get_fetchable_modules(self):
+        return [m for m in self.modules if m.source != "local"]
 
     def __iter__(self):
         return self.modules.__iter__()
@@ -241,7 +229,11 @@ class ModulePool(list):
         return self.top_module
 
     def is_everything_fetched(self):
-        for mod in self.modules:
-            if mod.is_fetched_recursively() == False:
-                return False
-        return True
+        #for mod in self.modules:
+        #    if mod.is_fetched_recursively() == False:
+        #        return False
+        #return True
+        if len([m for m in self.modules if not m.isfetched]) == 0:
+            return True
+        else:
+            return False

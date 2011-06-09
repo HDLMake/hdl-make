@@ -45,6 +45,7 @@ class HdlmakeKernel(object):
             self.generate_ise_project()
             self.generate_ise_makefile()
             self.generate_remote_synthesis_makefile()
+            self.generate_fetch_makefile()
         else:
             p.rawprint("Unrecognized action: " + str(tm.action))
             p.rawprint("Allowed actions are:\n\tsimulation\n\tsynthesis")
@@ -244,6 +245,11 @@ class HdlmakeKernel(object):
 
     def generate_fetch_makefile(self):
         pool = self.modules_pool
+
+        if pool.get_fetchable_modules() == []:
+            p.rawprint("There are no fetchable modules. No fetch makefile is produced")
+            quit()
+
         if not pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()

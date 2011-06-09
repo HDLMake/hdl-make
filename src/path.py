@@ -33,6 +33,14 @@ def url_basename(url):
         ret = os.path.basename(url)
     return ret
 
+def svn_basename(url):
+    words = url.split('//')
+    try:
+        words = words[1].split('/')
+        return words[1]
+    except:
+        return None
+
 def pathsplit(p, rest=[]):
     (h,t) = os.path.split(p)
     if len(h) < 1: return [t]+rest

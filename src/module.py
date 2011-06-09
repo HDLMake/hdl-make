@@ -101,7 +101,10 @@ class Module(object):
 
     def basename(self):
         import path
-        return path.url_basename(self.url)
+        if self.source == "svn":
+            return path.svn_basename(self.url)
+        else:
+            return path.url_basename(self.url)
 
     def __search_for_manifest(self):
         """
@@ -136,6 +139,8 @@ class Module(object):
         if(self.parent != None):
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
             manifest_parser.add_arbitrary_code("action=\""+str(global_mod.top_module.action)+"\"")
+
+        manifest_parser.add_arbitrary_code("__manifest=\""+self.url+"\"")
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
 
         if self.manifest == None:
@@ -216,17 +221,16 @@ class Module(object):
         else:
             self.git = []
 
+        self.target = opt_map["target"]
+        self.action = opt_map["action"]
+
         for m in self.submodules():
             m.parse_manifest()
 
-        self.target = opt_map["target"]
         self.vmap_opt = opt_map["vmap_opt"]
         self.vcom_opt = opt_map["vcom_opt"]
         self.vlog_opt = opt_map["vlog_opt"]
         self.vsim_opt = opt_map["vsim_opt"]
-
-        self.target = opt_map["target"]
-        self.action = opt_map["action"]
 
         if opt_map["syn_name"] == None and opt_map["syn_project"] != None:
             self.syn_name = opt_map["syn_project"][:-5] #cut out .xise from the end
