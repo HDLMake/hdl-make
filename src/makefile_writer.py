@@ -196,21 +196,21 @@ mrproper:
         self.initialize()
         self.write("#target for fetching all modules stored in repositories\n")
         self.write("fetch: ")
-        self.write(' \\\n'.join(["__"+m.basename()+"_fetch" for m in modules_pool if m.source in ["svn","git"]]))
+        self.write(' \\\n'.join(["__"+m.basename+"_fetch" for m in modules_pool if m.source in ["svn","git"]]))
         self.write("\n\n")
 
         for module in modules_pool:
-            basename = module.basename()
+            basename = module.basename
             if module.source == "svn":
                 self.write("__"+basename+"_fetch:\n")
                 self.write("\t\t")
                 self.write("PWD=$(shell pwd); ")
                 self.write("cd " + rp(module.fetchto) + '; ')
-                c = "svn checkout {0} {1};"
+                c = "svn checkout {0}{1} {2};"
                 if module.revision:
-                    c=c.format(module.url, module.revision)
+                    c=c.format(module.url, "@"+module.revision, module.basename)
                 else:
-                    c=c.format(module.url, "")
+                    c=c.format(module.url, "", module.basename)
                 self.write(c)
                 self.write("cd $(PWD) \n\n")
 

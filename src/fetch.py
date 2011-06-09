@@ -200,13 +200,17 @@ class ModulePool(list):
                     pass
 
     def build_global_file_list(self):
-        return self.top_module.build_global_file_list()
+        from srcfile import SourceFileSet
+        ret = SourceFileSet()
+        for m in self.modules:
+            ret.add(m.files)
+        return ret
 
     def build_very_global_file_list(self):
         from srcfile import SourceFileFactory, VerilogFile
         sff = SourceFileFactory()
 
-        files = self.top_module.build_global_file_list()
+        files = self.build_global_file_list()
         extra_verilog_files = set() 
         queue = files.filter(VerilogFile)
 

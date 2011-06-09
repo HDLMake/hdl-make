@@ -40,7 +40,11 @@ class Module(object):
 ###
     @property
     def basename(self):
-        return path_mod.url_basename(self.url)
+        import path
+        if self.source == "svn":
+            return path.svn_basename(self.url)
+        else:
+            return path.url_basename(self.url)
 
     def __init__(self, parent, url, source, fetchto):
         #self.options = ManifestOptions()
@@ -71,8 +75,8 @@ class Module(object):
             self.path = url
             self.isfetched = True
         else:
-            if os.path.exists(os.path.join(fetchto, self.basename())):
-                self.path = os.path.join(fetchto, self.basename())
+            if os.path.exists(os.path.join(fetchto, self.basename)):
+                self.path = os.path.join(fetchto, self.basename)
                 self.isfetched = True
             else:
                 self.path = None
@@ -98,13 +102,6 @@ class Module(object):
                 return x
 
         return __nonull(self.local) + __nonull(self.git) + __nonull(self.svn)
-
-    def basename(self):
-        import path
-        if self.source == "svn":
-            return path.svn_basename(self.url)
-        else:
-            return path.url_basename(self.url)
 
     def __search_for_manifest(self):
         """

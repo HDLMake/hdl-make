@@ -135,7 +135,7 @@ class HdlmakeKernel(object):
         from dep_solver import DependencySolver
         from flow import ISEProject
         top_mod = self.modules_pool.get_top_module()
-        fileset = top_mod.build_global_file_list()
+        fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
         fileset = solver.solve(fileset)
 
@@ -149,7 +149,7 @@ class HdlmakeKernel(object):
         from dep_solver import DependencySolver
         from flow import ISEProject, ISEProjectProperty
         top_mod = self.modules_pool.get_top_module()
-        fileset = top_mod.build_global_file_list()
+        fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
         fileset = solver.solve(fileset)
 
