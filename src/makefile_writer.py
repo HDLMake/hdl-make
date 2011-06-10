@@ -67,13 +67,13 @@ class MakefileWriter(object):
         files_tmpl = "FILES := {0}"
 
         if  user == None:
-            user_tmpl = user_tmpl.format("$(HDLMAKE_USER)")
-            test_tmpl = """__test:
-ifeq (x$(HDLMAKE_USER), x)
-\t@echo "Missing environmental variable HDLMAKE_USER. Set it with a meaningful value" && false
+            user_tmpl = user_tmpl.format("$(HDLMAKE_USER) #take the value from the environment")
+            test_tmpl = """__test_for_remote_synthesis_variables:
+ifeq (x$(USER), x)
+\t@echo "Remote synthesis user is not set. You can set it by editing variable USER in the makefile." && false
 endif
-ifeq (x$(HDLMAKE_SERVER), x)
-\t@echo "Missing environmental variable HDLMAKE_SERVER. Set it with a meaningful value" && false
+ifeq (x$(SERVER), x)
+\t@echo "Remote synthesis server is not set. You can set it by editing variable SERVER in the makefile." && false
 endif
 """
         else:
@@ -81,25 +81,26 @@ endif
             test_tmpl = "__test:\n"
             
         if server == None:
-            server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)")
+            server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER) #take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
             
         remote_name_tmpl = remote_name_tmpl.format(name)
         self.initialize()
-        self.writeln(test_tmpl)
         self.writeln(user_tmpl)
         self.writeln(server_tmpl)
         self.writeln(remote_name_tmpl)
+        self.writeln()
+        self.writeln(test_tmpl)
         self.writeln("CWD := $(shell pwd)")
         self.writeln("")
         self.writeln(files_tmpl.format(' \\\n'.join([s.rel_path() for s in files])))
         self.writeln("")
         self.writeln("#target for running simulation in the remote location")
-        self.writeln("remote: __test __send __do_synthesis __send_back")
+        self.writeln("remote: __test_for_remote_synthesis_variables __send __do_synthesis __send_back")
         self.writeln("__send_back: __do_synthesis")
         self.writeln("__do_synthesis: __send")
-        self.writeln("__send: __test")
+        self.writeln("__send: __test_for_remote_synthesis_variables")
         self.writeln("")
 
         mkdir_cmd = "ssh $(USER)@$(SERVER) 'mkdir -p $(R_NAME)'"
