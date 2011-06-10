@@ -193,7 +193,7 @@ class VerilogFile(SourceFile):
                 text = f.readlines()
             except UnicodeDecodeError:
                 return []
-            include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\"[ \t]+.*$")
+            include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\".*$")
             ret = []
             for line in text:
                     m = re.match(include_pattern, line)

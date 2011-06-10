@@ -212,15 +212,16 @@ class ModulePool(list):
 
         files = self.build_global_file_list()
         extra_verilog_files = set() 
-        queue = files.filter(VerilogFile)
+        manifest_verilog_files = files.filter(VerilogFile)
+        queue = manifest_verilog_files
 
         while len(queue) > 0:
             vl = queue.pop()
-            extra_verilog_files.add(vl)
             for f in vl.dep_requires:
                 nvl = sff.new(os.path.join(vl.dirname, f))
-                if f not in extra_verilog_files and f not in files:
-                    queue.append(nvl)
+                queue.append(nvl)
+                if f not in extra_verilog_files and f not in manifest_verilog_files:
+                    extra_verilog_files.add(nvl)
 
         p.vprint("Extra verilog files, not listed in manifests:")
         for file in extra_verilog_files:
