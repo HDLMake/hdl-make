@@ -37,11 +37,12 @@ class HdlmakeKernel(object):
     def run(self):
         tm = self.top_module
 
+        if not self.modules_pool.is_everything_fetched():
+            self.fetch()
+
         if tm.action == "simulation":
             self.generate_modelsim_makefile()
         elif tm.action == "synthesis":
-            if not self.modules_pool.is_everything_fetched():
-                self.fetch()
             self.generate_ise_project()
             self.generate_ise_makefile()
             self.generate_remote_synthesis_makefile()
