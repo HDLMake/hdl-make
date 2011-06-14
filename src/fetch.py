@@ -142,10 +142,9 @@ class ModulePool(list):
             return ret
 
     #end class ModuleFetcher
-    def __init__(self, top_module):
-        self.top_module = top_module
+    def __init__(self):
+        self.top_module = None 
         self.modules = []
-        self.add(new_module=top_module)
 
     def get_fetchable_modules(self):
         return [m for m in self.modules if m.source != "local"]
@@ -170,6 +169,19 @@ class ModulePool(list):
             if mod.url == module.url:
                 return True
         return False
+
+    def set_top_module(self, module):
+        self.top_module = module
+        self.add(module)
+        
+    def Module(self, parent, url, source, fetchto):
+        from module import Module
+        if url in [m.url for m in self.modules]:
+            return [m for m in self.modules if m.url == url][0]
+        else:
+            new_module = Module(parent=parent, url=url, source=source, fetchto=fetchto, pool=self)
+            self.add(new_module)
+            return new_module
 
     def add(self, new_module):
         from module import Module

@@ -85,7 +85,10 @@ def main():
         quit()
 
     p.vprint("LoadTopManifest");
-    m = Module(parent=None, url=os.getcwd(), source="local", fetchto=".", ) 
+    pool = ModulePool()
+    m = Module(parent=None, url=os.getcwd(), source="local", fetchto=".", pool=pool )
+    pool.set_top_module(m)
+
     if m.manifest == None:
         p.echo("No manifest found. At least an empty one is needed")
         quit()
@@ -93,10 +96,9 @@ def main():
     global_mod.top_module.parse_manifest()
 
     global_mod.global_target = global_mod.top_module.target
-    global_mod.modules_pool = ModulePool(global_mod.top_module)
+
     global_mod.ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
 
-    pool = global_mod.modules_pool
     ssh = global_mod.ssh
     from hdlmake_kernel import HdlmakeKernel
     kernel = HdlmakeKernel(modules_pool=pool, connection=ssh)

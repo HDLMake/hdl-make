@@ -46,9 +46,10 @@ class Module(object):
         else:
             return path.url_basename(self.url)
 
-    def __init__(self, parent, url, source, fetchto):
+    def __init__(self, parent, url, source, fetchto, pool):
         #self.options = ManifestOptions()
         self.fetchto = fetchto
+        self.pool = pool
         self.source = source
         self.parent = parent
         self.isparsed = False
@@ -176,7 +177,7 @@ class Module(object):
                     p.echo("(" + self.path + ")")
                     quit()
                 path = path_mod.rel2abs(path, self.path)
-                local_mods.append(Module(parent=self, url=path, source="local", fetchto=fetchto))
+                local_mods.append(self.pool.Module(parent=self, url=path, source="local", fetchto=fetchto))
             self.local = local_mods
         else:
             self.local = []
@@ -204,7 +205,7 @@ class Module(object):
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
             svn_mods = []
             for url in opt_map["modules"]["svn"]:
-                svn_mods.append(Module(parent=self, url=url, source="svn", fetchto=fetchto))
+                svn_mods.append(self.pool.Module(parent=self, url=url, source="svn", fetchto=fetchto))
             self.svn = svn_mods
         else:
             self.svn = []
@@ -213,16 +214,13 @@ class Module(object):
             opt_map["modules"]["git"] = self.__make_list(opt_map["modules"]["git"])
             git_mods = []
             for url in opt_map["modules"]["git"]:
-                git_mods.append(Module(parent=self, url=url, source="git", fetchto=fetchto))
+                git_mods.append(self.pool.Module(parent=self, url=url, source="git", fetchto=fetchto))
             self.git = git_mods
         else:
             self.git = []
 
         self.target = opt_map["target"]
         self.action = opt_map["action"]
-
-        for m in self.submodules():
-            m.parse_manifest()
 
         self.vmap_opt = opt_map["vmap_opt"]
         self.vcom_opt = opt_map["vcom_opt"]
@@ -240,6 +238,9 @@ class Module(object):
         self.syn_top = opt_map["syn_top"];
 
         self.isparsed = True
+
+        for m in self.submodules():
+            m.parse_manifest()
 
     def is_fetched_recursively(self):
         if not self.isfetched:
