@@ -286,14 +286,14 @@ class Module(object):
 
 
     def __create_flat_file_list(self, paths):
-        fact = SourceFileFactory();
-        srcs = SourceFileSet();
+        sff = SourceFileFactory()
+        srcs = SourceFileSet()
         for p in paths:
-            srcs.add(fact.new(p, self.library))
+            srcs.add(sff.new(p, self.library))
         return srcs
 
     def build_global_file_list(self):
-        f_set = SourceFileSet();
+        f_set = SourceFileSet()
 #        self.create_flat_file_list();
         modules = self.make_list_of_modules()
         for m in modules:

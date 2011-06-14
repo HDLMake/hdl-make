@@ -276,7 +276,7 @@ class SourceFileFactory:
                 p.vprint("SFF> " + path);
 
                 nf = None
-                if extension == 'vhd' or extension == 'vhdl':
+                if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
                         nf = VHDLFile(path, library)
                 elif extension == 'v' or extension == 'sv':
                         nf = VerilogFile(path, library);
