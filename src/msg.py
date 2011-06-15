@@ -26,11 +26,14 @@ import os
 import sys
 import pprint as prettyprinter
 
+t0 = time.time()
+
 def rawprint(msg):
     print(msg)
 
 def echo(msg):
-    print(("["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-global_mod.t0) + "]: " + str(msg)))
+    global t0
+    print(("["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-t0) + "]: " + str(msg)))
 
 def vprint(msg):
     if global_mod.options.verbose == True:

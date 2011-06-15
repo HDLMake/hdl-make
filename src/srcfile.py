@@ -288,6 +288,6 @@ class SourceFileFactory:
                         nf = WBGenFile(path);
                 elif extension == 'tcl':
                         nf = TCLFile(path)
-                elif extension == 'xise':
+                elif extension == 'xise' or extension == 'ise':
                         nf = XISEFile(path)
                 return nf

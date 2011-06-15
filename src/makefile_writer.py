@@ -57,22 +57,23 @@ class MakefileWriter(object):
         self._file.close()
         self._file = open(filename, "w")
 
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
+    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise):
+        import path 
         if name == None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
-        user_tmpl = "USER := {0}"
-        server_tmpl = "SERVER := {0}"
-        remote_name_tmpl = "R_NAME := {0}"
+        user_tmpl = "USER:={0}"
+        server_tmpl = "SERVER:={0}"
+        remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
         if  user == None:
-            user_tmpl = user_tmpl.format("$(HDLMAKE_USER) #take the value from the environment")
+            user_tmpl = user_tmpl.format("$(HDLMAKE_USER)#take the value from the environment")
             test_tmpl = """__test_for_remote_synthesis_variables:
-ifeq (x$(USER), x)
+ifeq (x$(USER),x)
 \t@echo "Remote synthesis user is not set. You can set it by editing variable USER in the makefile." && false
 endif
-ifeq (x$(SERVER), x)
+ifeq (x$(SERVER),x)
 \t@echo "Remote synthesis server is not set. You can set it by editing variable SERVER in the makefile." && false
 endif
 """
@@ -81,7 +82,7 @@ endif
             test_tmpl = "__test:\n"
             
         if server == None:
-            server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER) #take the value from the environment")
+            server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)#take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
             
@@ -111,8 +112,9 @@ endif
 
         tcl = "run.tcl"
         synthesis_cmd = "__do_synthesis:\n\t\t"
-        synthesis_cmd += "ssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && xtclsh {1}'"
-        self.writeln(synthesis_cmd.format(os.path.join(name, cwd), tcl))
+        synthesis_cmd += "ssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && {0}xtclsh {1}'"
+        
+        self.writeln(synthesis_cmd.format(path.ise_path_32[str(ise)]+'/', tcl))
         self.writeln()
  
         send_back_cmd = "__send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
@@ -124,7 +126,11 @@ endif
         self.writeln(cln_cmd)
         self.writeln()
 
-    def generate_ise_makefile(self, top_mod):
+    def generate_quartus_makefile(self, top_mod):
+        pass
+
+    def generate_ise_makefile(self, top_mod, ise):
+        import path 
         mk_text = """PROJECT := """ + top_mod.syn_project + """
 ISE_CRAP := \
 *.bgn \
@@ -177,8 +183,9 @@ run.tcl
 local:
 \t\techo "project open $(PROJECT)" > run.tcl
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
-\t\txtclsh run.tcl
-
+"""
+        xtcl = "\t\t{0}xtclsh run.tcl".format(path.ise_path_32[str(ise)]+'/')
+        mk_text2 = """
 #target for cleaing all intermediate stuff
 clean:
 \t\trm -f $(ISE_CRAP)
@@ -190,7 +197,9 @@ mrproper:
 
 """
         self.initialize()
-        self.write(mk_text);
+        self.write(mk_text)
+        self.writeln(xtcl)
+        self.write(mk_text2)
 
     def generate_fetch_makefile(self, modules_pool):
         rp = os.path.relpath

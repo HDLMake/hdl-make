@@ -20,7 +20,6 @@
 #
 
 
-import time
 import os
 from connection import Connection
 import global_mod
@@ -30,8 +29,6 @@ from module import Module
 from fetch import ModulePool
 
 def main():
-    global_mod.t0 = time.time()
-
     parser = optparse.OptionParser()
 
     parser.add_option("--manifest-help", action="store_true",
@@ -97,9 +94,8 @@ def main():
 
     global_mod.global_target = global_mod.top_module.target
 
-    global_mod.ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
+    ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
 
-    ssh = global_mod.ssh
     from hdlmake_kernel import HdlmakeKernel
     kernel = HdlmakeKernel(modules_pool=pool, connection=ssh)
 
