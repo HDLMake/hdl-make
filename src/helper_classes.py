@@ -46,7 +46,7 @@ class ManifestParser(ConfigParser):
     def __init__(self):
         ConfigParser.__init__(self,description="Configuration options description")
         self.add_option('fetchto', default=None, help="Destination for fetched modules", type='')
-        self.add_option('root_module', default=None, help="Path to root module for currently parsed", type='')
+        #self.add_option('root_module', default=None, help="Path to root module for currently parsed", type='')
 
         self.add_delimiter()
         self.add_option('syn_name', default=None, help="Name of the folder at remote synthesis machine", type='')
@@ -54,7 +54,7 @@ class ManifestParser(ConfigParser):
         self.add_option('syn_grade', default=None, help = "Speed grade of target FPGA", type = '');
         self.add_option('syn_package', default=None, help = "Package variant of target FPGA", type = '');
         self.add_option('syn_top', default=None, help = "Top level module for synthesis", type = '');
-        self.add_option('syn_project', default=None, help = "Vendor flow project file", type = '');
+        self.add_option('syn_project', default=None, help = "Project file (.xise, .ise, .qpf)", type = '');
 
         self.add_delimiter()
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
@@ -76,7 +76,7 @@ class ManifestParser(ConfigParser):
         help="Destination library for module's VHDL files", type="")
         self.add_option('files', default=[], help="List of files from the current module", type='')
         self.add_type('files', type=[])
-        self.add_option('root', default=None, type='', help="Root catalog for local modules")
+        #self.add_option('root', default=None, type='', help="Root catalog for local modules")
 
     def add_manifest(self, manifest):
         return self.add_config_file(manifest.path)
