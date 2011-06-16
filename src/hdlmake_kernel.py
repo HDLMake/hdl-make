@@ -221,15 +221,13 @@ class HdlmakeKernel(object):
         os.chdir(cur_dir)
 
     def __search_tcl_file(self, directory = None):
-        import re
-        pat = re.compile("^.*?\.tcl$")
         if directory == None:
             directory = "."
         dir = os.listdir(directory)
         tcls = []
         for file in dir:
-            match = re.match(pat, file)
-            if match != None:
+            file = file.split('.')
+            if file[len(file)-1] == "tcl"
                 tcls.append(file)
         if len(tcls) == 0:
             return None
