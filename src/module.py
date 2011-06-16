@@ -290,7 +290,14 @@ class Module(object):
         sff = SourceFileFactory()
         srcs = SourceFileSet()
         for p in paths:
-            srcs.add(sff.new(p, self.library))
+            if os.path.isdir(p):
+                dir = os.listdir(p)
+                for f_dir in dir:
+                    f_dir = os.path.join(self.path, p, f_dir)
+                    if not os.path.isdir(f_dir):
+                        srcs.add(sff.new(f_dir))
+            else:
+                srcs.add(sff.new(p, self.library))
         return srcs
 
     def build_global_file_list(self):

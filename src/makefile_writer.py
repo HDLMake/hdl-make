@@ -268,7 +268,6 @@ clean:
 
         rp = os.path.relpath
         self.write("VERILOG_SRC := ")
-
         for vl in fileset.filter(VerilogFile):
             self.write(vl.rel_path() + " \\\n")
         self.write("\n")
@@ -279,6 +278,11 @@ clean:
         self.write('\n')
 
         libs = set(f.library for f in fileset.files)
+
+        self.write("VHDL_SRC := ")
+        for vhdl in fileset.filter(VHDLFile):
+            self.write(vhdl.rel_path() + " \\\n")
+        self.writeln()
 
         #list vhdl objects (_primary.dat files)
         self.write("VHDL_OBJ := ")
@@ -305,7 +309,9 @@ clean:
 
         #rules for all _primary.dat files for sv
         for vl in fileset.filter(VerilogFile):
-            self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': '+vl.rel_path()+"\n")
+            self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': ')
+            self.write(vl.rel_path() + ' ')
+            self.writeln(' '.join(vl.dep_requires))
             self.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" $<")
             self.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
             self.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename)+'\n')
