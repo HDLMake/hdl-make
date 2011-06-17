@@ -47,13 +47,44 @@ class DependencySolver:
                         return start_index
         return None
 
-    def _find_provider_file(self, files, req):
+    def _find_provider_vhdl_file(self, files, req):
         for f in files:
             if f.dep_provides:
                 if req in f.dep_provides:
-                    return f;
+                    return f
 
         return None
+
+    def _find_provider_verilog_file(self, req, v_file):
+        from srcfile import SourceFileFactory
+        import os
+        vf_dirname = v_file.dirname
+        sff = SourceFileFactory()
+        
+        for file in os.listdir(vf_dirname):
+            if file == req:
+                return sff.new(os.path.join(vf_dirname,file))
+                
+        inc_dirs = self._parse_vlog_opt(v_file.vlog_opt)
+        for dir in inc_dirs:
+            dir = os.path.join(vf_dirname, dir)
+            for file in os.listdir(dir):
+                if file == req:
+                    return sff.new(os.path.join(dir, file))
+        return None
+        
+    def _parse_vlog_opt(self, vlog_opt):
+        import re
+        ret = []
+        inc_pat = re.compile(".*?\+incdir\+([^ ]+)")
+        while True:
+            m = re.match(inc_pat, vlog_opt)
+            if m:
+                ret.append(m.group(1))
+                vlog_opt = vlog_opt[m.end():]
+            else:
+                break
+        return ret
 
     def solve(self, fileset):
         n_iter = 0
@@ -91,12 +122,12 @@ class DependencySolver:
 
         f_nondep.sort(key=lambda f: f.dep_index)
 
-        from srcfile import VHDLFile
+        from srcfile import VHDLFile, VerilogFile
         for f in [file for file in fset if isinstance(file, VHDLFile)]:
             p.vprint(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
-                    pf = self._find_provider_file(fset, req)
+                    pf = self._find_provider_vhdl_file(fset, req)
                     if not pf:
                         p.rawprint("Missing dependency in file "+str(f)+": " + req)
                         quit()
@@ -106,6 +137,16 @@ class DependencySolver:
 
         import srcfile as sf
 
+        for f in [file for file in fset if isinstance(file, VerilogFile)]:
+            p.vprint(f.path)
+            if f.dep_requires:
+                for req in f.dep_requires:
+                    pf = self._find_provider_verilog_file(req, f)
+                    if not pf:
+                        p.rawprint("Cannot find include for file "+str(f)+": "+req)
+                    else:
+                        p.vprint("--> " + pf.path)
+                        f.dep_depends_on.append(pf)
 
         newobj = sf.SourceFileSet();
         newobj.add(f_nondep);

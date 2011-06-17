@@ -121,7 +121,6 @@ class VHDLFile(SourceFile):
                 non-standard library a tuple (lib, file) is returned in a list.
 
                 """
-
                 import re
                 std_libs = ['ieee', 'altera_mf', 'cycloneiii', 'lpm', 'std', 'unisim', 'XilinxCoreLib', 'simprims']
 
@@ -156,7 +155,6 @@ class VHDLFile(SourceFile):
                 Reads a file and looks for package clase. Returns list of packages' names
                 from the file
                 """
-
                 import re
                 f = open(self.path, "r")
                 try:
@@ -176,11 +174,12 @@ class VHDLFile(SourceFile):
                 return ret
 
 class VerilogFile(SourceFile):
-        def __init__(self, path, library = None):
+        def __init__(self, path, library = None, vlog_opt = None):
                 if not library:
                         library = "work"
                 SourceFile.__init__(self, path, library);
                 self.__create_deps();
+                self.vlog_opt = vlog_opt
 
         def __create_deps(self):
                 self.dep_requires = self.__search_includes()

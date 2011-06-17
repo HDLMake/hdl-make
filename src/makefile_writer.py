@@ -248,7 +248,7 @@ MODELSIM_INI_PATH := """ + self.__modelsim_ini_path() + """
 
 VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini """ + self.__emit_string(top_module.vcom_opt) + """
 VSIM_FLAGS := """ + self.__emit_string(top_module.vsim_opt) + """
-VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__emit_string(top_module.vlog_opt) + """
+VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """ 
         make_preambule_p2 = """## rules #################################
 sim: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
@@ -311,10 +311,12 @@ clean:
         for vl in fileset.filter(VerilogFile):
             self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': ')
             self.write(vl.rel_path() + ' ')
-            self.writeln(' '.join(vl.dep_requires))
-            self.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" $<")
+            self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
+            self.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" ")
+            self.write(vl.vlog_opt)
+            self.write(" $<")
             self.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
-            self.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename)+'\n')
+            self.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename)+'\n\n')
         self.write("\n")
 
         #list rules for all _primary.dat files for vhdl
@@ -333,6 +335,14 @@ clean:
                     name = dep_file.purename
                     self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
                 self.write('\n\n')
+    def __get_rid_of_incdirs(self, vlog_opt):
+        vlog_opt = self.__emit_string(vlog_opt)
+        vlogs = vlog_opt.split(' ')
+        ret = []
+        for v in vlogs:
+            if not v.startswith("+incdir+"):
+                ret.append(v)
+        return ' '.join(ret)
 
     def __emit_string(self, s):
         if not s:

@@ -182,7 +182,14 @@ class Module(object):
         else:
             self.local = []
 
+        self.vmap_opt = opt_map["vmap_opt"]
+        self.vcom_opt = opt_map["vcom_opt"]
+        self.vsim_opt = opt_map["vsim_opt"]
+        self.vlog_opt = opt_map["vlog_opt"]
+        if self.vlog_opt == None:
+            self.vlog_opt = global_mod.top_mod.vlog_opt
         self.library = opt_map["library"]
+
         if opt_map["files"] == []:
             self.files = SourceFileSet()
         else:
@@ -200,6 +207,8 @@ class Module(object):
                     quit()
 
             self.files = self.__create_flat_file_list(paths=paths);
+            for f in self.files:
+                f.vlog_opt = self.vlog_opt
 
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
@@ -222,10 +231,7 @@ class Module(object):
         self.target = opt_map["target"]
         self.action = opt_map["action"]
 
-        self.vmap_opt = opt_map["vmap_opt"]
-        self.vcom_opt = opt_map["vcom_opt"]
-        self.vlog_opt = opt_map["vlog_opt"]
-        self.vsim_opt = opt_map["vsim_opt"]
+
 
         if opt_map["syn_name"] == None and opt_map["syn_project"] != None:
             self.syn_name = opt_map["syn_project"][:-5] #cut out .xise from the end
