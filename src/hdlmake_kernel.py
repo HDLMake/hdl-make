@@ -226,8 +226,8 @@ class HdlmakeKernel(object):
         dir = os.listdir(directory)
         tcls = []
         for file in dir:
-            file = file.split('.')
-            if file[len(file)-1] == "tcl"
+            file_parts = file.split('.')
+            if file_parts[len(file_parts)-1] == "tcl":
                 tcls.append(file)
         if len(tcls) == 0:
             return None
