@@ -184,7 +184,7 @@ local:
 \t\techo "project open $(PROJECT)" > run.tcl
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
 """
-        xtcl = "\t\t{0}xtclsh run.tcl".format(path.ise_path_32[str(ise)]+'/')
+        xtcl = "\t\txtclsh run.tcl"
         mk_text2 = """
 #target for cleaing all intermediate stuff
 clean:
