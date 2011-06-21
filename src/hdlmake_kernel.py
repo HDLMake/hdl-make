@@ -37,8 +37,8 @@ class HdlmakeKernel(object):
     def run(self):
         tm = self.top_module
 
-        if not self.modules_pool.is_everything_fetched():
-            self.fetch()
+        #if not self.modules_pool.is_everything_fetched():
+        self.fetch()
 
         if tm.action == "simulation":
             self.generate_modelsim_makefile()
@@ -123,13 +123,14 @@ class HdlmakeKernel(object):
             return False
 
     def __check_ise_version(self):
-        xilinx = os.getenv("XILINX")
-        if xilinx == None:
+        import commands
+        xst = commands.getoutput('which xst')
+        if xst == '':
             return None
         else:
             import re
             vp = re.compile(".*?(\d\d\.\d).*")
-            m = re.match(vp, xilinx)
+            m = re.match(vp, xst)
             if m == None:
                 return None
             return m.group(1)
