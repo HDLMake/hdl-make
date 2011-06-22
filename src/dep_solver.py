@@ -95,7 +95,7 @@ class DependencySolver:
         max_iter = 100
         import copy
 
-        fset = fileset.files;
+        fset = fileset.filter(IDependable);
 
         f_nondep = []
 
@@ -131,7 +131,7 @@ class DependencySolver:
             p.vprint(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
-                    pf = self._find_provider_vhdl_file(fset, req)
+                    pf = self._find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
                     if not pf:
                         p.rawprint("Missing dependency in file "+str(f)+": " + req)
                         quit()
@@ -155,7 +155,10 @@ class DependencySolver:
         newobj = sf.SourceFileSet();
         newobj.add(f_nondep);
         for f in fset:
-            if not f.dep_fixed:
+            try:
+                if not f.dep_fixed:
+                    newobj.add(f)
+            except:
                 newobj.add(f)
 
         for k in newobj.files:

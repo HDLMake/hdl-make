@@ -201,9 +201,9 @@ class VerilogFile(SourceFile):
             f.close()
             return ret
 
-class UCFFile(SourceFile):
+class UCFFile(File):
         def __init__(self, path):
-                SourceFile.__init__(self, path);
+                File.__init__(self, path);
 
 class TCLFile(File):
         def __init__(self, path):
@@ -212,14 +212,18 @@ class TCLFile(File):
 class XISEFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
-
-class NGCFile(SourceFile):
+            
+class CDCFile(File):
         def __init__(self, path):
-                SourceFile.__init__(self, path);
+                File.__init__(self, path)
 
-class WBGenFile(SourceFile):
+class NGCFile(File):
         def __init__(self, path):
-                SourceFile.__init__(self, path);
+                File.__init__(self, path);
+
+class WBGenFile(File):
+        def __init__(self, path):
+                File.__init__(self, path);
 
 class SourceFileSet(object):
         def __init__(self):
@@ -260,9 +264,22 @@ class SourceFileSet(object):
                         if isinstance(f, type):
                                 out.append(f)
                 return out
+                
+        def inversed_filter(self, type):
+            out = []
+            for f in self.files:
+                if not isinstance(f,type):
+                    out.append(f)
+            return out
 
         def get_libs(self):
-                return set(file.library for file in self.files)
+            ret = set()
+            for file in self.files:
+                try:
+                    ret.add(file.library)
+                except:
+                    pass
+            return ret
 
 class SourceFileFactory:
         def new (self, path, library = None):
@@ -280,9 +297,11 @@ class SourceFileFactory:
                 elif extension == 'v' or extension == 'sv':
                         nf = VerilogFile(path, library);
                 elif extension == 'ngc':
-                        nf = NGCFile(path);
+                        nf = NGCFile(path)
                 elif extension == 'ucf':
-                        nf = UCFFile(path);
+                        nf = UCFFile(path)
+                elif extension == 'cdc':
+                        nf = CDCFile(path)
                 elif extension == 'wb':
                         nf = WBGenFile(path);
                 elif extension == 'tcl':

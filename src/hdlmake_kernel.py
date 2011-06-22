@@ -137,13 +137,16 @@ class HdlmakeKernel(object):
 
     def __update_existing_ise_project(self, ise):
         from dep_solver import DependencySolver
+        from srcfile import IDependable
         from flow import ISEProject
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
+        non_dependable = fileset.inversed_filter(IDependable)
         fileset = solver.solve(fileset)
+        fileset.add(non_dependable)
 
-        prj = ISEProject(ise=ise)
+        prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
         prj.load_xml(top_mod.syn_project)
@@ -151,13 +154,16 @@ class HdlmakeKernel(object):
 
     def __create_new_ise_project(self, ise):
         from dep_solver import DependencySolver
+        from srcfile import IDependable
         from flow import ISEProject, ISEProjectProperty
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
+        non_dependable = fileset.inversed_filter(IDependable)
         fileset = solver.solve(fileset)
+        fileset.add(non_dependable)
 
-        prj = ISEProject(ise=ise)
+        prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
 

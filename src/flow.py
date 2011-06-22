@@ -108,42 +108,64 @@ class ISEProject:
                     
                 where = self.xml_doc.documentElement
                 self.xml_files = self.__purge_dom_node(name="files", where=where)
-                node = where.getElementsByTagName("version")[0]
-                where.removeChild(node)
+                self.xml_bindings = self.__purge_dom_node(name="bindings", where=where)
+                try:
+                    node = where.getElementsByTagName("version")[0]
+                    where.removeChild(node)
+                except:
+                    pass
                 f.close()
 
         def __purge_dom_node(self, name, where):
-                node = where.getElementsByTagName(name)[0]
-                where.removeChild(node)
+                try:
+                    node = where.getElementsByTagName(name)[0]
+                    where.removeChild(node)
+                except:
+                    pass
                 new = self.xml_doc.createElement(name)
                 where.appendChild(new)
                 return new
 
         def __output_files(self, node):
-
                 for f in self.files:
                         import os
-                        from srcfile import UCFFile, VHDLFile, VerilogFile
+                        from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile
                         fp = self.xml_doc.createElement("file")
                         fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
-                        if (isinstance(f, VHDLFile)):
+                        if isinstance(f, VHDLFile):
                                 fp.setAttribute("xil_pn:type", "FILE_VHDL")
-                        elif (isinstance(f, VerilogFile)):
+                        elif isinstance(f, VerilogFile):
                                 fp.setAttribute("xil_pn:type", "FILE_VERILOG")
-                        elif (isinstance(f, UCFFile)):
+                        elif isinstance(f, UCFFile):
                                 fp.setAttribute("xil_pn:type", "FILE_UCF")
-
+                        elif isinstance(f, CDCFile):
+                                fp.setAttribute("xil_pn:type", "FILE_CDC")
+                        else:
+                            continue
+                            
                         assoc = self.xml_doc.createElement("association");
                         assoc.setAttribute("xil_pn:name", "Implementation");
                         assoc.setAttribute("xil_pn:seqID", str(self.files.index(f)+1));
 
-                        if(f.library != "work"):
+                        try:
+                            if(f.library != "work"):
                                 lib = self.xml_doc.createElement("library");
                                 lib.setAttribute("xil_pn:name", f.library);
                                 fp.appendChild(lib)
-
+                        except:
+                            pass
+                        
                         fp.appendChild(assoc)
                         node.appendChild(fp);
+
+        def __output_bindings(self, node):
+            from srcfile import CDCFile
+            for b in [f for f in self.files if isinstance(f, CDCFile)]:
+                print b.path
+                bp = self.xml_doc.createElement("binding")
+                bp.setAttribute("xil_pn:location", self.top_mod.syn_top)
+                bp.setAttribute("xil_pn:name",b.rel_path())
+                node.appendChild(bp)
 
         def __output_props(self, node):
                 for p in self.props:
@@ -167,11 +189,11 @@ class ISEProject:
                         self.create_empty_project()
                 else:
                         self.__output_ise(self.xml_doc.documentElement)
+                self.__output_bindings(self.xml_bindings)
                 self.__output_files(self.xml_files)
                 self.__output_props(self.xml_props)
                 self.__output_libs(self.xml_libs)
                 self.xml_doc.writexml(open(filename,"w"), newl="\n", addindent="\t")
-
 
         def create_empty_project(self):
                 self.xml_doc = xmlimpl.createDocument("http://www.xilinx.com/XMLSchema", "project", None)
@@ -189,9 +211,11 @@ class ISEProject:
                 self.xml_files = self.xml_doc.createElement("files")
                 self.xml_props = self.xml_doc.createElement("properties")
                 self.xml_libs = self.xml_doc.createElement("libraries")
+                self.xml_bindings = self.xml_doc.createElement("bindings")
 
                 top_element.appendChild(header)
                 top_element.appendChild(version)
                 top_element.appendChild(self.xml_files)
                 top_element.appendChild(self.xml_props)
                 top_element.appendChild(self.xml_libs)
+                top_element.appendChild(self.xml_bindings)
