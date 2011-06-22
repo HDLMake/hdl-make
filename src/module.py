@@ -186,7 +186,7 @@ class Module(object):
         self.vcom_opt = opt_map["vcom_opt"]
         self.vsim_opt = opt_map["vsim_opt"]
         self.vlog_opt = opt_map["vlog_opt"]
-        if self.vlog_opt == None:
+        if self.vlog_opt == "":
             self.vlog_opt = global_mod.top_mod.vlog_opt
         self.library = opt_map["library"]
 

@@ -68,6 +68,10 @@ class DependencySolver:
         inc_dirs = self._parse_vlog_opt(v_file.vlog_opt)
         for dir in inc_dirs:
             dir = os.path.join(vf_dirname, dir)
+            if not os.path.exists(dir) or not os.path.isdir(dir):
+                p.rawprint("WARNING: include path "+dir+" doesn't exist")
+                continue
+
             for file in os.listdir(dir):
                 if file == req:
                     return sff.new(os.path.join(dir, file))
