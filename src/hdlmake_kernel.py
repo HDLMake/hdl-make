@@ -123,9 +123,11 @@ class HdlmakeKernel(object):
             return False
 
     def __check_ise_version(self):
-        import popen2
-        xst, dummy = popen2.popen2('which xst')
-        xst = xst.readlines()[0].strip()
+        import subprocess
+        xst = subprocess.Popen('which xst', shell=True,
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+
+        xst = str(xst.stdout.readlines()[0].strip())
         if xst == '':
             return None
         else:

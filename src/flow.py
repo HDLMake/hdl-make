@@ -161,7 +161,6 @@ class ISEProject:
         def __output_bindings(self, node):
             from srcfile import CDCFile
             for b in [f for f in self.files if isinstance(f, CDCFile)]:
-                print b.path
                 bp = self.xml_doc.createElement("binding")
                 bp.setAttribute("xil_pn:location", self.top_mod.syn_top)
                 bp.setAttribute("xil_pn:name",b.rel_path())
