@@ -137,6 +137,7 @@ class VHDLFile(SourceFile):
 
                 use_lines = []
                 for line in text:
+                        #identifiers and keywords are case-insensitive in VHDL
                         line_lower = line.lower()
                         m = re.match(use_pattern, line_lower)
                         if m != None:
@@ -146,12 +147,15 @@ class VHDLFile(SourceFile):
                 for line in use_lines:
                         m = re.match(lib_pattern, line)
                         if m != None:
+                                #omit standard libraries
                                 if (m.group(1)).lower() in std_libs:
                                         continue
                                 if self.library != "work":
+                                    #if a file is put in a library, `work' points this library
                                     new = (self.library.lower(), m.group(2).lower())
                                 else:
                                     new = (m.group(1).lower(), m.group(2).lower())
+                                #dont add if the tuple is already in the list
                                 if new in self.dep_provides:
                                     continue
                                 ret.add(new)
@@ -175,6 +179,7 @@ class VHDLFile(SourceFile):
 
                 ret = set() 
                 for line in text:
+                        #identifiers and keywords are case-insensitive in VHDL
                         line = line.lower()
                         m = re.match(package_pattern, line)
                         if m != None:
@@ -205,7 +210,7 @@ class VerilogFile(SourceFile):
             include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\".*$")
             ret = []
             for line in text:
-                    line = line.lower()
+                    #in Verilog and SV identifiers are case-sensitive
                     m = re.match(include_pattern, line)
                     if m != None:
                             ret.append(m.group(1))

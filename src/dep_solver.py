@@ -139,6 +139,7 @@ class DependencySolver:
                         p.vprint("--> " + pf.path);
                         if pf.path != f.path:
                             f.dep_depends_on.append(pf)
+            #get rid of duplicates by making a set from the list and vice versa
             f.dep_depends_on = list(set(f.dep_depends_on))
 
         import srcfile as sf
@@ -153,6 +154,7 @@ class DependencySolver:
                     else:
                         p.vprint("--> " + pf.path)
                         f.dep_depends_on.append(pf)
+            #get rid of duplicates by making a set from the list and vice versa
             f.dep_depends_on = list(set(f.dep_depends_on))
 
         newobj = sf.SourceFileSet();

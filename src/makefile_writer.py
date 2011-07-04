@@ -274,6 +274,10 @@ clean:
 
         self.write("VERILOG_OBJ := ")
         for vl in fileset.filter(VerilogFile):
+            #make a file compilation indicator (these .dat files are made even if
+            #the compilation process fails) and add an ending according to file's
+            #extension (.sv and .vhd files may have the same corename and this
+            #causes a mess
             self.write(os.path.join(vl.library, vl.purename, "."+vl.purename+"_sv") + " \\\n")
         self.write('\n')
 
@@ -287,6 +291,7 @@ clean:
         #list vhdl objects (_primary.dat files)
         self.write("VHDL_OBJ := ")
         for vhdl in fileset.filter(VHDLFile):
+            #file compilation indicator (important: add _vhd ending)
             self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename+"_vhd") + " \\\n")
         self.write('\n')
 
@@ -298,8 +303,6 @@ clean:
         self.write(' '.join([lib+"/."+lib for lib in libs]))
         self.write('\n')
         self.write(make_preambule_p2)
-        self.writeln("wave: sim")
-        self.writeln("\tdo wave.do")
 
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
@@ -337,6 +340,7 @@ clean:
                     name = dep_file.purename
                     self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
                 self.write('\n\n')
+
     def __get_rid_of_incdirs(self, vlog_opt):
         vlog_opt = self.__emit_string(vlog_opt)
         vlogs = vlog_opt.split(' ')
