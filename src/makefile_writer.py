@@ -274,7 +274,7 @@ clean:
 
         self.write("VERILOG_OBJ := ")
         for vl in fileset.filter(VerilogFile):
-            self.write(os.path.join(vl.library, vl.purename, "."+vl.purename) + " \\\n")
+            self.write(os.path.join(vl.library, vl.purename, "."+vl.purename+"_sv") + " \\\n")
         self.write('\n')
 
         libs = set(f.library for f in fileset.files)
@@ -287,7 +287,7 @@ clean:
         #list vhdl objects (_primary.dat files)
         self.write("VHDL_OBJ := ")
         for vhdl in fileset.filter(VHDLFile):
-            self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename) + " \\\n")
+            self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename+"_vhd") + " \\\n")
         self.write('\n')
 
         self.write('LIBS := ')
@@ -298,6 +298,8 @@ clean:
         self.write(' '.join([lib+"/."+lib for lib in libs]))
         self.write('\n')
         self.write(make_preambule_p2)
+        self.writeln("wave: sim")
+        self.writeln("\tdo wave.do")
 
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
@@ -309,14 +311,14 @@ clean:
 
         #rules for all _primary.dat files for sv
         for vl in fileset.filter(VerilogFile):
-            self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename)+': ')
+            self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_sv")+': ')
             self.write(vl.rel_path() + ' ')
             self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
             self.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" ")
             self.write(vl.vlog_opt)
             self.write(" $<")
             self.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
-            self.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename)+'\n\n')
+            self.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename+"_sv")+'\n\n')
         self.write("\n")
 
         #list rules for all _primary.dat files for vhdl
@@ -325,9 +327,9 @@ clean:
             lib = vhdl.library
             purename = vhdl.purename 
             #each .dat depends on corresponding .vhd file
-            self.write(os.path.join(lib, purename, "."+purename) + ": "+vhdl.rel_path()+'\n')
+            self.write(os.path.join(lib, purename, "."+purename+"_vhd") + ": "+vhdl.rel_path()+'\n')
             self.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, vhdl.rel_path(),
-            "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename), '\n']))
+            "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename+"_vhd"), '\n']))
             self.write('\n')
             if len(vhdl.dep_depends_on) != 0:
                 self.write(os.path.join(lib, purename, "."+purename) +":")
