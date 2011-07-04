@@ -166,6 +166,7 @@ class VHDLFile(SourceFile):
 
                 ret = []
                 for line in text:
+                        line = line.lower()
                         m = re.match(package_pattern, line)
                         if m != None:
                                 ret.append(self.library.lower()+"::"+m.group(1).lower())
@@ -195,6 +196,7 @@ class VerilogFile(SourceFile):
             include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\".*$")
             ret = []
             for line in text:
+                    line = line.lower()
                     m = re.match(include_pattern, line)
                     if m != None:
                             ret.append(m.group(1))
