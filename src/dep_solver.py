@@ -133,11 +133,13 @@ class DependencySolver:
                 for req in f.dep_requires:
                     pf = self._find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
                     if not pf:
-                        p.rawprint("Missing dependency in file "+str(f)+": " + req)
+                        p.rawprint("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                         quit()
                     else:
                         p.vprint("--> " + pf.path);
-                        f.dep_depends_on.append(pf)
+                        if pf.path != f.path:
+                            f.dep_depends_on.append(pf)
+            f.dep_depends_on = list(set(f.dep_depends_on))
 
         import srcfile as sf
 
@@ -151,6 +153,7 @@ class DependencySolver:
                     else:
                         p.vprint("--> " + pf.path)
                         f.dep_depends_on.append(pf)
+            f.dep_depends_on = list(set(f.dep_depends_on))
 
         newobj = sf.SourceFileSet();
         newobj.add(f_nondep);

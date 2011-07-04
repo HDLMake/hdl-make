@@ -112,8 +112,10 @@ class VHDLFile(SourceFile):
                         self.dep_index = SourceFile.gen_index(self)
                         self.dep_fixed = True
                 else:
-                        self.dep_requires = self.__search_use_clauses()
-                        self.dep_provides = self.__search_packages()
+                        self.dep_requires = list(self.__search_use_clauses())
+                        self.dep_provides = list(self.__search_packages())
+                p.vprint(self.path + " provides " + str(self.dep_provides))
+                p.vprint(self.path + " requires " + str(self.dep_requires))
 
         def __search_use_clauses(self):
                 """
@@ -135,17 +137,24 @@ class VHDLFile(SourceFile):
 
                 use_lines = []
                 for line in text:
-                        m = re.match(use_pattern, line)
+                        line_lower = line.lower()
+                        m = re.match(use_pattern, line_lower)
                         if m != None:
                                 use_lines.append(m.group(1))
 
-                ret = []
+                ret = set() 
                 for line in use_lines:
                         m = re.match(lib_pattern, line)
                         if m != None:
                                 if (m.group(1)).lower() in std_libs:
                                         continue
-                                ret.append(m.group(1).lower()+"::"+m.group(2).lower())
+                                if self.library != "work":
+                                    new = (self.library.lower(), m.group(2).lower())
+                                else:
+                                    new = (m.group(1).lower(), m.group(2).lower())
+                                if new in self.dep_provides:
+                                    continue
+                                ret.add(new)
 
                 f.close()
                 return ret
@@ -164,12 +173,12 @@ class VHDLFile(SourceFile):
 
                 package_pattern = re.compile("^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*.*$")
 
-                ret = []
+                ret = set() 
                 for line in text:
                         line = line.lower()
                         m = re.match(package_pattern, line)
                         if m != None:
-                                ret.append(self.library.lower()+"::"+m.group(1).lower())
+                                ret.add((self.library.lower(), m.group(1).lower()))
 
                 f.close()
                 return ret
