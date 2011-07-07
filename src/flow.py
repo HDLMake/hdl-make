@@ -129,7 +129,7 @@ class ISEProject:
         def __output_files(self, node):
                 for f in self.files:
                         import os
-                        from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile
+                        from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
                         fp = self.xml_doc.createElement("file")
                         fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
                         if isinstance(f, VHDLFile):
@@ -140,6 +140,8 @@ class ISEProject:
                                 fp.setAttribute("xil_pn:type", "FILE_UCF")
                         elif isinstance(f, CDCFile):
                                 fp.setAttribute("xil_pn:type", "FILE_CDC")
+                        elif isinstance(f, NGCFile):
+                                fp.setAttribute("xil_pn:type", "FILE_NGC")
                         else:
                             continue
                             
