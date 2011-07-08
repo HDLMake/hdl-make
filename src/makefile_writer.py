@@ -79,7 +79,7 @@ endif
 """
         else:
             user_tmpl = user_tmpl.format(user)
-            test_tmpl = "__test:\n"
+            test_tmpl = "__test_for_remote_synthesis_variables:\n\t\ttrue #dummy\n"
             
         if server == None:
             server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)#take the value from the environment")
