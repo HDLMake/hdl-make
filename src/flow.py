@@ -242,7 +242,7 @@ class ISEProject:
                 top_element.appendChild(header)
                 top_element.appendChild(amf)
                 top_element.appendChild(self.xml_props)
-                top_element.appendChild(self.xml_files)
                 top_element.appendChild(self.xml_libs)
+                top_element.appendChild(self.xml_files)
                 top_element.appendChild(self.xml_bindings)
                 top_element.appendChild(version)
