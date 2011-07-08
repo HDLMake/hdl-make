@@ -52,7 +52,9 @@ class ISEProject:
 
             def write(self, what):
                 import  re
-                if re.match(self.__blank, what):
+                if what == "":
+                    return
+                elif re.match(self.__blank, what):
                     if self[len(self)-1] != "":
                         self.append("")
                     else:
