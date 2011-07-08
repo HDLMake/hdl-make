@@ -44,6 +44,25 @@ class ISEProjectProperty:
 
 
 class ISEProject:
+        class FakeFile(list):
+            def __init__(self):
+                import  re
+                self.append("")
+                self.__blank = re.compile("^[ \t\n]+$")
+
+            def write(self, what):
+                import  re
+                if re.match(self.__blank, what):
+                    if self[len(self)-1] != "":
+                        self.append("")
+                    else:
+                        pass
+                elif what[len(what)-1] == "\n":
+                    self[len(self)-1] += what[:len(what)-1]
+                    self.append("")
+                else:
+                    self[len(self)-1] += what
+
         def __init__(self, ise, top_mod = None):
                 self.props = []
                 self.files = []
@@ -185,7 +204,6 @@ class ISEProject:
             node.appendChild(i)
 
         def emit_xml(self, filename = None):
-
                 if not self.xml_doc:
                         self.create_empty_project()
                 else:
@@ -194,7 +212,11 @@ class ISEProject:
                 self.__output_files(self.xml_files)
                 self.__output_props(self.xml_props)
                 self.__output_libs(self.xml_libs)
-                self.xml_doc.writexml(open(filename,"w"), newl="\n", addindent="\t")
+                f = open(filename, "w")
+                fake = self.FakeFile()
+                self.xml_doc.writexml(fake, newl = "\n", addindent="\t")
+                f.write('\n'.join(fake))
+                f.close()
 
         def create_empty_project(self):
                 self.xml_doc = xmlimpl.createDocument("http://www.xilinx.com/XMLSchema", "project", None)
@@ -202,21 +224,25 @@ class ISEProject:
                 top_element.setAttribute("xmlns", "http://www.xilinx.com/XMLSchema")
                 top_element.setAttribute("xmlns:xil_pn", "http://www.xilinx.com/XMLSchema")
 
-                version = self.xml_doc.createElement( "version")
-                version.setAttribute("xil_pn:ise_version", self.ise);
-                version.setAttribute("xil_pn:schema_version", "2");
-
                 header = self.xml_doc.createElement("header")
                 header.appendChild(self.xml_doc.createTextNode(""))
 
-                self.xml_files = self.xml_doc.createElement("files")
+                amf = self.xml_doc.createElement("autoManagedFiles")
+                amf.appendChild(self.xml_doc.createTextNode(""))
+
                 self.xml_props = self.xml_doc.createElement("properties")
+                self.xml_files = self.xml_doc.createElement("files")
                 self.xml_libs = self.xml_doc.createElement("libraries")
                 self.xml_bindings = self.xml_doc.createElement("bindings")
 
+                version = self.xml_doc.createElement("version")
+                version.setAttribute("xil_pn:ise_version", self.ise);
+                version.setAttribute("xil_pn:schema_version", "2");
+
                 top_element.appendChild(header)
-                top_element.appendChild(version)
-                top_element.appendChild(self.xml_files)
+                top_element.appendChild(amf)
                 top_element.appendChild(self.xml_props)
+                top_element.appendChild(self.xml_files)
                 top_element.appendChild(self.xml_libs)
                 top_element.appendChild(self.xml_bindings)
+                top_element.appendChild(version)

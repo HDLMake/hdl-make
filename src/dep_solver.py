@@ -33,11 +33,15 @@ class DependencySolver:
     def __init__(self):
         self.entities = {};
 
-    def _lookup_post_provider(self, files, start_index, requires):
+    def _lookup_post_provider(self, files, start_index, file):
+        requires = file.dep_requires
         while True:
             start_index = start_index + 1
             try:
-                f = files[start_index];
+                if type(files[start_index]) == type(file):
+                    f = files[start_index]
+                else:
+                    continue
             except IndexError:
                 break
 
@@ -106,7 +110,7 @@ class DependencySolver:
             for f in fset:
                 if not f.dep_fixed:
                     idx = fset.index(f)
-                    k = self._lookup_post_provider(fset, idx, f.dep_requires);
+                    k = self._lookup_post_provider(files=fset, start_index=idx, file=f);
 
                     if k:
                         done = False
