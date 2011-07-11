@@ -113,8 +113,11 @@ endif
         tcl = "run.tcl"
         synthesis_cmd = "__do_synthesis:\n\t\t"
         synthesis_cmd += "ssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && {0}xtclsh {1}'"
-        
-        self.writeln(synthesis_cmd.format(path.ise_path_32[str(ise)]+'/', tcl))
+
+        try:
+            self.writeln(synthesis_cmd.format(path.ise_path_32[str(ise)]+'/', tcl))
+        except KeyError:
+            self.writeln(synthesis_cmd.format("", tcl))
         self.writeln()
  
         send_back_cmd = "__send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"

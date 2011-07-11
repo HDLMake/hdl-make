@@ -153,6 +153,7 @@ class ISEProject:
             from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
             if self.ise >= 13.0:
                 for f in self.files:
+                    p.vprint("Writing .xise file for version " + str(self.ise))
                     fp = self.xml_doc.createElement("file")
                     fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
                     if isinstance(f, VHDLFile):
@@ -183,6 +184,7 @@ class ISEProject:
                     fp.appendChild(assoc)
                     node.appendChild(fp);
             else:
+                p.vprint("Writing .xise file for version " + str(self.ise))
                 reversed = self.files
                 reversed.reverse()
                 for f in reversed:
