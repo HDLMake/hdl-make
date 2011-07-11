@@ -64,21 +64,28 @@ class DependencySolver:
         import os
         vf_dirname = v_file.dirname
         sff = SourceFileFactory()
-        
-        for file in os.listdir(vf_dirname):
-            if file == req:
-                return sff.new(os.path.join(vf_dirname,file))
+
+        h_file = os.path.join(vf_dirname, req)
+        if os.path.exists(h_file) and not os.path.isdir(h_file):
+            return sff.new(h_file)
+
+        #for file in os.listdir(vf_dirname):
+        #    if file == req:
+        #        return sff.new(os.path.join(vf_dirname,file))
                 
         inc_dirs = self._parse_vlog_opt(v_file.vlog_opt)
+
         for dir in inc_dirs:
             dir = os.path.join(vf_dirname, dir)
             if not os.path.exists(dir) or not os.path.isdir(dir):
                 p.rawprint("WARNING: include path "+dir+" doesn't exist")
                 continue
-
-            for file in os.listdir(dir):
-                if file == req:
-                    return sff.new(os.path.join(dir, file))
+            h_file = os.path.join(dir, req)
+            if os.path.exists(h_file) and not os.path.isdir(h_file):
+                return sff.new(h_file)
+            #for file in os.listdir(dir):
+            #    if file == req:
+            #        return sff.new(os.path.join(dir, file))
         return None
         
     def _parse_vlog_opt(self, vlog_opt):
