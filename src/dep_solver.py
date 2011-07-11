@@ -33,7 +33,7 @@ class DependencySolver:
     def __init__(self):
         self.entities = {};
 
-    def _lookup_post_provider(self, files, start_index, file):
+    def __lookup_post_provider(self, files, start_index, file):
         requires = file.dep_requires
         while True:
             start_index = start_index + 1
@@ -51,7 +51,7 @@ class DependencySolver:
                         return start_index
         return None
 
-    def _find_provider_vhdl_file(self, files, req):
+    def __find_provider_vhdl_file(self, files, req):
         for f in files:
             if f.dep_provides:
                 if req in f.dep_provides:
@@ -59,7 +59,7 @@ class DependencySolver:
 
         return None
 
-    def _find_provider_verilog_file(self, req, v_file):
+    def __find_provider_verilog_file(self, req, v_file):
         from srcfile import SourceFileFactory
         import os
         vf_dirname = v_file.dirname
@@ -69,11 +69,7 @@ class DependencySolver:
         if os.path.exists(h_file) and not os.path.isdir(h_file):
             return sff.new(h_file)
 
-        #for file in os.listdir(vf_dirname):
-        #    if file == req:
-        #        return sff.new(os.path.join(vf_dirname,file))
-                
-        inc_dirs = self._parse_vlog_opt(v_file.vlog_opt)
+        inc_dirs = self.__parse_vlog_opt(v_file.vlog_opt)
 
         for dir in inc_dirs:
             dir = os.path.join(vf_dirname, dir)
@@ -83,12 +79,9 @@ class DependencySolver:
             h_file = os.path.join(dir, req)
             if os.path.exists(h_file) and not os.path.isdir(h_file):
                 return sff.new(h_file)
-            #for file in os.listdir(dir):
-            #    if file == req:
-            #        return sff.new(os.path.join(dir, file))
         return None
-        
-    def _parse_vlog_opt(self, vlog_opt):
+
+    def __parse_vlog_opt(self, vlog_opt):
         import re
         ret = []
         inc_pat = re.compile(".*?\+incdir\+([^ ]+)")
@@ -117,7 +110,7 @@ class DependencySolver:
             for f in fset:
                 if not f.dep_fixed:
                     idx = fset.index(f)
-                    k = self._lookup_post_provider(files=fset, start_index=idx, file=f);
+                    k = self.__lookup_post_provider(files=fset, start_index=idx, file=f);
 
                     if k:
                         done = False
@@ -142,7 +135,7 @@ class DependencySolver:
             p.vprint(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
-                    pf = self._find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
+                    pf = self.__find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
                     if not pf:
                         p.rawprint("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                         quit()
@@ -159,7 +152,7 @@ class DependencySolver:
             p.vprint(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
-                    pf = self._find_provider_verilog_file(req, f)
+                    pf = self.__find_provider_verilog_file(req, f)
                     if not pf:
                         p.rawprint("Cannot find include for file "+str(f)+": "+req)
                     else:
