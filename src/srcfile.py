@@ -310,7 +310,7 @@ class SourceFileFactory:
                 nf = None
                 if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
                         nf = VHDLFile(path, library)
-                elif extension == 'v' or extension == 'sv':
+                elif extension == 'v' or extension == 'sv' or extension == 'vh':
                         nf = VerilogFile(path, library);
                 elif extension == 'ngc':
                         nf = NGCFile(path)
