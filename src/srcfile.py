@@ -94,9 +94,13 @@ class SourceFile(IDependable, File):
 
 
 class VHDLFile(SourceFile):
-        def __init__(self, path, library = None):
+        def __init__(self, path, library = None, vcom_opt = None):
                 SourceFile.__init__(self, path, library);
                 self.__create_deps();
+                if not vcom_opt:
+                    self.vcom_opt = ""
+                else:
+                    self.vcom_opt = vcom_opt 
 
         def __check_encryption(self):
                 f = open(self.path, "rb");
@@ -194,7 +198,10 @@ class VerilogFile(SourceFile):
                         library = "work"
                 SourceFile.__init__(self, path, library);
                 self.__create_deps();
-                self.vlog_opt = vlog_opt
+                if not vlog_opt:
+                    self.vlog_opt = ""
+                else:
+                    self.vlog_opt = vlog_opt
 
         def __create_deps(self):
                 self.dep_requires = self.__search_includes()
@@ -298,7 +305,7 @@ class SourceFileSet(object):
             return ret
 
 class SourceFileFactory:
-        def new (self, path, library = None):
+        def new (self, path, library=None, vcom_opt=None, vlog_opt=None):
                 if path == None or path == "":
                     raise RuntimeError("Expected a file path, got: "+str(path))
                 if not os.path.isabs(path):
@@ -309,9 +316,9 @@ class SourceFileFactory:
 
                 nf = None
                 if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
-                        nf = VHDLFile(path, library)
+                        nf = VHDLFile(path, library, vcom_opt)
                 elif extension == 'v' or extension == 'sv' or extension == 'vh':
-                        nf = VerilogFile(path, library);
+                        nf = VerilogFile(path, library, vlog_opt);
                 elif extension == 'ngc':
                         nf = NGCFile(path)
                 elif extension == 'ucf':

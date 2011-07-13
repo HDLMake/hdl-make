@@ -153,11 +153,6 @@ class Module(object):
         except NameError as ne:
             p.echo("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
-       #if opt_map["root_module"] != None:
-       #     root_path = path_mod.rel2abs(opt_map["root_module"], self.path)
-       #     self.root_module = Module(path=root_path, source="local", isfetched=True, parent=self)
-       #     self.root_module.parse_manifest()
-
 
         if(opt_map["fetchto"] != None):
             fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
@@ -186,8 +181,16 @@ class Module(object):
         self.vcom_opt = opt_map["vcom_opt"]
         self.vsim_opt = opt_map["vsim_opt"]
         self.vlog_opt = opt_map["vlog_opt"]
-        if self.vlog_opt == "":
-            self.vlog_opt = global_mod.top_module.vlog_opt
+
+        #if self.vlog_opt == "":
+        #    self.vlog_opt = global_mod.top_module.vlog_opt
+        #if self.vcom_opt == "":
+        #    self.vcom_opt = global_mod.top_module.vcom_opt
+        #if self.vsim_opt == "":
+        #    self.vsim_opt = global_mod.top_module.vsim_opt
+       # if self.vmap_opt == "":
+        #    self.vmap_opt = global_mod.top_module.vmap_opt
+
         self.library = opt_map["library"]
 
         if opt_map["files"] == []:
@@ -206,9 +209,13 @@ class Module(object):
                     + path +".\nExiting.")
                     quit()
 
+            from srcfile import VerilogFile, VHDLFile
             self.files = self.__create_flat_file_list(paths=paths);
             for f in self.files:
-                f.vlog_opt = self.vlog_opt
+                if isinstance(f, VerilogFile):
+                    f.vsim_opt = self.vsim_opt
+                elif isinstance(f, VHDLFile):
+                    f.vcom_opt = self.vcom_opt
 
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
@@ -230,8 +237,6 @@ class Module(object):
 
         self.target = opt_map["target"]
         self.action = opt_map["action"]
-
-
 
         if opt_map["syn_name"] == None and opt_map["syn_project"] != None:
             self.syn_name = opt_map["syn_project"][:-5] #cut out .xise from the end
@@ -262,7 +267,7 @@ class Module(object):
         modules = [self]
         while len(new_modules) > 0:
             cur_module = new_modules.pop()
-#            p.vprint("Current: " + str(cur_module))
+
             if not cur_module.isfetched:
                 p.echo("Error in modules list - unfetched module: " + str(cur_module))
                 quit()
@@ -270,10 +275,6 @@ class Module(object):
                 p.vprint("No manifest in " + str(cur_module))
                 continue
             cur_module.parse_manifest()
-#            if cur_module.root_module != None:
-#                root_module = cur_module.root_module
-#                modules_from_root = root_module.make_list_of_modules()
-#                modules.extend(modules_from_root)
 
             for module in cur_module.local:
                 modules.append(module)
@@ -301,9 +302,9 @@ class Module(object):
                 for f_dir in dir:
                     f_dir = os.path.join(self.path, p, f_dir)
                     if not os.path.isdir(f_dir):
-                        srcs.add(sff.new(f_dir))
+                        srcs.add(sff.new(f_dir, self.library, self.vcom_opt, self.vlog_opt))
             else:
-                srcs.add(sff.new(p, self.library))
+                srcs.add(sff.new(p, self.library, self.vcom_opt, self.vlog_opt))
         return srcs
 
     def build_global_file_list(self):

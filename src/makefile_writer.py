@@ -249,8 +249,8 @@ WORK_NAME := work
 
 MODELSIM_INI_PATH := """ + self.__modelsim_ini_path() + """
 
-VCOM_FLAGS := -nologo -quiet -modelsimini ./modelsim.ini """ + self.__emit_string(top_module.vcom_opt) + """
-VSIM_FLAGS := """ + self.__emit_string(top_module.vsim_opt) + """
+VCOM_FLAGS := -nologo -quiet -modelsimini ./modelsim.ini
+VSIM_FLAGS := 
 VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """ 
         make_preambule_p2 = """## rules #################################
@@ -320,7 +320,7 @@ clean:
             self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_sv")+': ')
             self.write(vl.rel_path() + ' ')
             self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
-            self.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" ")
+            self.write("\t\tvlog "+vl.vlog_opt+"-work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" ")
             self.write(vl.vlog_opt)
             self.write(" $<")
             self.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
@@ -328,13 +328,12 @@ clean:
         self.write("\n")
 
         #list rules for all _primary.dat files for vhdl
-        vco = top_module.vcom_opt
         for vhdl in fileset.filter(VHDLFile):
             lib = vhdl.library
             purename = vhdl.purename 
             #each .dat depends on corresponding .vhd file
             self.write(os.path.join(lib, purename, "."+purename+"_vhd") + ": "+vhdl.rel_path()+'\n')
-            self.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vco, "-work", lib, vhdl.rel_path(),
+            self.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, vhdl.rel_path(),
             "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename+"_vhd"), '\n']))
             self.write('\n')
             if len(vhdl.dep_depends_on) != 0:
