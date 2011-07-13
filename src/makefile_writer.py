@@ -249,7 +249,7 @@ WORK_NAME := work
 
 MODELSIM_INI_PATH := """ + self.__modelsim_ini_path() + """
 
-VCOM_FLAGS := -nologo -quiet -93 -modelsimini ./modelsim.ini """ + self.__emit_string(top_module.vcom_opt) + """
+VCOM_FLAGS := -nologo -quiet -modelsimini ./modelsim.ini """ + self.__emit_string(top_module.vcom_opt) + """
 VSIM_FLAGS := """ + self.__emit_string(top_module.vsim_opt) + """
 VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """ 
