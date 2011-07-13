@@ -61,9 +61,9 @@ class ModulePool(list):
             os.chdir(module.fetchto)
             url, rev = self.__parse_repo_url(module.url)
 
-            basename = path.svn_basename(url)
+            #basename = path.svn_basename(url)
 
-            cmd = "svn checkout {0} " + basename
+            cmd = "svn checkout {0} " + module.basename
             if rev:
                 cmd = cmd.format(url + '@' + rev)
             else:
@@ -78,7 +78,7 @@ class ModulePool(list):
 
             module.isfetched = True
             module.revision = rev
-            module.path = os.path.join(module.fetchto, basename)
+            module.path = os.path.join(module.fetchto, module.basename)
             return rval
 
         def __fetch_from_git(self, module):

@@ -54,7 +54,7 @@ def svn_basename(url):
     words = url.split('//')
     try:
         words = words[1].split('/')
-        return words[1]
+        return '/'.join(words[1:])
     except:
         return None
 
