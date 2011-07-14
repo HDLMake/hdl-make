@@ -254,6 +254,11 @@ class HdlmakeKernel(object):
         f.write("process run {Generate Programming File} -force rerun_all\n")
         f.close()
 
+    def clean_modules(self):
+        for m in self.modules_pool:
+            if m.source in ["svn", "git"]:
+                m.remove()
+
     def generate_fetch_makefile(self):
         pool = self.modules_pool
 

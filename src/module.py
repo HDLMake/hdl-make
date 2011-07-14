@@ -76,8 +76,8 @@ class Module(object):
             self.path = url
             self.isfetched = True
         else:
-            if os.path.exists(os.path.join(fetchto, self.basename)):
-                self.path = os.path.join(fetchto, self.basename)
+            if os.path.exists(os.path.abspath(os.path.join(fetchto, self.basename))):
+                self.path = os.path.abspath(os.path.join(fetchto, self.basename))
                 self.isfetched = True
             else:
                 self.path = None
@@ -124,6 +124,26 @@ class Module(object):
         else:
             sth = []
         return sth
+
+    def remove(self):
+        if not self.isfetched:
+            return
+
+        import shutil
+        import os
+
+        p.vprint("Removing " + self.path)
+        shutil.rmtree(self.path)
+
+        parts = self.path.split('/')
+        while True:
+            try:
+                parts = parts[:-1]
+                tmp = '/'.join(parts)
+                p.vprint("Trying to remove " + tmp)
+                os.rmdir(tmp)
+            except OSError: #a catologue is not empty - we are done
+                break
 
     def parse_manifest(self):
         if self.isparsed == True or self.isfetched == False:
