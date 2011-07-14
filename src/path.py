@@ -85,6 +85,8 @@ def is_abs_path(path):
     return False
     
 def relpath(p1, p2 = None):
+    if p1 == p2:
+        return '.'
     if p2 == None:
         p2 = os.getcwd()
     p1, p2 = p2, p1

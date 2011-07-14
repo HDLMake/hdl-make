@@ -55,16 +55,19 @@ class HdlmakeKernel(object):
     def list_modules(self):
         import path
         for m in self.modules_pool:
-            if m.path == os.getcwd():
-                print(".")
+            if not m.isfetched:
+                print("#!UNFETCHED")
+                print(m.url+'\n')
             else:
-                print(path.relpath(m.path))
-            if not len(m.files):
-                print("   # no files")
-            else:
-                for f in m.files:
-                    print("   " + path.relpath(f.path, m.path))
-            print("")
+                print(m.path)
+                if m.source in ["svn", "git"]:
+                    print ("#"+m.url)
+                if not len(m.files):
+                    print("   # no files")
+                else:
+                    for f in m.files:
+                        print("   " + path.relpath(f.path, m.path))
+                print("")
             
     def fetch(self, unfetched_only = False):
         p.rawprint("Fetching needed modules...")
