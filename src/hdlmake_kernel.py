@@ -38,7 +38,7 @@ class HdlmakeKernel(object):
         tm = self.top_module
 
         if not self.modules_pool.is_everything_fetched():
-            self.fetch()
+            self.fetch(unfetched_only = True)
 
         if tm.action == "simulation":
             self.generate_modelsim_makefile()
@@ -52,9 +52,9 @@ class HdlmakeKernel(object):
             p.rawprint("Allowed actions are:\n\tsimulation\n\tsynthesis")
             quit()
 
-    def fetch(self):
+    def fetch(self, unfetched_only = False):
         p.rawprint("Fetching needed modules...")
-        self.modules_pool.fetch_all()
+        self.modules_pool.fetch_all(unfetched_only)
         p.vprint(str(self.modules_pool))
 
     def generate_modelsim_makefile(self):

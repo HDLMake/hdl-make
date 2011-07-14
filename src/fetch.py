@@ -195,14 +195,20 @@ class ModulePool(list):
         self.modules.append(new_module)
         return True
 
-    def fetch_all(self):
+    def fetch_all(self, unfetched_only = False):
         fetcher = self.ModuleFetcher()
         from copy import copy
         fetch_queue = copy(self.modules)
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
-            new_modules = fetcher.fetch_single_module(cur_mod)
+            if unfetched_only:
+                if cur_mod.isfetched:
+                    new_modules = cur_mod.submodules()
+                else:
+                    new_modules = fetcher.fetch_single_module(cur_mod)
+            else:
+                new_modules = fetcher.fetch_single_module(cur_mod)
 
             for mod in new_modules:
                 if not self.__contains(mod):
