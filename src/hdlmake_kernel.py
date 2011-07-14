@@ -52,6 +52,20 @@ class HdlmakeKernel(object):
             p.rawprint("Allowed actions are:\n\tsimulation\n\tsynthesis")
             quit()
 
+    def list_modules(self):
+        import path
+        for m in self.modules_pool:
+            if m.path == os.getcwd():
+                print(".")
+            else:
+                print(path.relpath(m.path))
+            if not len(m.files):
+                print("   # no files")
+            else:
+                for f in m.files:
+                    print("   " + path.relpath(f.path, m.path))
+            print("")
+            
     def fetch(self, unfetched_only = False):
         p.rawprint("Fetching needed modules...")
         self.modules_pool.fetch_all(unfetched_only)

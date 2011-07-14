@@ -52,6 +52,9 @@ def main():
     parser.add_option("--clean", action="store_true", dest="clean",
     help="remove all modules fetched for this one")
 
+    parser.add_option("--list", action="store_true", dest="list",
+    help="List all modules togather with their files")
+
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
     help="create/update an ise project including list of project files")
 
@@ -115,6 +118,8 @@ def main():
         kernel.generate_ise_makefile()
     elif options.make_remote == True:
         kernel.generate_remote_synthesis_makefile()
+    elif options.list == True:
+        kernel.list_modules()
     elif options.clean == True:
         kernel.clean_modules()
     else:
