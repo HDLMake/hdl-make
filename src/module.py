@@ -71,6 +71,7 @@ class Module(object):
         if source == "local" and not os.path.exists(url):
             p.rawprint("Path to the local module doesn't exist:\n" + url)
             p.rawprint("This module was instantiated in: " + str(parent))
+            quit()
 
         if source == "local":
             self.path = url

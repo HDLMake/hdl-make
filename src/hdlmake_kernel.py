@@ -143,8 +143,13 @@ class HdlmakeKernel(object):
         import subprocess
         xst = subprocess.Popen('which xst', shell=True,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+        lines = xst.stdout.readlines()
+        if len(lines) == 0:
+            p.rawprint("ERROR: Xilinx binaries are not in the PATH variable")
+            p.rawprint("       Can't determine ISE version")
+            quit()
 
-        xst = str(xst.stdout.readlines()[0].strip())
+        xst = str(lines[0].strip())
         if xst == '':
             return None
         else:
