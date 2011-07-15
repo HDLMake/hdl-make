@@ -151,63 +151,38 @@ class ISEProject:
         def __output_files(self, node):
             import os
             from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
-            if self.ise >= 13.0:
-                for f in self.files:
-                    p.vprint("Writing .xise file for version " + str(self.ise))
-                    fp = self.xml_doc.createElement("file")
-                    fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
-                    if isinstance(f, VHDLFile):
-                            fp.setAttribute("xil_pn:type", "FILE_VHDL")
-                    elif isinstance(f, VerilogFile):
-                            fp.setAttribute("xil_pn:type", "FILE_VERILOG")
-                    elif isinstance(f, UCFFile):
-                            fp.setAttribute("xil_pn:type", "FILE_UCF")
-                    elif isinstance(f, CDCFile):
-                            fp.setAttribute("xil_pn:type", "FILE_CDC")
-                    elif isinstance(f, NGCFile):
-                            fp.setAttribute("xil_pn:type", "FILE_NGC")
-                    else:
-                        continue
 
-                    assoc = self.xml_doc.createElement("association");
-                    assoc.setAttribute("xil_pn:name", "Implementation");
-                    assoc.setAttribute("xil_pn:seqID", str(self.files.index(f)+1));
-
-                    try:
-                        if(f.library != "work"):
-                            lib = self.xml_doc.createElement("library");
-                            lib.setAttribute("xil_pn:name", f.library);
-                            fp.appendChild(lib)
-                    except:
-                        pass
-
-                    fp.appendChild(assoc)
-                    node.appendChild(fp);
-            else:
+            for f in self.files:
                 p.vprint("Writing .xise file for version " + str(self.ise))
-                reversed = self.files
-                reversed.reverse()
-                for f in reversed:
-                    fp = self.xml_doc.createElement("file")
-                    fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
-                    if isinstance(f, VHDLFile):
-                            fp.setAttribute("xil_pn:type", "FILE_VHDL")
-                    elif isinstance(f, VerilogFile):
-                            fp.setAttribute("xil_pn:type", "FILE_VERILOG")
-                    elif isinstance(f, UCFFile):
-                            fp.setAttribute("xil_pn:type", "FILE_UCF")
-                    elif isinstance(f, CDCFile):
-                            fp.setAttribute("xil_pn:type", "FILE_CDC")
-                    elif isinstance(f, NGCFile):
-                            fp.setAttribute("xil_pn:type", "FILE_NGC")
-                    else:
-                        continue
+                fp = self.xml_doc.createElement("file")
+                fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
+                if isinstance(f, VHDLFile):
+                        fp.setAttribute("xil_pn:type", "FILE_VHDL")
+                elif isinstance(f, VerilogFile):
+                        fp.setAttribute("xil_pn:type", "FILE_VERILOG")
+                elif isinstance(f, UCFFile):
+                        fp.setAttribute("xil_pn:type", "FILE_UCF")
+                elif isinstance(f, CDCFile):
+                        fp.setAttribute("xil_pn:type", "FILE_CDC")
+                elif isinstance(f, NGCFile):
+                        fp.setAttribute("xil_pn:type", "FILE_NGC")
+                else:
+                    continue
 
-                    assoc = self.xml_doc.createElement("association");
-                    assoc.setAttribute("xil_pn:name", "Implementation");
+                assoc = self.xml_doc.createElement("association");
+                assoc.setAttribute("xil_pn:name", "Implementation");
+                assoc.setAttribute("xil_pn:seqID", str(self.files.index(f)+1));
 
-                    fp.appendChild(assoc)
-                    node.appendChild(fp);
+                try:
+                    if(f.library != "work"):
+                        lib = self.xml_doc.createElement("library");
+                        lib.setAttribute("xil_pn:name", f.library);
+                        fp.appendChild(lib)
+                except:
+                    pass
+
+                fp.appendChild(assoc)
+                node.appendChild(fp);
 
         def __output_bindings(self, node):
             from srcfile import CDCFile

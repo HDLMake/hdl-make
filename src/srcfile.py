@@ -240,9 +240,10 @@ class CDCFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
 
-class NGCFile(File):
+class NGCFile(SourceFile):
         def __init__(self, path):
-                File.__init__(self, path);
+                SourceFile.__init__(self, path);
+                self.dep_fixed = True
 
 class WBGenFile(File):
         def __init__(self, path):
@@ -289,10 +290,10 @@ class SourceFileSet(object):
                 return out
                 
         def inversed_filter(self, type):
-            out = []
+            out = SourceFileSet()
             for f in self.files:
                 if not isinstance(f,type):
-                    out.append(f)
+                    out.add(f)
             return out
 
         def get_libs(self):

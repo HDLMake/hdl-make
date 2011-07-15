@@ -59,7 +59,7 @@ class HdlmakeKernel(object):
                 print("#!UNFETCHED")
                 print(m.url+'\n')
             else:
-                print(m.path)
+                print(path.relpath(m.path))
                 if m.source in ["svn", "git"]:
                     print ("#"+m.url)
                 if not len(m.files):
@@ -159,16 +159,19 @@ class HdlmakeKernel(object):
         from dep_solver import DependencySolver
         from srcfile import IDependable
         from flow import ISEProject
+        from srcfile import SourceFileSet
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
         non_dependable = fileset.inversed_filter(IDependable)
-        fileset = solver.solve(fileset)
-        fileset.add(non_dependable)
+        dependable = solver.solve(fileset)
+        all = SourceFileSet()
+        all.add(non_dependable)
+        all.add(dependable)
 
         prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
-        prj.add_files(fileset)
-        prj.add_libs(fileset.get_libs())
+        prj.add_files(all)
+        prj.add_libs(all.get_libs())
         prj.load_xml(top_mod.syn_project)
         prj.emit_xml(top_mod.syn_project)
 

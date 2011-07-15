@@ -114,9 +114,8 @@ class DependencySolver:
 
                     if k:
                         done = False
-                        fset[idx] = (fset[idx], fset[k])
-                        fset[k] = fset[idx][0]
-                        fset[idx] = fset[idx][1]
+                        #swap
+                        fset[idx], fset[k] = fset[k], fset[idx]
 
         if(n_iter == max_iter):
             p.rawprint("Maximum number of iterations reached when trying to solve the dependencies."+
