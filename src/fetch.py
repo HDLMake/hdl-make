@@ -89,6 +89,7 @@ class ModulePool(list):
             url, rev = self.__parse_repo_url(module.url)
 
             basename = path.url_basename(url)
+            path = os.path.join(module.fetchto, basename)
 
             if basename.endswith(".git"):
                 basename = basename[:-4] #remove trailing .git
@@ -99,10 +100,11 @@ class ModulePool(list):
                 update_only = False
 
             if update_only:
-                cmd = "git --git-dir="+os.path.join(module.fetchto, basename)+"/.git pull"
+                cmd = "(cd "+path+" && git pull)"
             else:
                 os.chdir(module.fetchto)
                 cmd = "git clone " + url
+                os.chdir(cur_dir)
 
             rval = True
 
@@ -110,10 +112,8 @@ class ModulePool(list):
             if os.system(cmd) != 0:
                 rval = False
 
-            os.chdir(cur_dir)
-
             if rev and rval:
-                os.chdir(os.path.join(module.fetchto, basename))
+                os.chdir(path)
                 cmd = "git checkout " + rev
                 p.vprint(cmd)
                 if os.system(cmd) != 0:
@@ -122,7 +122,7 @@ class ModulePool(list):
 
             module.isfetched = True
             module.revision = rev
-            module.path = os.path.join(module.fetchto, basename)
+            module.path = path
             return rval
 
         def __parse_repo_url(self, url) :
