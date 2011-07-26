@@ -25,10 +25,11 @@ import msg as p
 from makefile_writer import MakefileWriter
 
 class HdlmakeKernel(object):
-    def __init__(self, modules_pool, connection):
+    def __init__(self, modules_pool, connection, options):
         self.modules_pool = modules_pool
         self.connection = connection
         self.make_writer = MakefileWriter("Makefile")
+        self.options = options
 
     @property
     def top_module(self):
@@ -91,8 +92,10 @@ class HdlmakeKernel(object):
 
     def generate_ise_makefile(self):
         p.rawprint("Generating makefile for local synthesis...")
-        ise = self.__check_ise_version()
-        self.make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(), ise=ise)
+
+        ise_path = self.__figure_out_ise_path()
+
+        self.make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(), ise_path=ise_path)
 
     def generate_remote_synthesis_makefile(self):
         from srcfile import SourceFileFactory
@@ -104,8 +107,9 @@ class HdlmakeKernel(object):
         if not os.path.exists(top_mod.fetchto):
             p.echo("There are no modules fetched. Are you sure it's correct?")
 
+        ise_path = self.__figure_out_ise_path()
         tcl = self.__search_tcl_file()
-        ise = self.__check_ise_version()
+
         if tcl == None:
             self.__generate_tcl()
             tcl = "run.tcl"
@@ -116,7 +120,7 @@ class HdlmakeKernel(object):
         files.add(sff.new(top_mod.syn_project))
 
         self.make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name, 
-        cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server, ise=ise)
+        cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server, ise_path=ise_path)
 
     def generate_ise_project(self):
         p.rawprint("Generating/updating ISE project...")
@@ -132,6 +136,25 @@ class HdlmakeKernel(object):
             self.__update_existing_ise_project(ise=ise)
         else:
             self.__create_new_ise_project(ise=ise)
+
+    def __figure_out_ise_path(self):
+        import path
+        if self.options.force_ise != None:
+            if self.options.force_ise == 0:
+                ise = self.__check_ise_version()
+            else:
+                ise = self.options.force_ise
+        else:
+            ise = 0
+
+        try:
+            ise_path = path.ise_path_32[str(ise)]+'/'
+        except KeyError:
+            if ise != 0:
+                ise_path = "/opt/Xilinx/"+str(ise)+"/ISE_DS/ISE/bin/lin/"
+            else:
+                ise_path = ""
+        return ise_path
 
     def __is_xilinx_screwed(self):
         if self.__check_ise_version() == None:

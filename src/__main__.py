@@ -70,6 +70,10 @@ def main():
     parser.add_option("--synth-user", dest="synth_user",
     default=None, help="use given USER for remote synthesis", metavar="USER")
 
+    parser.add_option("--force-ise", dest="force_ise",
+    default=None, type=float, help="""force given ISE version to be used in synthesis,
+use 0 for current version""", metavar="ISE")
+
     parser.add_option("--py", dest="arbitrary_code",
     default="", help="add arbitrary code to all manifests' evaluation")
 
@@ -100,7 +104,7 @@ def main():
     ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
 
     from hdlmake_kernel import HdlmakeKernel
-    kernel = HdlmakeKernel(modules_pool=pool, connection=ssh)
+    kernel = HdlmakeKernel(modules_pool=pool, connection=ssh, options=options)
 
     if options.fetch == True:
         kernel.fetch()

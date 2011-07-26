@@ -57,7 +57,7 @@ class MakefileWriter(object):
         self._file.close()
         self._file = open(filename, "w")
 
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise):
+    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise_path):
         import path 
         if name == None:
             import random
@@ -113,11 +113,8 @@ endif
         tcl = "run.tcl"
         synthesis_cmd = "__do_synthesis:\n\t\t"
         synthesis_cmd += "ssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && {0}xtclsh {1}'"
+        self.writeln(synthesis_cmd.format(ise_path, tcl))
 
-        try:
-            self.writeln(synthesis_cmd.format(path.ise_path_32[str(ise)]+'/', tcl))
-        except KeyError:
-            self.writeln(synthesis_cmd.format("", tcl))
         self.writeln()
  
         send_back_cmd = "__send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
@@ -132,7 +129,7 @@ endif
     def generate_quartus_makefile(self, top_mod):
         pass
 
-    def generate_ise_makefile(self, top_mod, ise):
+    def generate_ise_makefile(self, top_mod, ise_path):
         import path 
         mk_text = """PROJECT := """ + top_mod.syn_project + """
 ISE_CRAP := \
@@ -187,7 +184,7 @@ local:
 \t\techo "project open $(PROJECT)" > run.tcl
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
 """
-        xtcl = "\t\txtclsh run.tcl"
+
         mk_text2 = """
 #target for cleaing all intermediate stuff
 clean:
@@ -201,7 +198,10 @@ mrproper:
 """
         self.initialize()
         self.write(mk_text)
-        self.writeln(xtcl)
+
+        xtcl_tmp = "\t\t{0}xtclsh run.tcl"
+        self.writeln(xtcl_tmp.format(ise_path))
+        self.writeln()
         self.write(mk_text2)
 
     def generate_fetch_makefile(self, modules_pool):
