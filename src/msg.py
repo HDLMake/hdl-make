@@ -28,7 +28,7 @@ import pprint as prettyprinter
 
 t0 = time.time()
 
-def rawprint(msg):
+def rawprint(msg = ""):
     print(msg)
 
 def echo(msg):

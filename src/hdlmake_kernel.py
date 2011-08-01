@@ -22,6 +22,7 @@
 
 import os
 import msg as p
+from help_printer import HelpPrinter as hp
 from makefile_writer import MakefileWriter
 
 class HdlmakeKernel(object):
@@ -49,8 +50,7 @@ class HdlmakeKernel(object):
             self.generate_remote_synthesis_makefile()
             self.generate_fetch_makefile()
         else:
-            p.rawprint("Unrecognized action: " + str(tm.action))
-            p.rawprint("Allowed actions are:\n\tsimulation\n\tsynthesis")
+            hp.print_action_help()
             quit()
 
     def list_modules(self):
@@ -222,7 +222,6 @@ class HdlmakeKernel(object):
         prj.add_property(ISEProjectProperty("Device Family", "Spartan6"))
         prj.add_property(ISEProjectProperty("Speed Grade", top_mod.syn_grade))
         prj.add_property(ISEProjectProperty("Package", top_mod.syn_package))
-        #    prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
         prj.add_property(ISEProjectProperty("Enable Multi-Threading", "2"))
         prj.add_property(ISEProjectProperty("Enable Multi-Threading par", "4"))
         prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
@@ -305,7 +304,7 @@ class HdlmakeKernel(object):
     def clean_modules(self):
         for m in self.modules_pool:
             if m.source in ["svn", "git"]:
-                m.remove()
+                m.remove_dir_from_disk()
 
     def generate_fetch_makefile(self):
         pool = self.modules_pool

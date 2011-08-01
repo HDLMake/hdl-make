@@ -47,22 +47,22 @@ def main():
     default=None, help="generate a makefile for remote synthesis")
 
     parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
-    help="fetch and/or update remote modules listed in Manifet")
+    default=None, help="fetch and/or update remote modules listed in Manifet")
 
     parser.add_option("--clean", action="store_true", dest="clean",
-    help="remove all modules fetched for this one")
+    default=None, help="remove all modules fetched for this one")
 
     parser.add_option("--list", action="store_true", dest="list",
-    help="List all modules togather with their files")
+    default=None, help="List all modules togather with their files")
 
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
-    help="create/update an ise project including list of project files")
+    default=None, help="create/update an ise project including list of project files")
 
     parser.add_option("-l", "--synthesize-locally", dest="local",
-    action="store_true", help="perform a local synthesis")
+    default=None, action="store_true", help="perform a local synthesis")
 
     parser.add_option("-r", "--synthesize-remotelly", dest="remote",
-    action="store_true", help="perform a remote synthesis")
+    default=None, action="store_true", help="perform a remote synthesis")
 
     parser.add_option("--synth-server", dest="synth_server",
     default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
@@ -106,29 +106,30 @@ use 0 for current version""", metavar="ISE")
     from hdlmake_kernel import HdlmakeKernel
     kernel = HdlmakeKernel(modules_pool=pool, connection=ssh, options=options)
 
-    if options.fetch == True:
+    if options.fetch:
         kernel.fetch()
-    elif options.local == True:
+    elif options.local:
         kernel.run_local_synthesis()
-    elif options.remote == True:
+    elif options.remote:
         kernel.run_remote_synthesis()
-    elif options.make_sim == True:
+    elif options.make_sim:
         kernel.generate_modelsim_makefile()
-    elif options.ise_proj == True:
+    elif options.ise_proj:
         kernel.generate_ise_project()
-    elif options.make_fetch == True:
+    elif options.make_fetch:
         kernel.generate_fetch_makefile()
-    elif options.make_ise == True:
+    elif options.make_ise:
         kernel.generate_ise_makefile()
-    elif options.make_remote == True:
+    elif options.make_remote:
         kernel.generate_remote_synthesis_makefile()
-    elif options.list == True:
+    elif options.list:
         kernel.list_modules()
-    elif options.clean == True:
+    elif options.clean:
         kernel.clean_modules()
     else:
         p.echo("Running automatic flow")
         kernel.run()
+    p.echo("Done.")
 
 if __name__ == "__main__":
     main()

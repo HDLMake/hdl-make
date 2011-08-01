@@ -47,7 +47,6 @@ class Module(object):
             return path.url_basename(self.url)
 
     def __init__(self, parent, url, source, fetchto, pool):
-        #self.options = ManifestOptions()
         self.fetchto = fetchto
         self.pool = pool
         self.source = source
@@ -126,7 +125,7 @@ class Module(object):
             sth = []
         return sth
 
-    def remove(self):
+    def remove_dir_from_disk(self):
         if not self.isfetched:
             return
 
@@ -330,7 +329,6 @@ class Module(object):
 
     def build_global_file_list(self):
         f_set = SourceFileSet()
-#        self.create_flat_file_list();
         modules = self.make_list_of_modules()
         for m in modules:
             f_set.add(m.files);
