@@ -106,29 +106,31 @@ use 0 for current version""", metavar="ISE")
     from hdlmake_kernel import HdlmakeKernel
     kernel = HdlmakeKernel(modules_pool=pool, connection=ssh, options=options)
 
-    if options.fetch:
-        kernel.fetch()
-    elif options.local:
-        kernel.run_local_synthesis()
-    elif options.remote:
-        kernel.run_remote_synthesis()
-    elif options.make_sim:
-        kernel.generate_modelsim_makefile()
-    elif options.ise_proj:
-        kernel.generate_ise_project()
-    elif options.make_fetch:
-        kernel.generate_fetch_makefile()
-    elif options.make_ise:
-        kernel.generate_ise_makefile()
-    elif options.make_remote:
-        kernel.generate_remote_synthesis_makefile()
-    elif options.list:
-        kernel.list_modules()
-    elif options.clean:
-        kernel.clean_modules()
-    else:
+    options_kernel_mapping = {
+        "fetch" : "fetch",
+        "make_sim" : "generate_modelsim_makefile",
+        "ise_proj" : "generate_ise_project",
+        "local" : "run_local_synthesis",
+        "remote": "run_remote_synthesis",
+        "make_fetch": "generate_fetch_makefile",
+        "make_ise" : "generate_ise_makefile",
+        "make_remote" : "generate_remote_synthesis_makefile",
+        "list" : "list_modules",
+        "clean" : "clean_modules"
+    }
+
+    sth_chosen = False
+    for option, function in options_kernel_mapping.items():
+        try:
+            is_set = getattr(options,option)
+            if is_set:
+                getattr(kernel, function)()
+            sth_chosen = True
+        except Exception,e :
+            print e
+
+    if not sth_chosen:
         kernel.run()
-    p.rawprint("Done.")
 
 if __name__ == "__main__":
     main()
