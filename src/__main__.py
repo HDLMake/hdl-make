@@ -127,9 +127,8 @@ use 0 for current version""", metavar="ISE")
     elif options.clean:
         kernel.clean_modules()
     else:
-        p.echo("Running automatic flow")
         kernel.run()
-    p.echo("Done.")
+    p.rawprint("Done.")
 
 if __name__ == "__main__":
     main()

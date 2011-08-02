@@ -44,10 +44,6 @@ class ModulePool(list):
 
             module.parse_manifest()
 
-#            if module.root_module != None:
-#                p.vprint("Encountered root manifest: " + str(module.root_module))
-#                new_modules.append(module.root_module)
-
             new_modules.extend(module.local)
             new_modules.extend(module.svn)
             new_modules.extend(module.git)
@@ -60,8 +56,6 @@ class ModulePool(list):
             cur_dir = os.getcwd()
             os.chdir(module.fetchto)
             url, rev = self.__parse_repo_url(module.url)
-
-            #basename = path.svn_basename(url)
 
             cmd = "svn checkout {0} " + module.basename
             if rev:
@@ -100,11 +94,11 @@ class ModulePool(list):
                 update_only = False
 
             if update_only:
-                cmd = "(cd "+mod_path+" && git pull)"
+                cmd = "(cd {0} && git pull)"
+                cmd = cmd.format(mod_path)
             else:
-                os.chdir(module.fetchto)
-                cmd = "git clone " + url
-                os.chdir(cur_dir)
+                cmd = "(cd {0} && git clone {1})"
+                cmd = cmd.format(module.fetchto, url)
 
             rval = True
 
@@ -144,28 +138,15 @@ class ModulePool(list):
     #end class ModuleFetcher
     def __init__(self):
         self.top_module = None 
-        self.modules = []
 
     def get_fetchable_modules(self):
-        return [m for m in self.modules if m.source != "local"]
-
-    def __iter__(self):
-        return self.modules.__iter__()
-
-    def __len__(self):
-        return len(self.modules)
-
-    def __contains__(self,v):
-        return v in self.modules
-
-    def __getitem__(self,v):
-        return self.modules[v]
+        return [m for m in self if m.source != "local"]
 
     def __str__(self):
-        return str([str(m) for m in self.modules])
+        return str([str(m) for m in self])
 
     def __contains(self, module):
-        for mod in self.modules:
+        for mod in self:
             if mod.url == module.url:
                 return True
         return False
@@ -176,8 +157,8 @@ class ModulePool(list):
         
     def Module(self, parent, url, source, fetchto):
         from module import Module
-        if url in [m.url for m in self.modules]:
-            return [m for m in self.modules if m.url == url][0]
+        if url in [m.url for m in self]:
+            return [m for m in self if m.url == url][0]
         else:
             new_module = Module(parent=parent, url=url, source=source, fetchto=fetchto, pool=self)
             self.add(new_module)
@@ -188,17 +169,16 @@ class ModulePool(list):
         if not isinstance(new_module, Module):
             raise RuntimeError("Expecting a Module instance")
         if self.__contains(new_module):
-            return
+            return False
         if new_module.isfetched:
             for mod in new_module.submodules():
                 self.add(mod)
-        self.modules.append(new_module)
+        self.append(new_module)
         return True
 
     def fetch_all(self, unfetched_only = False):
         fetcher = self.ModuleFetcher()
-        from copy import copy
-        fetch_queue = copy(self.modules)
+        fetch_queue = list(self)
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
@@ -220,7 +200,7 @@ class ModulePool(list):
     def build_global_file_list(self):
         from srcfile import SourceFileSet
         ret = SourceFileSet()
-        for m in self.modules:
+        for m in self:
             ret.add(m.files)
         return ret
 
@@ -252,11 +232,7 @@ class ModulePool(list):
         return self.top_module
 
     def is_everything_fetched(self):
-        #for mod in self.modules:
-        #    if mod.is_fetched_recursively() == False:
-        #        return False
-        #return True
-        if len([m for m in self.modules if not m.isfetched]) == 0:
+        if len([m for m in self if not m.isfetched]) == 0:
             return True
         else:
             return False
