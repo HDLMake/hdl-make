@@ -245,13 +245,12 @@ mrproper:
         from srcfile import VerilogFile, VHDLFile
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
-WORK_NAME := work
 
 MODELSIM_INI_PATH := """ + self.__modelsim_ini_path() + """
 
-VCOM_FLAGS := -nologo -quiet -modelsimini ./modelsim.ini
+VCOM_FLAGS := -quiet -modelsimini modelsim.ini
 VSIM_FLAGS := 
-VLOG_FLAGS := -nologo -quiet -sv -modelsimini $(PWD)/modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
+VLOG_FLAGS := -quiet -modelsimini modelsim.ini -sv""" + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """ 
         make_preambule_p2 = """## rules #################################
 sim: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
@@ -261,7 +260,7 @@ $(VHDL_OBJ): $(LIB_IND) modelsim.ini
 modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
 \t\tcp $< .
 clean:
-\t\trm -rf ./modelsim.ini $(LIBS) $(WORK_NAME)
+\t\trm -rf ./modelsim.ini $(LIBS)
 .PHONY: clean
 
 """
@@ -317,13 +316,13 @@ clean:
 
         #rules for all _primary.dat files for sv
         for vl in fileset.filter(VerilogFile):
-            self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_sv")+': ')
+            self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
             self.write(vl.rel_path() + ' ')
             self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
             self.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" ")
-            self.write(vl.vlog_opt+" $<")
-            self.write(" && mkdir -p "+os.path.join(vl.library+'/'+vl.purename) )
-            self.write(" && touch "+ os.path.join(vl.library, vl.purename, '.'+vl.purename+"_sv")+'\n\n')
+            self.writeln(vl.vlog_opt+" $<")
+            self.write("\t\t@mkdir -p $(dir $@)")
+            self.writeln(" && touch $@ \n\n")
         self.write("\n")
 
         #list rules for all _primary.dat files for vhdl
@@ -331,10 +330,10 @@ clean:
             lib = vhdl.library
             purename = vhdl.purename 
             #each .dat depends on corresponding .vhd file
-            self.write(os.path.join(lib, purename, "."+purename+"_vhd") + ": "+vhdl.rel_path()+'\n')
-            self.write(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, vhdl.rel_path(),
-            "&&", "mkdir -p", os.path.join(lib, purename), "&&", "touch", os.path.join(lib, purename, '.'+ purename+"_vhd"), '\n']))
-            self.write('\n')
+            self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+vhdl.rel_path()+'\n')
+            self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
+            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
+            self.writeln()
             if len(vhdl.dep_depends_on) != 0:
                 self.write(os.path.join(lib, purename, "."+purename) +":")
                 for dep_file in vhdl.dep_depends_on:
