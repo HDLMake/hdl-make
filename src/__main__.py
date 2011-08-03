@@ -106,29 +106,36 @@ use 0 for current version""", metavar="ISE")
     from hdlmake_kernel import HdlmakeKernel
     kernel = HdlmakeKernel(modules_pool=pool, connection=ssh, options=options)
 
-    if options.fetch:
-        kernel.fetch()
-    elif options.local:
-        kernel.run_local_synthesis()
-    elif options.remote:
-        kernel.run_remote_synthesis()
-    elif options.make_sim:
-        kernel.generate_modelsim_makefile()
-    elif options.ise_proj:
-        kernel.generate_ise_project()
-    elif options.make_fetch:
-        kernel.generate_fetch_makefile()
-    elif options.make_ise:
-        kernel.generate_ise_makefile()
-    elif options.make_remote:
-        kernel.generate_remote_synthesis_makefile()
-    elif options.list:
-        kernel.list_modules()
-    elif options.clean:
-        kernel.clean_modules()
-    else:
-        kernel.run()
-    p.rawprint("Done.")
+    import traceback
+    try:
+        if options.fetch:
+            kernel.fetch()
+        elif options.local:
+            kernel.run_local_synthesis()
+        elif options.remote:
+            kernel.run_remote_synthesis()
+        elif options.make_sim:
+            kernel.generate_modelsim_makefile()
+        elif options.ise_proj:
+            kernel.generate_ise_project()
+        elif options.make_fetch:
+            kernel.generate_fetch_makefile()
+        elif options.make_ise:
+            kernel.generate_ise_makefile()
+        elif options.make_remote:
+            kernel.generate_remote_synthesis_makefile()
+        elif options.list:
+            kernel.list_modules()
+        elif options.clean:
+            kernel.clean_modules()
+        else:
+            kernel.run()
+        p.rawprint("Done.")
+    except IndexError:
+        p.rawprint("Ooops.. An error has occured. Sorry.")
+        p.rawprint("Here is some debugging info")
+        traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()

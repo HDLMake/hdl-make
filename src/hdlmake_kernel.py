@@ -37,7 +37,8 @@ class HdlmakeKernel(object):
         return self.modules_pool.get_top_module()
 
     def run(self):
-        p.echo("Running automatic flow")
+        p.rawprint("Running automatic flow\n")
+
         tm = self.top_module
 
         if not self.modules_pool.is_everything_fetched():
