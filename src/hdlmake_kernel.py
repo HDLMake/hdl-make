@@ -218,17 +218,11 @@ class HdlmakeKernel(object):
         prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
+        prj.add_initial_properties(syn_device=top_mod.syn_device,
+            syn_grade = top_mod.syn_grade,
+            syn_package = top_mod.syn_package,
+            syn_top = top_mod.syn_top)
 
-        prj.add_property(ISEProjectProperty("Device", top_mod.syn_device))
-        prj.add_property(ISEProjectProperty("Device Family", "Spartan6"))
-        prj.add_property(ISEProjectProperty("Speed Grade", top_mod.syn_grade))
-        prj.add_property(ISEProjectProperty("Package", top_mod.syn_package))
-        prj.add_property(ISEProjectProperty("Enable Multi-Threading", "2"))
-        prj.add_property(ISEProjectProperty("Enable Multi-Threading par", "4"))
-        prj.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+top_mod.syn_top))
-        prj.add_property(ISEProjectProperty("Manual Implementation Compile Order", "true"))
-        prj.add_property(ISEProjectProperty("Auto Implementation Top", "false"))
-        prj.add_property(ISEProjectProperty("Implementation Top Instance Path", "/"+top_mod.syn_top))
         prj.emit_xml(top_mod.syn_project)
 
     def run_local_synthesis(self):
@@ -243,7 +237,6 @@ class HdlmakeKernel(object):
     def run_remote_synthesis(self):
         from srcfile import SourceFileFactory
         ssh = self.connection
-        tm = self.modules_pool.get_top_module()
         cwd = os.getcwd()
 
         p.vprint("The program will be using ssh connection: "+str(ssh))
@@ -251,7 +244,7 @@ class HdlmakeKernel(object):
             p.echo("SSH connection failure. Remote host doesn't response.")
             quit()
 
-        if not os.path.exists(tm.fetchto):
+        if not os.path.exists(self.top_module.fetchto):
             p.echo("There are no modules fetched. Are you sure it's correct?")
 
         files = self.modules_pool.build_very_global_file_list()
@@ -262,9 +255,9 @@ class HdlmakeKernel(object):
 
         sff = SourceFileFactory()
         files.add(sff.new(tcl))
-        files.add(sff.new(tm.syn_project))
+        files.add(sff.new(self.top_module.syn_project))
 
-        dest_folder = ssh.transfer_files_forth(files, dest_folder=tm.syn_name)
+        dest_folder = ssh.transfer_files_forth(files, dest_folder=self.top_module.syn_name)
         syn_cmd = "cd "+dest_folder+cwd+" && xtclsh run.tcl"
 
         p.vprint("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
@@ -296,9 +289,8 @@ class HdlmakeKernel(object):
         return tcls[0]
 
     def __generate_tcl(self):
-        tm = self.modules_pool.get_top_module()
         f = open("run.tcl","w");
-        f.write("project open " + tm.syn_project + '\n')
+        f.write("project open " + self.top_module.syn_project + '\n')
         f.write("process run {Generate Programming File} -force rerun_all\n")
         f.close()
 

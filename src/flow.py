@@ -42,7 +42,6 @@ class ISEProjectProperty:
 
                 return prop
 
-
 class ISEProject:
         class FakeFile(list):
             def __init__(self):
@@ -91,6 +90,18 @@ class ISEProject:
 
         def add_property(self, prop):
                 self.props.append(prop)
+
+        def add_initial_properties(self, syn_device, syn_grade, syn_package, syn_top):
+            self.add_property(ISEProjectProperty("Device", syn_device))
+            self.add_property(ISEProjectProperty("Device Family", "Spartan6"))
+            self.add_property(ISEProjectProperty("Speed Grade", syn_grade))
+            self.add_property(ISEProjectProperty("Package", syn_package))
+            self.add_property(ISEProjectProperty("Enable Multi-Threading", "2"))
+            self.add_property(ISEProjectProperty("Enable Multi-Threading par", "4"))
+            self.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+syn_top))
+            self.add_property(ISEProjectProperty("Manual Implementation Compile Order", "true"))
+            self.add_property(ISEProjectProperty("Auto Implementation Top", "false"))
+            self.add_property(ISEProjectProperty("Implementation Top Instance Path", "/"+syn_top))
 
         def __parse_props(self):
                 for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):

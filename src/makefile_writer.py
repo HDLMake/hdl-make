@@ -280,7 +280,7 @@ clean:
             #the compilation process fails) and add an ending according to file's
             #extension (.sv and .vhd files may have the same corename and this
             #causes a mess
-            self.write(os.path.join(vl.library, vl.purename, "."+vl.purename+"_sv") + " \\\n")
+            self.write(os.path.join(vl.library, vl.purename, "."+vl.purename+"_"+vl.extension()) + " \\\n")
         self.write('\n')
 
         libs = set(f.library for f in fileset.files)
