@@ -21,10 +21,11 @@ SRC := configparser.py connection.py dep_solver.py fetch.py\
 flow.py global_mod.py hdlmake_kernel.py help_printer.py helper_classes.py\
 __main__.py makefile_writer.py module.py msg.py path.py\
 srcfile.py
+PREFIX := ./
 
 ARCH := hdlmake
 
-../$(ARCH): $(SRC)
+../$(ARCH): $(foreach src, $(SRC), $(PREFIX)$(src))
 	zip $(ARCH) $(SRC)
 	echo '#!/usr/bin/python' > ../$(ARCH)
 	cat $(ARCH).zip >> ../$(ARCH)
@@ -34,8 +35,6 @@ ARCH := hdlmake
 push: ../$(ARCH) $(SRC)
 	cd .. && git push && cd src				
 
-check:
-	pyflakes $(SRC)
 clean:
 	(test -f ../$(ARCH) && rm ../$(ARCH)) || true
 	rm -f *~ *pyc
