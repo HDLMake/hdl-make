@@ -262,3 +262,42 @@ class ISEProject:
                 top_element.appendChild(self.xml_files)
                 top_element.appendChild(self.xml_bindings)
                 top_element.appendChild(version)
+
+class ModelsiminiReader(object):
+    def __init__(self, path = None):
+        if path == None:
+            path = self.modelsim_ini_dir() + "/modelsim.ini"
+        self.path = path
+
+    def get_libraries(self):
+        import re
+        new_section = "\[[^\[\]]+\]"
+        libs = []
+
+        ini = open(self.path, "r")
+        reading_libraries = False
+        for line in ini:
+            line = line.split(";")[0]
+            line = line.strip()
+            if line == "": continue
+            if line.lower() == "[library]":
+                reading_libraries = True
+                continue
+            if re.search(new_section, line):
+                if reading_libraries == True:
+                    #reading_libraries = False
+                    break
+                else:
+                    continue
+            if reading_libraries:
+                line = line.split('=')
+                lib = line[0].strip()
+                libs.append(lib.lower())
+        return libs
+
+    @staticmethod
+    def modelsim_ini_dir():
+        import os
+        vsim_path = os.popen("which vsim").read().strip()
+        bin_path = os.path.dirname(vsim_path)
+        return os.path.abspath(bin_path+"/../")

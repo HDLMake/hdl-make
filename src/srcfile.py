@@ -128,7 +128,8 @@ class VHDLFile(SourceFile):
 
                 """
                 import re
-                std_libs = ['ieee', 'altera_mf', 'cycloneiii', 'lpm', 'std', 'unisim', 'XilinxCoreLib', 'simprims']
+                from flow import ModelsiminiReader
+                std_libs = ModelsiminiReader().get_libraries()
 
                 f = open(self.path, "r")
                 try:

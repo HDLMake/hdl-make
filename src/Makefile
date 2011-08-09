@@ -32,8 +32,5 @@ ARCH := hdlmake
 	rm $(ARCH).zip
 	chmod +x ../$(ARCH)
 
-push: ../$(ARCH) $(SRC)
-	cd .. && git push && cd src				
-
 clean:
-	rm -f *~ *pyc
+	rm -f $(PREFIX)*~ $(PREFIX)*pyc

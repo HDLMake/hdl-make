@@ -244,10 +244,11 @@ mrproper:
 
     def generate_modelsim_makefile(self, fileset, top_module):
         from srcfile import VerilogFile, VHDLFile
+        from flow import ModelsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
 
-MODELSIM_INI_PATH := """ + self.__modelsim_ini_path() + """
+MODELSIM_INI_PATH := """ + ModelsiminiReader.modelsim_ini_dir() + """
 
 VCOM_FLAGS := -quiet -modelsimini modelsim.ini
 VSIM_FLAGS := 
