@@ -131,61 +131,61 @@ endif
 
     def generate_ise_makefile(self, top_mod, ise_path):
         import path 
-        mk_text = """PROJECT := """ + top_mod.syn_project + """
+        mk_text = """PROJECT := {1}
 ISE_CRAP := \
-*.bgn \
-*.html \
+*.b \
+{0}_summary.html \
 *.tcl \
-*.bld \
-*.cmd_log \
+{0}.bld \
+{0}.cmd_log \
 *.drc \
-*.lso \
+{0}.lso \
 *.ncd \
-*.ngc \
-*.ngd \
-*.ngr \
-*.pad \
-*.par \
-*.pcf \
-*.prj \
-*.ptwx \
-*.stx \
-*.syr \
-*.twr \
-*.twx \
-*.gise \
-*.unroutes \
-*.ut \
-*.xpi \
-*.xst \
-*_bitgen.xwbt \
-*_envsettings.html \
-*_guide.ncd \
-*_map.map \
-*_map.mrp \
-*_map.ncd \
-*_map.ngm \
-*_map.xrpt \
-*_ngdbuild.xrpt \
-*_pad.csv \
-*_pad.txt \
-*_par.xrpt \
-*_summary.html \
-*_summary.xml \
-*_usage.xml \
-*_xst.xrpt \
+{0}.ngc \
+{0}.ngd \
+{0}.ngr \
+{0}.pad \
+{0}.par \
+{0}.pcf \
+{0}.prj \
+{0}.ptwx \
+{0}.stx \
+{0}.syr \
+{0}.twr \
+{0}.twx \
+{0}.gise \
+{0}.unroutes \
+{0}.ut \
+{0}.xpi \
+{0}.xst \
+{0}_bitgen.xwbt \
+{0}_envsettings.html \
+{0}_guide.ncd \
+{0}_map.map \
+{0}_map.mrp \
+{0}_map.ncd \
+{0}_map.ngm \
+{0}_map.xrpt \
+{0}_ngdbuild.xrpt \
+{0}_pad.csv \
+{0}_pad.txt \
+{0}_par.xrpt \
+{0}_summary.xml \
+{0}_usage.xml \
+{0}_xst.xrpt \
 usage_statistics_webtalk.html \
 webtalk.log \
 webtalk_pn.xml \
 run.tcl
-
+"""
+        mk_text2 = """
 #target for performing local synthesis
 local:
 \t\techo "project open $(PROJECT)" > run.tcl
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
 """
 
-        mk_text2 = """
+        mk_text3 = """
 #target for cleaing all intermediate stuff
 clean:
 \t\trm -f $(ISE_CRAP)
@@ -197,12 +197,13 @@ mrproper:
 
 """
         self.initialize()
-        self.write(mk_text)
+        self.write(mk_text.format(top_mod.syn_top, top_mod.syn_project))
 
         xtcl_tmp = "\t\t{0}xtclsh run.tcl"
+        self.write(mk_text2)
         self.writeln(xtcl_tmp.format(ise_path))
         self.writeln()
-        self.write(mk_text2)
+        self.write(mk_text3)
 
     def generate_fetch_makefile(self, modules_pool):
         rp = os.path.relpath

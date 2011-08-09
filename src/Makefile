@@ -36,5 +36,4 @@ push: ../$(ARCH) $(SRC)
 	cd .. && git push && cd src				
 
 clean:
-	(test -f ../$(ARCH) && rm ../$(ARCH)) || true
 	rm -f *~ *pyc
