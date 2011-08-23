@@ -53,9 +53,8 @@ class DependencySolver:
 
     def __find_provider_vhdl_file(self, files, req):
         for f in files:
-            if f.dep_provides:
-                if req in f.dep_provides:
-                    return f
+            if req in f.dep_provides:
+                return f
 
         return None
 
@@ -136,8 +135,7 @@ class DependencySolver:
                 for req in f.dep_requires:
                     pf = self.__find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
                     if not pf:
-                        p.rawprint("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
-                        quit()
+                        p.rawprint("ERROR: Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                     else:
                         p.vprint("--> " + pf.path);
                         if pf.path != f.path:
