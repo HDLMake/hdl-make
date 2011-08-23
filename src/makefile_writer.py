@@ -296,7 +296,7 @@ clean:
         self.write("VHDL_OBJ := ")
         for vhdl in fileset.filter(VHDLFile):
             #file compilation indicator (important: add _vhd ending)
-            self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename+"_vhd") + " \\\n")
+            self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename+"_"+vhdl.extension()) + " \\\n")
         self.write('\n')
 
         self.write('LIBS := ')
