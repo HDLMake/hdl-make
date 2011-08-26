@@ -243,7 +243,7 @@ mrproper:
                 self.write("cd $(PWD) \n\n")
 
     def generate_modelsim_makefile(self, fileset, top_module):
-        from srcfile import VerilogFile, VHDLFile
+        from srcfile import VerilogFile, VHDLFile, SVFile
         from flow import ModelsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
@@ -251,8 +251,8 @@ PWD := $(shell pwd)
 MODELSIM_INI_PATH := """ + ModelsiminiReader.modelsim_ini_dir() + """
 
 VCOM_FLAGS := -quiet -modelsimini modelsim.ini
-VSIM_FLAGS := 
-VLOG_FLAGS := -quiet -modelsimini modelsim.ini -sv""" + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
+VSIM_FLAGS :=
+VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """ 
         make_preambule_p2 = """## rules #################################
 sim: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
@@ -285,7 +285,7 @@ clean:
             self.write(os.path.join(vl.library, vl.purename, "."+vl.purename+"_"+vl.extension()) + " \\\n")
         self.write('\n')
 
-        libs = set(f.library for f in fileset.files)
+        libs = set(f.library for f in fileset)
 
         self.write("VHDL_SRC := ")
         for vhdl in fileset.filter(VHDLFile):
@@ -311,7 +311,7 @@ clean:
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
             self.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
-            lib, "&&", "touch", lib+"/."+lib,")"]))
+            lib, "./"+lib, "&&", "touch", lib+"/."+lib,")"]))
 
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
             self.write('\n')
@@ -321,7 +321,11 @@ clean:
             self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
             self.write(vl.rel_path() + ' ')
             self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
-            self.write("\t\tvlog -work "+vl.library+" $(VLOG_FLAGS) +incdir+"+rp(vl.dirname)+" ")
+            self.write("\t\tvlog -work "+vl.library)
+            self.write(" $(VLOG_FLAGS) ")
+            if isinstance(vl, SVFile):
+                self.write(" -sv ")
+            self.write("+incdir+"+rp(vl.dirname)+" ")
             self.writeln(vl.vlog_opt+" $<")
             self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")

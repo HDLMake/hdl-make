@@ -225,6 +225,10 @@ class VerilogFile(SourceFile):
             f.close()
             return ret
 
+class SVFile(VerilogFile):
+    def __init__(self, path, library = None, vlog_opt = None):
+        VerilogFile.__init__(self, path, library, vlog_opt)
+
 class UCFFile(File):
         def __init__(self, path):
                 File.__init__(self, path);
@@ -250,21 +254,9 @@ class WBGenFile(File):
         def __init__(self, path):
                 File.__init__(self, path);
 
-class SourceFileSet(object):
+class SourceFileSet(list):
         def __init__(self):
-                self.files = [];
-
-        def __iter__(self):
-                return self.files.__iter__()
-
-        def __len__(self):
-                return len(self.files)
-
-        def __contains__(self,v):
-                return v in self.files
-
-        def __getitem__(self,v):
-                return self.files[v]
+                self = [];
 
         def __str__(self):
                 return str([str(f) for f in self.files])
@@ -277,29 +269,29 @@ class SourceFileSet(object):
                 else:
                         try:
                                 for f in files:
-                                        if f not in self.files:
-                                                self.files.append(f)
+                                        if f not in self:
+                                                self.append(f)
                         except: #single file, not a list
-                                if files not in self.files:
-                                        self.files.append(files)
+                                if files not in self:
+                                        self.append(files)
 
         def filter(self, type):
-                out = []
-                for f in self.files:
+                out = SourceFileSet()
+                for f in self:
                         if isinstance(f, type):
-                                out.append(f)
+                                out.add(f)
                 return out
                 
         def inversed_filter(self, type):
             out = SourceFileSet()
-            for f in self.files:
+            for f in self:
                 if not isinstance(f,type):
                     out.add(f)
             return out
 
         def get_libs(self):
             ret = set()
-            for file in self.files:
+            for file in self:
                 try:
                     ret.add(file.library)
                 except:
@@ -319,8 +311,10 @@ class SourceFileFactory:
                 nf = None
                 if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
                         nf = VHDLFile(path, library, vcom_opt)
-                elif extension == 'v' or extension == 'sv' or extension == 'vh':
-                        nf = VerilogFile(path, library, vlog_opt);
+                elif extension == 'v' or extension == 'vh' or extension == 'vo':
+                        nf = VerilogFile(path, library, vlog_opt)
+                elif extension == 'sv':
+                        nf = SVFile(path, library, vlog_opt)
                 elif extension == 'ngc':
                         nf = NGCFile(path)
                 elif extension == 'ucf':
