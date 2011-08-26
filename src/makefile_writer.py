@@ -311,7 +311,7 @@ clean:
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
             self.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
-            lib, "./"+lib, "&&", "touch", lib+"/."+lib,")"]))
+            lib, "&&", "touch", lib+"/."+lib,")"]))
 
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
             self.write('\n')
