@@ -92,8 +92,15 @@ class ISEProject:
                 self.props.append(prop)
 
         def add_initial_properties(self, syn_device, syn_grade, syn_package, syn_top):
+            family_names = {
+              "XC6S" : "Spartan6",
+              "XC3S" : "Spartan3",
+              "XC6V" : "Virtex6",
+              "XC5V" : "Virtex5",
+              "XC4V" : "Virtex4" }
+							
             self.add_property(ISEProjectProperty("Device", syn_device))
-            self.add_property(ISEProjectProperty("Device Family", "Spartan6"))
+            self.add_property(ISEProjectProperty("Device Family", family_names[syn_device[0:4].upper()]))
             self.add_property(ISEProjectProperty("Speed Grade", syn_grade))
             self.add_property(ISEProjectProperty("Package", syn_package))
             self.add_property(ISEProjectProperty("Enable Multi-Threading", "2"))
