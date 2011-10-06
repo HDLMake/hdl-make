@@ -55,13 +55,12 @@ class ModulePool(list):
 
             cur_dir = os.getcwd()
             os.chdir(module.fetchto)
-            url, rev = self.__parse_repo_url(module.url)
 
             cmd = "svn checkout {0} " + module.basename
             if rev:
-                cmd = cmd.format(url + '@' + rev)
+                cmd = cmd.format(module.url + '@' + module.revision)
             else:
-                cmd = cmd.format(url)
+                cmd = cmd.format(module.url)
 
             rval = True
 
@@ -71,7 +70,6 @@ class ModulePool(list):
             os.chdir(cur_dir)
 
             module.isfetched = True
-            module.revision = rev
             module.path = os.path.join(module.fetchto, module.basename)
             return rval
 
@@ -80,9 +78,10 @@ class ModulePool(list):
                 os.mkdir(module.fetchto)
 
             cur_dir = os.getcwd()
-            url, rev = self.__parse_repo_url(module.url)
+            if module.branch == None:
+              module.branch = "master"
 
-            basename = path.url_basename(url)
+            basename = path.url_basename(module.url)
             mod_path = os.path.join(module.fetchto, basename)
 
             if basename.endswith(".git"):
@@ -94,11 +93,11 @@ class ModulePool(list):
                 update_only = False
 
             if update_only:
-                cmd = "(cd {0} && git pull)"
-                cmd = cmd.format(mod_path)
+                cmd = "(cd {0} && git checkout {1})"
+                cmd = cmd.format(mod_path, module.branch)
             else:
-                cmd = "(cd {0} && git clone {1})"
-                cmd = cmd.format(module.fetchto, url)
+                cmd = "(cd {0} && git clone -b {2} {1})"
+                cmd = cmd.format(module.fetchto, module.url, module.branch)
 
             rval = True
 
@@ -106,34 +105,17 @@ class ModulePool(list):
             if os.system(cmd) != 0:
                 rval = False
 
-            if rev and rval:
+            if module.revision and rval:
                 os.chdir(mod_path)
-                cmd = "git checkout " + rev
+                cmd = "git checkout " + module.revision
                 p.vprint(cmd)
                 if os.system(cmd) != 0:
                     rval = False
                 os.chdir(cur_dir)
 
             module.isfetched = True
-            module.revision = rev
             module.path = mod_path
             return rval
-
-        def __parse_repo_url(self, url) :
-            """
-            Check if link to a repo seems to be correct. Filter revision number
-            """
-            import re
-            url_pat = re.compile("[ \t]*([^ \t]+)[ \t]*(@[ \t]*(.+))?[ \t]*")
-            url_match = re.match(url_pat, url)
-
-            if url_match == None:
-                p.echo("Not a correct repo url: {0}. Skipping".format(url))
-            if url_match.group(3) != None: #there is a revision given 
-                ret = (url_match.group(1), url_match.group(3))
-            else:
-                ret = (url_match.group(1), None)
-            return ret
 
     #end class ModuleFetcher
     def __init__(self):

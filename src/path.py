@@ -20,6 +20,7 @@
 #
 
 import os
+import msg as p
 
 ise_path_64 = {
 "10.0":"/opt/Xilinx/10.0/ISE/bin/lin",
@@ -37,11 +38,37 @@ ise_path_32 = {"10.0":"/opt/Xilinx/10.0/ISE/bin/lin",
 "12.4":"/opt/Xilinx/12.4/ISE_DS/ISE/bin/lin64",
 "13.1":"/opt/Xilinx/13.1/ISE_DS/ISE/bin/lin64"}
  
+def url_parse(url):
+    """
+    Check if link to a repo seems to be correct. Filter revision number and branch
+    """
+    import re
+    print "<<<" + url
+    """url_pat = re.compile("[ \t]*([^ \t]+?)[ \t]*(::)?([^ \t@]+)?(@[ \t]*(.+))?[ \t]*")
+    url_match = re.match(url_pat, url)
+    if url_match == None:
+        p.echo("Not a correct repo url: {0}. Skipping".format(url))
+    url_clean = url_match.group(1)
+    if url_match.group(3) != None: #there is a branch
+      branch = url_match.group(3)
+    if url_match.group(5) != None: #there is a revision given 
+      rev = url_match.group(5)"""
+    url_clean, branch, rev = None, None, None
+    if "@@" in url:
+      url_clean, rev = url.split("@@")
+    elif "::" in url:
+      url_clean, branch = url.split("::")
+    else:
+      url_clean = url
+
+    print url_clean, branch, rev
+    return (url_clean, branch, rev)
 
 def url_basename(url):
     """
     Get basename from an url
     """
+
     if url.endswith(".git"):
         ret = os.path.basename(url[:-4])
     elif url[-1] == '/':

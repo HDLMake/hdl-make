@@ -47,6 +47,7 @@ class Module(object):
             return path.url_basename(self.url)
 
     def __init__(self, parent, url, source, fetchto, pool):
+        import path
         self.fetchto = fetchto
         self.pool = pool
         self.source = source
@@ -65,7 +66,10 @@ class Module(object):
         self.revision = None
         self._files = None
         self.manifest = None
-        self.url = url
+        if source != "local":
+            self.url, self.branch, self.revision = path.url_parse(url)
+        else:
+            self.url, self.branch, self.revision = url, None, None
 
         if source == "local" and not os.path.exists(url):
             p.rawprint("Path to the local module doesn't exist:\n" + url)
