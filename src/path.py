@@ -43,7 +43,6 @@ def url_parse(url):
     Check if link to a repo seems to be correct. Filter revision number and branch
     """
     import re
-    print "<<<" + url
     """url_pat = re.compile("[ \t]*([^ \t]+?)[ \t]*(::)?([^ \t@]+)?(@[ \t]*(.+))?[ \t]*")
     url_match = re.match(url_pat, url)
     if url_match == None:
