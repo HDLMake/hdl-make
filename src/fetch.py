@@ -57,7 +57,7 @@ class ModulePool(list):
             os.chdir(module.fetchto)
 
             cmd = "svn checkout {0} " + module.basename
-            if rev:
+            if module.revision:
                 cmd = cmd.format(module.url + '@' + module.revision)
             else:
                 cmd = cmd.format(module.url)
