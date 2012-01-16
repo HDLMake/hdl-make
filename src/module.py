@@ -161,6 +161,7 @@ class Module(object):
         if(self.parent != None):
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
             manifest_parser.add_arbitrary_code("action=\""+str(global_mod.top_module.action)+"\"")
+            manifest_parser.add_arbitrary_code("syn_device=\""+str(global_mod.top_module.syn_device)+"\"")
 
         manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
