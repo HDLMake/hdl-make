@@ -44,7 +44,7 @@ class IDependable:
         if self._dep_fixed == False:
             self.__create_deps()
         self._dep_fixed = True
-        return self.__dep_provides
+        return self.__dep_requires
 
     def set_dep_requires(self, what):
         self.__dep_requires = what
@@ -129,7 +129,6 @@ class DependencySolver:
         import copy
 
         fset = fileset.filter(IDependable);
-
         f_nondep = []
 
         done = False
@@ -157,7 +156,6 @@ class DependencySolver:
                 del f
 
         f_nondep.sort(key=lambda f: f.dep_index)
-
         from srcfile import VHDLFile, VerilogFile
         for f in [file for file in fset if isinstance(file, VHDLFile)]:
             p.vprint(f.path)
@@ -181,7 +179,7 @@ class DependencySolver:
                 for req in f.dep_requires:
                     pf = self.__find_provider_verilog_file(req, f)
                     if not pf:
-                        p.rawprint("Cannot find include for file "+str(f)+": "+req)
+                        p.rawprint("Cannot depending file for file "+str(f)+": "+req)
                     else:
                         p.vprint("--> " + pf.path)
                         f.dep_depends_on.append(pf)
