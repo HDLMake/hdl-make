@@ -53,7 +53,10 @@ def main():
     default=None, help="remove all modules fetched for this one")
 
     parser.add_option("--list", action="store_true", dest="list",
-    default=None, help="List all modules togather with their files")
+    default=None, help="List all modules together with their files")
+    
+    parser.add_option("--list-files", action="store_true", dest="list_files",
+    default=None, help="List all files in a from of a space-separated string")
 
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
     default=None, help="create/update an ise project including list of project files")
@@ -126,6 +129,8 @@ use 0 for current version""", metavar="ISE")
             kernel.generate_remote_synthesis_makefile()
         elif options.list:
             kernel.list_modules()
+        elif options.list_files:
+            kernel.list_files()
         elif options.clean:
             kernel.clean_modules()
         else:

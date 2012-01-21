@@ -96,7 +96,7 @@ class SourceFile(IDependable, File):
 class VHDLFile(SourceFile):
         def __init__(self, path, library = None, vcom_opt = None):
                 SourceFile.__init__(self, path, library);
-                self.__create_deps();
+                ##self.__create_deps();
                 if not vcom_opt:
                     self.vcom_opt = ""
                 else:
@@ -114,7 +114,7 @@ class VHDLFile(SourceFile):
         def __create_deps(self):
                 if self.__check_encryption():
                         self.dep_index = SourceFile.gen_index(self)
-                        self.dep_fixed = True
+                        self.__dep_fixed = True
                 else:
                         self.dep_requires = list(self.__search_use_clauses())
                         self.dep_provides = list(self.__search_packages())
@@ -248,7 +248,7 @@ class CDCFile(File):
 class NGCFile(SourceFile):
         def __init__(self, path):
                 SourceFile.__init__(self, path);
-                self.dep_fixed = True
+                self.__dep_fixed = True
 
 class WBGenFile(File):
         def __init__(self, path):

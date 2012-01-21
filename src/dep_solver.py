@@ -23,11 +23,41 @@ import msg as p
 
 class IDependable:
     def __init__(self):
-        self.dep_fixed = False;
         self.dep_index = 0;
-        self.dep_provides = [];
-        self.dep_requires = [];
-        self.dep_depends_on = [];
+        self.__dep_fixed = False;
+        self.__dep_provides = [];
+        self.__dep_requires = [];
+        self.__dep_depends_on = [];
+        pass
+##
+    #use proxy template here
+    def get_dep_provides(self):
+        if self.__dep_fixed == False:
+            self.__create_deps()
+        self.__dep_fixed = True
+        return self.__dep_provides
+    def set_dep_provides(self, what):
+        self.__dep_provides = what
+    dep_provides = property(get_dep_provides, set_dep_provides)
+##
+    def get_dep_requires(self):
+        if self.__dep_fixed == False:
+            self.__create_deps()
+        self.__dep_fixed = True
+        return self.__dep_provides
+
+    def set_dep_requires(self, what):
+        self.__dep_requires = what
+    dep_requires = property(get_dep_requires, set_dep_requires)
+##    
+    def get_dep_depends_on(self):
+        return self.__dep_depends_on
+    def set_dep_depends_on(self, what):
+        self.__dep_depends_on = what
+    dep_depends_on = property(get_dep_depends_on, set_dep_depends_on)
+##    
+    def __create_deps(self):
+        """Used solely for polymorphism"""
 
 class DependencySolver:
     def __init__(self):
@@ -107,7 +137,7 @@ class DependencySolver:
             n_iter = n_iter+1
             done = True
             for f in fset:
-                if not f.dep_fixed:
+                if not f.__dep_fixed:
                     idx = fset.index(f)
                     k = self.__lookup_post_provider(files=fset, start_index=idx, file=f);
 
@@ -122,7 +152,7 @@ class DependencySolver:
             return None
 
         for f in fset:
-            if f.dep_fixed:
+            if f.__dep_fixed:
                 f_nondep.append(copy.copy(f))
                 del f
 
@@ -162,11 +192,11 @@ class DependencySolver:
         newobj.add(f_nondep);
         for f in fset:
             try:
-                if not f.dep_fixed:
+                if not f.__dep_fixed:
                     newobj.add(f)
             except:
                 newobj.add(f)
 
         for k in newobj:
-            p.vprint(str(k.dep_index) + " " + k.path + str(k.dep_fixed))
+            p.vprint(str(k.dep_index) + " " + k.path + str(k.__dep_fixed))
         return newobj

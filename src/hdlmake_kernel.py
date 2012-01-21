@@ -70,7 +70,14 @@ class HdlmakeKernel(object):
                     for f in m.files:
                         print("   " + path.relpath(f.path, m.path))
                 print("")
-            
+    def list_files(self):
+        files_str = [] 
+        for m in self.modules_pool:
+            if not m.isfetched:
+                continue
+            files_str.append(" ".join([f.path for f in m.files]))
+        print(" ".join(files_str))
+
     def fetch(self, unfetched_only = False):
         p.rawprint("Fetching needed modules...")
         self.modules_pool.fetch_all(unfetched_only)
