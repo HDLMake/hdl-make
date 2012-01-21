@@ -131,7 +131,6 @@ class DependencySolver:
         import copy
 
         fset = fileset.filter(IDependable);
-
         f_nondep = []
 
         done = False
@@ -159,7 +158,6 @@ class DependencySolver:
                 del f
 
         f_nondep.sort(key=lambda f: f.dep_index)
-
         from srcfile import VHDLFile, VerilogFile
         for f in [file for file in fset if isinstance(file, VHDLFile)]:
             p.vprint(f.path)
@@ -183,7 +181,7 @@ class DependencySolver:
                 for req in f.dep_requires:
                     pf = self.__find_provider_verilog_file(req, f)
                     if not pf:
-                        p.warning("Cannot find include for file "+str(f)+": "+req)
+                        p.warning("Cannot find depending for file "+str(f)+": "+req)
                     else:
                         p.vprint("--> " + pf.path)
                         f.dep_depends_on.append(pf)
