@@ -281,7 +281,11 @@ class ModelsiminiReader(object):
         new_section = "\[[^\[\]]+\]"
         libs = []
 
-        ini = open(self.path, "r")
+        try:
+            ini = open(self.path, "r")
+        except Exception, e:
+            return []
+
         reading_libraries = False
         for line in ini:
             line = line.split(";")[0]
