@@ -114,7 +114,7 @@ class VHDLFile(SourceFile):
         def __create_deps(self):
                 if self.__check_encryption():
                         self.dep_index = SourceFile.gen_index(self)
-                        self.__dep_fixed = True
+                        self._dep_fixed = True
                 else:
                         self.dep_requires = list(self.__search_use_clauses())
                         self.dep_provides = list(self.__search_packages())
@@ -248,7 +248,7 @@ class CDCFile(File):
 class NGCFile(SourceFile):
         def __init__(self, path):
                 SourceFile.__init__(self, path);
-                self.__dep_fixed = True
+                self._dep_fixed = True
 
 class WBGenFile(File):
         def __init__(self, path):
