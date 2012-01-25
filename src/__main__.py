@@ -141,9 +141,12 @@ use 0 for current version""", metavar="ISE")
                 getattr(kernel, function)()
             sth_chosen = True
         except Exception,e :
+            p.print_version()
             print e
 
     if not sth_chosen:
+        p.rawprint("No option selected. Running automatic flow")
+        p.rawprint("To see some help, type hdlmake --help")
         kernel.run()
 
 if __name__ == "__main__":
