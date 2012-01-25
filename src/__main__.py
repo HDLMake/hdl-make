@@ -29,7 +29,10 @@ from module import Module
 from fetch import ModulePool
 
 def main():
-    parser = optparse.OptionParser()
+    usage = "usage: %prog [options]\n"
+    usage += "type %prog --help to get help message"
+    
+    parser = optparse.OptionParser(usage=usage)
 
     parser.add_option("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")
@@ -83,12 +86,19 @@ use 0 for current version""", metavar="ISE")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
     default="false", help="verbose mode")
 
+    parser.add_option("--version", dest="print_version", action="store_true",
+    default="false", help="print version id of this Hdlmake build")
+
     (options, args) = parser.parse_args()
     global_mod.options = options
 
+    #HANDLE PROJECT INDEPENDENT OPTIONS
     if options.manifest_help == True:
         from helper_classes import ManifestParser
-        ManifestParser().help()
+        ManifestParser().help() and quit()
+
+    if options.print_version == True:
+        p.print_version()
         quit()
 
     p.vprint("LoadTopManifest");
@@ -97,7 +107,8 @@ use 0 for current version""", metavar="ISE")
     pool.set_top_module(m)
 
     if m.manifest == None:
-        p.echo("No manifest found. At least an empty one is needed")
+        p.rawprint("No manifest found. At least an empty one is needed")
+        p.rawprint("To see some help, type hdlmake --help")
         quit()
     global_mod.top_module = m
     global_mod.top_module.parse_manifest()
@@ -130,9 +141,12 @@ use 0 for current version""", metavar="ISE")
                 getattr(kernel, function)()
             sth_chosen = True
         except Exception,e :
+            p.print_version()
             print e
 
     if not sth_chosen:
+        p.rawprint("No option selected. Running automatic flow")
+        p.rawprint("To see some help, type hdlmake --help")
         kernel.run()
 
 if __name__ == "__main__":

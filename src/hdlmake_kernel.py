@@ -22,7 +22,6 @@
 
 import os
 import msg as p
-from help_printer import HelpPrinter as hp
 from makefile_writer import MakefileWriter
 from flow import ISEProject
 from flow_altera import QuartusProject
@@ -39,8 +38,6 @@ class HdlmakeKernel(object):
         return self.modules_pool.get_top_module()
 
     def run(self):
-        p.rawprint("Running automatic flow\n")
-
         tm = self.top_module
 
         if not self.modules_pool.is_everything_fetched():
@@ -63,7 +60,7 @@ class HdlmakeKernel(object):
             else:
                 raise RuntimeError("Unrecognized target: "+tm.target)
         else:
-            hp.print_action_help() and quit()
+            p.print_action_help() and quit()
 
     def list_modules(self):
         import path
