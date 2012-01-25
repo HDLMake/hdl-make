@@ -298,7 +298,7 @@ class SourceFileSet(list):
                 self = [];
 
         def __str__(self):
-                return str([str(f) for f in self.files])
+                return str([str(f) for f in self])
 
         def add(self, files):
                 if isinstance(files, str):

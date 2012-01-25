@@ -44,8 +44,7 @@ def error(msg):
     rawprint("ERROR:   " + msg)
 
 def echo(msg):
-    global t0
-    print(("["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-t0) + "]: " + str(msg)))
+    rawprint(msg)
 
 def vprint(msg):
     if global_mod.options.verbose == True:
@@ -59,3 +58,18 @@ def vpprint(msg):
     if global_mod.options.verbose == True:
         pp = prettyprinter.PrettyPrinter(indent = 2)
         pp.pprint(msg)
+
+def print_version():
+    rawprint("Hdlmake build "+global_mod.BUILD_ID)
+
+def print_action_help():
+    rawprint("`Action' variable was not specified")
+    rawprint("Allowed values are: \"simulation\" or \"synthesis\"")
+    rawprint()
+    rawprint("This variable in a manifest file is necessary for Hdlmake " \
+    "to be able to know what to do with the given modules' structure.")
+    basic()
+
+def basic():
+    rawprint("For more help type `hdlmake --help' " \
+    "or visit http://www.ohwr.org/projects/hdl-make")

@@ -22,4 +22,7 @@
 options = None
 top_module = None
 global_target = "''"
-
+#######
+#this var is modified by the build makefile - DON'T TOUCH IT!
+BUILD_ID = "2012Jan24:c213be"
+######

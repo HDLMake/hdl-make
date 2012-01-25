@@ -158,6 +158,7 @@ class ConfigParser(object):
         self.description = description
         self.options = []
         self.arbitrary_code = ""
+        self.config_file = None
 
     def __setitem__(self, name, value):
         if name in self.__names():
@@ -214,16 +215,14 @@ class ConfigParser(object):
         self[name].allowed_keys.append(key)
 
     def add_config_file(self, config_file):
-        try:
-            self.file #check if there is such attribute
-        except AttributeError: #no file was added
-            import os
-            if not os.path.exists(config_file):
-                raise RuntimeError("Config file doesn't exists: " + config_file)
-            self.file = config_file
-            return
-
-        raise RuntimeError("Config file should be added only once")
+        if self.config_file is not None:
+            raise RuntimeError("Config file should be added only once")
+        
+        import os
+        if not os.path.exists(config_file):
+            raise RuntimeError("Config file doesn't exists: " + config_file)
+        self.config_file = config_file
+        return
 
     def add_arbitrary_code(self, code):
         self.arbitrary_code += code + '\n'
@@ -235,11 +234,11 @@ class ConfigParser(object):
         options = {}
         ret = {}
 
-        try:
-            file = open(self.file, "r")
-            content = file.readlines()
+        if self.config_file is not None: 
+	    with open(self.config_file, "r") as config_file:
+	        content = open(self.config_file, "r").readlines()
             content = ''.join(content)
-        except AttributeError:
+        else:
             content = ''
         content = self.arbitrary_code + '\n' + content
 
@@ -270,15 +269,15 @@ class ConfigParser(object):
                 exec(content, options)
             printed = s.getvalue()
             if len(printed) > 0:
-                p.info("The manifest inside " + self.file + " tried to print something:")
+                p.info("The manifest inside " + self.config_file + " tried to print something:")
                 for line in printed.split('\n'):
                     p.rawprint("> " + line)
             #print "out:", s.getvalue()
         except SyntaxError as e:
-            p.error("Invalid syntax in the manifest file " + self.file+ ":\n" + str(e))
+            p.error("Invalid syntax in the manifest file " + self.config_file+ ":\n" + str(e))
             quit()
         except:
-            p.error("Encountered unexpected error while parsing " + self.file)
+            p.error("Encountered unexpected error while parsing " + self.config_file)
             p.rawprint(str(sys.exc_info()[0]) +':'+ str(sys.exc_info()[1]))
             quit()
 

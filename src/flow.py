@@ -20,11 +20,11 @@
 #
 
 
-import xml.dom.minidom as xml
+import xml.parsers.expat
 import msg as p
 import global_mod
 
-xmlimpl = xml.getDOMImplementation()
+xmlimpl = xml.dom.minidom.getDOMImplementation()
 
 ISE_STANDARD_LIBS = ['ieee','ieee_proposed','iSE','simprims','std',
 'synopsys','unimacro','unisims','XilinxCoreLib']
@@ -135,7 +135,7 @@ class ISEProject:
 
         def load_xml(self, filename):
                 f = open(filename)
-                self.xml_doc = xml.parse(f)
+                self.xml_doc = xml.dom.minidom.parse(f)
                 self.xml_project =  self.xml_doc.getElementsByTagName("project")[0];
                 import sys
                 try:
