@@ -22,7 +22,7 @@ import path as path_mod
 import msg as p
 import os
 import global_mod
-from helper_classes import Manifest, ManifestParser
+from manifest_parser import Manifest, ManifestParser
 from srcfile import SourceFileSet, SourceFileFactory 
 
 class Module(object):
