@@ -94,7 +94,7 @@ use 0 for current version""", metavar="ISE")
 
     #HANDLE PROJECT INDEPENDENT OPTIONS
     if options.manifest_help == True:
-        from helper_classes import ManifestParser
+        from manifest_parser import ManifestParser
         ManifestParser().help() and quit()
 
     if options.print_version == True:
