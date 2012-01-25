@@ -149,6 +149,8 @@ def main():
             print(unknown_error) 
 
     if not sth_chosen:
+        p.rawprint("No option selected. Running automatic flow")
+        p.rawprint("To see some help, type hdlmake --help")
         kernel.run()
 
 if __name__ == "__main__":
