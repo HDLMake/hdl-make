@@ -24,6 +24,8 @@ import os
 import msg as p
 from help_printer import HelpPrinter as hp
 from makefile_writer import MakefileWriter
+from flow import ISEProject
+from flow_altera import QuartusProject
 
 class HdlmakeKernel(object):
     def __init__(self, modules_pool, connection, options):
@@ -47,10 +49,19 @@ class HdlmakeKernel(object):
         if tm.action == "simulation":
             self.generate_modelsim_makefile()
         elif tm.action == "synthesis":
-            self.generate_ise_project()
-            self.generate_ise_makefile()
-            self.generate_remote_synthesis_makefile()
-            self.generate_fetch_makefile()
+            if tm.syn_project == None:
+                p.rawprint("syn_project variable must be defined in the manfiest")
+                p.quit()
+            if tm.target.lower() == "xilinx":
+                self.generate_ise_project()
+                self.generate_ise_makefile()
+                self.generate_remote_synthesis_makefile()
+            elif tm.target.lower() == "altera":
+                self.generate_quartus_project()
+#                self.generate_quartus_makefile()
+#                self.generate_quartus_remote_synthesis_makefile()
+            else:
+                raise RuntimeError("Unrecognized target: "+tm.target)
         else:
             hp.print_action_help() and quit()
 
@@ -145,6 +156,21 @@ class HdlmakeKernel(object):
         else:
             self.__create_new_ise_project(ise=ise)
 
+    def generate_quartus_project(self):
+        p.rawprint("Generating/updating Quartus project...")
+
+        if not self.modules_pool.is_everything_fetched():
+            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            quit()
+
+        if os.path.exists(self.top_module.syn_project + ".qsf"):
+            self.__update_existing_quartus_project()
+        else:
+            self.__create_new_quartus_project()
+
+
+
     def __figure_out_ise_path(self):
         import path
         if self.options.force_ise != None:
@@ -231,6 +257,45 @@ class HdlmakeKernel(object):
             syn_top = top_mod.syn_top)
 
         prj.emit_xml(top_mod.syn_project)
+
+    def __create_new_quartus_project(self):
+        from dep_solver import DependencySolver
+        from srcfile import IDependable
+        from flow import ISEProject, ISEProjectProperty
+        top_mod = self.modules_pool.get_top_module()
+        fileset = self.modules_pool.build_global_file_list()
+        solver = DependencySolver()
+        non_dependable = fileset.inversed_filter(IDependable)
+        fileset = solver.solve(fileset)
+        fileset.add(non_dependable)
+        
+        prj = QuartusProject(top_mod.syn_project)
+        prj.add_files(fileset)
+        
+        prj.add_initial_properties( top_mod.syn_device, 
+                                   top_mod.syn_grade, 
+                                   top_mod.syn_package, 
+                                   top_mod.syn_top);
+        prj.preflow = None
+        prj.postflow = None
+    
+        prj.emit()
+
+    def __update_existing_quartus_project(self):
+        from dep_solver import DependencySolver
+        from srcfile import IDependable
+        top_mod = self.modules_pool.get_top_module()
+        fileset = self.modules_pool.build_global_file_list()
+        solver = DependencySolver()
+        non_dependable = fileset.inversed_filter(IDependable)
+        fileset = solver.solve(fileset)
+        fileset.add(non_dependable)
+        prj = QuartusProject(top_mod.syn_project)
+        prj.read()
+        prj.preflow = None
+        prj.postflow = None
+        prj.add_files(fileset)
+        prj.emit()
 
     def run_local_synthesis(self):
         tm = self.modules_pool.get_top_module()
