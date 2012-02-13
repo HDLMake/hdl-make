@@ -23,7 +23,6 @@
 import os
 import msg as p
 import path
-from help_printer import HelpPrinter as hp
 from makefile_writer import MakefileWriter
 from flow import ISEProject, ISEProjectProperty
 from flow_altera import QuartusProject
@@ -152,9 +151,8 @@ class HdlmakeKernel(object):
                 "Cannot generate ise project")
             quit()
         if not self.modules_pool.is_everything_fetched():
-            p.error("A module remains unfetched. "
-                "Fetching must be done prior to makefile generation")
-            p.rawprint(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.echo(str([str(m) for m in self.modules_pool if not m.isfetched]))
             quit()
         ise = self.__check_ise_version()
         if os.path.exists(self.top_module.syn_project):
