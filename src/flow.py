@@ -20,11 +20,12 @@
 #
 
 
+import xml.dom.minidom
 import xml.parsers.expat
 import msg as p
 import re
 
-xmlimpl = xml.dom.minidom.getDOMImplementation()
+XmlImpl = xml.dom.minidom.getDOMImplementation()
 
 ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
 'synopsys','unimacro', 'unisims', 'XilinxCoreLib']
@@ -249,7 +250,7 @@ class ISEProject:
         output_file.close()
 
     def create_empty_project(self):
-        self.xml_doc = xmlimpl.createDocument("http://www.xilinx.com/XMLSchema", "project", None)
+        self.xml_doc = XmlImpl.createDocument("http://www.xilinx.com/XMLSchema", "project", None)
         top_element = self.xml_doc.documentElement
         top_element.setAttribute("xmlns", "http://www.xilinx.com/XMLSchema")
         top_element.setAttribute("xmlns:xil_pn", "http://www.xilinx.com/XMLSchema")

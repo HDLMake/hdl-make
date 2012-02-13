@@ -17,10 +17,8 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
-SRC_FILES := configparser.py connection.py dep_solver.py fetch.py\
-flow.py flow_altera.py global_mod.py hdlmake_kernel.py\
-help_printer.py helper_classes.py __main__.py makefile_writer.py\
-module.py msg.py path.py srcfile.py
+SRC_FILES := build_hash.py connection.py fetch.py flow.py global_mod.py __main__.py manifest_parser.py msg.py srcfile.py\
+configparser.py dep_solver.py flow_altera.py hdlmake_kernel.py makefile_writer.py module.py path.py 
 SRC_DIR := src
 
 SRC = $(foreach src, $(SRC_FILES), $(SRC_DIR)/$(src))
