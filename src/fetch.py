@@ -22,12 +22,12 @@
 import os
 import msg as p
 import path
+import global_mod
 
 class ModulePool(list):
     class ModuleFetcher:
         def __init__(self):
             pass
-
         def fetch_single_module(self, module):
             import global_mod
             new_modules = []
@@ -47,7 +47,7 @@ class ModulePool(list):
             new_modules.extend(module.local)
             new_modules.extend(module.svn)
             new_modules.extend(module.git)
-            return new_modules 
+            return new_modules
 
         def __fetch_from_svn(self, module):
             if not os.path.exists(module.fetchto):
@@ -119,7 +119,8 @@ class ModulePool(list):
 
     #end class ModuleFetcher
     def __init__(self):
-        self.top_module = None 
+        self.top_module = None
+        self.global_fetch = os.getenv("HDLMAKE_COREDIR")
 
     def get_fetchable_modules(self):
         return [m for m in self if m.source != "local"]
@@ -132,21 +133,23 @@ class ModulePool(list):
             if mod.url == module.url:
                 return True
         return False
-
-    def set_top_module(self, module):
-        self.top_module = module
-        self.add(module)
         
-    def Module(self, parent, url, source, fetchto):
+    def new_module(self, parent, url, source, fetchto):
         from module import Module
         if url in [m.url for m in self]:
             return [m for m in self if m.url == url][0]
         else:
+            if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
+                fetchto  = self.global_fetch # screw module's particular fetchto
             new_module = Module(parent=parent, url=url, source=source, fetchto=fetchto, pool=self)
-            self.add(new_module)
+            self._add(new_module)
+            if not self.top_module:
+                global_mod.top_module = new_module
+                self.top_module = new_module
+                new_module.parse_manifest()
             return new_module
 
-    def add(self, new_module):
+    def _add(self, new_module):
         from module import Module
         if not isinstance(new_module, Module):
             raise RuntimeError("Expecting a Module instance")
@@ -154,13 +157,13 @@ class ModulePool(list):
             return False
         if new_module.isfetched:
             for mod in new_module.submodules():
-                self.add(mod)
+                self._add(mod)
         self.append(new_module)
         return True
 
     def fetch_all(self, unfetched_only = False):
         fetcher = self.ModuleFetcher()
-        fetch_queue = list(self)
+        fetch_queue = [m for m in self]
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()

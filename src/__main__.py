@@ -25,7 +25,6 @@ from connection import Connection
 import global_mod
 import msg as p
 import optparse
-from module import Module
 from fetch import ModulePool
 
 def main():
@@ -103,15 +102,13 @@ use 0 for current version""", metavar="ISE")
 
     p.vprint("LoadTopManifest");
     pool = ModulePool()
-    m = Module(parent=None, url=os.getcwd(), source="local", fetchto=".", pool=pool )
-    pool.set_top_module(m)
+    pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".")
 
-    if m.manifest == None:
+    if pool.get_top_module().manifest == None:
         p.rawprint("No manifest found. At least an empty one is needed")
         p.rawprint("To see some help, type hdlmake --help")
         quit()
-    global_mod.top_module = m
-    global_mod.top_module.parse_manifest()
+    global_mod.top_module = pool.get_top_module()
 
     global_mod.global_target = global_mod.top_module.target
 

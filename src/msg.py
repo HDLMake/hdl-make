@@ -55,13 +55,13 @@ def print_version():
     rawprint("Hdlmake build "+global_mod.BUILD_ID)
 
 def print_action_help():
-    p.rawprint("`Action' variable was not specified")
-    p.rawprint("Allowed values are: \"simulation\" or \"synthesis\"")
-    p.rawprint()
-    p.rawprint("This variable in a manifest file is necessary for Hdlmake " \
+    rawprint("`Action' variable was not specified")
+    rawprint("Allowed values are: \"simulation\" or \"synthesis\"")
+    rawprint()
+    rawprint("This variable in a manifest file is necessary for Hdlmake " \
     "to be able to know what to do with the given modules' structure.")
     basic()
 
 def basic():
-    p.rawprint("For more help type `hdlmake --help' " \
+    rawprint("For more help type `hdlmake --help' " \
     "or visit http://www.ohwr.org/projects/hdl-make")

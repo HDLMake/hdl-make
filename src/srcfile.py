@@ -205,10 +205,10 @@ class VerilogFile(SourceFile):
                     self.vlog_opt = vlog_opt
 
         def __create_deps(self):
-                self.dep_requires = self.__search_includes()
+                self.dep_requires = self.__get_includes()
                 self.dep_provides = self.name 
 
-        def __search_includes(self):
+        def __get_includes(self):
             import re
             f = open(self.path, "r")
             try:
@@ -264,7 +264,7 @@ class WBGenFile(File):
 
 class SourceFileSet(list):
         def __init__(self):
-                self = [];
+            pass
 
         def __str__(self):
                 return str([str(f) for f in self.files])

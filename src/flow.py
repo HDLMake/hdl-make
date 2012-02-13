@@ -283,7 +283,7 @@ class ModelsiminiReader(object):
 
         try:
             ini = open(self.path, "r")
-        except Exception, e:
+        except Exception:
             return []
 
         reading_libraries = False
