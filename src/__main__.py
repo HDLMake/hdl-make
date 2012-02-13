@@ -25,7 +25,6 @@ from connection import Connection
 import global_mod
 import msg as p
 import optparse
-from module import Module
 from fetch import ModulePool
 
 def main():
@@ -97,7 +96,8 @@ def main():
     #HANDLE PROJECT INDEPENDENT OPTIONS
     if options.manifest_help == True:
         from manifest_parser import ManifestParser
-        ManifestParser().help() and quit()
+        ManifestParser().help()
+        quit()
 
     if options.print_version == True:
         p.print_version()
@@ -105,17 +105,13 @@ def main():
 
     p.vprint("LoadTopManifest")
     pool = ModulePool()
-    top_module = Module(parent=None, url=os.getcwd(), source="local",
-        fetchto=".", pool=pool)
-    pool.set_top_module(top_module)
+    pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".")
 
-    if top_module.manifest == None:
-        p.echo("No manifest found. At least an empty one is needed")
+    if pool.get_top_module().manifest == None:
+        p.rawprint("No manifest found. At least an empty one is needed")
         p.rawprint("To see some help, type hdlmake --help")
         quit()
-    global_mod.top_module = top_module
-    global_mod.top_module.parse_manifest()
-
+    global_mod.top_module = pool.get_top_module()
     global_mod.global_target = global_mod.top_module.target
 
     ssh = Connection(ssh_user=options.synth_user,

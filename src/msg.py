@@ -22,8 +22,6 @@
 
 import global_mod
 import time
-import os
-import sys
 import pprint as prettyprinter
 
 t0 = time.time()
@@ -71,5 +69,5 @@ def print_action_help():
     basic()
 
 def basic():
-    rawprint("For more help type `hdlmake --help' " \
+    rawprint("For more help type `hdlmake --help' "\
     "or visit http://www.ohwr.org/projects/hdl-make")
