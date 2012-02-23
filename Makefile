@@ -17,8 +17,10 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
-SRC_FILES := build_hash.py connection.py fetch.py flow.py global_mod.py __main__.py manifest_parser.py msg.py srcfile.py\
-configparser.py dep_solver.py flow_altera.py hdlmake_kernel.py makefile_writer.py module.py path.py 
+SRC_FILES := configparser.py connection.py dep_solver.py fetch.py\
+flow.py flow_altera.py global_mod.py hdlmake_kernel.py\
+__main__.py makefile_writer.py manifest_parser.py module.py msg.py path.py \
+srcfile.py
 SRC_DIR := src
 
 SRC = $(foreach src, $(SRC_FILES), $(SRC_DIR)/$(src))
@@ -28,6 +30,7 @@ EXEC := hdlmake
 
 executable: $(EXEC)
 $(EXEC): $(SRC)
+	bash embed_build_id.sh
 	cd $(SRC_DIR) &&\
 	zip $(EXEC) $(SRC_FILES) &&\
 	echo '#!/usr/bin/python' > $(EXEC) &&\
@@ -44,3 +47,4 @@ $(RELEASE): $(EXEC) $(SRC)
 
 clean:
 	rm -f $(PREFIX)/*~ $(PREFIX)/*pyc $(EXEC) hdlmake-*.tar.gz 
+
