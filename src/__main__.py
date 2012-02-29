@@ -133,6 +133,7 @@ def main():
         "clean" : "clean_modules"
     }
     sth_chosen = False
+    import traceback
     for option, function in options_kernel_mapping.items():
         try:
             is_set = getattr(options, option)
@@ -141,8 +142,10 @@ def main():
                 getattr(kernel, function)()
             sth_chosen = True
         except Exception, unknown_error :
+            p.echo("Oooops! We've got an error. Here is the appropriate info:\n")
             p.print_version()
             print(unknown_error) 
+            traceback.print_exc()
 
     if not sth_chosen:
         p.rawprint("No option selected. Running automatic flow")
