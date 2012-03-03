@@ -129,10 +129,13 @@ class VHDLFile(SourceFile):
                 """
                 import re
                 from flow import ModelsiminiReader
-                std_libs = ModelsiminiReader().get_libraries()
-
-                f = open(self.path, "r")
                 try:
+                    std_libs = ModelsiminiReader().get_libraries()
+                except:
+                    std_libs = []
+
+                try:
+                        f = open(self.path, "r")
                         text = f.readlines()
                 except UnicodeDecodeError:
                         return []
