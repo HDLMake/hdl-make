@@ -21,6 +21,8 @@
 from dep_solver import IDependable 
 import os
 import msg as p
+import global_mod
+import flow
 
 class File(object):
         def __init__(self, path):
@@ -127,10 +129,18 @@ class VHDLFile(SourceFile):
                 non-standard library a tuple (lib, file) is returned in a list.
 
                 """
-                import re
-                from flow import ModelsiminiReader
-                std_libs = ModelsiminiReader().get_libraries()
+                if global_mod.top_module.action == "simulation":
+                    try:
+                        std_libs = flow.ModelsiminiReader().get_libraries()
+                    except RuntimeError:
+                        std_libs =  flow.MODELSIM_STANDARD_LIBS
+                elif global_mod.top_module.action == "synthesis":
+                    if global_mod.top_module.target == "xilinx":
+                        std_libs = flow.ISE_STANDARD_LIBS
+                    elif global_mod.top_module.target == "altera":
+                        std_libs = flow.MODELSIM_STANDARD_LIBS
 
+                import re
                 f = open(self.path, "r")
                 try:
                         text = f.readlines()
