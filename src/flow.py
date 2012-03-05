@@ -22,8 +22,14 @@
 
 import xml.dom.minidom as xml
 import msg as p
+import global_mod
 
 xmlimpl = xml.getDOMImplementation()
+
+ISE_STANDARD_LIBS = ['ieee','ieee_proposed','iSE','simprims','std',
+'synopsys','unimacro','unisims','XilinxCoreLib']
+QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
+MODELSIM_STANDARD_LIBS = ['ieee', 'std']
 
 class ISEProjectProperty:
         def __init__(self,  name, value, is_default = False):
@@ -271,6 +277,7 @@ class ISEProject:
                 top_element.appendChild(version)
 
 class ModelsiminiReader(object):
+
     def __init__(self, path = None):
         if path == None:
             path = self.modelsim_ini_dir() + "/modelsim.ini"
@@ -283,8 +290,8 @@ class ModelsiminiReader(object):
 
         try:
             ini = open(self.path, "r")
-        except Exception, e:
-            return []
+        except Exception:
+            raise RuntimeError("Can't open existing Modelsim installation")
 
         reading_libraries = False
         for line in ini:
