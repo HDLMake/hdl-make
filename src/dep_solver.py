@@ -44,7 +44,7 @@ class IDependable:
         if self._dep_fixed == False:
             self.__create_deps()
         self._dep_fixed = True
-        return self.__dep_provides
+        return self.__dep_requires
 
     def set_dep_requires(self, what):
         self.__dep_requires = what
