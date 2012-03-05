@@ -280,6 +280,7 @@ class ISEProject:
 
 
 class ModelsiminiReader(object):
+
     def __init__(self, path = None):
         if path == None:
             path = self.modelsim_ini_dir() + "/modelsim.ini"
