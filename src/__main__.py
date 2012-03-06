@@ -132,7 +132,6 @@ use 0 for current version""", metavar="ISE")
             print e
 
     if not sth_chosen:
-        print("DUPA")
         kernel.run()
 
 if __name__ == "__main__":
