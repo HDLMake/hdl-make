@@ -22,19 +22,19 @@
 import os
 import msg as p
 import path
+class _ModuleFetcher:
+    def __init__(self):
+        pass
 
-class ModulePool(list):
-    class ModuleFetcher:
-        def __init__(self):
-            pass
+    def fetch_single_module(self, module):
+        import global_mod
+        new_modules = []
 
-        def fetch_single_module(self, module):
-            import global_mod
-            new_modules = []
-            p.vprint("Fetching module: " + str(module))
-
-            if module.source == "local":
-                p.vprint("ModPath: " + module.path);
+        if module.source == "local":
+            p.vprint("ModPath: " + module.path);
+        else:
+            p.printhr()
+            p.rawprint("Fetching module: " + str(module) + " [parent: " + str(module.parent) + "]")
             if module.source == "svn":
                 p.vprint("[svn] Fetching to " + module.fetchto)
                 self.__fetch_from_svn(module)
@@ -42,82 +42,83 @@ class ModulePool(list):
                 p.vprint("[git] Fetching to " + module.fetchto)
                 self.__fetch_from_git(module)
 
-            module.parse_manifest()
+        module.parse_manifest()
 
-            new_modules.extend(module.local)
-            new_modules.extend(module.svn)
-            new_modules.extend(module.git)
-            return new_modules 
+        new_modules.extend(module.local)
+        new_modules.extend(module.svn)
+        new_modules.extend(module.git)
+        p.vprint("New modules: " + ', '.join([m.url for m in new_modules]))
+        return new_modules
 
-        def __fetch_from_svn(self, module):
-            if not os.path.exists(module.fetchto):
-                os.mkdir(module.fetchto)
+    def __fetch_from_svn(self, module):
+        if not os.path.exists(module.fetchto):
+            os.mkdir(module.fetchto)
 
-            cur_dir = os.getcwd()
-            os.chdir(module.fetchto)
+        cur_dir = os.getcwd()
+        os.chdir(module.fetchto)
 
-            cmd = "svn checkout {0} " + module.basename
-            if module.revision:
-                cmd = cmd.format(module.url + '@' + module.revision)
-            else:
-                cmd = cmd.format(module.url)
+        cmd = "svn checkout {0} " + module.basename
+        if module.revision:
+            cmd = cmd.format(module.url + '@' + module.revision)
+        else:
+            cmd = cmd.format(module.url)
 
-            rval = True
+        rval = True
 
+        p.vprint(cmd)
+        if os.system(cmd) != 0:
+            rval = False
+        os.chdir(cur_dir)
+
+        module.isfetched = True
+        module.path = os.path.join(module.fetchto, module.basename)
+        return rval
+
+    def __fetch_from_git(self, module):
+        if not os.path.exists(module.fetchto):
+            os.mkdir(module.fetchto)
+
+        cur_dir = os.getcwd()
+        if module.branch == None:
+            module.branch = "master"
+
+        basename = path.url_basename(module.url)
+        mod_path = os.path.join(module.fetchto, basename)
+
+        if basename.endswith(".git"):
+            basename = basename[:-4] #remove trailing .git
+
+        if module.isfetched:
+            update_only = True
+        else:
+            update_only = False
+
+        if update_only:
+            cmd = "(cd {0} && git checkout {1})"
+            cmd = cmd.format(mod_path, module.branch)
+        else:
+            cmd = "(cd {0} && git clone -b {2} {1})"
+            cmd = cmd.format(module.fetchto, module.url, module.branch)
+
+        rval = True
+
+        p.vprint(cmd)
+        if os.system(cmd) != 0:
+            rval = False
+
+        if module.revision and rval:
+            os.chdir(mod_path)
+            cmd = "git checkout " + module.revision
             p.vprint(cmd)
             if os.system(cmd) != 0:
                 rval = False
             os.chdir(cur_dir)
 
-            module.isfetched = True
-            module.path = os.path.join(module.fetchto, module.basename)
-            return rval
+        module.isfetched = True
+        module.path = mod_path
+        return rval
 
-        def __fetch_from_git(self, module):
-            if not os.path.exists(module.fetchto):
-                os.mkdir(module.fetchto)
-
-            cur_dir = os.getcwd()
-            if module.branch == None:
-              module.branch = "master"
-
-            basename = path.url_basename(module.url)
-            mod_path = os.path.join(module.fetchto, basename)
-
-            if basename.endswith(".git"):
-                basename = basename[:-4] #remove trailing .git
-
-            if module.isfetched:
-                update_only = True
-            else:
-                update_only = False
-
-            if update_only:
-                cmd = "(cd {0} && git checkout {1})"
-                cmd = cmd.format(mod_path, module.branch)
-            else:
-                cmd = "(cd {0} && git clone -b {2} {1})"
-                cmd = cmd.format(module.fetchto, module.url, module.branch)
-
-            rval = True
-
-            p.vprint(cmd)
-            if os.system(cmd) != 0:
-                rval = False
-
-            if module.revision and rval:
-                os.chdir(mod_path)
-                cmd = "git checkout " + module.revision
-                p.vprint(cmd)
-                if os.system(cmd) != 0:
-                    rval = False
-                os.chdir(cur_dir)
-
-            module.isfetched = True
-            module.path = mod_path
-            return rval
-
-    #end class ModuleFetcher
+class ModulePool(list):
     def __init__(self):
         self.top_module = None 
 
@@ -159,11 +160,12 @@ class ModulePool(list):
         return True
 
     def fetch_all(self, unfetched_only = False):
-        fetcher = self.ModuleFetcher()
+        fetcher = _ModuleFetcher()
         fetch_queue = list(self)
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
+            new_modules = []
             if unfetched_only:
                 if cur_mod.isfetched:
                     new_modules = cur_mod.submodules()
@@ -171,13 +173,13 @@ class ModulePool(list):
                     new_modules = fetcher.fetch_single_module(cur_mod)
             else:
                 new_modules = fetcher.fetch_single_module(cur_mod)
-
             for mod in new_modules:
-                if not self.__contains(mod):
+                if not mod.isfetched:
+                    p.vprint("Appended to fetch queue: " +str(mod.url))
                     self.add(mod)
                     fetch_queue.append(mod)
                 else:
-                    pass
+                    p.vprint("NOT appended to fetch queue: " +str(mod.url))
 
     def build_global_file_list(self):
         from srcfile import SourceFileSet

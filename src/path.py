@@ -60,7 +60,7 @@ def url_parse(url):
     else:
       url_clean = url
 
-    print url_clean, branch, rev
+    p.vprint(str(url_clean)+" "+str(branch)+" "+str(rev))
     return (url_clean, branch, rev)
 
 def url_basename(url):

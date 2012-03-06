@@ -28,6 +28,9 @@ import pprint as prettyprinter
 
 t0 = time.time()
 
+def printhr():
+    rawprint("------------------")
+
 def rawprint(msg = ""):
     print(msg)
 

@@ -126,12 +126,13 @@ use 0 for current version""", metavar="ISE")
         try:
             is_set = getattr(options,option)
             if is_set:
-                getattr(kernel, function)()
                 sth_chosen = True
+                getattr(kernel, function)()
         except Exception,e :
             print e
 
     if not sth_chosen:
+        print("DUPA")
         kernel.run()
 
 if __name__ == "__main__":
