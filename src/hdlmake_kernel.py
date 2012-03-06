@@ -63,6 +63,7 @@ class HdlmakeKernel(object):
             else:
                 raise RuntimeError("Unrecognized target: "+tm.target)
         else:
+            p.echo("")
             hp.print_action_help() and quit()
 
     def list_modules(self):

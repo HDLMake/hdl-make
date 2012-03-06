@@ -121,14 +121,13 @@ use 0 for current version""", metavar="ISE")
         "list" : "list_modules",
         "clean" : "clean_modules"
     }
-
     sth_chosen = False
     for option, function in options_kernel_mapping.items():
         try:
             is_set = getattr(options,option)
             if is_set:
                 getattr(kernel, function)()
-            sth_chosen = True
+                sth_chosen = True
         except Exception,e :
             print e
 
