@@ -325,7 +325,10 @@ clean:
             self.write(" $(VLOG_FLAGS) ")
             if isinstance(vl, SVFile):
                 self.write(" -sv ")
-            self.write("+incdir+"+rp(vl.dirname)+" ")
+            incdir = "+incdir+"
+            incdir += '+'.join(vl.include_dirs)
+            incdir += " "
+            self.write(incdir)
             self.writeln(vl.vlog_opt+" $<")
             self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")

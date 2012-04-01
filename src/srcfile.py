@@ -23,6 +23,7 @@ import os
 import msg as p
 import global_mod
 import flow
+import path as path_mod
 
 class File(object):
         def __init__(self, path):
@@ -204,7 +205,7 @@ class VHDLFile(SourceFile):
                 return ret
 
 class VerilogFile(SourceFile):
-        def __init__(self, path, library = None, vlog_opt = None):
+        def __init__(self, path, library = None, vlog_opt = None, include_dirs = None):
                 if not library:
                         library = "work"
                 SourceFile.__init__(self, path, library);
@@ -213,6 +214,10 @@ class VerilogFile(SourceFile):
                     self.vlog_opt = ""
                 else:
                     self.vlog_opt = vlog_opt
+                self.include_dirs = []
+                if include_dirs:
+                    self.include_dirs.extend(include_dirs)
+                self.include_dirs.append(path_mod.relpath(self.dirname))
 
         def __create_deps(self):
                 self.dep_requires = self.__search_includes()
@@ -236,8 +241,8 @@ class VerilogFile(SourceFile):
             return ret
 
 class SVFile(VerilogFile):
-    def __init__(self, path, library = None, vlog_opt = None):
-        VerilogFile.__init__(self, path, library, vlog_opt)
+    def __init__(self, path, library = None, vlog_opt = None, include_dirs = None):
+        VerilogFile.__init__(self, path, library, vlog_opt, include_dirs)
 
 class UCFFile(File):
         def __init__(self, path):
@@ -317,7 +322,7 @@ class SourceFileSet(list):
             return ret
 
 class SourceFileFactory:
-        def new (self, path, library=None, vcom_opt=None, vlog_opt=None):
+        def new (self, path, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
                 if path == None or path == "":
                     raise RuntimeError("Expected a file path, got: "+str(path))
                 if not os.path.isabs(path):
@@ -330,9 +335,9 @@ class SourceFileFactory:
                 if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
                         nf = VHDLFile(path, library, vcom_opt)
                 elif extension == 'v' or extension == 'vh' or extension == 'vo':
-                        nf = VerilogFile(path, library, vlog_opt)
+                        nf = VerilogFile(path, library, vlog_opt, include_dirs)
                 elif extension == 'sv':
-                        nf = SVFile(path, library, vlog_opt)
+                        nf = SVFile(path, library, vlog_opt, include_dirs)
                 elif extension == 'ngc':
                         nf = NGCFile(path)
                 elif extension == 'ucf':

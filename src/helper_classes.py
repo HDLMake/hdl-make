@@ -57,6 +57,10 @@ class ManifestParser(ConfigParser):
         self.add_option('syn_project', default=None, help = "Project file (.xise, .ise, .qpf)", type = '');
 
         self.add_delimiter()
+        self.add_option('include_dirs', default=None, help="Include dirs for Verilog sources", type = [])
+        self.add_type('include_dirs', type = "")
+
+        self.add_delimiter()
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
         self.add_option('vcom_opt', default="", help="Additional options for vcom", type='')
         self.add_option('vlog_opt', default="", help="Additional options for vlog", type='')

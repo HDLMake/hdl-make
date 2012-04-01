@@ -34,6 +34,9 @@ def printhr():
 def rawprint(msg = ""):
     print(msg)
 
+def warning(msg):
+    rawprint("WARNING: " + msg)
+
 def echo(msg):
     global t0
     print(("["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-t0) + "]: " + str(msg)))

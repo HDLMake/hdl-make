@@ -53,6 +53,7 @@ class Module(object):
         self.source = source
         self.parent = parent
         self.isparsed = False
+        self.include_dirs = None
         self.library = "work"
         self.local = []
         self.git = []
@@ -217,6 +218,19 @@ class Module(object):
         #    self.vmap_opt = global_mod.top_module.vmap_opt
 
         self.library = opt_map["library"]
+        self.include_dirs = []
+        if opt_map["include_dirs"] != None:
+            if isinstance(opt_map["include_dirs"], basestring):
+                self.include_dirs.append(opt_map["include_dirs"])
+            else:
+                self.include_dirs.extend(opt_map["include_dirs"])
+
+        for dir in self.include_dirs:
+            if path_mod.is_abs_path(dir):
+                p.warning(self.path + " contains absolute path to an include directory: " +
+                dir)
+            if not os.path.exists(dir):
+                p.warning(self.path + " has an unexisting include directory: " + dir)
 
         if opt_map["files"] == []:
             self.files = SourceFileSet()
@@ -235,7 +249,7 @@ class Module(object):
                     quit()
 
             from srcfile import VerilogFile, VHDLFile
-            self.files = self.__create_flat_file_list(paths=paths);
+            self.files = self.__create_file_list_from_paths(paths=paths);
             for f in self.files:
                 if isinstance(f, VerilogFile):
                     f.vsim_opt = self.vsim_opt
@@ -318,7 +332,7 @@ class Module(object):
         return modules
 
 
-    def __create_flat_file_list(self, paths):
+    def __create_file_list_from_paths(self, paths):
         sff = SourceFileFactory()
         srcs = SourceFileSet()
         for p in paths:
@@ -327,9 +341,9 @@ class Module(object):
                 for f_dir in dir:
                     f_dir = os.path.join(self.path, p, f_dir)
                     if not os.path.isdir(f_dir):
-                        srcs.add(sff.new(f_dir, self.library, self.vcom_opt, self.vlog_opt))
+                        srcs.add(sff.new(f_dir, self.library, self.vcom_opt, self.vlog_opt, self.include_dirs))
             else:
-                srcs.add(sff.new(p, self.library, self.vcom_opt, self.vlog_opt))
+                srcs.add(sff.new(p, self.library, self.vcom_opt, self.vlog_opt, self.include_dirs))
         return srcs
 
     def build_global_file_list(self):
