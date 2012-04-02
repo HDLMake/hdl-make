@@ -39,7 +39,7 @@ class HdlmakeKernel(object):
         return self.modules_pool.get_top_module()
 
     def run(self):
-        p.rawprint("Running automatic flow")
+        p.info("Running automatic flow")
 
         tm = self.top_module
 
@@ -50,7 +50,7 @@ class HdlmakeKernel(object):
             self.generate_modelsim_makefile()
         elif tm.action == "synthesis":
             if tm.syn_project == None:
-                p.rawprint("syn_project variable must be defined in the manfiest")
+                p.error("syn_project variable must be defined in the manfiest")
                 p.quit()
             if tm.target.lower() == "xilinx":
                 self.generate_ise_project()
@@ -70,34 +70,34 @@ class HdlmakeKernel(object):
         import path
         for m in self.modules_pool:
             if not m.isfetched:
-                print("#!UNFETCHED")
-                print(m.url+'\n')
+                p.rawprint("#!UNFETCHED")
+                p.rawprint(m.url+'\n')
             else:
-                print(path.relpath(m.path))
+                p.rawprint(path.relpath(m.path))
                 if m.source in ["svn", "git"]:
-                    print ("#"+m.url)
+                    p.rawprint ("#"+m.url)
                 if not len(m.files):
-                    print("   # no files")
+                    p.rawprint("   # no files")
                 else:
                     for f in m.files:
-                        print("   " + path.relpath(f.path, m.path))
-                print("")
+                        p.rawprint("   " + path.relpath(f.path, m.path))
+                p.rawprint("")
     def list_files(self):
         files_str = [] 
         for m in self.modules_pool:
             if not m.isfetched:
                 continue
             files_str.append(" ".join([f.path for f in m.files]))
-        print(" ".join(files_str))
+        p.rawprint(" ".join(files_str))
 
     def fetch(self, unfetched_only = False):
-        p.rawprint("Fetching needed modules...")
+        p.info("Fetching needed modules.")
         self.modules_pool.fetch_all(unfetched_only)
         p.vprint(str(self.modules_pool))
 
     def generate_modelsim_makefile(self):
         from dep_solver import DependencySolver
-        p.rawprint("Generating makefile for simulation...")
+        p.info("Generating makefile for simulation.")
         solver = DependencySolver()
 
         pool = self.modules_pool
@@ -111,7 +111,7 @@ class HdlmakeKernel(object):
         self.make_writer.generate_modelsim_makefile(flist_sorted, tm)
 
     def generate_ise_makefile(self):
-        p.rawprint("Generating makefile for local synthesis...")
+        p.info("Generating makefile for local synthesis.")
 
         ise_path = self.__figure_out_ise_path()
 
@@ -120,12 +120,12 @@ class HdlmakeKernel(object):
     def generate_remote_synthesis_makefile(self):
         from srcfile import SourceFileFactory
         if self.connection.ssh_user == None or self.connection.ssh_server == None:
-            p.rawprint("Connection data is not given. Accessing environmental variables in the makefile")
-        p.rawprint("Generating makefile for remote synthesis...")
+            p.warning("Connection data is not given. Accessing environmental variables in the makefile")
+        p.info("Generating makefile for remote synthesis.")
 
         top_mod = self.modules_pool.get_top_module()
         if not os.path.exists(top_mod.fetchto):
-            p.echo("There are no modules fetched. Are you sure it's correct?")
+            p.warning("There are no modules fetched. Are you sure it's correct?")
 
         ise_path = self.__figure_out_ise_path()
         tcl = self.__search_tcl_file()
@@ -143,13 +143,13 @@ class HdlmakeKernel(object):
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server, ise_path=ise_path)
 
     def generate_ise_project(self):
-        p.rawprint("Generating/updating ISE project...")
+        p.info("Generating/updating ISE project")
         if self.__is_xilinx_screwed():
-            p.rawprint("Xilinx environment variable is unset or is wrong.\nCannot generate ise project")
+            p.error("Xilinx environment variable is unset or is wrong.\nCannot generate ise project")
             quit()
         if not self.modules_pool.is_everything_fetched():
-            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
-            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            p.error("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.rawprint(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         ise = self.__check_ise_version()
         if os.path.exists(self.top_module.syn_project):
@@ -158,11 +158,11 @@ class HdlmakeKernel(object):
             self.__create_new_ise_project(ise=ise)
 
     def generate_quartus_project(self):
-        p.rawprint("Generating/updating Quartus project...")
+        p.info("Generating/updating Quartus project.")
 
         if not self.modules_pool.is_everything_fetched():
-            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
-            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            p.error("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.rawprint(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
 
         if os.path.exists(self.top_module.syn_project + ".qsf"):
@@ -203,8 +203,8 @@ class HdlmakeKernel(object):
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
         lines = xst.stdout.readlines()
         if len(lines) == 0:
-            p.rawprint("ERROR: Xilinx binaries are not in the PATH variable")
-            p.rawprint("       Can't determine ISE version")
+            p.error("Xilinx binaries are not in the PATH variable\n"
+            "Can't determine ISE version")
             quit()
 
         xst = str(lines[0].strip())
@@ -305,7 +305,7 @@ class HdlmakeKernel(object):
                 self.__generate_tcl()
             os.system("xtclsh run.tcl");
         else:
-            p.echo("Target " + tm.target + " is not synthesizable")
+            p.error("Target " + tm.target + " is not synthesizable")
 
     def run_remote_synthesis(self):
         from srcfile import SourceFileFactory
@@ -314,11 +314,11 @@ class HdlmakeKernel(object):
 
         p.vprint("The program will be using ssh connection: "+str(ssh))
         if not ssh.is_good():
-            p.echo("SSH connection failure. Remote host doesn't response.")
+            p.error("SSH connection failure. Remote host doesn't response.")
             quit()
 
         if not os.path.exists(self.top_module.fetchto):
-            p.echo("There are no modules fetched. Are you sure it's correct?")
+            p.warning("There are no modules fetched. Are you sure it's correct?")
 
         files = self.modules_pool.build_very_global_file_list()
         tcl = self.__search_tcl_file()
@@ -336,7 +336,7 @@ class HdlmakeKernel(object):
         p.vprint("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
         ret = ssh.system(syn_cmd)
         if ret == 1:
-            p.echo("Synthesis failed. Nothing will be transfered back")
+            p.error("Synthesis failed. Nothing will be transfered back")
             quit()
 
         cur_dir = os.path.basename(cwd)
@@ -356,8 +356,7 @@ class HdlmakeKernel(object):
         if len(tcls) == 0:
             return None
         if len(tcls) > 1:
-            p.rawprint("Multiple tcls in the current directory!")
-            p.rawprint(str(tcls))
+            p.error("Multiple tcls in the current directory!\n" + str(tcls))
             quit()
         return tcls[0]
 
@@ -368,7 +367,7 @@ class HdlmakeKernel(object):
         f.close()
 
     def clean_modules(self):
-        p.rawprint("Removing fetched modules..")
+        p.info("Removing fetched modules..")
         remove_list = [m for m in self.modules_pool if m.source in ["svn", "git"] and m.isfetched]
         remove_list.reverse() #we will remove modules in backward order
         if len(remove_list):
@@ -376,16 +375,16 @@ class HdlmakeKernel(object):
                 p.rawprint("\t" + m.url + " [from: " + m.path + "]")
                 m.remove_dir_from_disk()
         else:
-            p.rawprint("There are no modules to be removed")
+            p.info("There are no modules to be removed")
 
     def generate_fetch_makefile(self):
         pool = self.modules_pool
 
         if pool.get_fetchable_modules() == []:
-            p.rawprint("There are no fetchable modules. No fetch makefile is produced")
+            p.error("There are no fetchable modules. No fetch makefile is produced")
             quit()
 
         if not pool.is_everything_fetched():
-            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.error("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
         self.make_writer.generate_fetch_makefile(pool)

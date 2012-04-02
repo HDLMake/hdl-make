@@ -103,7 +103,7 @@ class DependencySolver:
         for dir in inc_dirs:
             dir = os.path.join(vf_dirname, dir)
             if not os.path.exists(dir) or not os.path.isdir(dir):
-                p.rawprint("WARNING: include path "+dir+" doesn't exist")
+                p.warning("Include path "+dir+" doesn't exist")
                 continue
             h_file = os.path.join(dir, req)
             if os.path.exists(h_file) and not os.path.isdir(h_file):
@@ -147,8 +147,8 @@ class DependencySolver:
                         fset[idx], fset[k] = fset[k], fset[idx]
 
         if(n_iter == max_iter):
-            p.rawprint("Maximum number of iterations reached when trying to solve the dependencies."+
-            "Perhaps a cyclic inter-dependency problem...");
+            p.error("Maximum number of iterations reached when trying to solve the dependencies."+
+            "Perhaps a cyclic inter-dependency problem.");
             return None
 
         for f in fset:
@@ -165,7 +165,7 @@ class DependencySolver:
                 for req in f.dep_requires:
                     pf = self.__find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
                     if not pf:
-                        p.rawprint("ERROR: Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
+                        p.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                     else:
                         p.vprint("--> " + pf.path);
                         if pf.path != f.path:
@@ -181,7 +181,7 @@ class DependencySolver:
                 for req in f.dep_requires:
                     pf = self.__find_provider_verilog_file(req, f)
                     if not pf:
-                        p.rawprint("Cannot find include for file "+str(f)+": "+req)
+                        p.warning("Cannot find include for file "+str(f)+": "+req)
                     else:
                         p.vprint("--> " + pf.path)
                         f.dep_depends_on.append(pf)

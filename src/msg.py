@@ -37,6 +37,12 @@ def rawprint(msg = ""):
 def warning(msg):
     rawprint("WARNING: " + msg)
 
+def info(msg):
+    rawprint("INFO:    " + msg)
+
+def error(msg):
+    rawprint("ERROR:   " + msg)
+
 def echo(msg):
     global t0
     print(("["+os.path.basename(sys.argv[0]) + " " + "%.5f" % (time.time()-t0) + "]: " + str(msg)))
