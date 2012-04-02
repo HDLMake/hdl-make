@@ -73,8 +73,8 @@ class Module(object):
             self.url, self.branch, self.revision = url, None, None
 
         if source == "local" and not os.path.exists(url):
-            p.rawprint("Path to the local module doesn't exist:\n" + url)
-            p.rawprint("This module was instantiated in: " + str(parent))
+            p.error("Path to the local module doesn't exist:\n" + url
+            + "\nThis module was instantiated in: " + str(parent))
             quit()
 
         if source == "local":
@@ -194,8 +194,8 @@ class Module(object):
             local_mods = []
             for path in local_paths:
                 if path_mod.is_abs_path(path):
-                    p.echo("Found an absolute path (" + path + ") in a manifest")
-                    p.echo("(" + self.path + ")")
+                    p.error("Found an absolute path (" + path + ") in a manifest")
+                    p.rawprint("(" + self.path + ")")
                     quit()
                 path = path_mod.rel2abs(path, self.path)
                 local_mods.append(self.pool.Module(parent=self, url=path, source="local", fetchto=fetchto))
@@ -242,9 +242,9 @@ class Module(object):
                     path = path_mod.rel2abs(path, self.path)
                     paths.append(path)
                 else:
-                    p.echo(path + " is an absolute path. Omitting.")
+                    p.warning(path + " is an absolute path. Omitting.")
                 if not os.path.exists(path):
-                    p.echo("File listed in " + self.manifest.path + " doesn't exist: "
+                    p.error("File listed in " + self.manifest.path + " doesn't exist: "
                     + path +".\nExiting.")
                     quit()
 
@@ -308,7 +308,7 @@ class Module(object):
             cur_module = new_modules.pop()
 
             if not cur_module.isfetched:
-                p.echo("Error in modules list - unfetched module: " + str(cur_module))
+                p.error("Unfetched module in modules list: " + str(cur_module))
                 quit()
             if cur_module.manifest == None:
                 p.vprint("No manifest in " + str(cur_module))

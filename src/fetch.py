@@ -34,12 +34,12 @@ class _ModuleFetcher:
             p.vprint("ModPath: " + module.path);
         else:
             p.printhr()
-            p.rawprint("Fetching module: " + str(module) + " [parent: " + str(module.parent) + "]")
+            p.info("Fetching module: " + str(module) + " [parent: " + str(module.parent) + "]")
             if module.source == "svn":
-                p.vprint("[svn] Fetching to " + module.fetchto)
+                p.info("[svn] Fetching to " + module.fetchto)
                 self.__fetch_from_svn(module)
             if module.source == "git":
-                p.vprint("[git] Fetching to " + module.fetchto)
+                p.info("[git] Fetching to " + module.fetchto)
                 self.__fetch_from_git(module)
 
         module.parse_manifest()
@@ -47,7 +47,7 @@ class _ModuleFetcher:
         new_modules.extend(module.local)
         new_modules.extend(module.svn)
         new_modules.extend(module.git)
-        p.vprint("New modules: " + ', '.join([m.url for m in new_modules]))
+        p.info("New modules: " + ', '.join([m.url for m in new_modules]))
         return new_modules
 
     def __fetch_from_svn(self, module):

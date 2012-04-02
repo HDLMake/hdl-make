@@ -19,6 +19,18 @@
 #
 
 import msg as p
+import sys
+import StringIO
+import contextlib
+
+@contextlib.contextmanager
+def stdoutIO(stdout=None):
+    old = sys.stdout
+    if stdout is None:
+        stdout = StringIO.StringIO()
+    sys.stdout = stdout
+    yield stdout
+    sys.stdout = old
 
 class ConfigParser(object):
     """Class for parsing python configuration files
@@ -240,22 +252,33 @@ class ConfigParser(object):
         arbitrary_options = {}
         import sys
         try:
-            exec(self.arbitrary_code, arbitrary_options)
+            with stdoutIO() as s:
+                exec(self.arbitrary_code, arbitrary_options)
+            printed = s.getvalue()
+            if printed:
+                print(printed)
         except SyntaxError as e:
-            p.rawprint(str(e) + "\nInvalid syntax in the arbitraty code")
+            p.error("Invalid syntax in the arbitraty code:\n" + str(e))
             quit()
         except:
-            p.rawprint("Unexpted error while parsing arbitrary code")
+            p.error("Unexpected error while parsing arbitrary code:")
             p.rawprint(str(sys.exc_info()[0])+':'+str(sys.exc_info()[1]))
             quit()
 
         try:
-            exec(content, options)
+            with stdoutIO() as s:
+                exec(content, options)
+            printed = s.getvalue()
+            if len(printed) > 0:
+                p.info("The manifest inside " + self.file + " tried to print something:")
+                for line in printed.split('\n'):
+                    p.rawprint("> " + line)
+            #print "out:", s.getvalue()
         except SyntaxError as e:
-            p.rawprint(str(e)+ "\nInvalid syntax in the manifest file: " + self.file)
+            p.error("Invalid syntax in the manifest file " + self.file+ ":\n" + str(e))
             quit()
         except:
-            p.rawprint("Encountered unexpected error while parsing " + self.file)
+            p.error("Encountered unexpected error while parsing " + self.file)
             p.rawprint(str(sys.exc_info()[0]) +':'+ str(sys.exc_info()[1]))
             quit()
 
