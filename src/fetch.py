@@ -47,7 +47,7 @@ class _ModuleFetcher:
         new_modules.extend(module.local)
         new_modules.extend(module.svn)
         new_modules.extend(module.git)
-        p.info("New modules: " + ', '.join([m.url for m in new_modules]))
+        #p.info("New modules: " + ', '.join([m.url for m in new_modules]))
         return new_modules
 
     def __fetch_from_svn(self, module):
