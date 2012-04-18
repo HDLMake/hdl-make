@@ -200,23 +200,35 @@ class HdlmakeKernel(object):
     def __check_ise_version(self):
         import subprocess
         xst = subprocess.Popen('which xst', shell=True,
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
         lines = xst.stdout.readlines()
-        if len(lines) == 0:
+        if not lines:
             p.error("Xilinx binaries are not in the PATH variable\n"
             "Can't determine ISE version")
             quit()
 
         xst = str(lines[0].strip())
-        if xst == '':
-            return None
+        if not xst:
+            xst_output = subprocess.Popen('xst --dummy', shell=True,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+            xst_output = xst_output.stdout.readlines()[0]
+            xst_output = xst_output.strip()
+            version_pattern = \
+                re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
+            m = re.match(version_pattern, xst_output)
+            if m:
+                return ''.join((m.group('major'), '.', m.group('minor')))
+            else:
+                return None
         else:
             import re
-            vp = re.compile(".*?(\d\d\.\d).*")
+            vp = re.compile(".*?((?P<major>\d\d).(?P<minor>\d)).*")
             m = re.match(vp, xst)
-            if m == None:
+            if not m:
+                
                 return None
-            return m.group(1)
+            else:
+                return ''.join((m.group('major'), '.', m.group('minor')))
 
     def __update_existing_ise_project(self, ise):
         from dep_solver import DependencySolver
