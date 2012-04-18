@@ -28,14 +28,14 @@ class _ModuleFetcher:
         pass
 
     def fetch_single_module(self, module):
-        import global_mod
         new_modules = []
 
         if module.source == "local":
-            p.vprint("ModPath: " + module.path);
+            p.vprint("ModPath: " + module.path)
         else:
             p.printhr()
-            p.info("Fetching module: " + str(module) + " [parent: " + str(module.parent) + "]")
+            p.info("Fetching module: " + str(module) +\
+                " [parent: " + str(module.parent) + "]")
             if module.source == "svn":
                 p.info("[svn] Fetching to " + module.fetchto)
                 self.__fetch_from_svn(module)
@@ -121,7 +121,8 @@ class _ModuleFetcher:
 
 
 class ModulePool(list):
-    def __init__(self):
+    def __init__(self, *args):
+        list.__init__(self, *args)
         self.top_module = None 
 
     def get_fetchable_modules(self):
@@ -145,7 +146,8 @@ class ModulePool(list):
         if url in [m.url for m in self]:
             return [m for m in self if m.url == url][0]
         else:
-            new_module = Module(parent=parent, url=url, source=source, fetchto=fetchto, pool=self)
+            new_module = Module(parent=parent, url=url, source=source,
+                fetchto=fetchto, pool=self)
             self.add(new_module)
             return new_module
 
@@ -186,8 +188,8 @@ class ModulePool(list):
     def build_global_file_list(self):
         from srcfile import SourceFileSet
         ret = SourceFileSet()
-        for m in self:
-            ret.add(m.files)
+        for module in self:
+            ret.add(module.files)
         return ret
 
     def build_very_global_file_list(self):
@@ -200,18 +202,19 @@ class ModulePool(list):
         queue = manifest_verilog_files
 
         while len(queue) > 0:
-            vl = queue.pop()
-            for f in vl.dep_requires:
-                nvl = sff.new(os.path.join(vl.dirname, f))
-                queue.append(nvl)
-                if f not in extra_verilog_files and f not in manifest_verilog_files:
-                    extra_verilog_files.add(nvl)
+            verilog_file = queue.pop()
+            for f_required in verilog_file.dep_requires:
+                new_vl = sff.new(os.path.join(verilog_file.dirname, f_required))
+                queue.append(new_vl)
+                if f_required not in extra_verilog_files and \
+                    f_required not in manifest_verilog_files:
+                    extra_verilog_files.add(new_vl)
 
         p.vprint("Extra verilog files, not listed in manifests:")
-        for file in extra_verilog_files:
-            p.vprint(str(file))
-        for file in extra_verilog_files:
-            files.add(file)
+        for extra_vl in extra_verilog_files:
+            p.vprint(str(extra_vl))
+        for extra_vl in extra_verilog_files:
+            files.add(extra_vl)
         return files
 
     def get_top_module(self):
