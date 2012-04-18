@@ -130,7 +130,7 @@ class QuartusProject:
         f = open(self.filename+'.qsf', "r")
         lines = [l.strip() for l in f.readlines()]
         lines = [l for l in lines if l != "" and l[0] != '#']
-        QPP = QuartusProjectProperty
+        QPP = _QuartusProjectProperty
         for line in lines:
             words = line.split()
             command = QPP.t[words[0]]
