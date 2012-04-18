@@ -1,42 +1,64 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
+#
+#    This source code is free software; you can redistribute it
+#    and/or modify it in source code form under the terms of the GNU
+#    General Public License as published by the Free Software
+#    Foundation; either version 2 of the License, or (at your option)
+#    any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+#
+
+
+class _QuartusProjectProperty:
+    SET_GLOBAL_INSTANCE, SET_INSTANCE_ASSIGNMENT, SET_LOCATION_ASSIGNMENT, SET_GLOBAL_ASSIGNMENT = range(4)
+    t = {"set_global_instance" : SET_GLOBAL_INSTANCE,
+    "set_instance_assignment" : SET_INSTANCE_ASSIGNMENT,
+    "set_location_assignment": SET_LOCATION_ASSIGNMENT,
+    "set_global_assignment": SET_GLOBAL_ASSIGNMENT}
+
+    def __init__(self, command, what=None, name=None, name_type=None, from_=None, to=None, section_id=None):
+	self.command = command
+	self.what = what
+	self.name = name
+	self.name_type = name_type
+	self.from_ = from_
+	self.to = to
+	self.section_id = section_id
+
+    def emit(self):
+	words = []
+	words.append(dict([(b,a) for a,b in self.t.items()])[self.command])
+
+	if self.what != None:
+	    words.append(self.what)
+	if self.name != None:
+	    words.append("-name")
+	    words.append(self.name_type)
+	    words.append(self.name)
+	if self.from_ != None:
+	    words.append("-from")
+	    words.append(self.from_)
+	if self.to != None:
+	    words.append("-to")
+	    words.append(self.to)
+	if self.section_id != None:
+	    words.append("-section_id")
+	    words.append(self.section_id)
+	return ' '.join(words)
+
 
 class QuartusProject:
-    class QuartusProjectProperty:
-        SET_GLOBAL_INSTANCE, SET_INSTANCE_ASSIGNMENT, SET_LOCATION_ASSIGNMENT, SET_GLOBAL_ASSIGNMENT = range(4)
-        t = {"set_global_instance" : SET_GLOBAL_INSTANCE,
-        "set_instance_assignment" : SET_INSTANCE_ASSIGNMENT,
-        "set_location_assignment": SET_LOCATION_ASSIGNMENT,
-        "set_global_assignment": SET_GLOBAL_ASSIGNMENT}
-
-        def __init__(self, command, what=None, name=None, name_type=None, from_=None, to=None, section_id=None):
-            self.command = command
-            self.what = what
-            self.name = name
-            self.name_type = name_type
-            self.from_ = from_
-            self.to = to
-            self.section_id = section_id
-
-        def emit(self):
-            words = []
-            words.append(dict([(b,a) for a,b in self.t.items()])[self.command])
-
-            if self.what != None:
-                words.append(self.what)
-            if self.name != None:
-                words.append("-name")
-                words.append(self.name_type)
-                words.append(self.name)
-            if self.from_ != None:
-                words.append("-from")
-                words.append(self.from_)
-            if self.to != None:
-                words.append("-to")
-                words.append(self.to)
-            if self.section_id != None:
-                words.append("-section_id")
-                words.append(self.section_id)
-            return ' '.join(words)
-
     def __init__(self, filename):
         self.properties = []
         self.files = []
@@ -108,10 +130,10 @@ class QuartusProject:
         f = open(self.filename+'.qsf', "r")
         lines = [l.strip() for l in f.readlines()]
         lines = [l for l in lines if l != "" and l[0] != '#']
-        qpp = QuartusProject.QuartusProjectProperty
+        QPP = QuartusProjectProperty
         for line in lines:
             words = line.split()
-            command = qpp.t[words[0]]
+            command = QPP.t[words[0]]
             what = name = name_type = from_ = to = section_id = None
             i = 1
             while True:
@@ -121,7 +143,6 @@ class QuartusProject:
                 if words[i] == "-name":
                     name_type = words[i+1]
                     name, add = __gather_string(words, i+2)
-#                    print name
                     i = i+2+add
                     continue
                 elif words[i] == "-section_id":
@@ -140,8 +161,8 @@ class QuartusProject:
                     what = words[i]
                     i = i+1
                     continue
-            prop = self.QuartusProjectProperty(command=command, what=what, name=name, name_type=name_type, from_=from_,
-            to=to, section_id=section_id)
+            prop = QPP(command=command, what=what, name=name,
+	      name_type=name_type, from_=from_, to=to, section_id=section_id)
 
             self.add_property(prop)
         f.close()
@@ -158,7 +179,7 @@ class QuartusProject:
                 family = family_names[key];
                 
         devstring = (syn_device +syn_package+syn_grade).upper()
-        QPP=self.QuartusProjectProperty
+        QPP =_QuartusProjectProperty
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='FAMILY', name='"family"'))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='DEVICE', name=devstring))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='TOP_LEVEL_ENTITY', name=syn_top))

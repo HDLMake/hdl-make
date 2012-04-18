@@ -41,7 +41,6 @@ class Manifest:
         return os.path.exists(self.path)
 
 
-
 class ManifestParser(ConfigParser):
     def __init__(self):
         ConfigParser.__init__(self,description="Configuration options description")

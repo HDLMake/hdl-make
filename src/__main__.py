@@ -59,7 +59,8 @@ def main():
     default=None, help="List all files in a from of a space-separated string")
 
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
-    default=None, help="create/update an ise project including list of project files")
+    default=None, help="create/update an ise project including list of project"
+        "files")
 
     parser.add_option("-l", "--synthesize-locally", dest="local",
     default=None, action="store_true", help="perform a local synthesis")
@@ -68,14 +69,15 @@ def main():
     default=None, action="store_true", help="perform a remote synthesis")
 
     parser.add_option("--synth-server", dest="synth_server",
-    default=None, help="use given SERVER for remote synthesis", metavar="SERVER")
+    default=None, help="use given SERVER for remote synthesis",
+        metavar="SERVER")
 
     parser.add_option("--synth-user", dest="synth_user",
     default=None, help="use given USER for remote synthesis", metavar="USER")
 
     parser.add_option("--force-ise", dest="force_ise",
-    default=None, type=float, help="""force given ISE version to be used in synthesis,
-use 0 for current version""", metavar="ISE")
+    default=None, type=float, help="Force given ISE version to be used in"
+        " synthesis,use 0 for current version", metavar="ISE")
 
     parser.add_option("--py", dest="arbitrary_code",
     default="", help="add arbitrary code to all manifests' evaluation")
@@ -83,7 +85,7 @@ use 0 for current version""", metavar="ISE")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
     default="false", help="verbose mode")
 
-    (options, args) = parser.parse_args()
+    (options, _) = parser.parse_args()
     global_mod.options = options
 
     if options.manifest_help == True:
@@ -91,20 +93,22 @@ use 0 for current version""", metavar="ISE")
         ManifestParser().help()
         quit()
 
-    p.vprint("LoadTopManifest");
+    p.vprint("LoadTopManifest")
     pool = ModulePool()
-    m = Module(parent=None, url=os.getcwd(), source="local", fetchto=".", pool=pool )
-    pool.set_top_module(m)
+    top_module = Module(parent=None, url=os.getcwd(), source="local",
+        fetchto=".", pool=pool)
+    pool.set_top_module(top_module)
 
-    if m.manifest == None:
+    if top_module.manifest == None:
         p.echo("No manifest found. At least an empty one is needed")
         quit()
-    global_mod.top_module = m
+    global_mod.top_module = top_module
     global_mod.top_module.parse_manifest()
 
     global_mod.global_target = global_mod.top_module.target
 
-    ssh = Connection(ssh_user=options.synth_user, ssh_server=options.synth_server)
+    ssh = Connection(ssh_user=options.synth_user,
+        ssh_server=options.synth_server)
 
     from hdlmake_kernel import HdlmakeKernel
     kernel = HdlmakeKernel(modules_pool=pool, connection=ssh, options=options)
@@ -124,12 +128,12 @@ use 0 for current version""", metavar="ISE")
     sth_chosen = False
     for option, function in options_kernel_mapping.items():
         try:
-            is_set = getattr(options,option)
+            is_set = getattr(options, option)
             if is_set:
                 sth_chosen = True
                 getattr(kernel, function)()
-        except Exception,e :
-            print e
+        except Exception, unknown_error :
+            print unknown_error
 
     if not sth_chosen:
         kernel.run()

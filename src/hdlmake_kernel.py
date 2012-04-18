@@ -170,8 +170,6 @@ class HdlmakeKernel(object):
         else:
             self.__create_new_quartus_project()
 
-
-
     def __figure_out_ise_path(self):
         import path
         if self.options.force_ise != None:

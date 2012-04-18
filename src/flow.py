@@ -48,6 +48,7 @@ class ISEProjectProperty:
 
                 return prop
 
+
 class ISEProject:
         class FakeFile(list):
             def __init__(self):
@@ -276,8 +277,8 @@ class ISEProject:
                 top_element.appendChild(self.xml_bindings)
                 top_element.appendChild(version)
 
-class ModelsiminiReader(object):
 
+class ModelsiminiReader(object):
     def __init__(self, path = None):
         if path == None:
             path = self.modelsim_ini_dir() + "/modelsim.ini"

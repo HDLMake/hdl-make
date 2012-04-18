@@ -28,12 +28,15 @@ import path as path_mod
 class File(object):
         def __init__(self, path):
                 self.path = path
+
         @property
         def name(self):
             return os.path.basename(self.path)
+
         @property
         def purename(self):
             return os.path.splitext(self.name)[0]
+
         @property
         def dirname(self):
             return os.path.dirname(self.path)
@@ -81,6 +84,7 @@ class File(object):
                 ext = tmp[len(tmp)-1]
                 return ext
 
+                
 class SourceFile(IDependable, File):
         cur_index = 0
         def __init__(self, path, library = None):
@@ -204,6 +208,7 @@ class VHDLFile(SourceFile):
                 f.close()
                 return ret
 
+                
 class VerilogFile(SourceFile):
         def __init__(self, path, library = None, vlog_opt = None, include_dirs = None):
                 if not library:
@@ -240,22 +245,27 @@ class VerilogFile(SourceFile):
             f.close()
             return ret
 
+            
 class SVFile(VerilogFile):
     def __init__(self, path, library = None, vlog_opt = None, include_dirs = None):
         VerilogFile.__init__(self, path, library, vlog_opt, include_dirs)
 
+        
 class UCFFile(File):
         def __init__(self, path):
                 File.__init__(self, path);
 
+                
 class TCLFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
 
+                
 class XISEFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
-            
+
+
 class CDCFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
@@ -263,6 +273,7 @@ class CDCFile(File):
 class SignalTapFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
+
 
 class DPFFile(File):
         def __init__(self, path):
@@ -273,9 +284,11 @@ class NGCFile(SourceFile):
                 SourceFile.__init__(self, path);
                 self._dep_fixed = True
 
+
 class WBGenFile(File):
         def __init__(self, path):
                 File.__init__(self, path);
+
 
 class SourceFileSet(list):
         def __init__(self):
@@ -321,6 +334,7 @@ class SourceFileSet(list):
                     pass
             return ret
 
+
 class SourceFileFactory:
         def new (self, path, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
                 if path == None or path == "":
@@ -355,3 +369,4 @@ class SourceFileFactory:
                 elif extension == 'dpf':
                         nf = DPFFile(path)
                 return nf
+
