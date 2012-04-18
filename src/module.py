@@ -29,11 +29,13 @@ class Module(object):
     @property
     def source(self):
         return self._source
+
     @source.setter
     def source(self, value):
         if value not in ["svn","git","local"]:
             raise ValueError("Inproper source: " + value)
         self._source = value
+
     @source.deleter
     def source(self):
         del self._source
@@ -330,7 +332,6 @@ class Module(object):
         if len(modules) == 0:
             p.vprint("No modules were found in " + self.fetchto)
         return modules
-
 
     def __create_file_list_from_paths(self, paths):
         sff = SourceFileFactory()

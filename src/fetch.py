@@ -22,6 +22,7 @@
 import os
 import msg as p
 import path
+
 class _ModuleFetcher:
     def __init__(self):
         pass
@@ -117,6 +118,7 @@ class _ModuleFetcher:
         module.isfetched = True
         module.path = mod_path
         return rval
+
 
 class ModulePool(list):
     def __init__(self):

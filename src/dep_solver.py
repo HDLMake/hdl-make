@@ -29,17 +29,18 @@ class IDependable:
         self.__dep_requires = [];
         self.__dep_depends_on = [];
         pass
-##
+
     #use proxy template here
     def get_dep_provides(self):
         if self._dep_fixed == False:
             self.__create_deps()
         self._dep_fixed = True
         return self.__dep_provides
+
     def set_dep_provides(self, what):
         self.__dep_provides = what
     dep_provides = property(get_dep_provides, set_dep_provides)
-##
+
     def get_dep_requires(self):
         if self._dep_fixed == False:
             self.__create_deps()
@@ -49,13 +50,14 @@ class IDependable:
     def set_dep_requires(self, what):
         self.__dep_requires = what
     dep_requires = property(get_dep_requires, set_dep_requires)
-##    
+
     def get_dep_depends_on(self):
         return self.__dep_depends_on
+
     def set_dep_depends_on(self, what):
         self.__dep_depends_on = what
     dep_depends_on = property(get_dep_depends_on, set_dep_depends_on)
-##    
+
     def __create_deps(self):
         """Used solely for polymorphism"""
 
