@@ -204,6 +204,7 @@ class HdlmakeKernel(object):
 
     def __check_ise_version(self):
         import subprocess
+        import re
         xst = subprocess.Popen('which xst', shell=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
         lines = xst.stdout.readlines()
@@ -211,28 +212,29 @@ class HdlmakeKernel(object):
             p.error("Xilinx binaries are not in the PATH variable\n"
                 "Can't determine ISE version")
             quit()
-
+            
         xst = str(lines[0].strip())
-        if not xst:
-            xst_output = subprocess.Popen('xst --dummy', shell=True,
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
-            xst_output = xst_output.stdout.readlines()[0]
-            xst_output = xst_output.strip()
-            version_pattern = \
-                re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
-            m = re.match(version_pattern, xst_output)
-            if m:
-                return ''.join((m.group('major'), '.', m.group('minor')))
-            else:
-                return None
-        else:
-            import re
-            version_pattern = re.compile(".*?(\d\d\.\d).*")
-            match = re.match(version_pattern, xst)
-            if not match:
-                return None
-            else:
-                return ''.join((match.group('major'), '.', match.group('minor')))
+        version_pattern = re.compile(".*?(\d\d\.\d).*") #First check if we have version in path
+        match = re.match(version_pattern, xst) 
+        if match: 
+			ise_version=match.group(1)
+        else: #If it is not the case call the "xst -h" to get version
+			xst_output = subprocess.Popen('xst -h', shell=True,
+			stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+			xst_output = xst_output.stdout.readlines()[0]
+			xst_output = xst_output.strip()
+			version_pattern = \
+				re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
+			match = re.match(version_pattern, xst_output)
+			if match:
+				ise_version=''.join((match.group('major'), '.', match.group('minor')))
+			else:
+				p.error("xst output is not in expected format: "+ xst_output +"\n"
+					"Can't determine ISE version")
+				return None
+				
+        p.vprint("ISE version: " + ise_version)
+        return ise_version
 
     def __update_existing_ise_project(self, ise):
         top_mod = self.modules_pool.get_top_module()
