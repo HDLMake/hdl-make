@@ -96,7 +96,7 @@ class SourceFile(IDependable, File):
 class VHDLFile(SourceFile):
         def __init__(self, path, library = None, vcom_opt = None):
                 SourceFile.__init__(self, path, library);
-                ##self.__create_deps();
+                self.__create_deps();
                 if not vcom_opt:
                     self.vcom_opt = ""
                 else:
