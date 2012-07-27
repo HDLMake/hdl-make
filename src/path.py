@@ -37,7 +37,7 @@ ise_path_32 = {"10.0":"/opt/Xilinx/10.0/ISE/bin/lin",
 "12.1":"/opt/Xilinx/12.1/ISE_DS/ISE/bin/lin",
 "12.4":"/opt/Xilinx/12.4/ISE_DS/ISE/bin/lin64",
 "13.1":"/opt/Xilinx/13.1/ISE_DS/ISE/bin/lin64"}
- 
+
 def url_parse(url):
     """
     Check if link to a repo seems to be correct. Filter revision number and branch
@@ -49,17 +49,16 @@ def url_parse(url):
     url_clean = url_match.group(1)
     if url_match.group(3) != None: #there is a branch
       branch = url_match.group(3)
-    if url_match.group(5) != None: #there is a revision given 
+    if url_match.group(5) != None: #there is a revision given
       rev = url_match.group(5)"""
     url_clean, branch, rev = None, None, None
     if "@@" in url:
-      url_clean, rev = url.split("@@")
+        url_clean, rev = url.split("@@")
     elif "::" in url:
-      url_clean, branch = url.split("::")
+        url_clean, branch = url.split("::")
     else:
-      url_clean = url
+        url_clean = url
 
-    p.vprint(str(url_clean)+" "+str(branch)+" "+str(rev))
     return (url_clean, branch, rev)
 
 def url_basename(url):
@@ -80,16 +79,20 @@ def svn_basename(url):
     try:
         words = words[1].split('/')
         return '/'.join(words[1:])
-    except:
+    except IndexError:
         return None
 
-def pathsplit(p, rest=[]):
-    (h,t) = os.path.split(p)
+def pathsplit(p, rest=None):
+    if rest is None:
+        rest = []
+    (h, t) = os.path.split(p)
     if len(h) < 1: return [t]+rest
     if len(t) < 1: return [h]+rest
-    return pathsplit(h,[t]+rest)
+    return pathsplit(h, [t]+rest)
 
-def commonpath(l1, l2, common=[]):
+def commonpath(l1, l2, common=None):
+    if common is None:
+        common = []
     if len(l1) < 1: return (common, l1, l2)
     if len(l2) < 1: return (common, l1, l2)
     if l1[0] != l2[0]: return (common, l1, l2)
@@ -108,7 +111,7 @@ def is_abs_path(path):
     if s == '/':
         return True
     return False
-    
+
 def relpath(p1, p2 = None):
     if p2 == None:
         p2 = os.getcwd()
@@ -120,15 +123,13 @@ def relpath(p1, p2 = None):
     if p2[-1] == '/':
         p2 = p2[:-1]
 
-    (common,l1,l2) = commonpath(pathsplit(p1), pathsplit(p2))
+    (_, l1, l2) = commonpath(pathsplit(p1), pathsplit(p2))
     p = []
     if len(l1) > 0:
         p = [ '../' * len(l1) ]
     p = p + l2
-    return os.path.join( *p )
+    return os.path.join(*p)
 
-#def filter_files(files, extension):
-#   
 
 def rel2abs(path, base = None):
     """
@@ -140,15 +141,15 @@ def rel2abs(path, base = None):
     The base is intelligently concatenated to the given relative path.
     @return the relative path of path from base
     """
-    if os.path.isabs(path): return path
-    retval = os.path.join(base,path)
+    if os.path.isabs(path):
+        return path
+    retval = os.path.join(base, path)
     return os.path.abspath(retval)
 
 def search_for_manifest(search_path):
     """
     Look for manifest in the given folder
     """
-    import msg as p 
     p.vprint("Looking for manifest in " + search_path)
     for filename in os.listdir(search_path):
         if filename == "manifest.py" and not os.path.isdir(filename):
