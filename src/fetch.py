@@ -141,6 +141,9 @@ class ModulePool(list):
         else:
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
                 fetchto  = self.global_fetch # screw module's particular fetchto
+            if global_mod.top_module:
+                fetchto = global_mod.top_module.fetchto
+
             new_module = Module(parent=parent, url=url, source=source, fetchto=fetchto, pool=self)
             self._add(new_module)
             if not self.top_module:
