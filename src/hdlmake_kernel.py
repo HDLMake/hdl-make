@@ -317,10 +317,10 @@ class HdlmakeKernel(object):
             p.echo("There are no modules fetched. Are you sure it's correct?")
 
         files = self.modules_pool.build_very_global_file_list()
-        tcl = self.__search_tcl_file()
-        if tcl == None:
-            self.__generate_tcl()
-            tcl = "run.tcl"
+#        tcl = self.__search_tcl_file()
+#        if tcl == None:
+        self.__generate_tcl()
+        tcl = "run.tcl"
 
         sff = SourceFileFactory()
         files.add(sff.new(tcl))
