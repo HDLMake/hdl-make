@@ -64,6 +64,7 @@ class MakefileWriter(object):
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
         user_tmpl = "USER:={0}"
         server_tmpl = "SERVER:={0}"
+        port_tmpl = "PORT:=22"
         remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
@@ -91,6 +92,7 @@ endif
         self.writeln(user_tmpl)
         self.writeln(server_tmpl)
         self.writeln(remote_name_tmpl)
+        self.writeln(port_tmpl)
         self.writeln()
         self.writeln(test_tmpl)
         self.writeln("CWD := $(shell pwd)")
@@ -105,7 +107,7 @@ endif
         self.writeln("")
 
         mkdir_cmd = "ssh $(USER)@$(SERVER) 'mkdir -p $(R_NAME)'"
-        rsync_cmd = "rsync -Rav $(foreach file, $(FILES), $(shell readlink -f $(file))) $(USER)@$(SERVER):$(R_NAME)"
+        rsync_cmd = "rsync -e 'ssh -p $(PORT)' -Ravl $(foreach file, $(FILES), $(shell readlink -f $(file))) $(USER)@$(SERVER):$(R_NAME)"
         send_cmd = "__send:\n\t\t{0}\n\t\t{1}".format(mkdir_cmd, rsync_cmd)
         self.writeln(send_cmd)
         self.writeln("")
@@ -117,7 +119,7 @@ endif
 
         self.writeln()
  
-        send_back_cmd = "__send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
+        send_back_cmd = "__send_back: \n\t\tcd .. && rsync -e 'ssh -p $(PORT)' -avl $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
         self.write(send_back_cmd)
         self.write("\n\n")
 
