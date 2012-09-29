@@ -60,6 +60,8 @@ class ManifestParser(ConfigParser):
         self.add_type('include_dirs', type = "")
 
         self.add_delimiter()
+# Modification here!
+#		self.add_option('sim_tool', default=None, help = "Simulation tool to be used (isim/vsim)", type = '');
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
         self.add_option('vcom_opt', default="", help="Additional options for vcom", type='')
         self.add_option('vlog_opt', default="", help="Additional options for vlog", type='')

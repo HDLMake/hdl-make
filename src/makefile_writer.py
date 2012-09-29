@@ -18,6 +18,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
+# Modified to allow iSim simulation by Lucas Russo (lucas.russo@lnls.br)
 
 import os
 import string
@@ -249,6 +250,7 @@ mrproper:
                     self.write("git checkout " + module.revision + ';')
                 self.write("cd $(PWD) \n\n")
 
+<<<<<<< HEAD
     def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
         from srcfile import VerilogFile, VHDLFile, SVFile
         #open the file and write the above preambule (part 1)
@@ -321,6 +323,9 @@ mrproper:
 
 
     def generate_modelsim_makefile(self, fileset, top_module):
+=======
+    def generate_vsim_makefile(self, fileset, top_module):
+>>>>>>> generate_modelsim_makefile call: fix name calling throughout the program
         from srcfile import VerilogFile, VHDLFile, SVFile
         from flow import ModelsiminiReader
         make_preambule_p1 = """## variables #############################
@@ -426,13 +431,174 @@ clean:
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
 
+# Modification here
+    def generate_isim_makefile(self, fileset, top_module):
+        from srcfile import VerilogFile, VHDLFile, SVFile
+        from flow import XilinxsiminiReader
+        make_preambule_p1 = """## variables #############################
+PWD := $(shell pwd)
+TOP_MODULE := 
+FUSE_OUTPUT ?= isim_proj
+
+XILINX_INI_PATH := """ + XilinxsiminiReader.xilinxsim_ini_dir() + """
+
+VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
+ISIM_FLAGS :=
+VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
+""" 
+        make_preambule_p2 = """## rules #################################
+sim: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
+$(VERILOG_OBJ): $(VHDL_OBJ) 
+$(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
+
+xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
+\t\tcp $< .
+fuse: ;
+ifeq ($(TOP_MODULE),)
+\t\t@echo \"Environment variable TOP_MODULE not set!\"
+else
+\t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
+endif
+clean:
+\t\trm -rf ./xilinxsim.ini $(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
+isim.wdb 
+.PHONY: clean
+
+"""
+        #open the file and write the above preambule (part 1)
+        self.initialize()
+        self.write(make_preambule_p1)
+
+        rp = os.path.relpath
+        self.write("VERILOG_SRC := ")
+        for vl in fileset.filter(VerilogFile):
+            self.write(vl.rel_path() + " \\\n")
+        self.write("\n")
+
+        self.write("VERILOG_OBJ := ")
+        for vl in fileset.filter(VerilogFile):
+            #make a file compilation indicator (these .dat files are made even if
+            #the compilation process fails) and add an ending according to file's
+            #extension (.sv and .vhd files may have the same corename and this
+            #causes a mess
+            self.write(os.path.join(vl.library, vl.purename, "."+vl.purename+"_"+vl.extension()) + " \\\n")
+        self.write('\n')
+
+        libs = set(f.library for f in fileset)
+
+        self.write("VHDL_SRC := ")
+        for vhdl in fileset.filter(VHDLFile):
+            self.write(vhdl.rel_path() + " \\\n")
+        self.writeln()
+
+        #list vhdl objects (_primary.dat files)
+        self.write("VHDL_OBJ := ")
+        for vhdl in fileset.filter(VHDLFile):
+            #file compilation indicator (important: add _vhd ending)
+            self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename+"_"+vhdl.extension()) + " \\\n")
+        self.write('\n')
+
+        self.write('LIBS := ')
+        self.write(' '.join(libs))
+        self.write('\n')
+        #tell how to make libraries
+        self.write('LIB_IND := ')
+        self.write(' '.join([lib+"/."+lib for lib in libs]))
+        self.write('\n')
+        self.write(make_preambule_p2)
+
+        # ISim does not have a vmap command to insert additional libraries in 
+        #.ini file. 
+        for lib in libs:
+            self.write(lib+"/."+lib+":\n")
+            self.write(' '.join(["\t(mkdir", lib, "&&", "touch", lib+"/."+lib+" "]))
+            #self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\" ", ">>", "xilinxsim.ini) "]))
+            self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"\" ", ">>", "xilinxsim.ini) "]))
+            self.write(' '.join(["||", "rm -rf", lib, "\n"]))
+            self.write('\n')
+
+            # Modify xilinxsim.ini file by including the extra local libraries
+            #self.write(' '.join(["\t(echo """, lib+"="+lib+"/."+lib, ">>", "${XILINX_INI_PATH}/xilinxsim.ini"]))
+
+        #rules for all _primary.dat files for sv
+        #incdir = ""
+        objs = []
+        for vl in fileset.filter(VerilogFile):
+            comp_obj = os.path.join(vl.library, vl.purename)
+            objs.append(comp_obj)
+            #self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
+            self.write(os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension())+': ')
+            self.write(vl.rel_path() + ' ')
+            self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
+            self.write("\t\tvlogcomp -work "+vl.library+"=./"+vl.library)
+            self.write(" $(VLOGCOMP_FLAGS) ")
+            #if isinstance(vl, SVFile):
+            #    self.write(" -sv ")
+            incdir = "-i "
+            incdir += " -i ".join(vl.include_dirs)
+            incdir += " "
+            self.write(incdir)
+            self.writeln(vl.vlog_opt+" $<")
+            self.write("\t\t@mkdir -p $(dir $@)")
+            self.writeln(" && touch $@ \n\n")
+        self.write("\n")
+
+        #list rules for all _primary.dat files for vhdl
+        for vhdl in fileset.filter(VHDLFile):
+            lib = vhdl.library
+            purename = vhdl.purename 
+            comp_obj = os.path.join(lib, purename)
+            objs.append(comp_obj)
+            #each .dat depends on corresponding .vhd file and its dependencies
+            #self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
+            self.write(os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
+            self.writeln(' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)", vhdl.vcom_opt, "-work", lib+"=./"+lib, "$< "]))
+            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
+            self.writeln()
+            # dependency meta-target. This rule just list the dependencies of the above file
+            #if len(vhdl.dep_depends_on) != 0:
+            self.write(os.path.join(lib, purename, "."+purename) +":")
+            for dep_file in vhdl.dep_depends_on:
+                name = dep_file.purename
+                self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+ "_" + vhdl.extension()))
+            self.write('\n\n')
+
+            # Fuse rule
+            #self.write("fuse:")
+            #self.write("ifeq ($(TOP_DESIGN),)")
+            #self.write("\t\techo \"Environment variable TOP_DESIGN not set!\"")
+            #self.write("else")
+            #self.write("\t\tfuse -intstyle ise -incremental")
+            #self.write(".PHONY: $(FUSE_PROJ)")
+
     def __get_rid_of_incdirs(self, vlog_opt):
+        vlog_opt_vsim = self.__get_rid_of_vsim_incdirs(vlog_opt)
+        return self.__get_rid_of_isim_incdirs(vlog_opt_vsim)
+
+    def __get_rid_of_vsim_incdirs(self, vlog_opt):
         vlog_opt = self.__emit_string(vlog_opt)
         vlogs = vlog_opt.split(' ')
         ret = []
         for v in vlogs:
             if not v.startswith("+incdir+"):
                 ret.append(v)
+        return ' '.join(ret)
+
+    # FIX. Make it more robust
+    def __get_rid_of_isim_incdirs(self, vlog_opt):
+        vlog_opt = self.__emit_string(vlog_opt)
+        vlogs = vlog_opt.split(' ')
+        ret = []
+        skip = False
+        for v in vlogs:
+            if skip:
+                skip = False
+                continue
+
+            if not v.startswith("-i"):
+                ret.append(v)
+            else:
+                skip = True
         return ' '.join(ret)
 
     def __emit_string(self, s):

@@ -18,12 +18,13 @@
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 
-from dep_solver import IDependable 
+from dep_solver import IDependable
 import os
 import msg as p
 import global_mod
 import flow
 import path as path_mod
+
 
 class File(object):
     def __init__(self, path):
@@ -133,12 +134,26 @@ class VHDLFile(SourceFile):
         non-standard library a tuple (lib, file) is returned in a list.
 
         """
+        # Modification here! global_mod.top_module.action does not
+        # get set for top module in time. FIX this
+
+        std_libs = ['std', 'ieee']
         if global_mod.top_module.action == "simulation":
             try:
-                std_libs = flow.ModelsiminiReader().get_libraries()
-            except RuntimeError:
-                std_libs =  flow.MODELSIM_STANDARD_LIBS
+                if global_mod.top_module.use_compiler == "isim":
+                    std_libs = flow.XilinxsiminiReader().get_libraries()
+                elif global_mod.top_module.use_compiler == "vsim":
+                    std_libs = flow.ModelsiminiReader().get_libraries()
+                else:
+                    p.warning("Could not determine simulation tool. Defaulting to Modelsim")
+                    std_libs = flow.MODELSIM_STANDARD_LIBS
+            except RuntimeError as e:
+             #std_libs =  flow.MODELSIM_STANDARD_LIBS
+                print "I/O error: ({0})".format(e.message)
+                p.error("Picking standard Modelsim simulation libraries. Try to fix the error.")
+                std_libs = flow.MODELSIM_STARDAND_LIBS
         elif global_mod.top_module.action == "synthesis":
+            print("setting std libs for synthesis...")
             if global_mod.top_module.target == "xilinx":
                 std_libs = flow.ISE_STANDARD_LIBS
             elif global_mod.top_module.target == "altera":
@@ -151,7 +166,7 @@ class VHDLFile(SourceFile):
         except UnicodeDecodeError:
             return []
 
-        use_pattern = re.compile("^[ \t]*use[ \t]+([^ ]+)[ \t]*.*$")
+        use_pattern = re.compile("^[ \t]*use[ \t]+([^; ]+)[ \t]*;.*$")
         lib_pattern = re.compile("([^.]+)\.([^.]+)\.all")
 
         use_lines = []
@@ -159,7 +174,7 @@ class VHDLFile(SourceFile):
             #identifiers and keywords are case-insensitive in VHDL
             line_lower = line.lower()
             m = re.match(use_pattern, line_lower)
-            if m != None:
+            if m is not None:
                 use_lines.append(m.group(1))
 
         ret = set() 
@@ -286,48 +301,40 @@ class VerilogFile(SourceFile):
 
         
 class SVFile(VerilogFile):
-    def __init__(self, path, library = None, vlog_opt = None, include_dirs = None):
+    def __init__(self, path, library=None, vlog_opt=None, include_dirs= None):
         VerilogFile.__init__(self, path, library, vlog_opt, include_dirs)
 
 
 class UCFFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class TCLFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class XISEFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class CDCFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class SignalTapFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class SDCFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class QIPFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class DPFFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class NGCFile(SourceFile):
@@ -337,8 +344,7 @@ class NGCFile(SourceFile):
 
 
 class WBGenFile(File):
-    def __init__(self, path):
-        File.__init__(self, path)
+    pass
 
 
 class SourceFileSet(list):
@@ -388,8 +394,8 @@ class SourceFileSet(list):
 
 
 class SourceFileFactory:
-    def new (self, path, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
-        if path == None or path == "":
+    def new(self, path, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
+        if path is None or path == "":
             raise RuntimeError("Expected a file path, got: "+str(path))
         if not os.path.isabs(path):
             path = os.path.abspath(path)

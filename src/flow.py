@@ -18,6 +18,7 @@
 #    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
+# Modified to allow iSim simulation by Lucas Russo (lucas.russo@lnls.br)
 
 
 import xml.dom.minidom
@@ -31,6 +32,10 @@ ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
 'synopsys','unimacro', 'unisims', 'XilinxCoreLib']
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 MODELSIM_STANDARD_LIBS = ['ieee', 'std']
+ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
+'simprim', 'unisim', 'unimacro', 'aim', 'cpld', 'pls', 'xilinxcorelib',
+'aim_ver', 'cpld_ver', 'simprims_ver', 'unisims_ver', 'uni9000_ver',
+'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
 class ISEProjectProperty:
     def __init__(self,  name, value, is_default = False):
@@ -296,6 +301,8 @@ class ModelsiminiReader(object):
         except Exception:
             return []
 
+        #p.info("Reading 'modelsim.ini' located in: '"+ str(self.path))
+
         reading_libraries = False
         for line in ini:
             line = line.split(" ")[0]
@@ -322,3 +329,67 @@ class ModelsiminiReader(object):
         vsim_path = os.popen("which vsim").read().strip()
         bin_path = os.path.dirname(vsim_path)
         return os.path.abspath(bin_path+"/../")
+
+class XilinxsiminiReader(object):
+    def __init__(self, path = None):
+        if path == None:
+            path = self.xilinxsim_ini_dir() + "/xilinxsim.ini"
+        self.path = path
+
+    # Parse the xilinxsim.ini file to get the referenced libraries
+    def get_libraries(self):
+        libs = []
+
+        try:
+            ini = open(self.path, "r")
+        except Exception:
+            raise RuntimeError("Can't open existing xilinxsim.ini file")
+
+        #p.info("Reading 'xilinxsim.ini' located in: '"+ str(self.path))
+
+        # Read loggical libraries name, skipping comments and other 
+        #possible sections
+        reading_libraries = False
+        for line in ini:
+            # Read line by line, skipping comments and striping newline
+            line = line.split('--')[0].strip()
+            # Still in comments section
+            if line == "": continue
+
+            # Not in comments section. Library section: 
+            #<logical_library> = <phisical_path>
+            line = line.split('=')
+            lib = line[0].strip()
+            libs.append(lib.lower())
+        return libs
+
+    @staticmethod
+    def xilinxsim_ini_dir():
+        import os
+        # Does not really need this
+        try:  
+            xilinx_path = os.environ["XILINX"]
+        except KeyError: 
+            p.error("Please set the environment variable XILINX")
+            # Fail completely for now
+            quit()
+
+        # Does not really need this
+        try:  
+            host_platform = os.environ["HOST_PLATFORM"]
+        except KeyError: 
+            p.error("Please set the environment variable HOST_PLATFORM")
+            # Fail completely for now
+            quit()
+
+        # Option 1. Look for path through env vars
+        xilinx_ini_path = str(xilinx_path + "/ISE/vhdl/hdp/" + host_platform)
+        # Ensure the path is absolute and normalized
+        return os.path.abspath(xilinx_ini_path)
+
+        # Option 2. look for path through a known-location xilinx program.
+        # Search for "fuse" path. it could be vhlcomp or vlogcomp as well.
+        # Read the command output and strip the trailing newlines
+        #fuse_path = os.popen("which fuse").read().strip()
+        #bin_path = os.path.dirname(vsim_path)
+        #return os.path.abspath(bin_path+"/../")

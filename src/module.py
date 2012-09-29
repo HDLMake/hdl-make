@@ -163,9 +163,11 @@ class Module(object):
             raise RuntimeError()
         manifest_parser = ManifestParser()
 
+		# For non-top modules
         if(self.parent != None):
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
             manifest_parser.add_arbitrary_code("action=\""+str(global_mod.top_module.action)+"\"")
+			# syn_device and sim_tool will be set for non-top modules
             manifest_parser.add_arbitrary_code("syn_device=\""+str(global_mod.top_module.syn_device)+"\"")
 
         manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")

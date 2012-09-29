@@ -121,17 +121,51 @@ class DependencySolver:
                 return sff.new(h_file)
         return None
 
+    #def __parse_vlog_opt(self, vlog_opt):
+    #    import re
+    #    ret = []
+    #    inc_pat = re.compile(".*?\+incdir\+([^ ]+)")
+    #    while True:
+    #        m = re.match(inc_pat, vlog_opt)
+    #        if m:
+    #            ret.append(m.group(1))
+    #            vlog_opt = vlog_opt[m.end():]
+    #        else:
+    #            break
+    #    return ret
+
     def __parse_vlog_opt(self, vlog_opt):
         import re
         ret = []
-        inc_pat = re.compile(".*?\+incdir\+([^ ]+)")
+        inc_vsim_vlog = re.compile(".*?\+incdir\+([^ ]+)")
+        # Either a normal (non-special) character or an escaped special character repeated >= 1 times
+        #unix_path = re.compile(r"([^\0 \!\$\`\&\*\(\)\+]|\\(:? |\!|\$|\`|\&|\*|\(|\)|\+))+")
+
+        # -i <unix_path> one or more times
+        inc_isim_vlog = re.compile(r"\s*\-i\s*((\w|/|\\ |\.|\.\.)+)\s*")
+        vlog_vsim_opt = vlog_opt
+        # Try ModelSim include format (+incdir+<path>)
         while True:
-            m = re.match(inc_pat, vlog_opt)
-            if m:
-                ret.append(m.group(1))
-                vlog_opt = vlog_opt[m.end():]
+            vsim_inc = re.match(inc_vsim_vlog, vlog_vsim_opt)
+            if vsim_inc:
+                ret.append(vsim_inc.group(1))
+                vlog_vsim_opt = vlog_vsim_opt[vsim_inc.end():]
             else:
                 break
+
+        # Could use vlog_opt directly here
+        # Try ISim include format (-i <path>)
+        if not ret:
+            vlog_isim_opt = vlog_opt
+            while True:
+                isim_inc = re.match(inc_isim_vlog, vlog_isim_opt)
+                if isim_inc:
+                    ret.append(isim_inc.group(1))
+                    vlog_isim_opt = vlog_isim_opt[isim_inc.end():]
+                else:
+                    break
+
+            p.vprint ("Include paths are: " + ' '.join(ret))
         return ret
 
     def solve(self, fileset):

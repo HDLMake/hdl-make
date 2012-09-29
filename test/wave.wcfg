@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="./isim.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="gencores_pkg" />
+            <top_module name="genram_pkg" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="top_module_tb" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="19" />
+   <wvobject fp_name="/top_module_tb/g_end_simulation" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">g_end_simulation</obj_property>
+      <obj_property name="ObjectShortName">g_end_simulation</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/clk100" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk100</obj_property>
+      <obj_property name="ObjectShortName">clk100</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/s_locked" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">s_locked</obj_property>
+      <obj_property name="ObjectShortName">s_locked</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/s_blink" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">s_blink[7:0]</obj_property>
+      <obj_property name="ObjectShortName">s_blink[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/c_clk_period" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">c_clk_period</obj_property>
+      <obj_property name="ObjectShortName">c_clk_period</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/c_sim_time" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">c_sim_time</obj_property>
+      <obj_property name="ObjectShortName">c_sim_time</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider20" type="divider">
+      <obj_property name="label">cmp_top_module</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">128 128 255</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/clk_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/locked_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">locked_i</obj_property>
+      <obj_property name="ObjectShortName">locked_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/blink_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">blink_o[7:0]</obj_property>
+      <obj_property name="ObjectShortName">blink_o[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/clk_sys_rstn" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_sys_rstn</obj_property>
+      <obj_property name="ObjectShortName">clk_sys_rstn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/reset_clks" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">reset_clks[0:0]</obj_property>
+      <obj_property name="ObjectShortName">reset_clks[0:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/reset_rstn" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">reset_rstn[0:0]</obj_property>
+      <obj_property name="ObjectShortName">reset_rstn[0:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/clk_sys" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_sys</obj_property>
+      <obj_property name="ObjectShortName">clk_sys</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/s_counter" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">s_counter[3:0]</obj_property>
+      <obj_property name="ObjectShortName">s_counter[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/s_blink" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">s_blink[7:0]</obj_property>
+      <obj_property name="ObjectShortName">s_blink[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/c_blink_num_pins" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">c_blink_num_pins</obj_property>
+      <obj_property name="ObjectShortName">c_blink_num_pins</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/c_counter_width" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">c_counter_width</obj_property>
+      <obj_property name="ObjectShortName">c_counter_width</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_module_tb/cmp_top_module/s_counter_full" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">s_counter_full</obj_property>
+      <obj_property name="ObjectShortName">s_counter_full</obj_property>
+   </wvobject>
+</wave_config>
