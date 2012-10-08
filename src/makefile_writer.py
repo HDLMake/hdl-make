@@ -527,6 +527,7 @@ isim.wdb
             comp_obj = os.path.join(vl.library, vl.purename)
             objs.append(comp_obj)
             #self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
+            #self.writeln(".PHONY: " + os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension()))
             self.write(os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension())+': ')
             self.write(vl.rel_path() + ' ')
             self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
@@ -551,17 +552,22 @@ isim.wdb
             objs.append(comp_obj)
             #each .dat depends on corresponding .vhd file and its dependencies
             #self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
+            #self.writeln(".PHONY: " + os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()))
             self.write(os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
             self.writeln(' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)", vhdl.vcom_opt, "-work", lib+"=./"+lib, "$< "]))
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
             # dependency meta-target. This rule just list the dependencies of the above file
             #if len(vhdl.dep_depends_on) != 0:
+            #self.writeln(".PHONY: " + os.path.join(lib, purename, "."+purename))
+# Touch the dependency file as well. In this way, "make" will recompile only what is needed (out of date)
             self.write(os.path.join(lib, purename, "."+purename) +":")
             for dep_file in vhdl.dep_depends_on:
                 name = dep_file.purename
                 self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+ "_" + vhdl.extension()))
-            self.write('\n\n')
+            #self.write('\n\n')
+            self.write('\n')
+            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 
             # Fuse rule
             #self.write("fuse:")
