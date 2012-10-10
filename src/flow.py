@@ -29,7 +29,7 @@ import re
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
 ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
-'synopsys','unimacro', 'unisims', 'XilinxCoreLib']
+'synopsys','unimacro', 'unisim', 'XilinxCoreLib']
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 MODELSIM_STANDARD_LIBS = ['ieee', 'std']
 ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
