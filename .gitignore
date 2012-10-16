@@ -5,4 +5,7 @@ hdlmake.aux
 hdlmake.pdf
 hdlmake.log
 hdlmake
-
+*~
+*.swp
+*.swap
+*.odt
