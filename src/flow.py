@@ -110,7 +110,10 @@ class ISEProject:
           "XC3S" : "Spartan3",
           "XC6V" : "Virtex6",
           "XC5V" : "Virtex5",
-          "XC4V" : "Virtex4" }
+          "XC4V" : "Virtex4",
+          "XC7K" : "Kintex7",
+          "XC7A" : "Artix7"}
+
 
         self.add_property(ISEProjectProperty("Device", syn_device))
         self.add_property(ISEProjectProperty("Device Family", family_names[syn_device[0:4].upper()]))
