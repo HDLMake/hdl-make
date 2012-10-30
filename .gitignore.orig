@@ -1,0 +1,14 @@
+<<<<<<< HEAD
+misc
+examples
+Makefile
+hdlmake.aux
+hdlmake.pdf
+hdlmake.log
+
+=======
+*~
+*.swp
+*.swap
+*.odt
+>>>>>>> .gitignore: add ignore files
