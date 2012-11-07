@@ -1,1 +1,1 @@
-hdlmake -crlf -diff -merge
+hdlmake2 -crlf -diff -merge
