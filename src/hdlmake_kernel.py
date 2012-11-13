@@ -18,7 +18,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
-# Modified to allow iSim simulation by Lucas Russo (lucas.russo@lnls.br)
+# Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
 
 import os
 import msg as p
@@ -46,20 +46,31 @@ class HdlmakeKernel(object):
         tm = self.top_module
 
         if not self.modules_pool.is_everything_fetched():
-            self.fetch(unfetched_only = True)
+            self.fetch(unfetched_only=True)
 
         if tm.action == "simulation":
             if tm.use_compiler == "iverilog":
                 self.generate_iverilog_makefile()
-            elif tm.use_compiler == "isim" :
+            elif tm.use_compiler == "isim":
                 self.generate_isim_makefile()
             elif tm.use_compiler == "vsim" or tm.use_compiler == "modelsim":
                 self.generate_vsim_makefile()
             else:
                 raise RuntimeError("Unrecognized or not specified simulation tool: "+ str(tm.use_compiler))
                 quit()
+            # Force declaration of sim_tool varible in Manifest
+            #if tm.sim_tool == None:
+            #	p.error("sim_tool variable must be defined in the manifest")
+            #	quit()
+            ## Make distintion between isim and vsim simulators
+            #if tm.sim_tool == "vsim":
+            #       	self.generate_modelsim_makefile()
+            #elif tm.sim_tool == "isim":
+            #	self.generate_isim_makefile()
+            #else:
+            #	raise RuntimeError("Unrecognized sim tool: "+tm.sim_tool)
         elif tm.action == "synthesis":
-            if tm.syn_project == None:
+            if tm.syn_project is None:
                 p.error("syn_project variable must be defined in the manifest")
                 quit()
             if tm.target.lower() == "xilinx":
@@ -67,9 +78,9 @@ class HdlmakeKernel(object):
                 self.generate_ise_makefile()
                 self.generate_remote_synthesis_makefile()
             elif tm.target.lower() == "altera":
-                 self.generate_quartus_project()
-#                self.generate_quartus_makefile()
-#                self.generate_quartus_remote_synthesis_makefile()
+                self.generate_quartus_project()
+              # self.generate_quartus_makefile()
+              # self.generate_quartus_remote_synthesis_makefile()
             else:
                 raise RuntimeError("Unrecognized target: "+tm.target)
         else:
@@ -256,7 +267,7 @@ class HdlmakeKernel(object):
         version_pattern = re.compile(".*?(\d\d\.\d).*") #First check if we have version in path
         match = re.match(version_pattern, xst)
         if match:
-            ise_version=match.group(1)
+            ise_version = match.group(1)
         else: #If it is not the case call the "xst -h" to get version
             xst_output = subprocess.Popen('xst -h', shell=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
@@ -266,7 +277,7 @@ class HdlmakeKernel(object):
                     re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
             match = re.match(version_pattern, xst_output)
             if match:
-                ise_version=''.join((match.group('major'), '.', match.group('minor')))
+                ise_version = ''.join((match.group('major'), '.', match.group('minor')))
             else:
                 p.error("xst output is not in expected format: "+ xst_output +"\n"
                         "Can't determine ISE version")

@@ -18,7 +18,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
-# Modified to allow iSim simulation by Lucas Russo (lucas.russo@lnls.br)
+# Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
 
 
 import os
@@ -37,8 +37,6 @@ def main():
     parser.add_option("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")
 
- #   parser.add_option("--make-sim", dest="make_sim", action="store_true",
- #   default=None, help="generate a simulation Makefile")
     parser.add_option("--make-vsim", dest="make_vsim", action="store_true",
     default=None, help="generate a ModelSim simulation Makefile")
 
@@ -65,7 +63,7 @@ def main():
 
     parser.add_option("--list", action="store_true", dest="list",
     default=None, help="List all modules together with their files")
-    
+
     parser.add_option("--list-files", action="store_true", dest="list_files",
     default=None, help="List all files in a from of a space-separated string")
 

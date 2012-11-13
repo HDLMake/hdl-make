@@ -18,7 +18,8 @@
 #    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
-# Modified to allow iSim simulation by Lucas Russo (lucas.russo@lnls.br)
+# Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
+# Modified to allow ISim simulation by Adrian Byszuk (adrian.byszuk@lnls.br)
 
 
 import xml.dom.minidom
@@ -350,7 +351,7 @@ class XilinxsiminiReader(object):
 
         #p.info("Reading 'xilinxsim.ini' located in: '"+ str(self.path))
 
-        # Read loggical libraries name, skipping comments and other 
+        # Read loggical libraries name, skipping comments and other
         #possible sections
         reading_libraries = False
         for line in ini:
@@ -359,7 +360,7 @@ class XilinxsiminiReader(object):
             # Still in comments section
             if line == "": continue
 
-            # Not in comments section. Library section: 
+            # Not in comments section. Library section:
             #<logical_library> = <phisical_path>
             line = line.split('=')
             lib = line[0].strip()
@@ -370,17 +371,17 @@ class XilinxsiminiReader(object):
     def xilinxsim_ini_dir():
         import os
         # Does not really need this
-        try:  
+        try:
             xilinx_path = os.environ["XILINX"]
-        except KeyError: 
+        except KeyError:
             p.error("Please set the environment variable XILINX")
             # Fail completely for now
             quit()
 
         # Does not really need this
-        try:  
+        try:
             host_platform = os.environ["HOST_PLATFORM"]
-        except KeyError: 
+        except KeyError:
             p.error("Please set the environment variable HOST_PLATFORM")
             # Fail completely for now
             quit()

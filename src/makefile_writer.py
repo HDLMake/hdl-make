@@ -18,7 +18,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
-# Modified to allow iSim simulation by Lucas Russo (lucas.russo@lnls.br)
+# Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
 
 import os
 import string
@@ -59,7 +59,7 @@ class MakefileWriter(object):
         self._file = open(filename, "w")
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise_path):
-        import path 
+        import path
         if name == None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
@@ -82,12 +82,12 @@ endif
         else:
             user_tmpl = user_tmpl.format(user)
             test_tmpl = "__test_for_remote_synthesis_variables:\n\t\ttrue #dummy\n"
-            
+
         if server == None:
             server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)#take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
-            
+
         remote_name_tmpl = remote_name_tmpl.format(name)
         self.initialize()
         self.writeln(user_tmpl)
@@ -119,8 +119,7 @@ endif
         self.writeln(synthesis_cmd.format(ise_path, tcl))
 
         self.writeln()
- 
-        send_back_cmd = "__send_back: \n\t\tcd .. && rsync -e 'ssh -p $(PORT)' -avl $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
+        send_back_cmd = "__send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
         self.write(send_back_cmd)
         self.write("\n\n")
 
@@ -133,7 +132,7 @@ endif
         pass
 
     def generate_ise_makefile(self, top_mod, ise_path):
-        import path 
+        import path
         mk_text = """PROJECT := {1}
 ISE_CRAP := \
 *.b \
@@ -193,7 +192,7 @@ local:
 clean:
 \t\trm -f $(ISE_CRAP)
 \t\trm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
-    
+
 #target for cleaning final files
 mrproper:
 \t\trm -f *.bit *.bin *.mcs
@@ -250,7 +249,6 @@ mrproper:
                     self.write("git checkout " + module.revision + ';')
                 self.write("cd $(PWD) \n\n")
 
-<<<<<<< HEAD
     def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
         from srcfile import VerilogFile, VHDLFile, SVFile
         #open the file and write the above preambule (part 1)
@@ -322,10 +320,7 @@ mrproper:
         self.writeln("\t\trm -f "+" ".join(target_list)+"\n\t\trm -rf _xilinx")
 
 
-    def generate_modelsim_makefile(self, fileset, top_module):
-=======
     def generate_vsim_makefile(self, fileset, top_module):
->>>>>>> generate_modelsim_makefile call: fix name calling throughout the program
         from srcfile import VerilogFile, VHDLFile, SVFile
         from flow import ModelsiminiReader
         make_preambule_p1 = """## variables #############################
@@ -336,10 +331,10 @@ MODELSIM_INI_PATH := """ + ModelsiminiReader.modelsim_ini_dir() + """
 VCOM_FLAGS := -quiet -modelsimini modelsim.ini
 VSIM_FLAGS :=
 VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
-""" 
+"""
         make_preambule_p2 = """## rules #################################
 sim: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
-$(VERILOG_OBJ): $(VHDL_OBJ) 
+$(VERILOG_OBJ): $(VHDL_OBJ)
 $(VHDL_OBJ): $(LIB_IND) modelsim.ini
 
 modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
@@ -393,7 +388,7 @@ clean:
 
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
-            self.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini", 
+            self.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini",
             lib, "&&", "touch", lib+"/."+lib,")"]))
 
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
@@ -420,7 +415,7 @@ clean:
         #list rules for all _primary.dat files for vhdl
         for vhdl in fileset.filter(VHDLFile):
             lib = vhdl.library
-            purename = vhdl.purename 
+            purename = vhdl.purename
             #each .dat depends on corresponding .vhd file
             self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": " + vhdl.rel_path())
             for dep_file in vhdl.dep_depends_on:
@@ -437,7 +432,7 @@ clean:
         from flow import XilinxsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
-TOP_MODULE := 
+TOP_MODULE :=
 FUSE_OUTPUT ?= isim_proj
 
 XILINX_INI_PATH := """ + XilinxsiminiReader.xilinxsim_ini_dir() + """
@@ -445,10 +440,10 @@ XILINX_INI_PATH := """ + XilinxsiminiReader.xilinxsim_ini_dir() + """
 VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
-""" 
+"""
         make_preambule_p2 = """## rules #################################
 sim: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
-$(VERILOG_OBJ): $(VHDL_OBJ) 
+$(VERILOG_OBJ): $(VHDL_OBJ)
 $(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
 
 xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
@@ -461,7 +456,7 @@ else
 endif
 clean:
 \t\trm -rf ./xilinxsim.ini $(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
-isim.wdb 
+isim.wdb
 .PHONY: clean
 
 """
@@ -507,8 +502,8 @@ isim.wdb
         self.write('\n')
         self.write(make_preambule_p2)
 
-        # ISim does not have a vmap command to insert additional libraries in 
-        #.ini file. 
+        # ISim does not have a vmap command to insert additional libraries in
+        #.ini file.
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
             self.write(' '.join(["\t(mkdir", lib, "&&", "touch", lib+"/."+lib+" "]))
@@ -547,7 +542,7 @@ isim.wdb
         #list rules for all _primary.dat files for vhdl
         for vhdl in fileset.filter(VHDLFile):
             lib = vhdl.library
-            purename = vhdl.purename 
+            purename = vhdl.purename
             comp_obj = os.path.join(lib, purename)
             objs.append(comp_obj)
             #each .dat depends on corresponding .vhd file and its dependencies
@@ -560,22 +555,13 @@ isim.wdb
             # dependency meta-target. This rule just list the dependencies of the above file
             #if len(vhdl.dep_depends_on) != 0:
             #self.writeln(".PHONY: " + os.path.join(lib, purename, "."+purename))
-# Touch the dependency file as well. In this way, "make" will recompile only what is needed (out of date)
+            # Touch the dependency file as well. In this way, "make" will recompile only what is needed (out of date)
             self.write(os.path.join(lib, purename, "."+purename) +":")
             for dep_file in vhdl.dep_depends_on:
                 name = dep_file.purename
                 self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+ "_" + vhdl.extension()))
-            #self.write('\n\n')
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
-
-            # Fuse rule
-            #self.write("fuse:")
-            #self.write("ifeq ($(TOP_DESIGN),)")
-            #self.write("\t\techo \"Environment variable TOP_DESIGN not set!\"")
-            #self.write("else")
-            #self.write("\t\tfuse -intstyle ise -incremental")
-            #self.write(".PHONY: $(FUSE_PROJ)")
 
     def __get_rid_of_incdirs(self, vlog_opt):
         vlog_opt_vsim = self.__get_rid_of_vsim_incdirs(vlog_opt)
