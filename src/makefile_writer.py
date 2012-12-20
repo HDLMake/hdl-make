@@ -556,13 +556,13 @@ isim.wdb
             #if len(vhdl.dep_depends_on) != 0:
             #self.writeln(".PHONY: " + os.path.join(lib, purename, "."+purename))
             # Touch the dependency file as well. In this way, "make" will recompile only what is needed (out of date)
-            if len(vhdl.dep_depends_on) != 0:
-                self.write(os.path.join(lib, purename, "."+purename) +":")
-                for dep_file in vhdl.dep_depends_on:
-                    name = dep_file.purename
-                    self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+ "_" + vhdl.extension()))
-                self.write('\n')
-                self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
+            #if len(vhdl.dep_depends_on) != 0:
+            self.write(os.path.join(lib, purename, "."+purename) +":")
+            for dep_file in vhdl.dep_depends_on:
+                name = dep_file.purename
+                self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+ "_" + vhdl.extension()))
+            self.write('\n')
+            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 
     def __get_rid_of_incdirs(self, vlog_opt):
         vlog_opt_vsim = self.__get_rid_of_vsim_incdirs(vlog_opt)
