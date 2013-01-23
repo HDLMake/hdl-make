@@ -84,7 +84,7 @@ class HdlmakeKernel(object):
                 p.rawprint("")
 
     def list_files(self):
-        files_str = [] 
+        files_str = []
         for m in self.modules_pool:
             if not m.isfetched:
                 continue
@@ -141,7 +141,7 @@ class HdlmakeKernel(object):
         files.add(sff.new(tcl))
         files.add(sff.new(top_mod.syn_project))
 
-        self.make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name, 
+        self.make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server, ise_path=ise_path)
 
     def generate_ise_project(self):
@@ -208,27 +208,27 @@ class HdlmakeKernel(object):
             p.error("Xilinx binaries are not in the PATH variable\n"
                 "Can't determine ISE version")
             quit()
-            
+
         xst = str(lines[0].strip())
         version_pattern = re.compile(".*?(\d\d\.\d).*") #First check if we have version in path
-        match = re.match(version_pattern, xst) 
-        if match: 
-			ise_version=match.group(1)
+        match = re.match(version_pattern, xst)
+        if match:
+            ise_version=match.group(1)
         else: #If it is not the case call the "xst -h" to get version
-			xst_output = subprocess.Popen('xst -h', shell=True,
-			stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
-			xst_output = xst_output.stdout.readlines()[0]
-			xst_output = xst_output.strip()
-			version_pattern = \
-				re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
-			match = re.match(version_pattern, xst_output)
-			if match:
-				ise_version=''.join((match.group('major'), '.', match.group('minor')))
-			else:
-				p.error("xst output is not in expected format: "+ xst_output +"\n"
-					"Can't determine ISE version")
-				return None
-				
+            xst_output = subprocess.Popen('xst -h', shell=True,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+            xst_output = xst_output.stdout.readlines()[0]
+            xst_output = xst_output.strip()
+            version_pattern = \
+                    re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
+            match = re.match(version_pattern, xst_output)
+            if match:
+                ise_version=''.join((match.group('major'), '.', match.group('minor')))
+            else:
+                p.error("xst output is not in expected format: "+ xst_output +"\n"
+                        "Can't determine ISE version")
+                return None
+
         p.vprint("ISE version: " + ise_version)
         return ise_version
 
@@ -273,17 +273,17 @@ class HdlmakeKernel(object):
         non_dependable = fileset.inversed_filter(IDependable)
         fileset = solver.solve(fileset)
         fileset.add(non_dependable)
-        
+
         prj = QuartusProject(top_mod.syn_project)
         prj.add_files(fileset)
-        
-        prj.add_initial_properties( top_mod.syn_device, 
-                                   top_mod.syn_grade, 
-                                   top_mod.syn_package, 
+
+        prj.add_initial_properties( top_mod.syn_device,
+                                   top_mod.syn_grade,
+                                   top_mod.syn_package,
                                    top_mod.syn_top)
         prj.preflow = None
         prj.postflow = None
-    
+
         prj.emit()
 
     def __update_existing_quartus_project(self):
@@ -392,14 +392,14 @@ class HdlmakeKernel(object):
                 "Fetching must be done prior to makefile generation")
             quit()
         self.make_writer.generate_fetch_makefile(pool)
-       
+
     def merge_cores(self):
         from dep_solver import DependencySolver
-        from srcfile import VerilogFile, VHDLFile, SVFile
+        from srcfile import VerilogFile, VHDLFile, SVFile, NGCFile
         from vlog_parser import VerilogPreprocessor
 
         solver = DependencySolver()
-                
+
         pool = self.modules_pool
         if not pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
@@ -409,21 +409,27 @@ class HdlmakeKernel(object):
         flist = pool.build_global_file_list();
         flist_sorted = solver.solve(flist);
 
-        f_out = open(self.options.merge_cores+".vhd", "w")
+        if not os.path.exists(self.options.merge_cores):
+            os.makedirs(self.options.merge_cores)
+        base = self.options.merge_cores+"/"+self.options.merge_cores
+
+        f_out = open(base+".vhd", "w")
         for vhdl in flist_sorted.filter(VHDLFile):
             f_out.write("\n\n--- File: %s ----\n\n" % vhdl.rel_path())
             f_out.write(open(vhdl.rel_path(),"r").read()+"\n\n")
-	        #print("VHDL: %s" % vhdl.rel_path())
+                #print("VHDL: %s" % vhdl.rel_path())
         f_out.close()
 
-        f_out = open(self.options.merge_cores+".v", "w")
+        f_out = open(base+".v", "w")
 
         for vlog in flist_sorted.filter(VerilogFile):
             f_out.write("\n\n//    File: %s     \n\n" % vlog.rel_path())
             vpp = VerilogPreprocessor()
             vpp.add_path(vlog.dirname)
             f_out.write(vpp.preprocess(vlog.rel_path()))
-#            print("VD: %s" % vlog.dirname)
- #           print("VL: %s" % vlog.rel_path())
-#						VerilogPreprocessor:
         f_out.close()
+
+        for ngc in flist_sorted.filter(NGCFile):
+            import shutil
+            print("NGC:%s " % ngc.rel_path())
+            shutil.copy(ngc.rel_path(), self.options.merge_cores+"/")
