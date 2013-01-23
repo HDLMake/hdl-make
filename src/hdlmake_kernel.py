@@ -388,7 +388,7 @@ class HdlmakeKernel(object):
        
     def merge_cores(self):
         from dep_solver import DependencySolver
-        from srcfile import VerilogFile, VHDLFile, SVFile
+        from srcfile import VerilogFile, VHDLFile, SVFile, NGCFile
         from vlog_parser import VerilogPreprocessor
 
         solver = DependencySolver()
@@ -401,22 +401,28 @@ class HdlmakeKernel(object):
 
         flist = pool.build_global_file_list();
         flist_sorted = solver.solve(flist);
+        
+        if not os.path.exists(self.options.merge_cores):
+            os.makedirs(self.options.merge_cores)
+        base = self.options.merge_cores+"/"+self.options.merge_cores
 
-        f_out = open(self.options.merge_cores+".vhd", "w")
+        f_out = open(base+".vhd", "w")
         for vhdl in flist_sorted.filter(VHDLFile):
             f_out.write("\n\n--- File: %s ----\n\n" % vhdl.rel_path())
             f_out.write(open(vhdl.rel_path(),"r").read()+"\n\n")
 	        #print("VHDL: %s" % vhdl.rel_path())
         f_out.close()
 
-        f_out = open(self.options.merge_cores+".v", "w")
+        f_out = open(base+".v", "w")
 
         for vlog in flist_sorted.filter(VerilogFile):
             f_out.write("\n\n//    File: %s     \n\n" % vlog.rel_path())
             vpp = VerilogPreprocessor()
             vpp.add_path(vlog.dirname)
             f_out.write(vpp.preprocess(vlog.rel_path()))
-#            print("VD: %s" % vlog.dirname)
- #           print("VL: %s" % vlog.rel_path())
-#						VerilogPreprocessor:
         f_out.close()
+        
+        for ngc in flist_sorted.filter(NGCFile):
+            import shutil
+            print("NGC:%s " % ngc.rel_path())
+            shutil.copy(ngc.rel_path(), self.options.merge_cores+"/")
