@@ -385,3 +385,38 @@ class HdlmakeKernel(object):
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             quit()
         self.make_writer.generate_fetch_makefile(pool)
+       
+    def merge_cores(self):
+        from dep_solver import DependencySolver
+        from srcfile import VerilogFile, VHDLFile, SVFile
+        from vlog_parser import VerilogPreprocessor
+
+        solver = DependencySolver()
+                
+        pool = self.modules_pool
+        if not pool.is_everything_fetched():
+            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            quit()
+
+        flist = pool.build_global_file_list();
+        flist_sorted = solver.solve(flist);
+
+        f_out = open(self.options.merge_cores+".vhd", "w")
+        for vhdl in flist_sorted.filter(VHDLFile):
+            f_out.write("\n\n--- File: %s ----\n\n" % vhdl.rel_path())
+            f_out.write(open(vhdl.rel_path(),"r").read()+"\n\n")
+	        #print("VHDL: %s" % vhdl.rel_path())
+        f_out.close()
+
+        f_out = open(self.options.merge_cores+".v", "w")
+
+        for vlog in flist_sorted.filter(VerilogFile):
+            f_out.write("\n\n//    File: %s     \n\n" % vlog.rel_path())
+            vpp = VerilogPreprocessor()
+            vpp.add_path(vlog.dirname)
+            f_out.write(vpp.preprocess(vlog.rel_path()))
+#            print("VD: %s" % vlog.dirname)
+ #           print("VL: %s" % vlog.rel_path())
+#						VerilogPreprocessor:
+        f_out.close()

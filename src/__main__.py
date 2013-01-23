@@ -60,6 +60,9 @@ def main():
     parser.add_option("--list-files", action="store_true", dest="list_files",
     default=None, help="List all files in a from of a space-separated string")
 
+    parser.add_option("--merge-cores=name", default=None, dest="merge_cores",
+		help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
+
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
     default=None, help="create/update an ise project including list of project files")
 
@@ -127,7 +130,8 @@ use 0 for current version""", metavar="ISE")
         "make_ise" : "generate_ise_makefile",
         "make_remote" : "generate_remote_synthesis_makefile",
         "list" : "list_modules",
-        "clean" : "clean_modules"
+        "clean" : "clean_modules",
+        "merge_cores" : "merge_cores"
     }
 
     sth_chosen = False

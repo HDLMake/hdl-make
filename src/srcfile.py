@@ -96,6 +96,12 @@ class SourceFile(IDependable, File):
 
 
 class VHDLFile(SourceFile):
+        std_libs = [ 'std', 'ieee', 'vital2000', 
+        'mtiavm', 'mtiovm', 'mtiuvm', 'mtiupf', 'mtipa', 'simprim', 
+        'simprims_ver', 'xilinxcorelib', 'unimacro', 'unisim', 'secureip', 
+        'altera', 'altera_mf', 'altera_primitives', 'lpm', 'sgate', 'cycloneiii'
+        ];
+
         def __init__(self, path, library = None, vcom_opt = None):
                 SourceFile.__init__(self, path, library);
                 self.__create_deps();
@@ -129,16 +135,18 @@ class VHDLFile(SourceFile):
                 non-standard library a tuple (lib, file) is returned in a list.
 
                 """
-                if global_mod.top_module.action == "simulation":
-                    try:
-                        std_libs = flow.ModelsiminiReader().get_libraries()
-                    except RuntimeError:
-                        std_libs =  flow.MODELSIM_STANDARD_LIBS
-                elif global_mod.top_module.action == "synthesis":
-                    if global_mod.top_module.target == "xilinx":
-                        std_libs = flow.ISE_STANDARD_LIBS
-                    elif global_mod.top_module.target == "altera":
-                        std_libs = flow.MODELSIM_STANDARD_LIBS
+#                print("ACT" ,global_mod.top_module.action)
+#                if global_mod.top_module.action == "simulation":
+#                    try:
+#                        std_libs = flow.ModelsiminiReader().get_libraries()
+#                        print("STD: ", std_libs);
+#                    except RuntimeError:
+#                        std_libs =  flow.MODELSIM_STANDARD_LIBS
+#                elif global_mod.top_module.action == "synthesis":
+#                    if global_mod.top_module.target == "xilinx":
+#                        std_libs = flow.ISE_STANDARD_LIBS
+#                    elif global_mod.top_module.target == "altera":
+#                        std_libs = flow.MODELSIM_STANDARD_LIBS
 
                 import re
                 f = open(self.path, "r")
@@ -163,7 +171,7 @@ class VHDLFile(SourceFile):
                         m = re.match(lib_pattern, line)
                         if m != None:
                                 #omit standard libraries
-                                if (m.group(1)).lower() in std_libs:
+                                if (m.group(1)).lower() in self.std_libs:
                                         continue
                                 if self.library != "work":
                                     #if a file is put in a library, `work' points this library
@@ -272,6 +280,10 @@ class WBGenFile(File):
         def __init__(self, path):
                 File.__init__(self, path);
 
+class RAMFile(File):
+        def __init__(self, path):
+                File.__init__(self, path);
+
 class SourceFileSet(list):
         def __init__(self):
             pass
@@ -349,4 +361,7 @@ class SourceFileFactory:
                         nf = SignalTapFile(path)
                 elif extension == 'dpf':
                         nf = DPFFile(path)
+                elif extension == 'ram':
+                        nf = RAMFile(path)
+
                 return nf
