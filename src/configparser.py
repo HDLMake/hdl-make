@@ -295,6 +295,7 @@ class ConfigParser(object):
             if type(val) not in opt.types:
                 raise RuntimeError("Given option: "+str(type(val))+" doesn't match specified types:"+str(opt.types))
             ret[opt_name] = val
+#            print("Opt_name ", opt_name)
             if type(val) == type(dict()):
                 try:
                     for key in val:
