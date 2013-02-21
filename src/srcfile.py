@@ -274,6 +274,9 @@ class SignalTapFile(File):
         def __init__(self, path):
                 File.__init__(self, path)
 
+class SDCFile(File):
+        def __init__(self, path):
+                File.__init__(self, path)
 
 class DPFFile(File):
         def __init__(self, path):
@@ -366,6 +369,8 @@ class SourceFileFactory:
                         nf = XISEFile(path)
                 elif extension == 'stp':
                         nf = SignalTapFile(path)
+                elif extension == 'sdc':
+                        nf = SDCFile(path)
                 elif extension == 'dpf':
                         nf = DPFFile(path)
                 return nf

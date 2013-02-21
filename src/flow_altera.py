@@ -87,7 +87,7 @@ class QuartusProject:
         return pre+'\n'+post+'\n'
         
     def __emit_files(self):
-        from srcfile import VHDLFile, VerilogFile, SignalTapFile, DPFFile
+        from srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, DPFFile
         tmp = "set_global_assignment -name {0} {1}"
         ret = []
         for f in self.files:
@@ -97,6 +97,8 @@ class QuartusProject:
                 line = tmp.format("VERILOG_FILE", f.rel_path())
             elif isinstance(f, SignalTapFile):
                 line = tmp.format("SIGNALTAP_FILE", f.rel_path())
+            elif isinstance(f, SDCFile):
+                line = tmp.format("SDC_FILE", f.rel_path())
             elif isinstance(f, DPFFile):
                 line = tmp.format("MISC_FILE", f.rel_path())
             else:
@@ -180,6 +182,6 @@ class QuartusProject:
                 
         devstring = (syn_device +syn_package+syn_grade).upper()
         QPP =_QuartusProjectProperty
-        self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='FAMILY', name='"family"'))
+        self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='FAMILY', name='"'+family+'"'))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='DEVICE', name=devstring))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='TOP_LEVEL_ENTITY', name=syn_top))
