@@ -24,9 +24,5 @@ top_module = None
 global_target = "''"
 #######
 #this var is modified by the build makefile - DON'T TOUCH IT!
-<<<<<<< HEAD
-BUILD_ID = "2013Jan23:4d855c"
-=======
-BUILD_ID = "2013Jan23:4d855c"
->>>>>>> copy NGC files when merging VHDL/Verilog sources
+BUILD_ID = "2013Feb22:8b1bc2"
 ######
