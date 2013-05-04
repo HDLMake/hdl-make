@@ -21,6 +21,10 @@
 
 
 import global_mod
+try:
+  from build_hash import BUILD_ID
+except:
+  BUILD_ID = "unrecognized"
 import time
 import os
 import sys
@@ -52,7 +56,7 @@ def vpprint(msg):
         pp.pprint(msg)
 
 def print_version():
-    rawprint("Hdlmake build "+global_mod.BUILD_ID)
+    rawprint("Hdlmake build " + BUILD_ID)
 
 def print_action_help():
     rawprint("`Action' variable was not specified")
