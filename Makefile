@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
 #    This source code is free software; you can redistribute it
@@ -23,16 +21,16 @@ __main__.py makefile_writer.py manifest_parser.py module.py msg.py path.py \
 srcfile.py vlog_parser.py new_dep_solver.py
 SRC_DIR := src
 
-SRC = $(foreach src, $(SRC_FILES), $(SRC_DIR)/$(src))
-TAG := $(shell git describe --abbrev=0 --tags)
-RELEASE := hdlmake-$(TAG).tar.gz
+SRC := $(foreach src, $(SRC_FILES), $(SRC_DIR)/$(src))
+TAG = $(shell git describe --abbrev=0 --tags --always)#get the latest tag
+RELEASE = hdlmake-$(TAG).tar.gz
 EXEC := hdlmake
 
 executable: $(EXEC)
 $(EXEC): $(SRC)
 	bash embed_build_id.sh
 	cd $(SRC_DIR) &&\
-	zip $(EXEC) $(SRC_FILES) &&\
+	zip $(EXEC) build_hash.py $(SRC_FILES) &&\
 	echo '#!/usr/bin/python' > $(EXEC) &&\
 	cat $(EXEC).zip >> $(EXEC) &&\
 	rm $(EXEC).zip &&\
@@ -46,5 +44,5 @@ $(RELEASE): $(EXEC) $(SRC)
 .PHONY: clean
 
 clean:
-	rm -f $(PREFIX)/*~ $(PREFIX)/*pyc $(EXEC) hdlmake-*.tar.gz 
+	rm -f $(SRC_DIR)/*~ $(PREFIX)/*pyc $(EXEC) hdlmake-*.tar.gz 
 

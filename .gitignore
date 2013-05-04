@@ -1,4 +1,5 @@
 misc
+src/build_hash.py
 examples
 hdlmake.aux
 hdlmake.pdf
