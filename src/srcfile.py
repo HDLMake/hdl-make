@@ -102,7 +102,7 @@ class SourceFile(IDependable, File):
 class VHDLFile(SourceFile):
     def __init__(self, path, library = None, vcom_opt = None):
         SourceFile.__init__(self, path, library)
-        ##self.__create_deps()
+        self.__create_deps()
         if not vcom_opt:
             self.vcom_opt = ""
         else:
@@ -142,7 +142,7 @@ class VHDLFile(SourceFile):
             if global_mod.top_module.target == "xilinx":
                 std_libs = flow.ISE_STANDARD_LIBS
             elif global_mod.top_module.target == "altera":
-                std_libs = flow.MODELSIM_STANDARD_LIBS
+                std_libs = flow.QUARTUS_STANDARD_LIBS
 
         import re
         try:
