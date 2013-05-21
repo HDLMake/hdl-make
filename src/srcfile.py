@@ -277,6 +277,10 @@ class SDCFile(File):
     def __init__(self, path):
         File.__init__(self, path)
 
+class QIPFile(File):
+    def __init__(self, path):
+        File.__init__(self, path)
+
 class DPFFile(File):
     def __init__(self, path):
         File.__init__(self, path)
@@ -371,6 +375,8 @@ class SourceFileFactory:
             nf = SignalTapFile(path)
         elif extension == 'sdc':
             nf = SDCFile(path)
+        elif extension == 'qip':
+            nf = QIPFile(path)
         elif extension == 'dpf':
             nf = DPFFile(path)
         return nf

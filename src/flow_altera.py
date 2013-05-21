@@ -87,7 +87,7 @@ class QuartusProject:
         return pre+'\n'+post+'\n'
         
     def __emit_files(self):
-        from srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, DPFFile
+        from srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile
         tmp = "set_global_assignment -name {0} {1}"
         ret = []
         for f in self.files:
@@ -99,6 +99,8 @@ class QuartusProject:
                 line = tmp.format("SIGNALTAP_FILE", f.rel_path())
             elif isinstance(f, SDCFile):
                 line = tmp.format("SDC_FILE", f.rel_path())
+            elif isinstance(f, QIPFile):
+                line = tmp.format("QIP_FILE", f.rel_path())
             elif isinstance(f, DPFFile):
                 line = tmp.format("MISC_FILE", f.rel_path())
             else:
