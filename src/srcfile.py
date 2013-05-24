@@ -355,7 +355,7 @@ class SourceFileFactory:
         nf = None
         if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
             nf = VHDLFile(path, library, vcom_opt)
-        elif extension == 'v' or extension == 'vh' or extension == 'vo':
+        elif extension == 'v' or extension == 'vh' or extension == 'vo' or extension == 'vm':
             nf = VerilogFile(path, library, vlog_opt, include_dirs)
         elif extension == 'sv' or extension == 'svh':
             nf = SVFile(path, library, vlog_opt, include_dirs)
