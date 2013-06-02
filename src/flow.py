@@ -297,7 +297,7 @@ class ModelsiminiReader(object):
 
         reading_libraries = False
         for line in ini:
-            line = line.split("")[0]
+            line = line.split(" ")[0]
             line = line.strip()
             if line == "": continue
             if line.lower() == "[library]":

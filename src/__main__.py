@@ -67,6 +67,10 @@ def main():
     default=None, help="create/update an ise project including list of project"
         "files")
 
+    parser.add_option("--quartus-proj", action="store_true", dest="quartus_proj",
+    default=None, help="create/update a quartus project including list of project"
+        "files")
+
     parser.add_option("-l", "--synthesize-locally", dest="local",
     default=None, action="store_true", help="perform a local synthesis")
 
@@ -127,6 +131,7 @@ def main():
         "fetch" : "fetch",
         "make_sim" : "generate_modelsim_makefile",
         "ise_proj" : "generate_ise_project",
+        "quartus_proj" : "generate_quartus_project",
         "local" : "run_local_synthesis",
         "remote": "run_remote_synthesis",
         "make_fetch": "generate_fetch_makefile",
@@ -144,7 +149,6 @@ def main():
             if is_set:
                 sth_chosen = True
                 getattr(kernel, function)()
-            sth_chosen = True
         except Exception, unknown_error :
             p.echo("Oooops! We've got an error. Here is the appropriate info:\n")
             p.print_version()

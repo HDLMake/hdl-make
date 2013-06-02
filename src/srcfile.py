@@ -102,7 +102,7 @@ class SourceFile(IDependable, File):
 class VHDLFile(SourceFile):
     def __init__(self, path, library = None, vcom_opt = None):
         SourceFile.__init__(self, path, library)
-        ##self.__create_deps()
+        self.__create_deps()
         if not vcom_opt:
             self.vcom_opt = ""
         else:
@@ -142,7 +142,7 @@ class VHDLFile(SourceFile):
             if global_mod.top_module.target == "xilinx":
                 std_libs = flow.ISE_STANDARD_LIBS
             elif global_mod.top_module.target == "altera":
-                std_libs = flow.MODELSIM_STANDARD_LIBS
+                std_libs = flow.QUARTUS_STANDARD_LIBS
 
         import re
         try:
@@ -277,6 +277,10 @@ class SDCFile(File):
     def __init__(self, path):
         File.__init__(self, path)
 
+class QIPFile(File):
+    def __init__(self, path):
+        File.__init__(self, path)
+
 class DPFFile(File):
     def __init__(self, path):
         File.__init__(self, path)
@@ -351,7 +355,7 @@ class SourceFileFactory:
         nf = None
         if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
             nf = VHDLFile(path, library, vcom_opt)
-        elif extension == 'v' or extension == 'vh' or extension == 'vo':
+        elif extension == 'v' or extension == 'vh' or extension == 'vo' or extension == 'vm':
             nf = VerilogFile(path, library, vlog_opt, include_dirs)
         elif extension == 'sv' or extension == 'svh':
             nf = SVFile(path, library, vlog_opt, include_dirs)
@@ -371,6 +375,8 @@ class SourceFileFactory:
             nf = SignalTapFile(path)
         elif extension == 'sdc':
             nf = SDCFile(path)
+        elif extension == 'qip':
+            nf = QIPFile(path)
         elif extension == 'dpf':
             nf = DPFFile(path)
         return nf

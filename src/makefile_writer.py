@@ -341,16 +341,14 @@ clean:
             lib = vhdl.library
             purename = vhdl.purename 
             #each .dat depends on corresponding .vhd file
-            self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+vhdl.rel_path()+'\n')
+            self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": " + vhdl.rel_path())
+            for dep_file in vhdl.dep_depends_on:
+                name = dep_file.purename
+                self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+"_vhd"))
+            self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
-            if len(vhdl.dep_depends_on) != 0:
-                self.write(os.path.join(lib, purename, "."+purename) +":")
-                for dep_file in vhdl.dep_depends_on:
-                    name = dep_file.purename
-                    self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name))
-                self.write('\n\n')
 
     def __get_rid_of_incdirs(self, vlog_opt):
         vlog_opt = self.__emit_string(vlog_opt)
