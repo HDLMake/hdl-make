@@ -206,6 +206,11 @@ mrproper:
         self.writeln(xtcl_tmp.format(ise_path))
         self.writeln()
         self.write(mk_text3)
+        import global_mod
+#        for m in global_mod.mod_pool:
+        for f in global_mod.top_module.incl_makefiles:
+            if os.path.exists(f):
+                self.write("include " + f + "\n")
 
     def generate_fetch_makefile(self, modules_pool):
         rp = os.path.relpath
@@ -243,6 +248,77 @@ mrproper:
                 if module.revision:
                     self.write("git checkout " + module.revision + ';')
                 self.write("cd $(PWD) \n\n")
+
+    def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
+        from srcfile import VerilogFile, VHDLFile, SVFile
+        #open the file and write the above preambule (part 1)
+        self.initialize()
+        rp = os.path.relpath
+        import global_mod
+#        for m in global_mod.mod_pool:
+        for f in global_mod.top_module.incl_makefiles:
+            if os.path.exists(f):
+                self.writeln("include " + f)
+        libs = set(f.library for f in fileset)
+        target_list = []
+        for vl in fileset.filter(VerilogFile):
+            rel_dir_path = os.path.dirname(vl.rel_path())
+            if rel_dir_path:
+                rel_dir_path = rel_dir_path + '/'
+            target_name = os.path.join(rel_dir_path+vl.purename)
+            target_list.append(target_name)
+#            dependencies_string = ' '.join([f.rel_path() for f in vl.dep_depends_on if (f.name != vl.name) and not f.name
+            dependencies_string = ' '.join([f.rel_path() for f in vl.dep_depends_on if (f.name != vl.name)])
+            include_dirs = list(set([os.path.dirname(f.rel_path()) for f in vl.dep_depends_on if f.name.endswith("vh")]))
+            while "" in include_dirs:
+                include_dirs.remove("")
+            include_dir_string=" -I".join(include_dirs)
+            if include_dir_string:
+                include_dir_string = ' -I'+include_dir_string
+                self.writeln("VFLAGS_"+target_name+"="+include_dir_string)
+            self.writeln(target_name+"_deps = "+dependencies_string)
+            # self.write(target_name+': ')
+            # self.write(vl.rel_path() + ' ')
+            # self.writeln("$("+target_name+"_deps)")
+            # self.write("\t\t$(VERILOG_COMP) -y"+vl.library)
+            # if isinstance(vl, SVFile):
+            #     self.write(" -sv ")
+            # incdir = " "
+            # incdir += " -I"
+            # incdir += ' -I'.join(vl.include_dirs)
+            # self.writeln(include_dir_string)
+        sim_only_files = []
+        for m in global_mod.mod_pool:
+            for f in m.sim_only_files:
+                sim_only_files.append(f.name)
+        top_name = global_mod.top_module.syn_top
+        top_name_syn_deps = []
+
+        bit_targets = []
+        for m in global_mod.mod_pool:
+            bit_targets = bit_targets + m.bit_file_targets
+        for bt in bit_targets:
+            bt = bt.purename
+            bt_syn_deps = []
+            # This can perhaps be done faster (?)
+            for vl in fileset.filter(VerilogFile):
+                if vl.purename == bt:
+                    for f in vl.dep_depends_on:
+                        if (f.name != vl.name and f.name not in sim_only_files):
+                            bt_syn_deps.append(f)
+            self.writeln(bt+'syn_deps = '+ ' '.join([f.rel_path() for f in bt_syn_deps]))
+            if not os.path.exists(bt+".ucf"):
+                print "WARNING: The file " +bt+".ucf doesn't exist!"
+            self.writeln(bt+".bit:\t"+bt+".v $("+bt+"syn_deps) "+bt+".ucf")
+            part=(global_mod.top_module.syn_device+'-'+
+                  global_mod.top_module.syn_package+
+                  global_mod.top_module.syn_grade)
+            self.writeln("\tPART="+part+" $(SYNTH) "+bt+" $^")
+            self.writeln("\tmv _xilinx/"+bt+".bit $@")
+
+        self.writeln("clean:")
+        self.writeln("\t\trm -f "+" ".join(target_list)+"\n\t\trm -rf _xilinx")
+
 
     def generate_modelsim_makefile(self, fileset, top_module):
         from srcfile import VerilogFile, VHDLFile, SVFile

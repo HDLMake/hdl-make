@@ -66,6 +66,11 @@ class ManifestParser(ConfigParser):
         self.add_option('vmap_opt', default="", help="Additional options for vmap", type='')
 
         self.add_delimiter()
+        self.add_option('use_compiler', default="vsim", help="Choose between \"vsim\" or \"iverilog\"", type='')
+        self.add_option('iverilog_opt', default="", help="Additional options for iverilog", type='')
+
+        self.add_delimiter()
+
         self.add_option('modules', default={}, help="List of local modules", type={})
         self.add_option('target', default=None, help="What is the target architecture", type='')
         self.add_option('action', default=None, help="What is the action that should be taken (simulation/synthesis)", type='')
@@ -80,6 +85,17 @@ class ManifestParser(ConfigParser):
         self.add_option('files', default=[], help="List of files from the current module", type='')
         self.add_type('files', type=[])
         #self.add_option('root', default=None, type='', help="Root catalog for local modules")
+
+        #Adding option for including makefile snippets
+        self.add_option('incl_makefiles', default=[], help="List of .mk files appended to toplevel makefile", type='')
+        self.add_type('incl_makefiles', type=[])
+        # Disallow certain files in Xilinx Synthesis flow but use in simulation
+        self.add_option('sim_only_files', default=[], help="List of files that are used only in simulation", type='')
+        self.add_type('sim_only_files', type=[])
+        # Adding .bit targets, sort of like having multiple syn_top for LBNL
+        # xil_syn workflow
+        self.add_option('bit_file_targets', default=[], help="List of files that are used only in simulation", type='')
+        self.add_type('bit_file_targets', type=[])
 
     def add_manifest(self, manifest):
         return self.add_config_file(manifest.path)

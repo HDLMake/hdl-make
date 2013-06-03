@@ -213,7 +213,6 @@ class VerilogFile(SourceFile):
         if not library:
             library = "work"
         SourceFile.__init__(self, path, library)
-        self.__create_deps()
         if not vlog_opt:
             self.vlog_opt = ""
         else:
@@ -222,10 +221,51 @@ class VerilogFile(SourceFile):
         if include_dirs:
             self.include_dirs.extend(include_dirs)
         self.include_dirs.append(path_mod.relpath(self.dirname))
+        self.__create_deps();
 
     def __create_deps(self):
-        self.dep_requires = self.__search_includes()
-        self.dep_provides = self.name 
+#        self.dep_requires = self.__search_includes()
+#        self.dep_provides = self.name
+        if global_mod.top_module.use_compiler == "iverilog":
+            self.dep_requires = []
+            deps = self.__get_iverilog_dependencies()
+            self.dep_requires.extend(deps)
+        else:
+            self.dep_requires = self.__search_includes()
+        self.dep_provides = self.name
+
+    def __get_iverilog_dependencies(self):
+           #TODO: Check to see dependencies.list doesn't exist already
+        if self.path.endswith(".vh") and global_mod.top_module.use_compiler == "iverilog":
+            return []
+        inc_dirs = []
+        #inc_dirs = global_mod.top_module.include_dirs
+        inc_dirs = self.include_dirs
+        if global_mod.mod_pool:
+            inc_dirs.extend([os.path.relpath(m.path) for m in global_mod.mod_pool])
+        inc_dirs = list(set(inc_dirs))
+        vlog_opt = global_mod.top_module.vlog_opt
+        depFileName = "dependencies.list"
+        command = "iverilog -DSIMULATE -Wno-timescale -t null -M" + depFileName
+        command += "".join(map(lambda x: " -y"+x, inc_dirs))
+        command += "".join(map(lambda x: " -I"+x, inc_dirs))
+        # TODO: Have to find a way to handle this cleanly
+        if self.rel_path().find("config_romx_llrf4") > -1:
+            command += " " + vlog_opt
+        else:
+            command += " " + vlog_opt + " " + self.rel_path()
+        retOsSystem = os.system(command)
+        if retOsSystem and retOsSystem != 256:
+            print "Dependencies not Met"
+            print command, self.include_dirs, inc_dirs, global_mod.mod_pool
+            quit()
+        elif retOsSystem == 256:
+            print command
+            pass
+        depFile = open(depFileName,"r")
+        depFiles = list(set([l.strip() for l in depFile.readlines()]))
+        depFile.close()
+        return depFiles
 
     def __search_includes(self):
         import re

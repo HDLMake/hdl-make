@@ -70,6 +70,7 @@ class Module(object):
         self.revision = None
         self._files = None
         self.manifest = None
+        self.incl_makefiles = []
         if source != "local":
             self.url, self.branch, self.revision = path.url_parse(url)
         else:
@@ -210,6 +211,20 @@ class Module(object):
         self.vcom_opt = opt_map["vcom_opt"]
         self.vsim_opt = opt_map["vsim_opt"]
         self.vlog_opt = opt_map["vlog_opt"]
+        self.iverilog_opt = opt_map["iverilog_opt"]
+        self.use_compiler = opt_map["use_compiler"]
+        mkFileList = []
+        if opt_map["incl_makefiles"] != None:
+            if isinstance(opt_map["incl_makefiles"], basestring):
+                mkFileList.append(opt_map["incl_makefiles"])
+            else:
+                map(lambda f: mkFileList.append(f), opt_map["incl_makefiles"])
+        for f in mkFileList:
+            if path_mod.is_abs_path(f):
+                print "Found and absolute path in manifest. Exiting .."
+                quit()
+            else:
+                self.incl_makefiles.append(os.path.relpath(os.path.abspath(os.path.join(self.path,f))))
 
         #if self.vlog_opt == "":
         #    self.vlog_opt = global_mod.top_module.vlog_opt
@@ -224,9 +239,14 @@ class Module(object):
         self.include_dirs = []
         if opt_map["include_dirs"] != None:
             if isinstance(opt_map["include_dirs"], basestring):
-                self.include_dirs.append(opt_map["include_dirs"])
+#                self.include_dirs.append(opt_map["include_dirs"])
+                ll = os.path.relpath(os.path.abspath(os.path.join(self.path,opt_map["include_dirs"])))
+                self.include_dirs.append(ll)
             else:
-                self.include_dirs.extend(opt_map["include_dirs"])
+#                self.include_dirs.extend(opt_map["include_dirs"])
+                ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path,x))),
+                         opt_map["include_dirs"])
+                self.include_dirs.extend(ll)
 
         for dir in self.include_dirs:
             if path_mod.is_abs_path(dir):
@@ -258,6 +278,40 @@ class Module(object):
                     f.vsim_opt = self.vsim_opt
                 elif isinstance(f, VHDLFile):
                     f.vcom_opt = self.vcom_opt
+
+        if opt_map["sim_only_files"] == []:
+            self.sim_only_files = SourceFileSet()
+        else:
+            opt_map["sim_only_files"] = self.__make_list(opt_map["sim_only_files"])
+            paths = []
+            for path in opt_map["sim_only_files"]:
+                if not path_mod.is_abs_path(path):
+                    path = path_mod.rel2abs(path, self.path)
+                    paths.append(path)
+                else:
+                    p.warning(path + " is an absolute path. Omitting.")
+                if not os.path.exists(path):
+                    p.error("File listed in " + self.manifest.path + " doesn't exist: "
+                    + path +".\nExiting.")
+                    quit()
+            from srcfile import VerilogFile, VHDLFile
+            self.sim_only_files = self.__create_file_list_from_paths(paths=paths)
+
+        self.bit_file_targets = SourceFileSet()
+        if opt_map["bit_file_targets"] != []:
+            paths=[]
+            for path in opt_map["bit_file_targets"]:
+                if not path_mod.is_abs_path(path):
+                    path = path_mod.rel2abs(path, self.path)
+                    paths.append(path)
+                else:
+                    p.warning(path + " is an absolute path. Omitting.")
+                if not os.path.exists(path):
+                    p.error("File listed in " + self.manifest.path +
+                            " doesn't exist: " + path +".\nExiting.")
+                    quit()
+            from srcfile import VerilogFile, VHDLFile
+            self.bit_file_targets = self.__create_file_list_from_paths(paths=paths)
 
         if "svn" in opt_map["modules"]:
             opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])

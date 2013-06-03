@@ -39,6 +39,8 @@ def main():
     parser.add_option("--make-sim", dest="make_sim", action="store_true",
     default=None, help="generate a simulation Makefile")
 
+    parser.add_option("--make-iv-sim", dest="make_iv_sim", action="store_true",
+    default=None, help="generate an iverilog compiler based simulation Makefile")
     parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
     default=None, help="generate a makefile for modules' fetching")
 
@@ -136,6 +138,7 @@ def main():
         "remote": "run_remote_synthesis",
         "make_fetch": "generate_fetch_makefile",
         "make_ise" : "generate_ise_makefile",
+        "make_iv_sim" : "generate_iverilog_makefile",
         "make_remote" : "generate_remote_synthesis_makefile",
         "list" : "list_modules",
         "clean" : "clean_modules",
@@ -149,10 +152,11 @@ def main():
             if is_set:
                 sth_chosen = True
                 getattr(kernel, function)()
+            sth_chosen = False
         except Exception, unknown_error :
             p.echo("Oooops! We've got an error. Here is the appropriate info:\n")
             p.print_version()
-            print(unknown_error) 
+            print(unknown_error)
             traceback.print_exc()
 
     if not sth_chosen:

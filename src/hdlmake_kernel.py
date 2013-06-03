@@ -49,7 +49,10 @@ class HdlmakeKernel(object):
             self.fetch(unfetched_only = True)
 
         if tm.action == "simulation":
-            self.generate_modelsim_makefile()
+            if tm.use_compiler == "iverilog":
+                self.generate_iverilog_makefile()
+            else:
+                self.generate_modelsim_makefile()
         elif tm.action == "synthesis":
             if tm.syn_project == None:
                 p.error("syn_project variable must be defined in the manfiest")
@@ -111,7 +114,27 @@ class HdlmakeKernel(object):
         flist_sorted = solver.solve(flist);
         self.make_writer.generate_modelsim_makefile(flist_sorted, top_module)
 
+    def generate_iverilog_makefile(self):
+        from dep_solver import DependencySolver
+        p.info("Generating makefile for simulation.")
+        solver = DependencySolver()
+
+        pool = self.modules_pool
+        import global_mod
+        global_mod.mod_pool = pool
+        if not pool.is_everything_fetched():
+            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
+            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            quit()
+        tm = pool.get_top_module()
+        flist = pool.build_global_file_list();
+        flist_sorted = solver.solve(flist);
+        self.make_writer.generate_iverilog_makefile(flist_sorted, tm, pool)
+
+
     def generate_ise_makefile(self):
+        import global_mod
+        global_mod.mod_pool = self.modules_pool
         p.info("Generating makefile for local synthesis.")
 
         ise_path = self.__figure_out_ise_path()
@@ -244,6 +267,10 @@ class HdlmakeKernel(object):
 
         prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
         prj.add_files(all_files)
+        from srcfile import SourceFileFactory
+        sff = SourceFileFactory()
+        print top_mod.vlog_opt
+        prj.add_files([sff.new(top_mod.vlog_opt)])
         prj.add_libs(all_files.get_libs())
         prj.load_xml(top_mod.syn_project)
         prj.emit_xml(top_mod.syn_project)
@@ -259,6 +286,10 @@ class HdlmakeKernel(object):
         prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
+        from srcfile import SourceFileFactory
+        sff = SourceFileFactory()
+        print top_mod.vlog_opt
+        prj.add_files([sff.new(top_mod.vlog_opt)])
         prj.add_initial_properties(syn_device=top_mod.syn_device,
             syn_grade = top_mod.syn_grade,
             syn_package = top_mod.syn_package,
@@ -303,6 +334,8 @@ class HdlmakeKernel(object):
     def run_local_synthesis(self):
         tm = self.modules_pool.get_top_module()
         if tm.target == "xilinx":
+            import global_mod
+            global_mod.mod_pool = self.modules_pool
             if not os.path.exists("run.tcl"):
                 self.__generate_tcl()
             os.system("xtclsh run.tcl")
@@ -407,7 +440,6 @@ class HdlmakeKernel(object):
 
         flist = pool.build_global_file_list();
         flist_sorted = solver.solve(flist);
-        
 #        if not os.path.exists(self.options.merge_cores):
  #           os.makedirs(self.options.merge_cores)
         base = self.options.merge_cores
@@ -423,9 +455,7 @@ class HdlmakeKernel(object):
         f_out.write("-- and re-genrate the merged version!                               --\n");
         f_out.write("----------------------------------------------------------------------\n");
         f_out.write("\n\n\n\n");
-        
-        
-        
+
         for vhdl in flist_sorted.filter(VHDLFile):
             f_out.write("\n\n--- File: %s ----\n\n" % vhdl.rel_path())
             f_out.write(open(vhdl.rel_path(),"r").read()+"\n\n")

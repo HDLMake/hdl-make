@@ -124,7 +124,7 @@ class ModulePool(list):
 
     def __init__(self, *args):
         list.__init__(self, *args)
-        self.top_module = None 
+        self.top_module = None
         self.global_fetch = os.getenv("HDLMAKE_COREDIR")
 
     def get_fetchable_modules(self):
@@ -138,7 +138,7 @@ class ModulePool(list):
             if mod.url == module.url:
                 return True
         return False
-        
+
     def new_module(self, parent, url, source, fetchto):
         from module import Module
         if url in [m.url for m in self]:
@@ -203,18 +203,31 @@ class ModulePool(list):
         sff = SourceFileFactory()
 
         files = self.build_global_file_list()
-        extra_verilog_files = set() 
+        extra_verilog_files = set()
         manifest_verilog_files = files.filter(VerilogFile)
         queue = manifest_verilog_files
 
         while len(queue) > 0:
-            verilog_file = queue.pop()
-            for f_required in verilog_file.dep_requires:
-                new_vl = sff.new(os.path.join(verilog_file.dirname, f_required))
-                queue.append(new_vl)
-                if f_required not in extra_verilog_files and \
-                    f_required not in manifest_verilog_files:
-                    extra_verilog_files.add(new_vl)
+            vl = queue.pop()
+            for f in vl.dep_requires:
+                nvl = None
+                if global_mod.top_module.use_compiler == "iverilog":
+                    if os.path.relpath(vl.path) == f:
+                        continue
+#                    for fp in list(extra_verilog_files) + manifest_verilog_files:
+                    for fp in files:
+                        if os.path.relpath(fp.path) == f:
+                            nvl = fp
+                    if nvl == None:
+                        nvl = sff.new(f)
+                        if nvl:
+                            queue.append(nvl)
+                else:
+                    nvl = sff.new(os.path.join(vl.dirname, f))
+                    queue.append(nvl)
+                if nvl not in extra_verilog_files and nvl not in manifest_verilog_files:
+                    if nvl:
+                        extra_verilog_files.add(nvl)
 
         p.vprint("Extra verilog files, not listed in manifests:")
         for extra_vl in extra_verilog_files:

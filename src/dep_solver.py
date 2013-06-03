@@ -19,7 +19,8 @@
 #
 
 import msg as p
-
+import global_mod
+import os.path
 
 class IDependable:
     def __init__(self):
@@ -79,7 +80,7 @@ class DependencySolver:
 
             if requires:
                 for req in requires:
-                    if req in f.dep_provides: 
+                    if req in f.dep_provides:
                         return start_index
         return None
 
@@ -90,7 +91,36 @@ class DependencySolver:
 
         return None
 
-    def __find_provider_verilog_file(self, req, v_file):
+    def __find_provider_verilog_file(self, req, v_file, fset):
+        from srcfile import SourceFileFactory
+        import os
+        sff = SourceFileFactory()
+        #TODO: Can this be done elsewhere?
+        if global_mod.top_module.use_compiler == "iverilog":
+            for f in fset:
+                if f.rel_path() == os.path.relpath(req):
+                    return f
+            return sff.new(req)
+
+        import os
+        vf_dirname = v_file.dirname
+        h_file = os.path.join(vf_dirname, req)
+        if os.path.exists(h_file) and not os.path.isdir(h_file):
+            return sff.new(h_file)
+
+        inc_dirs = self.__parse_vlog_opt(v_file.vlog_opt)
+
+        for dir in inc_dirs:
+            dir = os.path.join( os.getcwd(), dir)
+            if not os.path.exists(dir) or not os.path.isdir(dir):
+                p.warning("Include path "+dir+" doesn't exist")
+                continue
+            h_file = os.path.join(dir, req)
+            if os.path.exists(h_file) and not os.path.isdir(h_file):
+                return sff.new(h_file)
+        return None
+
+    def __find_provider_verilog_file_BEFORE_LBL(self, req, v_file):
         from srcfile import SourceFileFactory
         import os
         vf_dirname = v_file.dirname
@@ -175,11 +205,12 @@ class DependencySolver:
 
         import srcfile as sf
 
+        acc=[]
         for f in [file for file in fset if isinstance(file, VerilogFile)]:
             p.vprint(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
-                    pf = self.__find_provider_verilog_file(req, f)
+                    pf = self.__find_provider_verilog_file(req, f, fset+acc)
                     if not pf:
                         p.warning("Cannot find depending for file "+str(f)+": "+req)
                     else:
@@ -208,7 +239,7 @@ class DependencySolver:
                 if qf.dep_requires:
                     f.dep_requires.extend(qf.dep_requires)
                     for req in qf.dep_requires:
-                        pf = self.__find_provider_verilog_file(req, f)
+                        pf = self.__find_provider_verilog_file_BEFORE_LBL(req, f)
                         if not pf:
                             p.warning("Cannot find include for file "+str(f)+": "+req)
                         else:
@@ -217,7 +248,6 @@ class DependencySolver:
                             stack.append(pf)
              #get rid of duplicates by making a set from the list and vice versa
             f.dep_depends_on = list(set(f.dep_depends_on))
-      
 
         for k in newobj:
             p.vprint(str(k.dep_index) + " " + k.path + str(k._dep_fixed))
