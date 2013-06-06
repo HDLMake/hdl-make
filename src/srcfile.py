@@ -207,9 +207,9 @@ class VHDLFile(SourceFile):
         f.close()
         return ret
 
-        
+
 class VerilogFile(SourceFile):
-    def __init__(self, path, library = None, vlog_opt = None, include_dirs = None):
+    def __init__(self, path, library=None, vlog_opt=None, include_dirs=None):
         if not library:
             library = "work"
         SourceFile.__init__(self, path, library)
@@ -221,7 +221,7 @@ class VerilogFile(SourceFile):
         if include_dirs:
             self.include_dirs.extend(include_dirs)
         self.include_dirs.append(path_mod.relpath(self.dirname))
-        self.__create_deps();
+        self.__create_deps()
 
     def __create_deps(self):
 #        self.dep_requires = self.__search_includes()
@@ -289,17 +289,17 @@ class SVFile(VerilogFile):
     def __init__(self, path, library = None, vlog_opt = None, include_dirs = None):
         VerilogFile.__init__(self, path, library, vlog_opt, include_dirs)
 
-        
+
 class UCFFile(File):
     def __init__(self, path):
         File.__init__(self, path)
 
-        
+
 class TCLFile(File):
     def __init__(self, path):
         File.__init__(self, path)
 
-        
+
 class XISEFile(File):
     def __init__(self, path):
         File.__init__(self, path)
@@ -309,21 +309,26 @@ class CDCFile(File):
     def __init__(self, path):
         File.__init__(self, path)
 
+
 class SignalTapFile(File):
     def __init__(self, path):
         File.__init__(self, path)
+
 
 class SDCFile(File):
     def __init__(self, path):
         File.__init__(self, path)
 
+
 class QIPFile(File):
     def __init__(self, path):
         File.__init__(self, path)
 
+
 class DPFFile(File):
     def __init__(self, path):
         File.__init__(self, path)
+
 
 class NGCFile(SourceFile):
     def __init__(self, path):
@@ -347,14 +352,14 @@ class SourceFileSet(list):
     def add(self, files):
         if isinstance(files, str):
             raise RuntimeError("Expected object, not a string")
-        elif files == None:
+        elif files is None:
             p.vprint("Got None as a file.\n Ommiting")
         else:
             try:
                 for f in files:
                     if f not in self:
                         self.append(f)
-            except: #single file, not a list
+            except:  # single file, not a list
                 if files not in self:
                     self.append(files)
 
@@ -364,11 +369,11 @@ class SourceFileSet(list):
             if isinstance(f, type):
                 out.add(f)
         return out
-        
+
     def inversed_filter(self, type):
         out = SourceFileSet()
         for f in self:
-            if not isinstance(f,type):
+            if not isinstance(f, type):
                 out.add(f)
         return out
 

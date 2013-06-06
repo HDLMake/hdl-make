@@ -218,7 +218,7 @@ class ModulePool(list):
                     for fp in files:
                         if os.path.relpath(fp.path) == f:
                             nvl = fp
-                    if nvl == None:
+                    if nvl is None:
                         nvl = sff.new(f)
                         if nvl:
                             queue.append(nvl)

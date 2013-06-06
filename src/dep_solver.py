@@ -62,6 +62,7 @@ class IDependable:
     def __create_deps(self):
         """Used solely for polymorphism"""
 
+
 class DependencySolver:
     def __init__(self):
         self.entities = {};
@@ -111,29 +112,7 @@ class DependencySolver:
         inc_dirs = self.__parse_vlog_opt(v_file.vlog_opt)
 
         for dir in inc_dirs:
-            dir = os.path.join( os.getcwd(), dir)
-            if not os.path.exists(dir) or not os.path.isdir(dir):
-                p.warning("Include path "+dir+" doesn't exist")
-                continue
-            h_file = os.path.join(dir, req)
-            if os.path.exists(h_file) and not os.path.isdir(h_file):
-                return sff.new(h_file)
-        return None
-
-    def __find_provider_verilog_file_BEFORE_LBL(self, req, v_file):
-        from srcfile import SourceFileFactory
-        import os
-        vf_dirname = v_file.dirname
-        sff = SourceFileFactory()
-
-        h_file = os.path.join(vf_dirname, req)
-        if os.path.exists(h_file) and not os.path.isdir(h_file):
-            return sff.new(h_file)
-
-        inc_dirs = self.__parse_vlog_opt(v_file.vlog_opt)
-
-        for dir in inc_dirs:
-            dir = os.path.join( os.getcwd(), dir)
+            dir = os.path.join(os.getcwd(), dir)
             if not os.path.exists(dir) or not os.path.isdir(dir):
                 p.warning("Include path "+dir+" doesn't exist")
                 continue
@@ -160,7 +139,7 @@ class DependencySolver:
         max_iter = 100
         import copy
 
-        fset = fileset.filter(IDependable);
+        fset = fileset.filter(IDependable)
         f_nondep = []
 
         done = False
@@ -170,7 +149,7 @@ class DependencySolver:
             for f in fset:
                 if not f._dep_fixed:
                     idx = fset.index(f)
-                    k = self.__lookup_post_provider(files=fset, start_index=idx, file=f);
+                    k = self.__lookup_post_provider(files=fset, start_index=idx, file=f)
 
                     if k:
                         done = False
@@ -178,8 +157,8 @@ class DependencySolver:
                         fset[idx], fset[k] = fset[k], fset[idx]
 
         if(n_iter == max_iter):
-            p.error("Maximum number of iterations reached when trying to solve the dependencies."+
-            "Perhaps a cyclic inter-dependency problem.");
+            p.error("Maximum number of iterations reached when trying to solve the dependencies.\n"
+                    "Perhaps a cyclic inter-dependency problem.")
             return None
 
         for f in fset:
@@ -197,7 +176,7 @@ class DependencySolver:
                     if not pf:
                         p.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                     else:
-                        p.vprint("--> " + pf.path);
+                        p.vprint("--> " + pf.path)
                         if pf.path != f.path:
                             f.dep_depends_on.append(pf)
             #get rid of duplicates by making a set from the list and vice versa
@@ -205,7 +184,7 @@ class DependencySolver:
 
         import srcfile as sf
 
-        acc=[]
+        acc = []
         for f in [file for file in fset if isinstance(file, VerilogFile)]:
             p.vprint(f.path)
             if f.dep_requires:
@@ -239,7 +218,7 @@ class DependencySolver:
                 if qf.dep_requires:
                     f.dep_requires.extend(qf.dep_requires)
                     for req in qf.dep_requires:
-                        pf = self.__find_provider_verilog_file_BEFORE_LBL(req, f)
+                        pf = self.__find_provider_verilog_file(req, f, [])
                         if not pf:
                             p.warning("Cannot find include for file "+str(f)+": "+req)
                         else:

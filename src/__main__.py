@@ -41,6 +41,7 @@ def main():
 
     parser.add_option("--make-iv-sim", dest="make_iv_sim", action="store_true",
     default=None, help="generate an iverilog compiler based simulation Makefile")
+
     parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
     default=None, help="generate a makefile for modules' fetching")
 
@@ -122,6 +123,7 @@ def main():
         quit()
     global_mod.top_module = pool.get_top_module()
     global_mod.global_target = global_mod.top_module.target
+    global_mod.mod_pool = pool
 
     ssh = Connection(ssh_user=options.synth_user,
         ssh_server=options.synth_server)
@@ -153,7 +155,7 @@ def main():
                 sth_chosen = True
                 getattr(kernel, function)()
             sth_chosen = False
-        except Exception, unknown_error :
+        except Exception, unknown_error:
             p.echo("Oooops! We've got an error. Here is the appropriate info:\n")
             p.print_version()
             print(unknown_error)

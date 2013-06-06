@@ -110,27 +110,24 @@ class HdlmakeKernel(object):
             p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         top_module = pool.get_top_module()
-        flist = pool.build_global_file_list();
-        flist_sorted = solver.solve(flist);
+        flist = pool.build_global_file_list()
+        flist_sorted = solver.solve(flist)
         self.make_writer.generate_modelsim_makefile(flist_sorted, top_module)
 
     def generate_iverilog_makefile(self):
         from dep_solver import DependencySolver
         p.info("Generating makefile for simulation.")
         solver = DependencySolver()
-
         pool = self.modules_pool
-        import global_mod
-        global_mod.mod_pool = pool
-        if not pool.is_everything_fetched():
+
+        if not self.modules_pool.is_everything_fetched():
             p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
             p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         tm = pool.get_top_module()
-        flist = pool.build_global_file_list();
-        flist_sorted = solver.solve(flist);
+        flist = pool.build_global_file_list()
+        flist_sorted = solver.solve(flist)
         self.make_writer.generate_iverilog_makefile(flist_sorted, tm, pool)
-
 
     def generate_ise_makefile(self):
         import global_mod
