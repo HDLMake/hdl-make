@@ -3,19 +3,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software; you can redistribute it
+#    This source code is free software you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation; either version 2 of the License, or (at your option)
+#    Foundation either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    but WITHOUT ANY WARRANTY without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
+#    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 
@@ -24,12 +24,13 @@ import msg as p
 import path
 import global_mod
 
+
 class ModulePool(list):
     class ModuleFetcher:
         def __init__(self):
             pass
+
         def fetch_single_module(self, module):
-            import global_mod
             new_modules = []
             p.vprint("Fetching module: " + str(module))
 
@@ -37,8 +38,8 @@ class ModulePool(list):
                 p.vprint("ModPath: " + module.path)
             else:
                 p.printhr()
-                p.info("Fetching module: " + str(module) +\
-                    " [parent: " + str(module.parent) + "]")
+                p.info("Fetching module: " + str(module) +
+                       " [parent: " + str(module.parent) + "]")
                 if module.source == "svn":
                     p.info("[svn] Fetching to " + module.fetchto)
                     self.__fetch_from_svn(module)
@@ -82,14 +83,14 @@ class ModulePool(list):
                 os.mkdir(module.fetchto)
 
             cur_dir = os.getcwd()
-            if module.branch == None:
+            if module.branch is None:
                 module.branch = "master"
 
             basename = path.url_basename(module.url)
             mod_path = os.path.join(module.fetchto, basename)
 
             if basename.endswith(".git"):
-                basename = basename[:-4] #remove trailing .git
+                basename = basename[:-4]  # remove trailing .git
 
             if module.isfetched:
                 update_only = True
@@ -121,7 +122,6 @@ class ModulePool(list):
             module.path = mod_path
             return rval
 
-
     def __init__(self, *args):
         list.__init__(self, *args)
         self.top_module = None
@@ -145,7 +145,7 @@ class ModulePool(list):
             return [m for m in self if m.url == url][0]
         else:
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
-                fetchto  = self.global_fetch # screw module's particular fetchto
+                fetchto = self.global_fetch  # screw module's particular fetchto
             elif global_mod.top_module:
                 fetchto = global_mod.top_module.fetchto
 
@@ -169,7 +169,7 @@ class ModulePool(list):
         self.append(new_module)
         return True
 
-    def fetch_all(self, unfetched_only = False):
+    def fetch_all(self, unfetched_only=False):
         fetcher = self.ModuleFetcher()
         fetch_queue = [m for m in self]
 
@@ -185,11 +185,11 @@ class ModulePool(list):
                 new_modules = fetcher.fetch_single_module(cur_mod)
             for mod in new_modules:
                 if not mod.isfetched:
-                    p.vprint("Appended to fetch queue: " +str(mod.url))
+                    p.vprint("Appended to fetch queue: " + str(mod.url))
                     self._add(mod)
                     fetch_queue.append(mod)
                 else:
-                    p.vprint("NOT appended to fetch queue: " +str(mod.url))
+                    p.vprint("NOT appended to fetch queue: " + str(mod.url))
 
     def build_global_file_list(self):
         from srcfile import SourceFileSet

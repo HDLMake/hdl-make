@@ -3,19 +3,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software; you can redistribute it
+#    This source code is free software you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation; either version 2 of the License, or (at your option)
+#    Foundation either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    but WITHOUT ANY WARRANTY without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
+#    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 
@@ -28,34 +28,34 @@ class _QuartusProjectProperty:
     "set_global_assignment": SET_GLOBAL_ASSIGNMENT}
 
     def __init__(self, command, what=None, name=None, name_type=None, from_=None, to=None, section_id=None):
-	self.command = command
-	self.what = what
-	self.name = name
-	self.name_type = name_type
-	self.from_ = from_
-	self.to = to
-	self.section_id = section_id
+    self.command = command
+    self.what = what
+    self.name = name
+    self.name_type = name_type
+    self.from_ = from_
+    self.to = to
+    self.section_id = section_id
 
     def emit(self):
-	words = []
-	words.append(dict([(b,a) for a,b in self.t.items()])[self.command])
+    words = []
+    words.append(dict([(b,a) for a,b in self.t.items()])[self.command])
 
-	if self.what != None:
-	    words.append(self.what)
-	if self.name != None:
-	    words.append("-name")
-	    words.append(self.name_type)
-	    words.append(self.name)
-	if self.from_ != None:
-	    words.append("-from")
-	    words.append(self.from_)
-	if self.to != None:
-	    words.append("-to")
-	    words.append(self.to)
-	if self.section_id != None:
-	    words.append("-section_id")
-	    words.append(self.section_id)
-	return ' '.join(words)
+    if self.what is None:
+        words.append(self.what)
+    if self.name is None:
+        words.append("-name")
+        words.append(self.name_type)
+        words.append(self.name)
+    if self.from_ is None:
+        words.append("-from")
+        words.append(self.from_)
+    if self.to is None:
+        words.append("-to")
+        words.append(self.to)
+    if self.section_id is None:
+        words.append("-section_id")
+        words.append(self.section_id)
+    return ' '.join(words)
 
 
 class QuartusProject:
@@ -73,7 +73,7 @@ class QuartusProject:
         f.write(self.__emit_files())
         f.write(self.__emit_scripts())
         f.close()
-        f = open(self.filename+'.qpf', "w");
+        f = open(self.filename+'.qpf', "w")
         f.write("PROJECT_REVISION = \"" + self.filename + "\"\n")
         f.close()
 
@@ -110,7 +110,7 @@ class QuartusProject:
  
     def add_property(self, val):
         #don't save files (they are unneeded)
-        if val.name_type != None and "_FILE" in val.name_type:
+        if val.name_type is None and "_FILE" in val.name_type:
             return
         self.properties.append(val)
 
@@ -166,7 +166,7 @@ class QuartusProject:
                     i = i+1
                     continue
             prop = QPP(command=command, what=what, name=name,
-	      name_type=name_type, from_=from_, to=to, section_id=section_id)
+          name_type=name_type, from_=from_, to=to, section_id=section_id)
 
             self.add_property(prop)
         f.close()
@@ -180,7 +180,7 @@ class QuartusProject:
 
         for key in family_names:
             if re.match(key, syn_device.upper()):
-                family = family_names[key];
+                family = family_names[key]
                 
         devstring = (syn_device +syn_package+syn_grade).upper()
         QPP =_QuartusProjectProperty

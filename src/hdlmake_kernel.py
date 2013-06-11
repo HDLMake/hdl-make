@@ -3,19 +3,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software; you can redistribute it
+#    This source code is free software you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation; either version 2 of the License, or (at your option)
+#    Foundation either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    but WITHOUT ANY WARRANTY without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
+#    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 # Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
@@ -59,16 +59,16 @@ class HdlmakeKernel(object):
                 raise RuntimeError("Unrecognized or not specified simulation tool: "+ str(tm.use_compiler))
                 quit()
             # Force declaration of sim_tool varible in Manifest
-            #if tm.sim_tool == None:
-            #	p.error("sim_tool variable must be defined in the manifest")
-            #	quit()
+            #if tm.sim_tool is None:
+            #    p.error("sim_tool variable must be defined in the manifest")
+            #    quit()
             ## Make distintion between isim and vsim simulators
             #if tm.sim_tool == "vsim":
-            #       	self.generate_modelsim_makefile()
+            #           self.generate_modelsim_makefile()
             #elif tm.sim_tool == "isim":
-            #	self.generate_isim_makefile()
+            #    self.generate_isim_makefile()
             #else:
-            #	raise RuntimeError("Unrecognized sim tool: "+tm.sim_tool)
+            #    raise RuntimeError("Unrecognized sim tool: "+tm.sim_tool)
         elif tm.action == "synthesis":
             if tm.syn_project is None:
                 p.error("syn_project variable must be defined in the manifest")
@@ -127,8 +127,8 @@ class HdlmakeKernel(object):
           p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
           quit()
         top_module = pool.get_top_module()
-        flist = pool.build_global_file_list();
-        flist_sorted = solver.solve(flist);
+        flist = pool.build_global_file_list()
+        flist_sorted = solver.solve(flist)
         #self.make_writer.generate_modelsim_makefile(flist_sorted, top_module)
         self.make_writer.generate_vsim_makefile(flist_sorted, top_module)
 
@@ -144,8 +144,8 @@ class HdlmakeKernel(object):
             p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         top_module = pool.get_top_module()
-        flist = pool.build_global_file_list();
-        flist_sorted = solver.solve(flist);
+        flist = pool.build_global_file_list()
+        flist_sorted = solver.solve(flist)
         self.make_writer.generate_isim_makefile(flist_sorted, top_module)
 
     def generate_iverilog_makefile(self):
@@ -173,7 +173,7 @@ class HdlmakeKernel(object):
         self.make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(), ise_path=ise_path)
 
     def generate_remote_synthesis_makefile(self):
-        if self.connection.ssh_user == None or self.connection.ssh_server == None:
+        if self.connection.ssh_user is None or self.connection.ssh_server is None:
             p.warning("Connection data is not given. "
                 "Accessing environmental variables in the makefile")
         p.info("Generating makefile for remote synthesis.")
@@ -186,7 +186,7 @@ class HdlmakeKernel(object):
         ise_path = self.__figure_out_ise_path()
         tcl = self.__search_tcl_file()
 
-        if tcl == None:
+        if tcl is None:
             self.__generate_tcl()
             tcl = "run.tcl"
         files = self.modules_pool.build_very_global_file_list()
@@ -229,7 +229,7 @@ class HdlmakeKernel(object):
             self.__create_new_quartus_project()
 
     def __figure_out_ise_path(self):
-        if self.options.force_ise != None:
+        if self.options.force_ise is None:
             if self.options.force_ise == 0:
                 ise = self.__check_ise_version()
             else:
@@ -247,7 +247,7 @@ class HdlmakeKernel(object):
         return ise_path
 
     def __is_xilinx_screwed(self):
-        if self.__check_ise_version() == None:
+        if self.__check_ise_version() is None:
             return True
         else:
             return False
@@ -387,7 +387,7 @@ class HdlmakeKernel(object):
 
         files = self.modules_pool.build_very_global_file_list()
 #        tcl = self.__search_tcl_file()
-#        if tcl == None:
+#        if tcl is None:
         self.__generate_tcl()
         tcl = "run.tcl"
 
@@ -411,7 +411,7 @@ class HdlmakeKernel(object):
         os.chdir(cur_dir)
 
     def __search_tcl_file(self, directory = None):
-        if directory == None:
+        if directory is None:
             directory = "."
         filenames = os.listdir(directory)
         tcls = []
@@ -438,7 +438,7 @@ class HdlmakeKernel(object):
         remove_list.reverse() #we will remove modules in backward order
         if len(remove_list):
             for m in remove_list:
-                p.rawprint("\t" + m.url + " [from: " + m.path + "]")
+                p.rawprint("    " + m.url + " [from: " + m.path + "]")
                 m.remove_dir_from_disk()
         else:
             p.info("There are no modules to be removed")
@@ -469,23 +469,23 @@ class HdlmakeKernel(object):
             p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
 
-        flist = pool.build_global_file_list();
-        flist_sorted = solver.solve(flist);
+        flist = pool.build_global_file_list()
+        flist_sorted = solver.solve(flist)
 #        if not os.path.exists(self.options.merge_cores):
  #           os.makedirs(self.options.merge_cores)
         base = self.options.merge_cores
 
         f_out = open(base+".vhd", "w")
-        f_out.write("\n\n\n\n");
-        f_out.write("------------------------------ WARNING -------------------------------\n");
-        f_out.write("-- This code has been generated by hdlmake --merge-cores option     --\n");
-        f_out.write("-- It is provided for your convenience, to spare you from adding    --\n");
-        f_out.write("-- lots of individual source files to ISE/Modelsim/Quartus projects --\n");
-        f_out.write("-- mainly for Windows users. Please DO NOT MODIFY this file. If you --\n");
-        f_out.write("-- need to change something inside, edit the original source file   --\n");
-        f_out.write("-- and re-genrate the merged version!                               --\n");
-        f_out.write("----------------------------------------------------------------------\n");
-        f_out.write("\n\n\n\n");
+        f_out.write("\n\n\n\n")
+        f_out.write("------------------------------ WARNING -------------------------------\n")
+        f_out.write("-- This code has been generated by hdlmake --merge-cores option     --\n")
+        f_out.write("-- It is provided for your convenience, to spare you from adding    --\n")
+        f_out.write("-- lots of individual source files to ISE/Modelsim/Quartus projects --\n")
+        f_out.write("-- mainly for Windows users. Please DO NOT MODIFY this file. If you --\n")
+        f_out.write("-- need to change something inside, edit the original source file   --\n")
+        f_out.write("-- and re-genrate the merged version!                               --\n")
+        f_out.write("----------------------------------------------------------------------\n")
+        f_out.write("\n\n\n\n")
 
         for vhdl in flist_sorted.filter(VHDLFile):
             f_out.write("\n\n--- File: %s ----\n\n" % vhdl.rel_path())
@@ -495,16 +495,16 @@ class HdlmakeKernel(object):
 
         f_out = open(base+".v", "w")
 
-        f_out.write("\n\n\n\n");
-        f_out.write("////////////////////////////// WARNING ///////////////////////////////\n");
-        f_out.write("// This code has been generated by hdlmake --merge-cores option     //\n");
-        f_out.write("// It is provided for your convenience, to spare you from adding    //\n");
-        f_out.write("// lots of individual source files to ISE/Modelsim/Quartus projects //\n");
-        f_out.write("// mainly for Windows users. Please DO NOT MODIFY this file. If you //\n");
-        f_out.write("// need to change something inside, edit the original source file   //\n");
-        f_out.write("// and re-genrate the merged version!                               //\n");
-        f_out.write("//////////////////////////////////////////////////////////////////////\n");
-        f_out.write("\n\n\n\n");
+        f_out.write("\n\n\n\n")
+        f_out.write("////////////////////////////// WARNING ///////////////////////////////\n")
+        f_out.write("// This code has been generated by hdlmake --merge-cores option     //\n")
+        f_out.write("// It is provided for your convenience, to spare you from adding    //\n")
+        f_out.write("// lots of individual source files to ISE/Modelsim/Quartus projects //\n")
+        f_out.write("// mainly for Windows users. Please DO NOT MODIFY this file. If you //\n")
+        f_out.write("// need to change something inside, edit the original source file   //\n")
+        f_out.write("// and re-genrate the merged version!                               //\n")
+        f_out.write("//////////////////////////////////////////////////////////////////////\n")
+        f_out.write("\n\n\n\n")
 
         for vlog in flist_sorted.filter(VerilogFile):
             f_out.write("\n\n//    File: %s     \n\n" % vlog.rel_path())

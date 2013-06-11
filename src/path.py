@@ -3,19 +3,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software; you can redistribute it
+#    This source code is free software you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation; either version 2 of the License, or (at your option)
+#    Foundation either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    but WITHOUT ANY WARRANTY without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
+#    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 
@@ -42,14 +42,14 @@ def url_parse(url):
     """
     Check if link to a repo seems to be correct. Filter revision number and branch
     """
-    """url_pat = re.compile("[ \t]*([^ \t]+?)[ \t]*(::)?([^ \t@]+)?(@[ \t]*(.+))?[ \t]*")
+    """url_pat = re.compile("[     ]*([^     ]+?)[     ]*(::)?([^     @]+)?(@[     ]*(.+))?[     ]*")
     url_match = re.match(url_pat, url)
-    if url_match == None:
+    if url_match is None:
         p.echo("Not a correct repo url: {0}. Skipping".format(url))
     url_clean = url_match.group(1)
-    if url_match.group(3) != None: #there is a branch
+    if url_match.group(3) is None: #there is a branch
       branch = url_match.group(3)
-    if url_match.group(5) != None: #there is a revision given
+    if url_match.group(5) is None: #there is a revision given
       rev = url_match.group(5)"""
     url_clean, branch, rev = None, None, None
     if "@@" in url:
@@ -113,7 +113,7 @@ def is_abs_path(path):
     return False
 
 def relpath(p1, p2 = None):
-    if p2 == None:
+    if p2 is None:
         p2 = os.getcwd()
     if p1 == p2:
         return '.'
