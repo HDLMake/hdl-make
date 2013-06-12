@@ -3,19 +3,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software; you can redistribute it
+#    This source code is free software you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation; either version 2 of the License, or (at your option)
+#    Foundation either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    but WITHOUT ANY WARRANTY without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
+#    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 # Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
@@ -49,7 +49,7 @@ class MakefileWriter(object):
         self._file.write(line)
 
     def writeln(self, text=None):
-        if text == None:
+        if text is None:
             self._file.write("\n")
         else:
             self._file.write(text+"\n")
@@ -60,7 +60,7 @@ class MakefileWriter(object):
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise_path):
         import path
-        if name == None:
+        if name is None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
         user_tmpl = "USER:={0}"
@@ -69,7 +69,7 @@ class MakefileWriter(object):
         remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
-        if  user == None:
+        if  user is None:
             user_tmpl = user_tmpl.format("$(HDLMAKE_USER)#take the value from the environment")
             test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
@@ -83,7 +83,7 @@ endif
             user_tmpl = user_tmpl.format(user)
             test_tmpl = "__test_for_remote_synthesis_variables:\n\t\ttrue #dummy\n"
 
-        if server == None:
+        if server is None:
             server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)#take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
@@ -225,9 +225,9 @@ mrproper:
             if module.source == "svn":
                 self.write("__"+basename+"_fetch:\n")
                 self.write("\t\t")
-                self.write("PWD=$(shell pwd); ")
-                self.write("cd " + rp(module.fetchto) + '; ')
-                c = "svn checkout {0}{1} {2};"
+                self.write("PWD=$(shell pwd) ")
+                self.write("cd " + rp(module.fetchto) + ' ')
+                c = "svn checkout {0}{1} {2}"
                 if module.revision:
                     c=c.format(module.url, "@"+module.revision, module.basename)
                 else:
@@ -238,15 +238,15 @@ mrproper:
             elif module.source == "git":
                 self.write("__"+basename+"_fetch:\n")
                 self.write("\t\t")
-                self.write("PWD=$(shell pwd); ")
-                self.write("cd " + rp(module.fetchto) + '; ')
-                self.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
-                self.write("git pull; ")
+                self.write("PWD=$(shell pwd) ")
+                self.write("cd " + rp(module.fetchto) + ' ')
+                self.write("if [ -d " + basename + " ] then cd " + basename + ' ')
+                self.write("git pull ")
                 if module.revision:
-                    self.write("git checkout " + module.revision +';')
-                self.write("else git clone "+ module.url + '; fi; ')
+                    self.write("git checkout " + module.revision +'')
+                self.write("else git clone "+ module.url + ' fi ')
                 if module.revision:
-                    self.write("git checkout " + module.revision + ';')
+                    self.write("git checkout " + module.revision + '')
                 self.write("cd $(PWD) \n\n")
 
     def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
@@ -448,7 +448,7 @@ $(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
 
 xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
 \t\tcp $< .
-fuse: ;
+fuse: 
 ifeq ($(TOP_MODULE),)
 \t\t@echo \"Environment variable TOP_MODULE not set!\"
 else

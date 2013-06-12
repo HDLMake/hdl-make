@@ -2,19 +2,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software; you can redistribute it
+#    This source code is free software you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation; either  2 of the License, or (at your option)
+#    Foundation either  2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    but WITHOUT ANY WARRANTY without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
+#    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 
@@ -92,7 +92,7 @@ class Module(object):
                 self.path = None
                 self.isfetched = False
 
-        if self.path != None:
+        if self.path is not None:
             self.manifest = self.__search_for_manifest()
         else:
             self.manifest = None
@@ -121,13 +121,13 @@ class Module(object):
         for filename in os.listdir(self.path):
             if filename == "manifest.py" or filename == "Manifest.py":
                 if not os.path.isdir(filename):
-                    p.vprint("*** found manifest for module "+self.path);
+                    p.vprint("*** found manifest for module "+self.path)
                     manifest = Manifest(path=os.path.abspath(os.path.join(self.path, filename)))
                     return manifest
         return None
 
     def __make_list(self, sth):
-        if sth != None:
+        if sth is not None:
             if not isinstance(sth, (list,tuple)):
                 sth = [sth]
         else:
@@ -155,25 +155,25 @@ class Module(object):
                 break
 
     def parse_manifest(self):
-        if self.isparsed == True or self.isfetched == False:
+        if self.isparsed is True or self.isfetched is False:
             return
-        if self.manifest == None:
+        if self.manifest is None:
             self.manifest = self.__search_for_manifest()
-        if self.path == None:
+        if self.path is None:
             raise RuntimeError()
         manifest_parser = ManifestParser()
 
-		# For non-top modules
-        if(self.parent != None):
+        # For non-top modules
+        if(self.parent is not None):
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
             manifest_parser.add_arbitrary_code("action=\""+str(global_mod.top_module.action)+"\"")
-			# syn_device and sim_tool will be set for non-top modules
+            # syn_device and sim_tool will be set for non-top modules
             manifest_parser.add_arbitrary_code("syn_device=\""+str(global_mod.top_module.syn_device)+"\"")
 
         manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
 
-        if self.manifest == None:
+        if self.manifest is None:
             p.vprint("No manifest found in module "+str(self))
         else:
             manifest_parser.add_manifest(self.manifest)
@@ -186,13 +186,13 @@ class Module(object):
             p.echo("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
 
-        if(opt_map["fetchto"] != None):
+        if(opt_map["fetchto"] is not None):
             fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
             self.fetchto = fetchto
         else:
             fetchto = self.fetchto
 
-        if self.ise == None:
+        if self.ise is None:
             self.ise = "13.1"
 
         if "local" in opt_map["modules"]:
@@ -216,7 +216,7 @@ class Module(object):
         self.iverilog_opt = opt_map["iverilog_opt"]
         self.use_compiler = opt_map["use_compiler"]
         mkFileList = []
-        if opt_map["incl_makefiles"] != None:
+        if opt_map["incl_makefiles"] is not None:
             if isinstance(opt_map["incl_makefiles"], basestring):
                 mkFileList.append(opt_map["incl_makefiles"])
             else:
@@ -239,7 +239,7 @@ class Module(object):
 
         self.library = opt_map["library"]
         self.include_dirs = []
-        if opt_map["include_dirs"] != None:
+        if opt_map["include_dirs"] is not None:
             if isinstance(opt_map["include_dirs"], basestring):
 #                self.include_dirs.append(opt_map["include_dirs"])
                 ll = os.path.relpath(os.path.abspath(os.path.join(self.path,opt_map["include_dirs"])))
@@ -274,7 +274,7 @@ class Module(object):
                     quit()
 
             from srcfile import VerilogFile, VHDLFile
-            self.files = self.__create_file_list_from_paths(paths=paths);
+            self.files = self.__create_file_list_from_paths(paths=paths)
             for f in self.files:
                 if isinstance(f, VerilogFile):
                     f.vsim_opt = self.vsim_opt
@@ -336,15 +336,15 @@ class Module(object):
         self.target = opt_map["target"]
         self.action = opt_map["action"]
 
-        if opt_map["syn_name"] == None and opt_map["syn_project"] != None:
+        if opt_map["syn_name"] is None and opt_map["syn_project"] is not None:
             self.syn_name = opt_map["syn_project"][:-5] #cut out .xise from the end
         else:
             self.syn_name = opt_map["syn_name"]
-        self.syn_device = opt_map["syn_device"];
-        self.syn_grade = opt_map["syn_grade"];
-        self.syn_package= opt_map["syn_package"];
-        self.syn_project = opt_map["syn_project"];
-        self.syn_top = opt_map["syn_top"];
+        self.syn_device = opt_map["syn_device"]
+        self.syn_grade = opt_map["syn_grade"]
+        self.syn_package= opt_map["syn_package"]
+        self.syn_project = opt_map["syn_project"]
+        self.syn_top = opt_map["syn_top"]
 
         self.isparsed = True
 
@@ -355,7 +355,7 @@ class Module(object):
         if not self.isfetched:
             return False
         for mod in self.submodules():
-            if mod.is_fetched_recursively() == False:
+            if mod.is_fetched_recursively() is False:
                 return False
         return True
 
@@ -369,7 +369,7 @@ class Module(object):
             if not cur_module.isfetched:
                 p.error("Unfetched module in modules list: " + str(cur_module))
                 quit()
-            if cur_module.manifest == None:
+            if cur_module.manifest is None:
                 p.vprint("No manifest in " + str(cur_module))
                 continue
             cur_module.parse_manifest()
@@ -408,6 +408,6 @@ class Module(object):
         f_set = SourceFileSet()
         modules = self.make_list_of_modules()
         for m in modules:
-            f_set.add(m.files);
+            f_set.add(m.files)
 
         return f_set

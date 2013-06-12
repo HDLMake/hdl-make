@@ -44,7 +44,7 @@ class File(object):
     
     def rel_path(self, dir=None):
         import path
-        if dir == None:
+        if dir is None:
             dir = os.getcwd()
         return path.relpath(self.path, dir)
 
@@ -84,10 +84,12 @@ class File(object):
         tmp = self.path.rsplit('.')
         ext = tmp[len(tmp)-1]
         return ext
-        
+
+   
 class SourceFile(IDependable, File):
     cur_index = 0
-    def __init__(self, path, library = None):
+
+    def __init__(self, path, library=None):
         IDependable.__init__(self)
         File.__init__(self, path)
         if not library:
@@ -95,19 +97,19 @@ class SourceFile(IDependable, File):
 
         self.library = library
 
-    def gen_index(self):    
+    def gen_index(self):
         self.__class__.cur_index = self.__class__.cur_index+1
         return self.__class__.cur_index
 
 
 class VHDLFile(SourceFile):
-    def __init__(self, path, library = None, vcom_opt = None):
+    def __init__(self, path, library=None, vcom_opt=None):
         SourceFile.__init__(self, path, library)
         self.__create_deps()
         if not vcom_opt:
             self.vcom_opt = ""
         else:
-            self.vcom_opt = vcom_opt 
+            self.vcom_opt = vcom_opt
 
     def __check_encryption(self):
         f = open(self.path, "rb")
@@ -180,7 +182,7 @@ class VHDLFile(SourceFile):
         ret = set() 
         for line in use_lines:
             m = re.match(lib_pattern, line)
-            if m != None:
+            if m is not None:
                 #omit standard libraries
                 if (m.group(1)).lower() in std_libs:
                     continue
@@ -216,7 +218,7 @@ class VHDLFile(SourceFile):
             #identifiers and keywords are case-insensitive in VHDL
             line = line.lower()
             m = re.match(package_pattern, line)
-            if m != None:
+            if m is not None:
                 ret.add((self.library.lower(), m.group(1).lower()))
 
         f.close()
@@ -294,14 +296,14 @@ class VerilogFile(SourceFile):
         for line in text:
             #in Verilog and SV identifiers are case-sensitive
             m = re.match(include_pattern, line)
-            if m != None:
+            if m is not None:
                 ret.append(m.group(1))
         f.close()
         return ret
 
-        
+
 class SVFile(VerilogFile):
-    def __init__(self, path, library=None, vlog_opt=None, include_dirs= None):
+    def __init__(self, path, library=None, vlog_opt=None, include_dirs=None):
         VerilogFile.__init__(self, path, library, vlog_opt, include_dirs)
 
 

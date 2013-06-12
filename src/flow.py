@@ -30,16 +30,17 @@ import re
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
 ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
-'synopsys','unimacro', 'unisim', 'XilinxCoreLib']
+                     'synopsys','unimacro', 'unisim', 'XilinxCoreLib']
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 MODELSIM_STANDARD_LIBS = ['ieee', 'std']
 ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
-'simprim', 'unisim', 'unimacro', 'aim', 'cpld', 'pls', 'xilinxcorelib',
-'aim_ver', 'cpld_ver', 'simprims_ver', 'unisims_ver', 'uni9000_ver',
-'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
+                      'simprim', 'unisim', 'unimacro', 'aim', 'cpld',
+                      'pls', 'xilinxcorelib', 'aim_ver', 'cpld_ver',
+                      'simprims_ver', 'unisims_ver', 'uni9000_ver',
+                      'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
 class ISEProjectProperty:
-    def __init__(self,  name, value, is_default = False):
+    def __init__(self,  name, value, is_default=False):
         self.name = name
         self.value = value
         self.is_default = is_default
@@ -76,7 +77,7 @@ class ISEProject:
             else:
                 self[len(self)-1] += what
 
-    def __init__(self, ise, top_mod = None):
+    def __init__(self, ise, top_mod=None):
         self.props = []
         self.files = []
         self.libs = []
@@ -107,13 +108,13 @@ class ISEProject:
 
     def add_initial_properties(self, syn_device, syn_grade, syn_package, syn_top):
         family_names = {
-          "XC6S" : "Spartan6",
-          "XC3S" : "Spartan3",
-          "XC6V" : "Virtex6",
-          "XC5V" : "Virtex5",
-          "XC4V" : "Virtex4",
-          "XC7K" : "Kintex7",
-          "XC7A" : "Artix7"}
+          "XC6S": "Spartan6",
+          "XC3S": "Spartan3",
+          "XC6V": "Virtex6",
+          "XC5V": "Virtex5",
+          "XC4V": "Virtex4",
+          "XC7K": "Kintex7",
+          "XC7A": "Artix7"}
 
 
         self.add_property(ISEProjectProperty("Device", syn_device))
@@ -292,7 +293,7 @@ class ISEProject:
 class ModelsiminiReader(object):
 
     def __init__(self, path = None):
-        if path == None:
+        if path is None:
             path = self.modelsim_ini_dir() + "/modelsim.ini"
         self.path = path
 
@@ -316,7 +317,7 @@ class ModelsiminiReader(object):
                 reading_libraries = True
                 continue
             if re.search(new_section, line):
-                if reading_libraries == True:
+                if reading_libraries is True:
                 #reading_libraries = False
                     break
                 else:
@@ -336,7 +337,7 @@ class ModelsiminiReader(object):
 
 class XilinxsiminiReader(object):
     def __init__(self, path = None):
-        if path == None:
+        if path is None:
             path = self.xilinxsim_ini_dir() + "/xilinxsim.ini"
         self.path = path
 

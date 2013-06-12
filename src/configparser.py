@@ -2,19 +2,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software; you can redistribute it
+#    This source code is free software you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation; either version 2 of the License, or (at your option)
+#    Foundation either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    but WITHOUT ANY WARRANTY without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
+#    along with this program if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 
@@ -152,7 +152,7 @@ class ConfigParser(object):
 
 
     def __init__(self, description = None):
-        if description != None:
+        if description is not None:
             if not isinstance(description, str):
                 raise ValueError("Description should be a string!")
         self.description = description
@@ -168,14 +168,14 @@ class ConfigParser(object):
 
     def __getitem__(self, name):
         if name in self.__names():
-            return [x for x in self.options if x!= None and x.name == name][0]
+            return [x for x in self.options if x is not None and x.name == name][0]
         else:
             raise RuntimeError("No such option as " + str(name))
 
     def help(self):
         p.rawprint("Variables available in a manifest:")
         for opt in self.options:
-            if opt == None:
+            if opt is None:
                 p.rawprint("")
                 continue
 
@@ -184,9 +184,9 @@ class ConfigParser(object):
                 tmp_def = opt.default
                 if tmp_def == "":
                     tmp_def = '""'
-                line = line.format(opt.name, str(opt.types), opt.help,', default=', tmp_def)
-            except AttributeError: #no default value
-                line = line.format(opt.name, str(opt.types), opt.help, "","")
+                line = line.format(opt.name, str(opt.types), opt.help, ', default=', tmp_def)
+            except AttributeError:  # no default value
+                line = line.format(opt.name, str(opt.types), opt.help, "", "")
             p.rawprint(line)
 
     def add_option(self, name, **others):
@@ -217,7 +217,7 @@ class ConfigParser(object):
     def add_config_file(self, config_file):
         if self.config_file is not None:
             raise RuntimeError("Config file should be added only once")
-        
+
         import os
         if not os.path.exists(config_file):
             raise RuntimeError("Config file doesn't exists: " + config_file)
@@ -228,16 +228,16 @@ class ConfigParser(object):
         self.arbitrary_code += code + '\n'
 
     def __names(self):
-        return [o.name for o in self.options if o != None]
+        return [o.name for o in self.options if o is not None]
 
     def parse(self):
         options = {}
         ret = {}
 
-        if self.config_file is not None: 
-	    with open(self.config_file, "r") as config_file:
-	        content = open(self.config_file, "r").readlines()
-            content = ''.join(content)
+        if self.config_file is not None:
+            with open(self.config_file, "r") as config_file:
+                content = open(self.config_file, "r").readlines()
+                content = ''.join(content)
         else:
             content = ''
         content = self.arbitrary_code + '\n' + content
