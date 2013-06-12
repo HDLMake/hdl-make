@@ -3,19 +3,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software you can redistribute it
+#    This source code is free software; you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation either version 2 of the License, or (at your option)
+#    Foundation; either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY without even the implied warranty of
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program if not, write to the Free Software
+#    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 # Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
@@ -68,7 +68,7 @@ def main():
     default=None, help="List all files in a from of a space-separated string")
 
     parser.add_option("--merge-cores=name", default=None, dest="merge_cores",
-        help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
+		help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
 
     parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
     default=None, help="create/update an ise project including list of project"
@@ -110,28 +110,27 @@ def main():
     global_mod.options = options
 
     #HANDLE PROJECT INDEPENDENT OPTIONS
-    if options.manifest_help is True:
+    if options.manifest_help == True:
         from manifest_parser import ManifestParser
         ManifestParser().help()
         quit()
 
-    if options.print_version is True:
+    if options.print_version == True:
         p.print_version()
         quit()
   # Check later if a simulation tool should have been specified
-    if options.make_isim is True:
+    if options.make_isim == True:
         global_mod.sim_tool = "isim"
-    elif options.make_vsim is True:
+    elif options.make_vsim == True:
         global_mod.sim_tool = "vsim"
     p.info("Simulation tool: " + str(global_mod.sim_tool))
 
     p.vprint("LoadTopManifest")
 
-    pool = ModulePool()
     pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".")
 
     # Setting top_module as top module of design (ModulePool class)
-    if pool.get_top_module().manifest is None:
+    if pool.get_top_module().manifest == None:
         p.rawprint("No manifest found. At least an empty one is needed")
         p.rawprint("To see some help, type hdlmake --help")
         quit()

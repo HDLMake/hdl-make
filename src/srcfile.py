@@ -44,7 +44,7 @@ class File(object):
     
     def rel_path(self, dir=None):
         import path
-        if dir is None:
+        if dir == None:
             dir = os.getcwd()
         return path.relpath(self.path, dir)
 
@@ -151,7 +151,7 @@ class VHDLFile(SourceFile):
              #std_libs =  flow.MODELSIM_STANDARD_LIBS
                 print "I/O error: ({0})".format(e.message)
                 p.error("Picking standard Modelsim simulation libraries. Try to fix the error.")
-                std_libs = flow.MODELSIM_STANDARD_LIBS
+                std_libs = flow.MODELSIM_STARDAND_LIBS
         elif global_mod.top_module.action == "synthesis":
             print("setting std libs for synthesis...")
             if global_mod.top_module.target == "xilinx":
@@ -166,7 +166,7 @@ class VHDLFile(SourceFile):
         except UnicodeDecodeError:
             return []
 
-        use_pattern = re.compile("^[     ]*use[     ]+([^ ]+)[     ]*.*$")
+        use_pattern = re.compile("^[ \t]*use[ \t]+([^; ]+)[ \t]*;.*$")
         lib_pattern = re.compile("([^.]+)\.([^.]+)\.all")
 
         use_lines = []
@@ -180,7 +180,7 @@ class VHDLFile(SourceFile):
         ret = set() 
         for line in use_lines:
             m = re.match(lib_pattern, line)
-            if m is None:
+            if m != None:
                 #omit standard libraries
                 if (m.group(1)).lower() in std_libs:
                     continue
@@ -209,14 +209,14 @@ class VHDLFile(SourceFile):
         except UnicodeDecodeError:
             return []
 
-        package_pattern = re.compile("^[     ]*package[     ]+([^     ]+)[     ]+is[     ]*.*$")
+        package_pattern = re.compile("^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*.*$")
 
         ret = set() 
         for line in text:
             #identifiers and keywords are case-insensitive in VHDL
             line = line.lower()
             m = re.match(package_pattern, line)
-            if m is None:
+            if m != None:
                 ret.add((self.library.lower(), m.group(1).lower()))
 
         f.close()
@@ -289,12 +289,12 @@ class VerilogFile(SourceFile):
             text = f.readlines()
         except UnicodeDecodeError:
             return []
-        include_pattern = re.compile("^[     ]*`include[     ]+\"([^ \"]+)\".*$")
+        include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\".*$")
         ret = []
         for line in text:
             #in Verilog and SV identifiers are case-sensitive
             m = re.match(include_pattern, line)
-            if m is None:
+            if m != None:
                 ret.append(m.group(1))
         f.close()
         return ret
@@ -365,21 +365,21 @@ class SourceFileSet(list):
                 for f in files:
                     if f not in self:
                         self.append(f)
-            except TypeError:  # single file, not a list
+            except:  # single file, not a list
                 if files not in self:
                     self.append(files)
 
-    def filter(self, src_file_type):
+    def filter(self, type):
         out = SourceFileSet()
         for f in self:
-            if isinstance(f, src_file_type):
+            if isinstance(f, type):
                 out.add(f)
         return out
 
-    def inversed_filter(self, src_file_type):
+    def inversed_filter(self, type):
         out = SourceFileSet()
         for f in self:
-            if not isinstance(f, src_file_type):
+            if not isinstance(f, type):
                 out.add(f)
         return out
 

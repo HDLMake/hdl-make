@@ -60,7 +60,7 @@ class ISEProject:
     class StringBuffer(list):
         def __init__(self):
             self.append("")
-            self.__blank = re.compile("^[     \n]+$")
+            self.__blank = re.compile("^[ \t\n]+$")
 
         def write(self, what):
             if what == "":
@@ -255,7 +255,7 @@ class ISEProject:
         self.__output_libs(self.xml_libs)
         output_file = open(filename, "w")
         string_buffer = self.StringBuffer()
-        self.xml_doc.writexml(string_buffer, newl = "\n", addindent="    ")
+        self.xml_doc.writexml(string_buffer, newl = "\n", addindent="\t")
         output_file.write('\n'.join(string_buffer))
         output_file.close()
 
@@ -292,7 +292,7 @@ class ISEProject:
 class ModelsiminiReader(object):
 
     def __init__(self, path = None):
-        if path is None:
+        if path == None:
             path = self.modelsim_ini_dir() + "/modelsim.ini"
         self.path = path
 
@@ -316,7 +316,7 @@ class ModelsiminiReader(object):
                 reading_libraries = True
                 continue
             if re.search(new_section, line):
-                if reading_libraries is True:
+                if reading_libraries == True:
                 #reading_libraries = False
                     break
                 else:
@@ -336,7 +336,7 @@ class ModelsiminiReader(object):
 
 class XilinxsiminiReader(object):
     def __init__(self, path = None):
-        if path is None:
+        if path == None:
             path = self.xilinxsim_ini_dir() + "/xilinxsim.ini"
         self.path = path
 

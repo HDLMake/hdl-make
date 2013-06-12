@@ -2,19 +2,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software you can redistribute it
+#    This source code is free software; you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation either version 2 of the License, or (at your option)
+#    Foundation; either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY without even the implied warranty of
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program if not, write to the Free Software
+#    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 
@@ -25,11 +25,11 @@ import msg as p
 
 class Connection:
     def __init__(self, ssh_user, ssh_server):
-        #if ssh_user is None:
+        #if ssh_user == None:
         #    ssh_user = os.getenv("HDLMAKE_USER")
         self.ssh_user = ssh_user
 
-        #if ssh_server is None:
+        #if ssh_server == None:
         #    ssh_server = os.getenv("HDLMAKE_SERVER")
         self.ssh_server = ssh_server
 
@@ -37,7 +37,7 @@ class Connection:
         return self.ssh_user + '@' + self.ssh_server
 
     def __data_given(self):
-        return self.ssh_user is None and self.ssh_server is None
+        return self.ssh_user != None and self.ssh_server != None
 
     def __check(self):
         if not self.__data_given():
@@ -57,7 +57,7 @@ class Connection:
         """
         self.__check()
         #create a new catalogue on remote machine
-        if dest_folder is None:
+        if dest_folder == None:
             dest_folder = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8)) 
         mkdir_cmd = 'mkdir -p ' + dest_folder 
         import msg as p

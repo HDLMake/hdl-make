@@ -3,19 +3,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software you can redistribute it
+#    This source code is free software; you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation either version 2 of the License, or (at your option)
+#    Foundation; either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY without even the implied warranty of
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program if not, write to the Free Software
+#    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 # Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
@@ -49,7 +49,7 @@ class MakefileWriter(object):
         self._file.write(line)
 
     def writeln(self, text=None):
-        if text is None:
+        if text == None:
             self._file.write("\n")
         else:
             self._file.write(text+"\n")
@@ -60,7 +60,7 @@ class MakefileWriter(object):
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise_path):
         import path
-        if name is None:
+        if name == None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
         user_tmpl = "USER:={0}"
@@ -69,21 +69,21 @@ class MakefileWriter(object):
         remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
-        if user is None:
+        if  user == None:
             user_tmpl = user_tmpl.format("$(HDLMAKE_USER)#take the value from the environment")
             test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
-    @echo "Remote synthesis user is not set. You can set it by editing variable USER in the makefile." && false
+\t@echo "Remote synthesis user is not set. You can set it by editing variable USER in the makefile." && false
 endif
 ifeq (x$(SERVER),x)
-    @echo "Remote synthesis server is not set. You can set it by editing variable SERVER in the makefile." && false
+\t@echo "Remote synthesis server is not set. You can set it by editing variable SERVER in the makefile." && false
 endif
 """
         else:
             user_tmpl = user_tmpl.format(user)
-            test_tmpl = "__test_for_remote_synthesis_variables:\n        true #dummy\n"
+            test_tmpl = "__test_for_remote_synthesis_variables:\n\t\ttrue #dummy\n"
 
-        if server is None:
+        if server == None:
             server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)#take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
@@ -109,21 +109,21 @@ endif
 
         mkdir_cmd = "ssh $(USER)@$(SERVER) 'mkdir -p $(R_NAME)'"
         rsync_cmd = "rsync -e 'ssh -p $(PORT)' -Ravl $(foreach file, $(FILES), $(shell readlink -f $(file))) $(USER)@$(SERVER):$(R_NAME)"
-        send_cmd = "__send:\n        {0}\n        {1}".format(mkdir_cmd, rsync_cmd)
+        send_cmd = "__send:\n\t\t{0}\n\t\t{1}".format(mkdir_cmd, rsync_cmd)
         self.writeln(send_cmd)
         self.writeln("")
 
         tcl = "run.tcl"
-        synthesis_cmd = "__do_synthesis:\n        "
+        synthesis_cmd = "__do_synthesis:\n\t\t"
         synthesis_cmd += "ssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && {0}xtclsh {1}'"
         self.writeln(synthesis_cmd.format(ise_path, tcl))
 
         self.writeln()
-        send_back_cmd = "__send_back: \n        cd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
+        send_back_cmd = "__send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
         self.write(send_back_cmd)
         self.write("\n\n")
 
-        cln_cmd = "cleanremote:\n        ssh $(USER)@$(SERVER) 'rm -rf $(R_NAME)'"
+        cln_cmd = "cleanremote:\n\t\tssh $(USER)@$(SERVER) 'rm -rf $(R_NAME)'"
         self.writeln("#target for removing stuff from the remote location")
         self.writeln(cln_cmd)
         self.writeln()
@@ -183,25 +183,25 @@ run.tcl
         mk_text2 = """
 #target for performing local synthesis
 local:
-        echo "project open $(PROJECT)" > run.tcl
-        echo "process run {Generate Programming File} -force rerun_all" >> run.tcl
+\t\techo "project open $(PROJECT)" > run.tcl
+\t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
 """
 
         mk_text3 = """
 #target for cleaing all intermediate stuff
 clean:
-        rm -f $(ISE_CRAP)
-        rm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
+\t\trm -f $(ISE_CRAP)
+\t\trm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
 
 #target for cleaning final files
 mrproper:
-        rm -f *.bit *.bin *.mcs
+\t\trm -f *.bit *.bin *.mcs
 
 """
         self.initialize()
         self.write(mk_text.format(top_mod.syn_top, top_mod.syn_project))
 
-        xtcl_tmp = "        {0}xtclsh run.tcl"
+        xtcl_tmp = "\t\t{0}xtclsh run.tcl"
         self.write(mk_text2)
         self.writeln(xtcl_tmp.format(ise_path))
         self.writeln()
@@ -224,10 +224,10 @@ mrproper:
             basename = module.basename
             if module.source == "svn":
                 self.write("__"+basename+"_fetch:\n")
-                self.write("        ")
-                self.write("PWD=$(shell pwd) ")
-                self.write("cd " + rp(module.fetchto) + ' ')
-                c = "svn checkout {0}{1} {2}"
+                self.write("\t\t")
+                self.write("PWD=$(shell pwd); ")
+                self.write("cd " + rp(module.fetchto) + '; ')
+                c = "svn checkout {0}{1} {2};"
                 if module.revision:
                     c=c.format(module.url, "@"+module.revision, module.basename)
                 else:
@@ -237,16 +237,16 @@ mrproper:
 
             elif module.source == "git":
                 self.write("__"+basename+"_fetch:\n")
-                self.write("        ")
-                self.write("PWD=$(shell pwd) ")
-                self.write("cd " + rp(module.fetchto) + ' ')
-                self.write("if [ -d " + basename + " ] then cd " + basename + ' ')
-                self.write("git pull ")
+                self.write("\t\t")
+                self.write("PWD=$(shell pwd); ")
+                self.write("cd " + rp(module.fetchto) + '; ')
+                self.write("if [ -d " + basename + " ]; then cd " + basename + '; ')
+                self.write("git pull; ")
                 if module.revision:
-                    self.write("git checkout " + module.revision +'')
-                self.write("else git clone "+ module.url + ' fi ')
+                    self.write("git checkout " + module.revision +';')
+                self.write("else git clone "+ module.url + '; fi; ')
                 if module.revision:
-                    self.write("git checkout " + module.revision + '')
+                    self.write("git checkout " + module.revision + ';')
                 self.write("cd $(PWD) \n\n")
 
     def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
@@ -280,7 +280,7 @@ mrproper:
             # self.write(target_name+': ')
             # self.write(vl.rel_path() + ' ')
             # self.writeln("$("+target_name+"_deps)")
-            # self.write("        $(VERILOG_COMP) -y"+vl.library)
+            # self.write("\t\t$(VERILOG_COMP) -y"+vl.library)
             # if isinstance(vl, SVFile):
             #     self.write(" -sv ")
             # incdir = " "
@@ -309,15 +309,15 @@ mrproper:
             self.writeln(bt+'syn_deps = '+ ' '.join([f.rel_path() for f in bt_syn_deps]))
             if not os.path.exists(bt+".ucf"):
                 print "WARNING: The file " +bt+".ucf doesn't exist!"
-            self.writeln(bt+".bit:    "+bt+".v $("+bt+"syn_deps) "+bt+".ucf")
+            self.writeln(bt+".bit:\t"+bt+".v $("+bt+"syn_deps) "+bt+".ucf")
             part=(global_mod.top_module.syn_device+'-'+
                   global_mod.top_module.syn_package+
                   global_mod.top_module.syn_grade)
-            self.writeln("    PART="+part+" $(SYNTH) "+bt+" $^")
-            self.writeln("    mv _xilinx/"+bt+".bit $@")
+            self.writeln("\tPART="+part+" $(SYNTH) "+bt+" $^")
+            self.writeln("\tmv _xilinx/"+bt+".bit $@")
 
         self.writeln("clean:")
-        self.writeln("        rm -f "+" ".join(target_list)+"\n        rm -rf _xilinx")
+        self.writeln("\t\trm -f "+" ".join(target_list)+"\n\t\trm -rf _xilinx")
 
 
     def generate_vsim_makefile(self, fileset, top_module):
@@ -338,9 +338,9 @@ $(VERILOG_OBJ): $(VHDL_OBJ)
 $(VHDL_OBJ): $(LIB_IND) modelsim.ini
 
 modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
-        cp $< .
+\t\tcp $< .
 clean:
-        rm -rf ./modelsim.ini $(LIBS)
+\t\trm -rf ./modelsim.ini $(LIBS)
 .PHONY: clean
 
 """
@@ -388,7 +388,7 @@ clean:
 
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
-            self.write(' '.join(["    (vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini",
+            self.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini",
             lib, "&&", "touch", lib+"/."+lib,")"]))
 
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
@@ -399,7 +399,7 @@ clean:
             self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
             self.write(vl.rel_path() + ' ')
             self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
-            self.write("        vlog -work "+vl.library)
+            self.write("\t\tvlog -work "+vl.library)
             self.write(" $(VLOG_FLAGS) ")
             if isinstance(vl, SVFile):
                 self.write(" -sv ")
@@ -408,7 +408,7 @@ clean:
             incdir += " "
             self.write(incdir)
             self.writeln(vl.vlog_opt+" $<")
-            self.write("        @mkdir -p $(dir $@)")
+            self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")
         self.write("\n")
 
@@ -422,8 +422,8 @@ clean:
                 name = dep_file.purename
                 self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+"_vhd"))
             self.writeln()
-            self.writeln(' '.join(["        vcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
-            self.writeln("        @mkdir -p $(dir $@) && touch $@\n")
+            self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
+            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
 
 # Modification here
@@ -447,15 +447,15 @@ $(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini
 $(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
 
 xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
-        cp $< .
-fuse: 
+\t\tcp $< .
+fuse: ;
 ifeq ($(TOP_MODULE),)
-        @echo \"Environment variable TOP_MODULE not set!\"
+\t\t@echo \"Environment variable TOP_MODULE not set!\"
 else
-        fuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
+\t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
 endif
 clean:
-        rm -rf ./xilinxsim.ini $(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
+\t\trm -rf ./xilinxsim.ini $(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
 isim.wdb
 .PHONY: clean
 
@@ -506,14 +506,14 @@ isim.wdb
         #.ini file.
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
-            self.write(' '.join(["    (mkdir", lib, "&&", "touch", lib+"/."+lib+" "]))
+            self.write(' '.join(["\t(mkdir", lib, "&&", "touch", lib+"/."+lib+" "]))
             #self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\" ", ">>", "xilinxsim.ini) "]))
             self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"\" ", ">>", "xilinxsim.ini) "]))
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
             self.write('\n')
 
             # Modify xilinxsim.ini file by including the extra local libraries
-            #self.write(' '.join(["    (echo """, lib+"="+lib+"/."+lib, ">>", "${XILINX_INI_PATH}/xilinxsim.ini"]))
+            #self.write(' '.join(["\t(echo """, lib+"="+lib+"/."+lib, ">>", "${XILINX_INI_PATH}/xilinxsim.ini"]))
 
         #rules for all _primary.dat files for sv
         #incdir = ""
@@ -526,7 +526,7 @@ isim.wdb
             self.write(os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension())+': ')
             self.write(vl.rel_path() + ' ')
             self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
-            self.write("        vlogcomp -work "+vl.library+"=./"+vl.library)
+            self.write("\t\tvlogcomp -work "+vl.library+"=./"+vl.library)
             self.write(" $(VLOGCOMP_FLAGS) ")
             #if isinstance(vl, SVFile):
             #    self.write(" -sv ")
@@ -535,7 +535,7 @@ isim.wdb
             #incdir += " "
             self.write(" -i ".join(vl.include_dirs) + " ")
             self.writeln(vl.vlog_opt+" $<")
-            self.write("        @mkdir -p $(dir $@)")
+            self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")
         self.write("\n")
 
@@ -549,8 +549,8 @@ isim.wdb
             #self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
             #self.writeln(".PHONY: " + os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()))
             self.write(os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
-            self.writeln(' '.join(["        vhpcomp $(VHPCOMP_FLAGS)", vhdl.vcom_opt, "-work", lib+"=./"+lib, "$< "]))
-            self.writeln("        @mkdir -p $(dir $@) && touch $@\n")
+            self.writeln(' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)", vhdl.vcom_opt, "-work", lib+"=./"+lib, "$< "]))
+            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
             # dependency meta-target. This rule just list the dependencies of the above file
             #if len(vhdl.dep_depends_on) != 0:
@@ -562,7 +562,7 @@ isim.wdb
                 name = dep_file.purename
                 self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+ "_" + vhdl.extension()))
             self.write('\n')
-            self.writeln("        @mkdir -p $(dir $@) && touch $@\n")
+            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 
     def __get_rid_of_incdirs(self, vlog_opt):
         vlog_opt_vsim = self.__get_rid_of_vsim_incdirs(vlog_opt)

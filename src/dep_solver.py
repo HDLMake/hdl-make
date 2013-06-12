@@ -2,19 +2,19 @@
 #
 # Copyright (c) 2011 Pawel Szostek (pawel.szostek@cern.ch)
 #
-#    This source code is free software you can redistribute it
+#    This source code is free software; you can redistribute it
 #    and/or modify it in source code form under the terms of the GNU
 #    General Public License as published by the Free Software
-#    Foundation either version 2 of the License, or (at your option)
+#    Foundation; either version 2 of the License, or (at your option)
 #    any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY without even the implied warranty of
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with this program if not, write to the Free Software
+#    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
 # Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
@@ -25,16 +25,16 @@ import os.path
 
 class IDependable:
     def __init__(self):
-        self.dep_index = 0
-        self._dep_fixed = False
-        self.__dep_provides = []
-        self.__dep_requires = []
-        self.__dep_depends_on = []
+        self.dep_index = 0;
+        self._dep_fixed = False;
+        self.__dep_provides = [];
+        self.__dep_requires = [];
+        self.__dep_depends_on = [];
         pass
 
     #use proxy template here
     def get_dep_provides(self):
-        if self._dep_fixed is False:
+        if self._dep_fixed == False:
             self.__create_deps()
 #        self._dep_fixed = True
         return self.__dep_provides
@@ -44,7 +44,7 @@ class IDependable:
     dep_provides = property(get_dep_provides, set_dep_provides)
 
     def get_dep_requires(self):
-        if self._dep_fixed is False:
+        if self._dep_fixed == False:
             self.__create_deps()
  #       self._dep_fixed = True
         return self.__dep_requires
@@ -66,7 +66,7 @@ class IDependable:
 
 class DependencySolver:
     def __init__(self):
-        self.entities = {}
+        self.entities = {};
 
     def __lookup_post_provider(self, files, start_index, file):
         requires = file.dep_requires
@@ -235,8 +235,8 @@ class DependencySolver:
 
 
 
-        newobj = sf.SourceFileSet()
-        newobj.add(f_nondep)
+        newobj = sf.SourceFileSet();
+        newobj.add(f_nondep);
         for f in fset:
             try:
                 if not f._dep_fixed:
