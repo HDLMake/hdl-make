@@ -175,7 +175,6 @@ def main():
             if is_set:
                 sth_chosen = True
                 getattr(kernel, function)()
-            sth_chosen = False
         except Exception, unknown_error:
             p.echo("Oooops! We've got an error. Here is the appropriate info:\n")
             p.print_version()
