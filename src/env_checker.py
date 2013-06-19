@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2013 CERN
+# Author: Pawel Szostek (pawel.szostek@cern.ch)
 
 import os
 import sys
