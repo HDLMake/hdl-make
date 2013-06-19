@@ -3,6 +3,22 @@
 #
 # Copyright (c) 2013 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+#
+# This file is part of Hdlmake.
+#
+# Hdlmake is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hdlmake is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 import os
 import sys
@@ -82,8 +98,8 @@ class EnvChecker(dict):
             print("HDLMAKE_ISE_PATH and XILINX can't be set at a time\n"
                   "Ignoring HDLMAKE_ISE_PATH")
             self["ise_path"] = self["xilinx"]
-
-        if "ise_path" in self:
+if
+         "ise_path" in self:
             if self.check_in_path("ise", self["ise_path"]):
                 print("ISE found in HDLMAKE_ISE_PATH: %s." % self["ise_path"])
             else:
