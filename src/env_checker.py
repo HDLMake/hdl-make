@@ -6,6 +6,7 @@
 
 import os
 import sys
+import msg as p
 
 
 class EnvChecker(dict):
@@ -15,27 +16,40 @@ class EnvChecker(dict):
 
     def check(self):
         platform = sys.platform
-        print("Plartform: %s" % platform)
+        print("Platform: %s" % platform)
 
-        xilinx = os.environ("XILINX")
-        if val:
+        xilinx = os.environ.get("XILINX")
+        self.report_in_path("ise")
+        if xilinx:
             print("Environmental variable %s is set: %s." % ("XILINX", xilinx))
             self["xilinx"] = xilinx
         else:
             print("Environmental variable XILINX is not set.")
-        ise_version = self._guess_ise_version()
+        try:
+            ise_version = tuple(self.manifest["force_ise"].esplit('.'))
+        except KeyError:
+            ise_version = None
+
+        if ise_version is None:
+            ise_version = self._guess_ise_version(xilinx, '')
+
+        if ise_version is not None:
+            print("ISE version: %d.%d" % (ise_version[0], ise_version[1]))
+        else:
+            print("ISE version could not be determined")
         top_module = self.report_and_set_var("TOP_MODULE")
 
-        self.report_in_patH("ise")
         self.report_in_path("isim")
-        self.report_and_set_var("ISE_PATH")
+        self.report_and_set_var("ise_path")
         self.report_in_path("vsim")
-        self.report_and_set_var("MODELSIM_PATH")
+        self.report_and_set_var("modelsim_path")
         self.report_in_path("iverilog")
 
-        self.report_and_set_var("RSYNTH_USER")
-        self.report_and_set_var("RSYNTH_ISE_PATH")
-        self.report_and_set_var("RSYNTH_USE_SCREEN")
+        self.report_and_set_var("coredir")
+
+        self.report_and_set_var("rsynth_user")
+        self.report_and_set_var("rsynth_ise_path")
+        self.report_and_set_var("rsynth_use_screen")
 
     def check_modelsim_ini(self):
         pass
@@ -43,16 +57,14 @@ class EnvChecker(dict):
     def check_xilinxsim_init(self):
         pass
 
-    def _check_ise_version(self, xilinx, ise_path):
+    def _guess_ise_version(self, xilinx, ise_path):
         import subprocess
         import re
         xst = subprocess.Popen('which xst', shell=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
         lines = xst.stdout.readlines()
         if not lines:
-            p.error("Xilinx binaries are not in the PATH variable\n"
-                "Can't determine ISE version")
-            quit()
+            return None
 
         xst = str(lines[0].strip())
         version_pattern = re.compile(".*?(\d\d\.\d).*") #First check if we have version in path
@@ -99,7 +111,7 @@ class EnvChecker(dict):
         assert not name.startswith("HDLMAKE_")
         assert isinstance(name, basestring)
 
-        return os.environ("HDLMAKE_%s" % name)
+        return os.environ.get("HDLMAKE_%s" % name)
 
     def get_path(self, name):
         return os.popen("which %s" % name).read().strip()
@@ -115,12 +127,17 @@ class EnvChecker(dict):
         if path:
             print("%s is in PATH: %s." % (name, path))
         else:
-            print("%s is not in PATH." % path)
+            print("%s is not in PATH." % name)
 
     def report_and_set_var(self, name):
-        val = os.environ("HDLMAKE_%s" % name)
+        name = name.upper()
+        val = os.environ.get("HDLMAKE_%s" % name)
         if val:
-            print("Environmental variable %s is set: %s." % (name, val))
+            print("Environmental variable HDLMAKE_%s is set: %s." % (name, val))
             self[name.lower()] = val
         else:
-            print("Environmental variable %s is not set." % name)
+            print("Environmental variable HDLMAKE_%s is not set." % name)
+
+if __name__ == "__main__":
+    ec = EnvChecker({}, {})
+    ec.check()
