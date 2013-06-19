@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# Copyright (c) 2013 CERN
+# Author: Vamsi Vytla
 # A Verilog preprocessor. Still lots of stuff to be done, but it's already quite useful
 # for calculating dependencies.
 

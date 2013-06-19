@@ -1,5 +1,7 @@
 #!/usr/bin/python
-
+#
+# Copyright (c) 2013 CERN
+# Author: Pawel Szostek (pawel.szostek@cern.ch)
 
 class DepRelation:
     PROVIDE = 1
