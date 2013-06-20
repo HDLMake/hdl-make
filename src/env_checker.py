@@ -85,7 +85,8 @@ class EnvChecker(dict):
         print("Platform: %s" % platform)
 
         #1: determine path for ise
-
+        print("--- ISE synthesis ---")
+        
         xilinx = os.environ.get("XILINX")
         if xilinx:
             print("Environmental variable %s is set: %s." % ("XILINX", xilinx))
@@ -98,8 +99,7 @@ class EnvChecker(dict):
             print("HDLMAKE_ISE_PATH and XILINX can't be set at a time\n"
                   "Ignoring HDLMAKE_ISE_PATH")
             self["ise_path"] = self["xilinx"]
-if
-         "ise_path" in self:
+        if "ise_path" in self:
             if self.check_in_path("ise", self["ise_path"]):
                 print("ISE found in HDLMAKE_ISE_PATH: %s." % self["ise_path"])
             else:
@@ -108,7 +108,7 @@ if
             if self.check_in_path("ise"):
                 print("ISE found in PATH: %s." % self.get_path("ise"))
             else:
-                print("ISE not found in PATH")
+                print("ISE not found in PATH.")
 
         #2: determine ISE version
         try:
@@ -122,15 +122,15 @@ if
             ise_version = self._guess_ise_version(xilinx, '')
             if ise_version:
                 print("force_ise not set in the manifest,"
-                      " guessed ISE version: %d.%d" % (ise_version[0], ise_version[1]))
+                      " guessed ISE version: %d.%d." % (ise_version[0], ise_version[1]))
             self["ise_version"] = ise_version
 
             #######
         self.report_and_set_var("top_module")
 
-        self.report_in_path("isim")
 
         #3: determine modelsim path
+        print("--- Modelsim simulation ---")
         self.report_and_set_var("modelsim_path")
         if "modelsim_path" in self:
             if not self.check_in_path("vsim", self["modelsim_path"]):
@@ -138,16 +138,46 @@ if
                     self["modelsim_path"] = self.get_path("modelsim_path")
 
         #4: determine iverilog path
+        print("--- Iverilog simulation ---")
         self.report_in_path("iverilog")
         if "iverilog" in self:
             if not self.check_in_path("iverilog", self["iverilog_path"]):
                 if self.report_in_path("iverilog"):
                     self["iverilog_path"] = self.get_path("iverilog")
 
+        #5: determine isim path
+        print("--- ISim simulation ---")
+        self.report_in_path("isim")
         self.report_and_set_var("coredir")
 
+        #6: remote synthesis with ise
+        print("--- Remote synthesis with ISE ---")
         self.report_and_set_var("rsynth_user")
+        self.report_and_set_var("rsynth_server")
+
+        can_connect = False
+        if "rsynth_user" in self and "rsynth_server" in self:
+            ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s echo ok 2>&1'
+            ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"])
+            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+            ssh_response = ssh_out.stdout.readlines()[0].strip()
+            if ssh_response == "ok":
+                print("Can connect to the remote machine: %s@%s." % (self["rsynth_user"], self["rsynth_server"]))
+                can_connect = True
+            else:
+                can_connect = False
+
         self.report_and_set_var("rsynth_ise_path")
+        if can_connect and "rsynth_ise_path" in self:
+            ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s test -e %s 2>&1'
+            ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"], self["rsynth_ise_path"])
+            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+            ssh_response = ssh_out.returncode
+            if ssh_response == 0:
+                print("ISE found on remote machine under %s." % self["rsynth_ise_path"])
+            else:
+                print("Can't find ISE on remote machine under %s." % self["rsynth_ise_path"])
+
         self.report_and_set_var("rsynth_use_screen")
 
     def check_xilinxsim_init(self):
