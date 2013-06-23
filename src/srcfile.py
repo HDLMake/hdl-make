@@ -304,8 +304,7 @@ class VerilogFile(SourceFile):
 
 
 class SVFile(VerilogFile):
-    def __init__(self, path, library=None, vlog_opt=None, include_dirs=None):
-        VerilogFile.__init__(self, path, library, vlog_opt, include_dirs)
+    pass
 
 
 class UCFFile(File):
