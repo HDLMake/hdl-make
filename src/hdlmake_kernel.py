@@ -21,7 +21,7 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import msg as p
+import logging
 import path
 from makefile_writer import MakefileWriter
 from flow import ISEProject
@@ -42,7 +42,7 @@ class HdlmakeKernel(object):
         return self.modules_pool.get_top_module()
 
     def run(self):
-        p.info("Running automatic flow")
+        logging.info("Running automatic flow")
 
         tm = self.top_module
 
@@ -53,7 +53,7 @@ class HdlmakeKernel(object):
             self.generate_simulation_makefile()
         elif tm.action == "synthesis":
             if tm.syn_project is None:
-                p.error("syn_project variable must be defined in the manifest")
+                logging.error("syn_project variable must be defined in the manifest")
                 quit()
             if tm.target.lower() == "xilinx":
                 self.generate_ise_project()
@@ -66,23 +66,29 @@ class HdlmakeKernel(object):
             else:
                 raise RuntimeError("Unrecognized target: "+tm.target)
         else:
-            p.print_action_help() and quit()
+            logging.error("`Action' variable was not specified\n"
+                          "Allowed values are: \"simulation\" or \"synthesis\"\n"
+                          "This variable in a manifest file is necessary for Hdlmake\n"
+                          "to be able to know what to do with the given modules' structure.\n"
+                          "For more help type `hdlmake --help'\n"
+                          "or visit http://www.ohwr.org/projects/hdl-make")
+            quit()
 
     def list_modules(self):
         for m in self.modules_pool:
             if not m.isfetched:
-                p.rawprint("#!UNFETCHED")
-                p.rawprint(m.url+'\n')
+                print("#!UNFETCHED")
+                print(m.url+'\n')
             else:
-                p.rawprint(path.relpath(m.path))
+                print(path.relpath(m.path))
                 if m.source in ["svn", "git"]:
-                    p.rawprint ("#"+m.url)
+                    print("#"+m.url)
                 if not len(m.files):
-                    p.rawprint("   # no files")
+                    print("   # no files")
                 else:
                     for f in m.files:
-                        p.rawprint("   " + path.relpath(f.path, m.path))
-                p.rawprint("")
+                        print("   " + path.relpath(f.path, m.path))
+                print("")
 
     def list_files(self):
         files_str = []
@@ -90,14 +96,15 @@ class HdlmakeKernel(object):
             if not m.isfetched:
                 continue
             files_str.append(" ".join([f.path for f in m.files]))
-        p.rawprint(" ".join(files_str))
+        print(" ".join(files_str))
 
-    def fetch(self, unfetched_only = False):
-        p.info("Fetching needed modules.")
+    def fetch(self, unfetched_only=False):
+        logging.info("Fetching needed modules.")
         self.modules_pool.fetch_all(unfetched_only)
-        p.vprint(str(self.modules_pool))
+        logging.debug(str(self.modules_pool))
 
     def generate_simulation_makefile(self):
+        tm = self.modules_pool.top_module
         if tm.sim_tool == "iverilog":
             self._generate_iverilog_makefile()
         elif tm.sim_tool == "isim":
@@ -105,20 +112,20 @@ class HdlmakeKernel(object):
         elif tm.sim_tool == "vsim" or tm.sim_tool == "modelsim":
             self._generate_vsim_makefile()
         else:
-            raise RuntimeError("Unrecognized or not specified simulation tool: "+ str(tm.sim_tool))
+            raise RuntimeError("Unrecognized or not specified simulation tool: %s" % str(tm.sim_tool))
             quit()
 
     def _generate_vsim_makefile(self):
 #        p.info("Generating makefile for simulation.")
-        p.info("Generating ModelSim makefile for simulation.")
+        logging.info("Generating ModelSim makefile for simulation.")
         solver = DependencySolver()
 
         pool = self.modules_pool
         if not pool.is_everything_fetched():
-          p.echo("A module remains unfetched. "
-            "Fetching must be done prior to makefile generation")
-          p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
-          quit()
+            logging.error("A module remains unfetched. "
+                          "Fetching must be done prior to makefile generation")
+            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            quit()
         top_module = pool.get_top_module()
         flist = pool.build_global_file_list()
         flist_sorted = solver.solve(flist)
@@ -127,14 +134,14 @@ class HdlmakeKernel(object):
 
     def _generate_isim_makefile(self):
 #        p.info("Generating makefile for simulation.")
-        p.info("Generating ISE Simulation (ISim) makefile for simulation.")
+        logging.info("Generating ISE Simulation (ISim) makefile for simulation.")
         solver = DependencySolver()
 
         pool = self.modules_pool
         if not pool.is_everything_fetched():
-            p.echo("A module remains unfetched. "
-                "Fetching must be done prior to makefile generation. Try issuing \"hdlmake2 --fetch\"")
-            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            logging.error("A module remains unfetched. "
+                          "Fetching must be done prior to makefile generation. Try running \"hdlmake --fetch\"")
+            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         top_module = pool.get_top_module()
         flist = pool.build_global_file_list()
@@ -143,13 +150,13 @@ class HdlmakeKernel(object):
 
     def _generate_iverilog_makefile(self):
         from dep_solver import DependencySolver
-        p.info("Generating makefile for simulation.")
+        logging.info("Generating makefile for simulation.")
         solver = DependencySolver()
         pool = self.modules_pool
 
         if not self.modules_pool.is_everything_fetched():
-            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
-            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            logging.error("A module remains unfetched. Fetching must be done prior to makefile generation")
+            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
         tm = pool.get_top_module()
         flist = pool.build_global_file_list()
@@ -159,7 +166,7 @@ class HdlmakeKernel(object):
     def generate_ise_makefile(self):
         import global_mod
         global_mod.mod_pool = self.modules_pool
-        p.info("Generating makefile for local synthesis.")
+        logging.info("Generating makefile for local synthesis.")
 
         ise_path = self.__figure_out_ise_path()
 
@@ -167,14 +174,14 @@ class HdlmakeKernel(object):
 
     def generate_remote_synthesis_makefile(self):
         if self.connection.ssh_user is None or self.connection.ssh_server is None:
-            p.warning("Connection data is not given. "
-                "Accessing environmental variables in the makefile")
-        p.info("Generating makefile for remote synthesis.")
+            logging.warning("Connection data is not given. "
+                            "Accessing environmental variables in the makefile")
+        logging.info("Generating makefile for remote synthesis.")
 
         top_mod = self.modules_pool.get_top_module()
         if not os.path.exists(top_mod.fetchto):
-            p.warning("There are no modules fetched. "
-                "Are you sure it's correct?")
+            logging.warning("There are no modules fetched. "
+                            "Are you sure it's correct?")
 
         ise_path = self.__figure_out_ise_path()
         tcl = self.__search_tcl_file()
@@ -192,14 +199,14 @@ class HdlmakeKernel(object):
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server, ise_path=ise_path)
 
     def generate_ise_project(self):
-        p.info("Generating/updating ISE project")
+        logging.info("Generating/updating ISE project")
         if self.__is_xilinx_screwed():
-            p.error("Xilinx environment variable is unset or is wrong.\n"
-                "Cannot generate ise project")
+            logging.error("Xilinx environment variable is unset or is wrong.\n"
+                          "Cannot generate ise project")
             quit()
         if not self.modules_pool.is_everything_fetched():
-            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
-            p.echo(str([str(m) for m in self.modules_pool if not m.isfetched]))
+            logging.error("A module remains unfetched. Fetching must be done prior to makefile generation")
+            print(str([str(m) for m in self.modules_pool if not m.isfetched]))
             quit()
         ise = self.__check_ise_version()
         if os.path.exists(self.top_module.syn_project):
@@ -208,12 +215,12 @@ class HdlmakeKernel(object):
             self.__create_new_ise_project(ise=ise)
 
     def generate_quartus_project(self):
-        p.info("Generating/updating Quartus project.")
+        logging.info("Generating/updating Quartus project.")
 
         if not self.modules_pool.is_everything_fetched():
-            p.error("A module remains unfetched. "
-                "Fetching must be done prior to makefile generation")
-            p.rawprint(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            logging.error("A module remains unfetched. "
+                          "Fetching must be done prior to makefile generation")
+            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
 
         if os.path.exists(self.top_module.syn_project + ".qsf"):
@@ -249,21 +256,24 @@ class HdlmakeKernel(object):
         import subprocess
         import re
         xst = subprocess.Popen('which xst', shell=True,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               close_fds=True)
         lines = xst.stdout.readlines()
         if not lines:
-            p.error("Xilinx binaries are not in the PATH variable\n"
-                "Can't determine ISE version")
+            logging.error("Xilinx binaries are not in the PATH variable\n"
+                          "Can't determine ISE version")
             quit()
 
         xst = str(lines[0].strip())
-        version_pattern = re.compile(".*?(\d\d\.\d).*") #First check if we have version in path
+        version_pattern = re.compile(".*?(\d\d\.\d).*")  # First check if we have version in path
         match = re.match(version_pattern, xst)
         if match:
             ise_version = match.group(1)
-        else: #If it is not the case call the "xst -h" to get version
+        else:  # If it is not the case call the "xst -h" to get version
             xst_output = subprocess.Popen('xst -h', shell=True,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+                                          stdin=subprocess.PIPE,
+                                          stdout=subprocess.PIPE,
+                                          close_fds=True)
             xst_output = xst_output.stdout.readlines()[0]
             xst_output = xst_output.strip()
             version_pattern = \
@@ -272,11 +282,11 @@ class HdlmakeKernel(object):
             if match:
                 ise_version = ''.join((match.group('major'), '.', match.group('minor')))
             else:
-                p.error("xst output is not in expected format: "+ xst_output +"\n"
-                        "Can't determine ISE version")
+                logging.error("xst output is not in expected format: %s\n"
+                              "Can't determine ISE version" % xst_output)
                 return None
 
-        p.vprint("ISE version: " + ise_version)
+        logging.debug("ISE version: " + ise_version)
         return ise_version
 
     def __update_existing_ise_project(self, ise):
@@ -293,7 +303,7 @@ class HdlmakeKernel(object):
         prj.add_files(all_files)
         from srcfile import SourceFileFactory
         sff = SourceFileFactory()
-        print top_mod.vlog_opt
+        logging.debug(top_mod.vlog_opt)
         prj.add_files([sff.new(top_mod.vlog_opt)])
         prj.add_libs(all_files.get_libs())
         prj.load_xml(top_mod.syn_project)
@@ -312,12 +322,12 @@ class HdlmakeKernel(object):
         prj.add_libs(fileset.get_libs())
         from srcfile import SourceFileFactory
         sff = SourceFileFactory()
-        print top_mod.vlog_opt
+        logging.debug(top_mod.vlog_opt)
         prj.add_files([sff.new(top_mod.vlog_opt)])
         prj.add_initial_properties(syn_device=top_mod.syn_device,
-            syn_grade = top_mod.syn_grade,
-            syn_package = top_mod.syn_package,
-            syn_top = top_mod.syn_top)
+                                   syn_grade=top_mod.syn_grade,
+                                   syn_package=top_mod.syn_package,
+                                   syn_top=top_mod.syn_top)
 
         prj.emit_xml(top_mod.syn_project)
 
@@ -332,7 +342,7 @@ class HdlmakeKernel(object):
         prj = QuartusProject(top_mod.syn_project)
         prj.add_files(fileset)
 
-        prj.add_initial_properties( top_mod.syn_device,
+        prj.add_initial_properties(top_mod.syn_device,
                                    top_mod.syn_grade,
                                    top_mod.syn_package,
                                    top_mod.syn_top)
@@ -364,19 +374,19 @@ class HdlmakeKernel(object):
                 self.__generate_tcl()
             os.system("xtclsh run.tcl")
         else:
-            p.error("Target " + tm.target + " is not synthesizable")
+            logging.error("Target " + tm.target + " is not synthesizable")
 
     def run_remote_synthesis(self):
         ssh = self.connection
         cwd = os.getcwd()
 
-        p.vprint("The program will be using ssh connection: "+str(ssh))
+        logging.debug("The program will be using ssh connection: "+str(ssh))
         if not ssh.is_good():
-            p.error("SSH connection failure. Remote host doesn't response.")
+            logging.error("SSH connection failure. Remote host doesn't response.")
             quit()
 
         if not os.path.exists(self.top_module.fetchto):
-            p.warning("There are no modules fetched. Are you sure it's correct?")
+            logging.warning("There are no modules fetched. Are you sure it's correct?")
 
         files = self.modules_pool.build_very_global_file_list()
 #        tcl = self.__search_tcl_file()
@@ -392,10 +402,10 @@ class HdlmakeKernel(object):
             dest_folder=self.top_module.syn_name)
         syn_cmd = "cd "+dest_folder+cwd+" && xtclsh run.tcl"
 
-        p.vprint("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
+        logging.debug("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
         ret = ssh.system(syn_cmd)
         if ret == 1:
-            p.error("Synthesis failed. Nothing will be transfered back")
+            logging.error("Synthesis failed. Nothing will be transfered back")
             quit()
 
         cur_dir = os.path.basename(cwd)
@@ -403,7 +413,7 @@ class HdlmakeKernel(object):
         ssh.transfer_files_back(what=dest_folder+cwd, where=".")
         os.chdir(cur_dir)
 
-    def __search_tcl_file(self, directory = None):
+    def __search_tcl_file(self, directory=None):
         if directory is None:
             directory = "."
         filenames = os.listdir(directory)
@@ -415,51 +425,51 @@ class HdlmakeKernel(object):
         if len(tcls) == 0:
             return None
         if len(tcls) > 1:
-            p.error("Multiple tcls in the current directory!\n" + str(tcls))
+            logging.error("Multiple tcls in the current directory!\n" + str(tcls))
             quit()
         return tcls[0]
 
     def __generate_tcl(self):
-        f = open("run.tcl","w")
+        f = open("run.tcl", "w")
         f.write("project open " + self.top_module.syn_project + '\n')
         f.write("process run {Generate Programming File} -force rerun_all\n")
         f.close()
 
     def clean_modules(self):
-        p.info("Removing fetched modules..")
+        logging.info("Removing fetched modules..")
         remove_list = [m for m in self.modules_pool if m.source in ["svn", "git"] and m.isfetched]
-        remove_list.reverse() #we will remove modules in backward order
+        remove_list.reverse()  # we will remove modules in backward order
         if len(remove_list):
             for m in remove_list:
-                p.rawprint("\t" + m.url + " [from: " + m.path + "]")
+                print("\t" + m.url + " [from: " + m.path + "]")
                 m.remove_dir_from_disk()
         else:
-            p.info("There are no modules to be removed")
+            logging.info("There are no modules to be removed")
 
     def generate_fetch_makefile(self):
         pool = self.modules_pool
 
         if pool.get_fetchable_modules() == []:
-            p.error("There are no fetchable modules. "
-                "No fetch makefile is produced")
+            logging.error("There are no fetchable modules. "
+                          "No fetch makefile is produced")
             quit()
 
         if not pool.is_everything_fetched():
-            p.error("A module remains unfetched. "
-                "Fetching must be done prior to makefile generation")
+            logging.error("A module remains unfetched. "
+                          "Fetching must be done prior to makefile generation")
             quit()
         self.make_writer.generate_fetch_makefile(pool)
 
     def merge_cores(self):
-        from srcfile import VerilogFile, VHDLFile, SVFile, NGCFile
+        from srcfile import VerilogFile, VHDLFile, NGCFile
         from vlog_parser import VerilogPreprocessor
 
         solver = DependencySolver()
 
         pool = self.modules_pool
         if not pool.is_everything_fetched():
-            p.echo("A module remains unfetched. Fetching must be done prior to makefile generation")
-            p.echo(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
+            logging.error("A module remains unfetched. Fetching must be done prior to makefile generation")
+            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
 
         flist = pool.build_global_file_list()
@@ -482,7 +492,7 @@ class HdlmakeKernel(object):
 
         for vhdl in flist_sorted.filter(VHDLFile):
             f_out.write("\n\n--- File: %s ----\n\n" % vhdl.rel_path())
-            f_out.write(open(vhdl.rel_path(),"r").read()+"\n\n")
+            f_out.write(open(vhdl.rel_path(), "r").read()+"\n\n")
                 #print("VHDL: %s" % vhdl.rel_path())
         f_out.close()
 

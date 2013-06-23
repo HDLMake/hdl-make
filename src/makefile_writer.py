@@ -22,6 +22,8 @@
 
 import os
 import string
+import logging
+
 
 class MakefileWriter(object):
     def __init__(self, filename):
@@ -59,7 +61,6 @@ class MakefileWriter(object):
         self._file = open(filename, "w")
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise_path):
-        import path
         if name is None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
@@ -69,7 +70,7 @@ class MakefileWriter(object):
         remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
-        if  user is None:
+        if user is None:
             user_tmpl = user_tmpl.format("$(HDLMAKE_USER)#take the value from the environment")
             test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
@@ -132,7 +133,6 @@ endif
         pass
 
     def generate_ise_makefile(self, top_mod, ise_path):
-        import path
         mk_text = """PROJECT := {1}
 ISE_CRAP := \
 *.b \
@@ -217,7 +217,7 @@ mrproper:
         self.initialize()
         self.write("#target for fetching all modules stored in repositories\n")
         self.write("fetch: ")
-        self.write(' \\\n'.join(["__"+m.basename+"_fetch" for m in modules_pool if m.source in ["svn","git"]]))
+        self.write(' \\\n'.join(["__"+m.basename+"_fetch" for m in modules_pool if m.source in ["svn", "git"]]))
         self.write("\n\n")
 
         for module in modules_pool:
@@ -229,9 +229,9 @@ mrproper:
                 self.write("cd " + rp(module.fetchto) + ' ')
                 c = "svn checkout {0}{1} {2}"
                 if module.revision:
-                    c=c.format(module.url, "@"+module.revision, module.basename)
+                    c = c.format(module.url, "@"+module.revision, module.basename)
                 else:
-                    c=c.format(module.url, "", module.basename)
+                    c = c.format(module.url, "", module.basename)
                 self.write(c)
                 self.write("cd $(PWD) \n\n")
 
@@ -243,17 +243,16 @@ mrproper:
                 self.write("if [ -d " + basename + " ] then cd " + basename + ' ')
                 self.write("git pull ")
                 if module.revision:
-                    self.write("git checkout " + module.revision +'')
-                self.write("else git clone "+ module.url + ' fi ')
+                    self.write("git checkout " + module.revision + '')
+                self.write("else git clone " + module.url + ' fi ')
                 if module.revision:
                     self.write("git checkout " + module.revision + '')
                 self.write("cd $(PWD) \n\n")
 
     def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
-        from srcfile import VerilogFile, VHDLFile, SVFile
+        from srcfile import VerilogFile
         #open the file and write the above preambule (part 1)
         self.initialize()
-        rp = os.path.relpath
         import global_mod
 #        for m in global_mod.mod_pool:
         for f in global_mod.top_module.incl_makefiles:
@@ -272,7 +271,7 @@ mrproper:
             include_dirs = list(set([os.path.dirname(f.rel_path()) for f in vl.dep_depends_on if f.name.endswith("vh")]))
             while "" in include_dirs:
                 include_dirs.remove("")
-            include_dir_string=" -I".join(include_dirs)
+            include_dir_string = " -I".join(include_dirs)
             if include_dir_string:
                 include_dir_string = ' -I'+include_dir_string
                 self.writeln("VFLAGS_"+target_name+"="+include_dir_string)
@@ -307,8 +306,8 @@ mrproper:
                         if (f.name != vl.name and f.name not in sim_only_files):
                             bt_syn_deps.append(f)
             self.writeln(bt+'syn_deps = '+ ' '.join([f.rel_path() for f in bt_syn_deps]))
-            if not os.path.exists(bt+".ucf"):
-                print "WARNING: The file " +bt+".ucf doesn't exist!"
+            if not os.path.exists("%s.ucf" % bt):
+                logging.warning("The file %s.ucf doesn't exist!" % bt)
             self.writeln(bt+".bit:\t"+bt+".v $("+bt+"syn_deps) "+bt+".ucf")
             part=(global_mod.top_module.syn_device+'-'+
                   global_mod.top_module.syn_package+
@@ -318,7 +317,6 @@ mrproper:
 
         self.writeln("clean:")
         self.writeln("\t\trm -f "+" ".join(target_list)+"\n\t\trm -rf _xilinx")
-
 
     def generate_vsim_makefile(self, fileset, top_module):
         from srcfile import VerilogFile, VHDLFile, SVFile
@@ -348,7 +346,6 @@ clean:
         self.initialize()
         self.write(make_preambule_p1)
 
-        rp = os.path.relpath
         self.write("VERILOG_SRC := ")
         for vl in fileset.filter(VerilogFile):
             self.write(vl.rel_path() + " \\\n")
@@ -374,7 +371,7 @@ clean:
         self.write("VHDL_OBJ := ")
         for vhdl in fileset.filter(VHDLFile):
             #file compilation indicator (important: add _vhd ending)
-            self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename+"_"+vhdl.extension()) + " \\\n")
+            self.write(os.path.join(vhdl.library, vhdl.purename, "."+vhdl.purename+"_"+vhdl.extension()) + " \\\n")
         self.write('\n')
 
         self.write('LIBS := ')
@@ -389,7 +386,7 @@ clean:
         for lib in libs:
             self.write(lib+"/."+lib+":\n")
             self.write(' '.join(["\t(vlib",  lib, "&&", "vmap", "-modelsimini modelsim.ini",
-            lib, "&&", "touch", lib+"/."+lib,")"]))
+                       lib, "&&", "touch", lib+"/."+lib, ")"]))
 
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
             self.write('\n')
@@ -417,10 +414,10 @@ clean:
             lib = vhdl.library
             purename = vhdl.purename
             #each .dat depends on corresponding .vhd file
-            self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": " + vhdl.rel_path())
+            self.write(os.path.join(lib, purename, "."+purename+"_" + vhdl.extension()) + ": " + vhdl.rel_path())
             for dep_file in vhdl.dep_depends_on:
                 name = dep_file.purename
-                self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+"_vhd"))
+                self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_vhd" % name))
             self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
@@ -428,7 +425,7 @@ clean:
 
 # Modification here
     def generate_isim_makefile(self, fileset, top_module):
-        from srcfile import VerilogFile, VHDLFile, SVFile
+        from srcfile import VerilogFile, VHDLFile
         from flow import XilinxsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
@@ -448,7 +445,7 @@ $(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
 
 xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
 \t\tcp $< .
-fuse: 
+fuse:
 ifeq ($(TOP_MODULE),)
 \t\t@echo \"Environment variable TOP_MODULE not set!\"
 else
@@ -464,7 +461,6 @@ isim.wdb
         self.initialize()
         self.write(make_preambule_p1)
 
-        rp = os.path.relpath
         self.write("VERILOG_SRC := ")
         for vl in fileset.filter(VerilogFile):
             self.write(vl.rel_path() + " \\\n")
@@ -490,7 +486,7 @@ isim.wdb
         self.write("VHDL_OBJ := ")
         for vhdl in fileset.filter(VHDLFile):
             #file compilation indicator (important: add _vhd ending)
-            self.write(os.path.join(vhdl.library, vhdl.purename,"."+vhdl.purename+"_"+vhdl.extension()) + " \\\n")
+            self.write(os.path.join(vhdl.library, vhdl.purename, "."+vhdl.purename+"_"+vhdl.extension()) + " \\\n")
         self.write('\n')
 
         self.write('LIBS := ')
@@ -525,7 +521,7 @@ isim.wdb
             #self.writeln(".PHONY: " + os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension()))
             self.write(os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension())+': ')
             self.write(vl.rel_path() + ' ')
-            self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
+            self.writeln(' '.join([fname.rel_path() for fname in vl.dep_depends_on]))
             self.write("\t\tvlogcomp -work "+vl.library+"=./"+vl.library)
             self.write(" $(VLOGCOMP_FLAGS) ")
             #if isinstance(vl, SVFile):
@@ -548,7 +544,7 @@ isim.wdb
             #each .dat depends on corresponding .vhd file and its dependencies
             #self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
             #self.writeln(".PHONY: " + os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()))
-            self.write(os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
+            self.write(os.path.join(comp_obj, "."+purename+"_" + vhdl.extension()) + ": " + vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
             self.writeln(' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)", vhdl.vcom_opt, "-work", lib+"=./"+lib, "$< "]))
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
@@ -557,10 +553,10 @@ isim.wdb
             #self.writeln(".PHONY: " + os.path.join(lib, purename, "."+purename))
             # Touch the dependency file as well. In this way, "make" will recompile only what is needed (out of date)
             #if len(vhdl.dep_depends_on) != 0:
-            self.write(os.path.join(lib, purename, "."+purename) +":")
+            self.write(os.path.join(lib, purename, "."+purename) + ":")
             for dep_file in vhdl.dep_depends_on:
                 name = dep_file.purename
-                self.write(" \\\n"+ os.path.join(dep_file.library, name, "."+name+ "_" + vhdl.extension()))
+                self.write(" \\\n" + os.path.join(dep_file.library, name, "."+name + "_" + vhdl.extension()))
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 

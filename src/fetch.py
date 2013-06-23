@@ -20,31 +20,33 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
 import os
-import msg as p
+import logging
 import path
 import global_mod
 
+
 class ModulePool(list):
+
     class ModuleFetcher:
         def __init__(self):
             pass
+
         def fetch_single_module(self, module):
-            import global_mod
             new_modules = []
-            p.vprint("Fetching module: " + str(module))
+            logging.debug("Fetching module: " + str(module))
 
             if module.source == "local":
-                p.vprint("ModPath: " + module.path)
+                logging.debug("ModPath: " + module.path)
             else:
-                p.printhr()
-                p.info("Fetching module: " + str(module) +\
-                    " [parent: " + str(module.parent) + "]")
+                logging.info("Fetching module: " + str(module) +
+                             "[parent: " + str(module.parent) + "]")
                 if module.source == "svn":
-                    p.info("[svn] Fetching to " + module.fetchto)
+                    logging.info("[svn] Fetching to " + module.fetchto)
                     self.__fetch_from_svn(module)
                 if module.source == "git":
-                    p.info("[git] Fetching to " + module.fetchto)
+                    logging.info("[git] Fetching to " + module.fetchto)
                     self.__fetch_from_git(module)
 
             module.parse_manifest()
@@ -69,7 +71,7 @@ class ModulePool(list):
 
             rval = True
 
-            p.vprint(cmd)
+            logging.debug(cmd)
             if os.system(cmd) != 0:
                 rval = False
             os.chdir(cur_dir)
@@ -90,7 +92,7 @@ class ModulePool(list):
             mod_path = os.path.join(module.fetchto, basename)
 
             if basename.endswith(".git"):
-                basename = basename[:-4] #remove trailing .git
+                basename = basename[:-4]  # remove trailing .git
 
             if module.isfetched:
                 update_only = True
@@ -106,14 +108,14 @@ class ModulePool(list):
 
             rval = True
 
-            p.vprint(cmd)
+            logging.debug(cmd)
             if os.system(cmd) != 0:
                 rval = False
 
             if module.revision and rval:
                 os.chdir(mod_path)
                 cmd = "git checkout " + module.revision
-                p.vprint(cmd)
+                logging.debug(cmd)
                 if os.system(cmd) != 0:
                     rval = False
                 os.chdir(cur_dir)
@@ -121,7 +123,6 @@ class ModulePool(list):
             module.isfetched = True
             module.path = mod_path
             return rval
-
 
     def __init__(self, *args):
         list.__init__(self, *args)
@@ -146,7 +147,7 @@ class ModulePool(list):
             return [m for m in self if m.url == url][0]
         else:
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
-                fetchto = self.global_fetch # screw module's particular fetchto
+                fetchto = self.global_fetch  # screw module's particular fetchto
             elif global_mod.top_module:
                 fetchto = global_mod.top_module.fetchto
 
@@ -186,11 +187,11 @@ class ModulePool(list):
                 new_modules = fetcher.fetch_single_module(cur_mod)
             for mod in new_modules:
                 if not mod.isfetched:
-                    p.vprint("Appended to fetch queue: " +str(mod.url))
+                    logging.debug("Appended to fetch queue: " + str(mod.url))
                     self._add(mod)
                     fetch_queue.append(mod)
                 else:
-                    p.vprint("NOT appended to fetch queue: " +str(mod.url))
+                    logging.debug("NOT appended to fetch queue: " + str(mod.url))
 
     def build_global_file_list(self):
         from srcfile import SourceFileSet
@@ -230,9 +231,9 @@ class ModulePool(list):
                     if nvl:
                         extra_verilog_files.add(nvl)
 
-        p.vprint("Extra verilog files, not listed in manifests:")
+        logging.debug("Extra verilog files, not listed in manifests:")
         for extra_vl in extra_verilog_files:
-            p.vprint(str(extra_vl))
+            logging.debug(str(extra_vl))
         for extra_vl in extra_verilog_files:
             files.add(extra_vl)
         return files

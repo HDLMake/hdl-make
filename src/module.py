@@ -3,12 +3,14 @@
 # Copyright (c) 2013 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 
+from __future__ import print_function
 import path as path_mod
-import msg as p
 import os
 import global_mod
+import logging
 from manifest_parser import Manifest, ManifestParser
-from srcfile import SourceFileSet, SourceFileFactory 
+from srcfile import SourceFileSet, SourceFileFactory
+
 
 class Module(object):
     @property
@@ -17,14 +19,14 @@ class Module(object):
 
     @source.setter
     def source(self, value):
-        if value not in ["svn","git","local"]:
+        if value not in ["svn", "git", "local"]:
             raise ValueError("Inproper source: " + value)
         self._source = value
 
     @source.deleter
     def source(self):
         del self._source
-###
+
     @property
     def basename(self):
         import path
@@ -62,8 +64,8 @@ class Module(object):
             self.url, self.branch, self.revision = url, None, None
 
         if source == "local" and not os.path.exists(url):
-            p.error("Path to the local module doesn't exist:\n" + url
-            + "\nThis module was instantiated in: " + str(parent))
+            logging.error("Path to the local module doesn't exist:\n" + url
+                          + "\nThis module was instantiated in: " + str(parent))
             quit()
 
         if source == "local":
@@ -102,18 +104,18 @@ class Module(object):
         """
         Look for manifest in the given folder
         """
-        p.vprint("Looking for manifest in " + self.path)
+        logging.debug("Looking for manifest in " + self.path)
         for filename in os.listdir(self.path):
             if filename == "manifest.py" or filename == "Manifest.py":
                 if not os.path.isdir(filename):
-                    p.vprint("*** found manifest for module "+self.path)
+                    logging.debug("*** found manifest for module "+self.path)
                     manifest = Manifest(path=os.path.abspath(os.path.join(self.path, filename)))
                     return manifest
         return None
 
     def __make_list(self, sth):
         if sth is not None:
-            if not isinstance(sth, (list,tuple)):
+            if not isinstance(sth, (list, tuple)):
                 sth = [sth]
         else:
             sth = []
@@ -126,7 +128,7 @@ class Module(object):
         import shutil
         import os
 
-        p.vprint("Removing " + self.path)
+        logging.debug("Removing " + self.path)
         shutil.rmtree(self.path)
 
         parts = self.path.split('/')
@@ -134,9 +136,9 @@ class Module(object):
             try:
                 parts = parts[:-1]
                 tmp = '/'.join(parts)
-                p.vprint("Trying to remove " + tmp)
+                logging.debug("Trying to remove " + tmp)
                 os.rmdir(tmp)
-            except OSError: #a catologue is not empty - we are done
+            except OSError:  # a catologue is not empty - we are done
                 break
 
     def parse_manifest(self):
@@ -158,16 +160,16 @@ class Module(object):
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
 
         if self.manifest is None:
-            p.vprint("No manifest found in module "+str(self))
+            logging.debug("No manifest found in module "+str(self))
         else:
             manifest_parser.add_manifest(self.manifest)
-            p.vprint("Parsing manifest file: " + str(self.manifest))
+            logging.debug("Parsing manifest file: " + str(self.manifest))
 
         opt_map = None
         try:
             opt_map = manifest_parser.parse()
         except NameError as ne:
-            p.echo("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
+            logging.error("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
 
         if(opt_map["fetchto"] is not None):
@@ -184,8 +186,8 @@ class Module(object):
             local_mods = []
             for path in local_paths:
                 if path_mod.is_abs_path(path):
-                    p.error("Found an absolute path (" + path + ") in a manifest")
-                    p.rawprint("(" + self.path + ")")
+                    logging.error("Found an absolute path (" + path + ") in a manifest"
+                                  "(" + self.path + ")")
                     quit()
                 path = path_mod.rel2abs(path, self.path)
                 local_mods.append(self.pool.new_module(parent=self, url=path, source="local", fetchto=fetchto))
@@ -207,10 +209,10 @@ class Module(object):
                 map(lambda f: mkFileList.append(f), opt_map["incl_makefiles"])
         for f in mkFileList:
             if path_mod.is_abs_path(f):
-                print "Found and absolute path in manifest. Exiting .."
+                logging.error("Found and absolute path in manifest. Exiting ..")
                 quit()
             else:
-                self.incl_makefiles.append(os.path.relpath(os.path.abspath(os.path.join(self.path,f))))
+                self.incl_makefiles.append(os.path.relpath(os.path.abspath(os.path.join(self.path, f))))
 
         #if self.vlog_opt == "":
         #    self.vlog_opt = global_mod.top_module.vlog_opt
@@ -226,35 +228,32 @@ class Module(object):
         if opt_map["include_dirs"] is not None:
             if isinstance(opt_map["include_dirs"], basestring):
 #                self.include_dirs.append(opt_map["include_dirs"])
-                ll = os.path.relpath(os.path.abspath(os.path.join(self.path,opt_map["include_dirs"])))
+                ll = os.path.relpath(os.path.abspath(os.path.join(self.path, opt_map["include_dirs"])))
                 self.include_dirs.append(ll)
             else:
 #                self.include_dirs.extend(opt_map["include_dirs"])
-                ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path,x))),
+                ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path, x))),
                          opt_map["include_dirs"])
                 self.include_dirs.extend(ll)
 
         for dir in self.include_dirs:
             if path_mod.is_abs_path(dir):
-                p.warning(self.path + " contains absolute path to an include directory: " +
-                dir)
+                logging.warning("%s contains absolute path to an include directory: %s" % (self.path, dir))
             if not os.path.exists(dir):
-                p.warning(self.path + " has an unexisting include directory: " + dir)
+                logging.warning(self.path + " has an unexisting include directory: " + dir)
 
         if opt_map["files"] == []:
             self.files = SourceFileSet()
         else:
             opt_map["files"] = self.__make_list(opt_map["files"])
             paths = []
-            for path in opt_map["files"]:
-                if not path_mod.is_abs_path(path):
-                    path = path_mod.rel2abs(path, self.path)
-                    paths.append(path)
+            for file_path in opt_map["files"]:
+                if not path_mod.is_abs_path(file_path):
+                    path = path_mod.rel2abs(file_path, self.path)
+                    paths.append(file_path)
                 else:
-                    p.warning(path + " is an absolute path. Omitting.")
-                if not os.path.exists(path):
-                    p.error("File listed in " + self.manifest.path + " doesn't exist: "
-                    + path +".\nExiting.")
+                    logging.warning(file_path + " is an absolute path. Omitting.")
+                if not os.path.exists(file_path):
                     quit()
 
             from srcfile import VerilogFile, VHDLFile
@@ -270,33 +269,30 @@ class Module(object):
         else:
             opt_map["sim_only_files"] = self.__make_list(opt_map["sim_only_files"])
             paths = []
-            for path in opt_map["sim_only_files"]:
-                if not path_mod.is_abs_path(path):
-                    path = path_mod.rel2abs(path, self.path)
-                    paths.append(path)
+            for file_path in opt_map["sim_only_files"]:
+                if not path_mod.is_abs_path(file_path):
+                    file_path = path_mod.rel2abs(file_path, self.path)
+                    paths.append(file_path)
                 else:
-                    p.warning(path + " is an absolute path. Omitting.")
-                if not os.path.exists(path):
-                    p.error("File listed in " + self.manifest.path + " doesn't exist: "
-                    + path +".\nExiting.")
+                    logging.warning(file_path + " is an absolute path. Omitting.")
+                if not os.path.exists(file_path):
+                    logging.error("File listed in %s doesn't exist: %s" % (self.manifest.path, file_path))
                     quit()
-            from srcfile import VerilogFile, VHDLFile
             self.sim_only_files = self.__create_file_list_from_paths(paths=paths)
 
         self.bit_file_targets = SourceFileSet()
         if opt_map["bit_file_targets"] != []:
-            paths=[]
+            paths = []
             for path in opt_map["bit_file_targets"]:
                 if not path_mod.is_abs_path(path):
                     path = path_mod.rel2abs(path, self.path)
                     paths.append(path)
                 else:
-                    p.warning(path + " is an absolute path. Omitting.")
+                    logging.warning(path + " is an absolute path. Omitting.")
                 if not os.path.exists(path):
-                    p.error("File listed in " + self.manifest.path +
-                            " doesn't exist: " + path +".\nExiting.")
+                    logging.error("File listed in " + self.manifest.path +
+                                  " doesn't exist: " + path + ".\nExiting.")
                     quit()
-            from srcfile import VerilogFile, VHDLFile
             self.bit_file_targets = self.__create_file_list_from_paths(paths=paths)
 
         if "svn" in opt_map["modules"]:
@@ -321,12 +317,12 @@ class Module(object):
         self.action = opt_map["action"]
 
         if opt_map["syn_name"] is None and opt_map["syn_project"] is not None:
-            self.syn_name = opt_map["syn_project"][:-5] #cut out .xise from the end
+            self.syn_name = opt_map["syn_project"][:-5]  # cut out .xise from the end
         else:
             self.syn_name = opt_map["syn_name"]
         self.syn_device = opt_map["syn_device"]
         self.syn_grade = opt_map["syn_grade"]
-        self.syn_package= opt_map["syn_package"]
+        self.syn_package = opt_map["syn_package"]
         self.syn_project = opt_map["syn_project"]
         self.syn_top = opt_map["syn_top"]
 
@@ -344,17 +340,17 @@ class Module(object):
         return True
 
     def make_list_of_modules(self):
-        p.vprint("Making list of modules for " + str(self))
+        logging.debug("Making list of modules for " + str(self))
         new_modules = [self]
         modules = [self]
         while len(new_modules) > 0:
             cur_module = new_modules.pop()
 
             if not cur_module.isfetched:
-                p.error("Unfetched module in modules list: " + str(cur_module))
+                logging.error("Unfetched module in modules list: " + str(cur_module))
                 quit()
             if cur_module.manifest is None:
-                p.vprint("No manifest in " + str(cur_module))
+                logging.debug("No manifest in " + str(cur_module))
                 continue
             cur_module.parse_manifest()
 
@@ -371,7 +367,7 @@ class Module(object):
                 new_modules.append(module)
 
         if len(modules) == 0:
-            p.vprint("No modules were found in " + self.fetchto)
+            logging.debug("No modules were found in " + self.fetchto)
         return modules
 
     def __create_file_list_from_paths(self, paths):

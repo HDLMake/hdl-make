@@ -20,11 +20,12 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
 import os
 import sys
-import msg as p
 from subprocess import Popen, PIPE
 import re
+import logging
 
 
 class _IsePath(object):
@@ -78,7 +79,7 @@ class _IsePath(object):
 class Env(dict):
     def __init__(self, options, top_module):
         self.options = options
-        self.top_module = top_module 
+        self.top_module = top_module
 
     def check(self):
         platform = sys.platform
@@ -86,7 +87,6 @@ class Env(dict):
 
         #1: determine path for ise
         print("--- ISE synthesis ---")
-        
         xilinx = os.environ.get("XILINX")
         if xilinx:
             print("Environmental variable %s is set: %s." % ("XILINX", xilinx))
@@ -127,7 +127,6 @@ class Env(dict):
 
             #######
         self.report_and_set_var("top_module")
-
 
         #3: determine modelsim path
         print("--- Modelsim simulation ---")
@@ -207,8 +206,8 @@ class Env(dict):
             if match:
                 ise_version = (int(match.group('major')), int(match.group('minor')))
             else:
-                p.error("xst output is not in expected format: %s\n" % xst_output +
-                        "Can't determine ISE version")
+                logging.error("xst output is not in expected format: %s\n" % xst_output +
+                              "Can't determine ISE version")
                 return None
 
         return ise_version
@@ -271,5 +270,5 @@ class Env(dict):
             return False
 
 if __name__ == "__main__":
-    ec = EnvChecker({}, {})
+    ec = Env({}, {})
     ec.check()

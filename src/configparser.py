@@ -19,10 +19,12 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import msg as p
+from __future__ import print_function
+import logging
 import sys
 import StringIO
 import contextlib
+
 
 @contextlib.contextmanager
 def stdoutIO(stdout=None):
@@ -32,6 +34,7 @@ def stdoutIO(stdout=None):
     sys.stdout = stdout
     yield stdout
     sys.stdout = old
+
 
 class ConfigParser(object):
     """Class for parsing python configuration files
@@ -144,15 +147,14 @@ class ConfigParser(object):
                 elif key == "default":
                     self.default = others["default"]
                 elif key == "type":
-                    self.add_type(type_obj=others["type"]) 
+                    self.add_type(type_obj=others["type"])
                 else:
                     raise ValueError("Option not recognized: " + key)
 
         def add_type(self, type_obj):
             self.types.append(type(type_obj))
 
-
-    def __init__(self, description = None):
+    def __init__(self, description=None):
         if description is not None:
             if not isinstance(description, str):
                 raise ValueError("Description should be a string!")
@@ -174,10 +176,10 @@ class ConfigParser(object):
             raise RuntimeError("No such option as " + str(name))
 
     def help(self):
-        p.rawprint("Variables available in a manifest:")
+        print("Variables available in a manifest:")
         for opt in self.options:
             if opt is None:
-                p.rawprint("")
+                print("")
                 continue
 
             line = '  {0:15}; {1:29}; {2:45}{3}{4:10}'
@@ -188,7 +190,7 @@ class ConfigParser(object):
                 line = line.format(opt.name, str(opt.types), opt.help, ', default=', tmp_def)
             except AttributeError:  # no default value
                 line = line.format(opt.name, str(opt.types), opt.help, "", "")
-            p.rawprint(line)
+            print(line)
 
     def add_option(self, name, **others):
         if name in self.__names():
@@ -237,7 +239,7 @@ class ConfigParser(object):
 
         if self.config_file is not None:
             with open(self.config_file, "r") as config_file:
-                content = open(self.config_file, "r").readlines()
+                content = config_file.readlines()
                 content = ''.join(content)
         else:
             content = ''
@@ -258,11 +260,11 @@ class ConfigParser(object):
             if printed:
                 print(printed)
         except SyntaxError as e:
-            p.error("Invalid syntax in the arbitraty code:\n" + str(e))
+            logging.error("Invalid syntax in the arbitraty code:\n" + str(e))
             quit()
         except:
-            p.error("Unexpected error while parsing arbitrary code:")
-            p.rawprint(str(sys.exc_info()[0])+':'+str(sys.exc_info()[1]))
+            logging.error("Unexpected error while parsing arbitrary code:")
+            print(str(sys.exc_info()[0])+':'+str(sys.exc_info()[1]))
             quit()
 
         try:
@@ -270,19 +272,19 @@ class ConfigParser(object):
                 exec(content, options)
             printed = s.getvalue()
             if len(printed) > 0:
-                p.info("The manifest inside " + self.config_file + " tried to print something:")
+                logging.info("The manifest inside " + self.config_file + " tried to print something:")
                 for line in printed.split('\n'):
-                    p.rawprint("> " + line)
+                    print("> " + line)
             #print "out:", s.getvalue()
         except SyntaxError as e:
-            p.error("Invalid syntax in the manifest file " + self.config_file+ ":\n" + str(e))
+            logging.error("Invalid syntax in the manifest file " + self.config_file + ":\n" + str(e))
             quit()
         except:
-            p.error("Encountered unexpected error while parsing " + self.config_file)
-            p.rawprint(str(sys.exc_info()[0]) +':'+ str(sys.exc_info()[1]))
+            logging.error("Encountered unexpected error while parsing " + self.config_file)
+            print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
             quit()
 
-        for opt_name, val in list(options.items()): #check delivered options
+        for opt_name, val in list(options.items()):  # check delivered options
             if opt_name.startswith('__'):
                 continue
             if opt_name not in self.__names():
@@ -294,22 +296,22 @@ class ConfigParser(object):
                     raise NameError("Unrecognized option: " + opt_name)
             opt = self[opt_name]
             if type(val) not in opt.types:
-                raise RuntimeError("Given option: "+str(type(val))+" doesn't match specified types:"+str(opt.types))
+                raise RuntimeError("Given option: %s doesn't match specified types: %s" % (str(type(val)), str(opt.types)))
             ret[opt_name] = val
 #            print("Opt_name ", opt_name)
             if type(val) == type(dict()):
                 try:
                     for key in val:
                         if key not in self[opt_name].allowed_keys:
-                            raise RuntimeError("Encountered unallowed key: " +key+ " for options '"+opt_name+"'")
-                except AttributeError: #no allowed_keys member - don't perform any check
+                            raise RuntimeError("Encountered unallowed key: %s for option '%s'" % (key, opt_name))
+                except AttributeError:  # no allowed_keys member - don't perform any check
                     pass
 
-        for opt in self.options: #set values for not listed items with defaults
+        for opt in self.options:  # set values for not listed items with defaults
             try:
                 if opt.name not in ret:
                     ret[opt.name] = opt.default
-            except AttributeError: #no default value in the option
+            except AttributeError:  # no default value in the option
                 pass
         return ret
 

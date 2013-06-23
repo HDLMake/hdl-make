@@ -20,24 +20,10 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
 import os
-import msg as p
+import logging
 
-ise_path_64 = {
-"10.0":"/opt/Xilinx/10.0/ISE/bin/lin",
-"10.1":"/opt/Xilinx/10.1/ISE/bin/lin",
-"12.2":"/opt/Xilinx/12.2/ISE_DS/ISE/bin/lin64",
-"12.1":"/opt/Xilinx/12.1/ISE_DS/ISE/bin/lin",
-"12.4":"/opt/Xilinx/12.4/ISE_DS/ISE/bin/lin64",
-"13.1":"/opt/Xilinx/13.1/ISE_DS/ISE/bin/lin64"
-}
-
-ise_path_32 = {"10.0":"/opt/Xilinx/10.0/ISE/bin/lin",
-"10.1":"/opt/Xilinx/10.1/ISE/bin/lin",
-"12.2":"/opt/Xilinx/12.2/ISE_DS/ISE/bin/lin64",
-"12.1":"/opt/Xilinx/12.1/ISE_DS/ISE/bin/lin",
-"12.4":"/opt/Xilinx/12.4/ISE_DS/ISE/bin/lin64",
-"13.1":"/opt/Xilinx/13.1/ISE_DS/ISE/bin/lin64"}
 
 def url_parse(url):
     """
@@ -46,7 +32,7 @@ def url_parse(url):
     """url_pat = re.compile("[ \t]*([^ \t]+?)[ \t]*(::)?([^ \t@]+)?(@[ \t]*(.+))?[ \t]*")
     url_match = re.match(url_pat, url)
     if url_match is None:
-        p.echo("Not a correct repo url: {0}. Skipping".format(url))
+        print("Not a correct repo url: {0}. Skipping".format(url))
     url_clean = url_match.group(1)
     if url_match.group(3) is not None: #there is a branch
       branch = url_match.group(3)
@@ -62,6 +48,7 @@ def url_parse(url):
 
     return (url_clean, branch, rev)
 
+
 def url_basename(url):
     """
     Get basename from an url
@@ -75,6 +62,7 @@ def url_basename(url):
         ret = os.path.basename(url)
     return ret
 
+
 def svn_basename(url):
     words = url.split('//')
     try:
@@ -83,21 +71,29 @@ def svn_basename(url):
     except IndexError:
         return None
 
+
 def pathsplit(p, rest=None):
     if rest is None:
         rest = []
     (h, t) = os.path.split(p)
-    if len(h) < 1: return [t]+rest
-    if len(t) < 1: return [h]+rest
+    if len(h) < 1:
+        return [t]+rest
+    if len(t) < 1:
+        return [h]+rest
     return pathsplit(h, [t]+rest)
+
 
 def commonpath(l1, l2, common=None):
     if common is None:
         common = []
-    if len(l1) < 1: return (common, l1, l2)
-    if len(l2) < 1: return (common, l1, l2)
-    if l1[0] != l2[0]: return (common, l1, l2)
+    if len(l1) < 1:
+        return (common, l1, l2)
+    if len(l2) < 1:
+        return (common, l1, l2)
+    if l1[0] != l2[0]:
+        return (common, l1, l2)
     return commonpath(l1[1:], l2[1:], common+[l1[0]])
+
 
 def is_rel_path(path):
     path = str(path)
@@ -106,6 +102,7 @@ def is_rel_path(path):
         return False
     return True
 
+
 def is_abs_path(path):
     path = str(path)
     s = path[0]
@@ -113,7 +110,8 @@ def is_abs_path(path):
         return True
     return False
 
-def relpath(p1, p2 = None):
+
+def relpath(p1, p2=None):
     if p2 is None:
         p2 = os.getcwd()
     if p1 == p2:
@@ -127,12 +125,12 @@ def relpath(p1, p2 = None):
     (_, l1, l2) = commonpath(pathsplit(p1), pathsplit(p2))
     p = []
     if len(l1) > 0:
-        p = [ '../' * len(l1) ]
+        p = ['../' * len(l1)]
     p = p + l2
     return os.path.join(*p)
 
 
-def rel2abs(path, base = None):
+def rel2abs(path, base=None):
     """
     converts a relative path to an absolute path.
 
@@ -147,11 +145,12 @@ def rel2abs(path, base = None):
     retval = os.path.join(base, path)
     return os.path.abspath(retval)
 
+
 def search_for_manifest(search_path):
     """
     Look for manifest in the given folder
     """
-    p.vprint("Looking for manifest in " + search_path)
+    logging.debug("Looking for manifest in " + search_path)
     for filename in os.listdir(search_path):
         if filename == "manifest.py" and not os.path.isdir(filename):
             return os.path.abspath(os.path.join(search_path, filename))

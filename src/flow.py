@@ -22,15 +22,16 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
 import xml.dom.minidom
 import xml.parsers.expat
-import msg as p
+import logging
 import re
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
 ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
-                     'synopsys','unimacro', 'unisim', 'XilinxCoreLib']
+                     'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 MODELSIM_STANDARD_LIBS = ['ieee', 'std']
 ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
@@ -38,6 +39,7 @@ ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                       'pls', 'xilinxcorelib', 'aim_ver', 'cpld_ver',
                       'simprims_ver', 'unisims_ver', 'uni9000_ver',
                       'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
+
 
 class ISEProjectProperty:
     def __init__(self,  name, value, is_default=False):
@@ -108,14 +110,13 @@ class ISEProject:
 
     def add_initial_properties(self, syn_device, syn_grade, syn_package, syn_top):
         family_names = {
-          "XC6S": "Spartan6",
-          "XC3S": "Spartan3",
-          "XC6V": "Virtex6",
-          "XC5V": "Virtex5",
-          "XC4V": "Virtex4",
-          "XC7K": "Kintex7",
-          "XC7A": "Artix7"}
-
+            "XC6S": "Spartan6",
+            "XC3S": "Spartan3",
+            "XC6V": "Virtex6",
+            "XC5V": "Virtex5",
+            "XC4V": "Virtex4",
+            "XC7K": "Kintex7",
+            "XC7A": "Artix7"}
 
         self.add_property(ISEProjectProperty("Device", syn_device))
         self.add_property(ISEProjectProperty("Device Family", family_names[syn_device[0:4].upper()]))
@@ -132,10 +133,10 @@ class ISEProject:
     def __parse_props(self):
         for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
             prop = ISEProjectProperty(
-                    xmlp.getAttribute("xil_pn:name"),
-                    xmlp.getAttribute("xil_pn:value"),
-                    xmlp.getAttribute("xil_pn:valueState") == "default"
-                    )
+                xmlp.getAttribute("xil_pn:name"),
+                xmlp.getAttribute("xil_pn:value"),
+                xmlp.getAttribute("xil_pn:valueState") == "default"
+            )
 
             self.props.append(prop)
         self.xml_props = self.__purge_dom_node(name="properties", where=self.xml_doc.documentElement)
@@ -148,20 +149,20 @@ class ISEProject:
     def load_xml(self, filename):
         f = open(filename)
         self.xml_doc = xml.dom.minidom.parse(f)
-        self.xml_project =  self.xml_doc.getElementsByTagName("project")[0]
+        self.xml_project = self.xml_doc.getElementsByTagName("project")[0]
         import sys
         try:
             self.__parse_props()
         except xml.parsers.expat.ExpatError:
-            p.rawprint("Error while parsing existng file's properties:")
-            p.rawprint(str(sys.exc_info()))
+            print("Error while parsing existng file's properties:")
+            print(str(sys.exc_info()))
             quit()
 
         try:
             self.__parse_libs()
         except xml.parsers.expat.ExpatError:
-            p.rawprint("Error while parsing existng file's libraries:")
-            p.rawprint(str(sys.exc_info()))
+            print("Error while parsing existng file's libraries:")
+            print(str(sys.exc_info()))
             quit()
 
         where = self.xml_doc.documentElement
@@ -190,7 +191,7 @@ class ISEProject:
         from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
 
         for f in self.files:
-            p.vprint("Writing .xise file for version " + str(self.ise))
+            logging.debug("Writing .xise file for version " + str(self.ise))
             fp = self.xml_doc.createElement("file")
             fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
             if isinstance(f, VHDLFile):
@@ -245,7 +246,7 @@ class ISEProject:
         i.setAttribute("xil_pn:schema_version", "2")
         node.appendChild(i)
 
-    def emit_xml(self, filename = None):
+    def emit_xml(self, filename=None):
         if not self.xml_doc:
             self.create_empty_project()
         else:
@@ -256,7 +257,7 @@ class ISEProject:
         self.__output_libs(self.xml_libs)
         output_file = open(filename, "w")
         string_buffer = self.StringBuffer()
-        self.xml_doc.writexml(string_buffer, newl = "\n", addindent="\t")
+        self.xml_doc.writexml(string_buffer, newl="\n", addindent="\t")
         output_file.write('\n'.join(string_buffer))
         output_file.close()
 
@@ -291,8 +292,7 @@ class ISEProject:
 
 
 class ModelsiminiReader(object):
-
-    def __init__(self, path = None):
+    def __init__(self, path=None):
         if path is None:
             path = self.modelsim_ini_dir() + "/modelsim.ini"
         self.path = path
@@ -312,7 +312,8 @@ class ModelsiminiReader(object):
         for line in ini:
             line = line.split(" ")[0]
             line = line.strip()
-            if line == "": continue
+            if line == "":
+                continue
             if line.lower() == "[library]":
                 reading_libraries = True
                 continue
@@ -336,7 +337,7 @@ class ModelsiminiReader(object):
         return os.path.abspath(bin_path+"/../")
 
 class XilinxsiminiReader(object):
-    def __init__(self, path = None):
+    def __init__(self, path=None):
         if path is None:
             path = self.xilinxsim_ini_dir() + "/xilinxsim.ini"
         self.path = path
@@ -359,7 +360,8 @@ class XilinxsiminiReader(object):
             # Read line by line, skipping comments and striping newline
             line = line.split('--')[0].strip()
             # Still in comments section
-            if line == "": continue
+            if line == "":
+                continue
 
             # Not in comments section. Library section:
             #<logical_library> = <phisical_path>
@@ -375,7 +377,7 @@ class XilinxsiminiReader(object):
         try:
             xilinx_path = os.environ["XILINX"]
         except KeyError:
-            p.error("Please set the environment variable XILINX")
+            logging.error("Please set the environment variable XILINX")
             # Fail completely for now
             quit()
 
@@ -383,7 +385,7 @@ class XilinxsiminiReader(object):
         try:
             host_platform = os.environ["HOST_PLATFORM"]
         except KeyError:
-            p.error("Please set the environment variable HOST_PLATFORM")
+            logging.error("Please set the environment variable HOST_PLATFORM")
             # Fail completely for now
             quit()
 

@@ -9,15 +9,21 @@
 import os
 from connection import Connection
 import global_mod
-import msg as p
 import optparse
+import logging
 from fetch import ModulePool
 from env import Env
+
+try:
+    from build_hash import BUILD_ID
+except:
+    BUILD_ID = "unrecognized"
+
 
 def main():
     usage = "usage: %prog [options]\n"
     usage += "type %prog --help to get help message"
-    
+
     parser = optparse.OptionParser(usage=usage)
 
     parser.add_option("--manifest-help", action="store_true",
@@ -78,8 +84,8 @@ def main():
     parser.add_option("--py", dest="arbitrary_code",
     default="", help="add arbitrary code to all manifests' evaluation")
 
-    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
-    default="false", help="verbose mode")
+    parser.add_option("--log", dest="log",
+    default="info", help="set logging level (one of debug, info, warning, error, critical")
 
     parser.add_option("--version", dest="print_version", action="store_true",
     default="false", help="print version id of this Hdlmake build")
@@ -96,18 +102,21 @@ def main():
         quit()
 
     if options.print_version is True:
-        p.print_version()
+        print("Hdlmake build " + BUILD_ID)
         quit()
 
-    p.vprint("LoadTopManifest")
+    numeric_level = getattr(logging, options.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        print('Invalid log level: %s' % options.log)
+    logging.basicConfig(level=numeric_level)
 
     pool = ModulePool()
     pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".")
 
     # Setting top_module as top module of design (ModulePool class)
     if pool.get_top_module().manifest is None:
-        p.rawprint("No manifest found. At least an empty one is needed")
-        p.rawprint("To see some help, type hdlmake --help")
+        logging.info("No manifest found. At least an empty one is needed")
+        logging.info("To see some help, type hdlmake --help")
         quit()
 
     # Setting global variable (global_mod.py)
@@ -148,14 +157,14 @@ def main():
                 sth_chosen = True
                 getattr(kernel, function)()
         except Exception, unknown_error:
-            p.echo("Oooops! We've got an error. Here is the appropriate info:\n")
-            p.print_version()
-            print(unknown_error)
+            logging.error("Oooops! We've got an error. Here is the appropriate info:\n")
+            print("Hdlmake build " + BUILD_ID)
+            print(str(unknown_error))
             traceback.print_exc()
 
     if not sth_chosen:
-        p.rawprint("No option selected. Running automatic flow")
-        p.rawprint("To see some help, type hdlmake --help")
+        logging.info("No option selected. Running automatic flow")
+        logging.info("To see some help, type hdlmake --help")
         kernel.run()
 
 if __name__ == "__main__":

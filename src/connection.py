@@ -22,7 +22,8 @@
 import os
 import random
 import string
-import msg as p
+import logging
+
 
 class Connection:
     def __init__(self, ssh_user, ssh_server):
@@ -42,7 +43,7 @@ class Connection:
 
     def __check(self):
         if not self.__data_given():
-            p.echo("Error: no data for connection given")
+            logging.info("Error: no data for connection given")
             quit()
 
     def system(self, cmd):
@@ -59,10 +60,9 @@ class Connection:
         self.__check()
         #create a new catalogue on remote machine
         if dest_folder is None:
-            dest_folder = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8)) 
-        mkdir_cmd = 'mkdir -p ' + dest_folder 
-        import msg as p
-        p.vprint("Connecting to " + str(self) + " and creating directory " + dest_folder + ": " + mkdir_cmd)
+            dest_folder = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
+        mkdir_cmd = 'mkdir -p ' + dest_folder
+        logging.debug("Connecting to " + str(self) + " and creating directory " + dest_folder + ": " + mkdir_cmd)
         self.system(mkdir_cmd)
 
         #create a string with filenames
@@ -71,16 +71,16 @@ class Connection:
 
         rsync_cmd = "rsync -Rav " + local_files_str + " " + self.ssh_user + "@" + self.ssh_server + ":" + dest_folder
         #rsync_cmd += " > /dev/null"
-        p.vprint("Coping files to remote machine: "+rsync_cmd) 
+        logging.debug("Coping files to remote machine: " + rsync_cmd)
         import subprocess
-        p = subprocess.Popen(rsync_cmd, shell=True)
-        os.waitpid(p.pid, 0)[1]
+        process = subprocess.Popen(rsync_cmd, shell=True)
+        os.waitpid(process.pid, 0)[1]
         return dest_folder
 
     def transfer_files_back(self, what, where):
         self.__check()
         rsync_cmd = "rsync -av " + self.ssh_user + "@" + self.ssh_server + ":" + what + ' ' + where
-        p.vprint(rsync_cmd)
+        logging.debug(rsync_cmd)
         os.system(rsync_cmd)
 
     def is_good(self):
@@ -93,7 +93,7 @@ class Connection:
         p = self.popen("uname -a")
         p = p.readlines()
         if not len(p):
-            p.echo("Checking address length failed")
+            logging.warning("Checking address length failed")
             return None
         elif "i686" in p[0]:
             return 32

@@ -20,9 +20,10 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import msg as p
+import logging
 import global_mod
 import os.path
+
 
 class IDependable:
     def __init__(self):
@@ -116,7 +117,7 @@ class DependencySolver:
         for dir in inc_dirs:
             dir = os.path.join(os.getcwd(), dir)
             if not os.path.exists(dir) or not os.path.isdir(dir):
-                p.warning("Include path "+dir+" doesn't exist")
+                logging.warning("Include path "+dir+" doesn't exist")
                 continue
             h_file = os.path.join(dir, req)
             if os.path.exists(h_file) and not os.path.isdir(h_file):
@@ -167,7 +168,7 @@ class DependencySolver:
                 else:
                     break
 
-            p.vprint ("Include paths are: " + ' '.join(ret))
+            logging.debug("Include paths are: " + ' '.join(ret))
         return ret
 
     def solve(self, fileset):
@@ -193,8 +194,8 @@ class DependencySolver:
                         fset[idx], fset[k] = fset[k], fset[idx]
 
         if(n_iter == max_iter):
-            p.error("Maximum number of iterations reached when trying to solve the dependencies.\n"
-                    "Perhaps a cyclic inter-dependency problem.")
+            logging.error("Maximum number of iterations reached when trying to solve the dependencies.\n"
+                          "Perhaps a cyclic inter-dependency problem.")
             return None
 
         for f in fset:
@@ -205,14 +206,14 @@ class DependencySolver:
         f_nondep.sort(key=lambda f: f.dep_index)
         from srcfile import VHDLFile, VerilogFile
         for f in [file for file in fset if isinstance(file, VHDLFile)]:
-            p.vprint(f.path)
+            logging.debug(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
                     pf = self.__find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
                     if not pf:
-                        p.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
+                        logging.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                     else:
-                        p.vprint("--> " + pf.path)
+                        logging.debug("--> " + pf.path)
                         if pf.path != f.path:
                             f.dep_depends_on.append(pf)
             #get rid of duplicates by making a set from the list and vice versa
@@ -222,19 +223,17 @@ class DependencySolver:
 
         acc = []
         for f in [file for file in fset if isinstance(file, VerilogFile)]:
-            p.vprint(f.path)
+            logging.debug(f.path)
             if f.dep_requires:
                 for req in f.dep_requires:
                     pf = self.__find_provider_verilog_file(req, f, fset+acc)
                     if not pf:
-                        p.warning("Cannot find depending for file "+str(f)+": "+req)
+                        logging.warning("Cannot find depending for file "+str(f)+": "+req)
                     else:
-                        p.vprint("--> " + pf.path)
+                        logging.debug("--> " + pf.path)
                         f.dep_depends_on.append(pf)
             #get rid of duplicates by making a set from the list and vice versa
             f.dep_depends_on = list(set(f.dep_depends_on))
-
-
 
         newobj = sf.SourceFileSet()
         newobj.add(f_nondep)
@@ -256,14 +255,14 @@ class DependencySolver:
                     for req in qf.dep_requires:
                         pf = self.__find_provider_verilog_file(req, f, [])
                         if not pf:
-                            p.warning("Cannot find include for file "+str(f)+": "+req)
+                            logging.warning("Cannot find include for file "+str(f)+": "+req)
                         else:
-                            p.vprint("--> " + pf.path)
+                            logging.debug("--> " + pf.path)
                             f.dep_depends_on.append(pf)
                             stack.append(pf)
              #get rid of duplicates by making a set from the list and vice versa
             f.dep_depends_on = list(set(f.dep_depends_on))
 
         for k in newobj:
-            p.vprint(str(k.dep_index) + " " + k.path + str(k._dep_fixed))
+            logging.debug(str(k.dep_index) + " " + k.path + str(k._dep_fixed))
         return newobj

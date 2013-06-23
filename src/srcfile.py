@@ -19,10 +19,11 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
 from dep_solver import IDependable
 import os
-import msg as p
 import global_mod
+import logging
 import flow
 import path as path_mod
 
@@ -42,7 +43,7 @@ class File(object):
     @property
     def dirname(self):
         return os.path.dirname(self.path)
-    
+
     def rel_path(self, dir=None):
         import path
         if dir is None:
@@ -54,7 +55,7 @@ class File(object):
 
     def __eq__(self, other):
         _NOTFOUND = object()
-        v1, v2 = [getattr(obj, "path", _NOTFOUND) for obj in [self, other]] 
+        v1, v2 = [getattr(obj, "path", _NOTFOUND) for obj in [self, other]]
         if v1 is _NOTFOUND or v2 is _NOTFOUND:
             return False
         elif v1 != v2:
@@ -79,14 +80,14 @@ class File(object):
         return os.path.isdir(self.path)
 
     def show(self):
-        p.rawprint(self.path)
+        print(self.path)
 
     def extension(self):
         tmp = self.path.rsplit('.')
         ext = tmp[len(tmp)-1]
         return ext
 
-   
+
 class SourceFile(IDependable, File):
     cur_index = 0
 
@@ -128,8 +129,8 @@ class VHDLFile(SourceFile):
         else:
             self.dep_requires = list(self.__search_use_clauses())
             self.dep_provides = list(self.__search_packages())
-        p.vprint(self.path + " provides " + str(self.dep_provides))
-        p.vprint(self.path + " requires " + str(self.dep_requires))
+        logging.debug(self.path + " provides " + str(self.dep_provides))
+        logging.debug(self.path + " requires " + str(self.dep_requires))
 
     def __search_use_clauses(self):
         """
@@ -148,12 +149,12 @@ class VHDLFile(SourceFile):
                 elif global_mod.top_module.sim_tool == "vsim":
                     std_libs = flow.ModelsiminiReader().get_libraries()
                 else:
-                    p.warning("Could not determine simulation tool. Defaulting to Modelsim")
+                    logging.warning("Could not determine simulation tool. Defaulting to Modelsim")
                     std_libs = flow.MODELSIM_STANDARD_LIBS
             except RuntimeError as e:
              #std_libs =  flow.MODELSIM_STANDARD_LIBS
-                print "I/O error: ({0})".format(e.message)
-                p.error("Picking standard Modelsim simulation libraries. Try to fix the error.")
+                logging.error("I/O error: ({0})".format(e.message))
+                logging.error("Picking standard Modelsim simulation libraries. Try to fix the error.")
                 std_libs = flow.MODELSIM_STARDAND_LIBS
         elif global_mod.top_module.action == "synthesis":
             print("setting std libs for synthesis...")
@@ -180,7 +181,7 @@ class VHDLFile(SourceFile):
             if m is not None:
                 use_lines.append(m.group(1))
 
-        ret = set() 
+        ret = set()
         for line in use_lines:
             m = re.match(lib_pattern, line)
             if m is not None:
@@ -214,7 +215,7 @@ class VHDLFile(SourceFile):
 
         package_pattern = re.compile("^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*.*$")
 
-        ret = set() 
+        ret = set()
         for line in text:
             #identifiers and keywords are case-insensitive in VHDL
             line = line.lower()
@@ -274,13 +275,13 @@ class VerilogFile(SourceFile):
             command += " " + vlog_opt + " " + self.rel_path()
         retOsSystem = os.system(command)
         if retOsSystem and retOsSystem != 256:
-            print "Dependencies not Met"
-            print command, self.include_dirs, inc_dirs, global_mod.mod_pool
+            logging.error("Dependencies not Met")
+            logging.debug(command, self.include_dirs, inc_dirs, global_mod.mod_pool)
             quit()
         elif retOsSystem == 256:
-            print command
+            logging.debug(command)
             pass
-        depFile = open(depFileName,"r")
+        depFile = open(depFileName, "r")
         depFiles = list(set([l.strip() for l in depFile.readlines()]))
         depFile.close()
         return depFiles
@@ -361,7 +362,7 @@ class SourceFileSet(list):
         if isinstance(files, str):
             raise RuntimeError("Expected object, not a string")
         elif files is None:
-            p.vprint("Got None as a file.\n Ommiting")
+            logging.debug("Got None as a file.\n Ommiting")
         else:
             try:
                 for f in files:
@@ -403,7 +404,7 @@ class SourceFileFactory:
             path = os.path.abspath(path)
         tmp = path.rsplit('.')
         extension = tmp[len(tmp)-1]
-        p.vprint("SFF> " + path)
+        logging.debug("SFF> " + path)
 
         nf = None
         if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
