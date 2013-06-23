@@ -12,6 +12,7 @@ import global_mod
 import msg as p
 import optparse
 from fetch import ModulePool
+from env import Env
 
 def main():
     usage = "usage: %prog [options]\n"
@@ -22,14 +23,8 @@ def main():
     parser.add_option("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")
 
-    parser.add_option("--make-vsim", dest="make_vsim", action="store_true",
-    default=None, help="generate a ModelSim simulation Makefile")
-
-    parser.add_option("--make-isim", dest="make_isim", action="store_true",
-    default=None, help="generate a ISE Simulation (ISim) simulation Makefile")
-
-    parser.add_option("--make-iv-sim", dest="make_iv_sim", action="store_true",
-    default=None, help="generate an iverilog compiler based simulation Makefile")
+    parser.add_option("--make-sim", dest="make_sim", action="store_true",
+    default=None, help="generate a simulation Makefile")
 
     parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
     default=None, help="generate a makefile for modules' fetching")
@@ -103,12 +98,6 @@ def main():
     if options.print_version is True:
         p.print_version()
         quit()
-  # Check later if a simulation tool should have been specified
-    if options.make_isim is True:
-        global_mod.sim_tool = "isim"
-    elif options.make_vsim is True:
-        global_mod.sim_tool = "vsim"
-  #  p.info("Simulation tool: " + str(global_mod.sim_tool))
 
     p.vprint("LoadTopManifest")
 
@@ -126,6 +115,8 @@ def main():
 
     global_mod.global_target = global_mod.top_module.target
     global_mod.mod_pool = pool
+    global_mod.env = Env(options, top_module)
+    env.check()
 
     ssh = Connection(ssh_user=options.synth_user,
         ssh_server=options.synth_server)
@@ -141,11 +132,7 @@ def main():
         "remote": "run_remote_synthesis",
         "make_fetch": "generate_fetch_makefile",
         "make_ise" : "generate_ise_makefile",
-
-        "make_iv_sim" : "generate_iverilog_makefile",
-        "make_vsim" : "generate_vsim_makefile",
-        "make_isim" : "generate_isim_makefile",
-
+        "make_sim" : "generate_simulation_makefile",
         "make_remote" : "generate_remote_synthesis_makefile",
         "list" : "list_modules",
         "clean" : "clean_modules",

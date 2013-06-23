@@ -29,6 +29,7 @@ from flow_altera import QuartusProject
 from dep_solver import DependencySolver
 from srcfile import IDependable, SourceFileSet, SourceFileFactory
 
+
 class HdlmakeKernel(object):
     def __init__(self, modules_pool, connection, options):
         self.modules_pool = modules_pool
@@ -49,26 +50,7 @@ class HdlmakeKernel(object):
             self.fetch(unfetched_only=True)
 
         if tm.action == "simulation":
-            if tm.use_compiler == "iverilog":
-                self.generate_iverilog_makefile()
-            elif tm.use_compiler == "isim":
-                self.generate_isim_makefile()
-            elif tm.use_compiler == "vsim" or tm.use_compiler == "modelsim":
-                self.generate_vsim_makefile()
-            else:
-                raise RuntimeError("Unrecognized or not specified simulation tool: "+ str(tm.use_compiler))
-                quit()
-            # Force declaration of sim_tool varible in Manifest
-            #if tm.sim_tool is None:
-            #    p.error("sim_tool variable must be defined in the manifest")
-            #    quit()
-            ## Make distintion between isim and vsim simulators
-            #if tm.sim_tool == "vsim":
-            #           self.generate_modelsim_makefile()
-            #elif tm.sim_tool == "isim":
-            #    self.generate_isim_makefile()
-            #else:
-            #    raise RuntimeError("Unrecognized sim tool: "+tm.sim_tool)
+            self.generate_simulation_makefile()
         elif tm.action == "synthesis":
             if tm.syn_project is None:
                 p.error("syn_project variable must be defined in the manifest")
@@ -115,7 +97,18 @@ class HdlmakeKernel(object):
         self.modules_pool.fetch_all(unfetched_only)
         p.vprint(str(self.modules_pool))
 
-    def generate_vsim_makefile(self):
+    def generate_simulation_makefile(self):
+        if tm.sim_tool == "iverilog":
+            self._generate_iverilog_makefile()
+        elif tm.sim_tool == "isim":
+            self._generate_isim_makefile()
+        elif tm.sim_tool == "vsim" or tm.sim_tool == "modelsim":
+            self._generate_vsim_makefile()
+        else:
+            raise RuntimeError("Unrecognized or not specified simulation tool: "+ str(tm.sim_tool))
+            quit()
+
+    def _generate_vsim_makefile(self):
 #        p.info("Generating makefile for simulation.")
         p.info("Generating ModelSim makefile for simulation.")
         solver = DependencySolver()
@@ -132,7 +125,7 @@ class HdlmakeKernel(object):
         #self.make_writer.generate_modelsim_makefile(flist_sorted, top_module)
         self.make_writer.generate_vsim_makefile(flist_sorted, top_module)
 
-    def generate_isim_makefile(self):
+    def _generate_isim_makefile(self):
 #        p.info("Generating makefile for simulation.")
         p.info("Generating ISE Simulation (ISim) makefile for simulation.")
         solver = DependencySolver()
@@ -148,7 +141,7 @@ class HdlmakeKernel(object):
         flist_sorted = solver.solve(flist)
         self.make_writer.generate_isim_makefile(flist_sorted, top_module)
 
-    def generate_iverilog_makefile(self):
+    def _generate_iverilog_makefile(self):
         from dep_solver import DependencySolver
         p.info("Generating makefile for simulation.")
         solver = DependencySolver()

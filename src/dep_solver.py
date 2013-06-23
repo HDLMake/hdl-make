@@ -99,7 +99,7 @@ class DependencySolver:
         import os
         sff = SourceFileFactory()
         #TODO: Can this be done elsewhere?
-        if global_mod.top_module.use_compiler == "iverilog":
+        if global_mod.top_module.sim_tool == "iverilog":
             for f in fset:
                 if f.rel_path() == os.path.relpath(req):
                     return f

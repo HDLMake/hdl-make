@@ -146,7 +146,7 @@ class ModulePool(list):
             return [m for m in self if m.url == url][0]
         else:
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
-                fetchto  = self.global_fetch # screw module's particular fetchto
+                fetchto = self.global_fetch # screw module's particular fetchto
             elif global_mod.top_module:
                 fetchto = global_mod.top_module.fetchto
 
@@ -170,7 +170,7 @@ class ModulePool(list):
         self.append(new_module)
         return True
 
-    def fetch_all(self, unfetched_only = False):
+    def fetch_all(self, unfetched_only=False):
         fetcher = self.ModuleFetcher()
         fetch_queue = [m for m in self]
 
@@ -212,7 +212,7 @@ class ModulePool(list):
             vl = queue.pop()
             for f in vl.dep_requires:
                 nvl = None
-                if global_mod.top_module.use_compiler == "iverilog":
+                if global_mod.top_module.sim_tool == "iverilog":
                     if os.path.relpath(vl.path) == f:
                         continue
 #                    for fp in list(extra_verilog_files) + manifest_verilog_files:

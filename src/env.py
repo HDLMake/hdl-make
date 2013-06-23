@@ -75,10 +75,10 @@ class _IsePath(object):
             return path
 
 
-class EnvChecker(dict):
-    def __init__(self, options, manifest):
+class Env(dict):
+    def __init__(self, options, top_module):
         self.options = options
-        self.manifest = manifest
+        self.top_module = top_module 
 
     def check(self):
         platform = sys.platform
@@ -112,7 +112,7 @@ class EnvChecker(dict):
 
         #2: determine ISE version
         try:
-            ise_version = tuple(self.manifest["force_ise"].split('.'))
+            ise_version = tuple(self.top_module["force_ise"].split('.'))
             print("ise_version set in the manifest: %d.%d" % (ise_version[0], ise_version[1]))
             self["ise_version"] = ise_version
         except KeyError:

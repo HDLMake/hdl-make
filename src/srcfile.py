@@ -143,9 +143,9 @@ class VHDLFile(SourceFile):
         std_libs = ['std', 'ieee']
         if global_mod.top_module.action == "simulation":
             try:
-                if global_mod.top_module.use_compiler == "isim":
+                if global_mod.top_module.sim_tool == "isim":
                     std_libs = flow.XilinxsiminiReader().get_libraries()
-                elif global_mod.top_module.use_compiler == "vsim":
+                elif global_mod.top_module.sim_tool == "vsim":
                     std_libs = flow.ModelsiminiReader().get_libraries()
                 else:
                     p.warning("Could not determine simulation tool. Defaulting to Modelsim")
@@ -244,7 +244,7 @@ class VerilogFile(SourceFile):
     def __create_deps(self):
 #        self.dep_requires = self.__search_includes()
 #        self.dep_provides = self.name
-        if global_mod.top_module.use_compiler == "iverilog":
+        if global_mod.env.iverilog_path:
             self.dep_requires = []
             deps = self.__get_iverilog_dependencies()
             self.dep_requires.extend(deps)
@@ -254,7 +254,7 @@ class VerilogFile(SourceFile):
 
     def __get_iverilog_dependencies(self):
            #TODO: Check to see dependencies.list doesn't exist already
-        if self.path.endswith(".vh") and global_mod.top_module.use_compiler == "iverilog":
+        if self.path.endswith(".vh") and global_mod.top_module.sim_tool == "iverilog":
             return []
         inc_dirs = []
         #inc_dirs = global_mod.top_module.include_dirs

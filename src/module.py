@@ -152,7 +152,6 @@ class Module(object):
         if(self.parent is not None):
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
             manifest_parser.add_arbitrary_code("action=\""+str(global_mod.top_module.action)+"\"")
-            # syn_device and sim_tool will be set for non-top modules
             manifest_parser.add_arbitrary_code("syn_device=\""+str(global_mod.top_module.syn_device)+"\"")
 
         manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
@@ -199,7 +198,7 @@ class Module(object):
         self.vsim_opt = opt_map["vsim_opt"]
         self.vlog_opt = opt_map["vlog_opt"]
         self.iverilog_opt = opt_map["iverilog_opt"]
-        self.use_compiler = opt_map["use_compiler"]
+        self.sim_tool = opt_map["sim_tool"]
         mkFileList = []
         if opt_map["incl_makefiles"] is not None:
             if isinstance(opt_map["incl_makefiles"], basestring):
