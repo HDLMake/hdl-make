@@ -170,7 +170,8 @@ class ISEProject:
         self.xml_bindings = self.__purge_dom_node(name="bindings", where=where)
         try:
             node = where.getElementsByTagName("version")[0]
-            self.ise = float(node.getAttribute("xil_pn:ise_version"))
+            if not self.ise:
+                self.ise = tuple(node.getAttribute("xil_pn:ise_version").split('.'))
             where.removeChild(node)
         except:
             pass
@@ -236,13 +237,13 @@ class ISEProject:
 
     def __output_libs(self, node):
         for l in self.libs:
-            ll =  self.xml_doc.createElement("library")
+            ll = self.xml_doc.createElement("library")
             ll.setAttribute("xil_pn:name", l)
             node.appendChild(ll)
 
     def __output_ise(self, node):
         i = self.xml_doc.createElement("version")
-        i.setAttribute("xil_pn:ise_version", str(self.ise))
+        i.setAttribute("xil_pn:ise_version", '%s.%s' % (self.ise[0], self.ise[1]))
         i.setAttribute("xil_pn:schema_version", "2")
         node.appendChild(i)
 
@@ -279,7 +280,7 @@ class ISEProject:
         self.xml_bindings = self.xml_doc.createElement("bindings")
 
         version = self.xml_doc.createElement("version")
-        version.setAttribute("xil_pn:ise_version", self.ise)
+        version.setAttribute("xil_pn:ise_version", '%s.%s' % (self.ise[0], self.ise[1]))
         version.setAttribute("xil_pn:schema_version", "2")
 
         top_element.appendChild(header)

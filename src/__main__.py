@@ -77,10 +77,6 @@ def main():
     parser.add_option("--synth-user", dest="synth_user",
     default=None, help="use given USER for remote synthesis", metavar="USER")
 
-    parser.add_option("--force-ise", dest="force_ise",
-    default=None, type=float, help="Force given ISE version to be used in"
-        " synthesis,use 0 for current version", metavar="ISE")
-
     parser.add_option("--py", dest="arbitrary_code",
     default="", help="add arbitrary code to all manifests' evaluation")
 

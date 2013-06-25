@@ -48,7 +48,6 @@ class Module(object):
         self.local = []
         self.git = []
         self.svn = []
-        self.ise = []
         self.target = None
         self.action = None
         self.vmap_opt = None
@@ -58,6 +57,13 @@ class Module(object):
         self._files = None
         self.manifest = None
         self.incl_makefiles = []
+        self.syn_device = None
+        self.syn_grade = None
+        self.syn_package = None
+        self.syn_project = None
+        self.syn_top = None
+        self.syn_ise_version = None
+
         if source != "local":
             self.url, self.branch, self.revision = path.url_parse(url)
         else:
@@ -172,14 +178,20 @@ class Module(object):
             logging.error("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
 
+        if opt_map["syn_ise_version"]:
+            version = opt_map["syn_ise_version"]
+            if isinstance(version, float):
+                major = int(version//1)
+                self.syn_ise_version = (major, (version-major)*10)
+            if isinstance(version, ''):
+                parts = version.split('.')
+                #assert len(parts) = 2
+                self.syn_ise_version = (int(parts[0]), int(parts[1]))
         if(opt_map["fetchto"] is not None):
             fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
             self.fetchto = fetchto
         else:
             fetchto = self.fetchto
-
-        if self.ise is None:
-            self.ise = "13.1"
 
         if "local" in opt_map["modules"]:
             local_paths = self.__make_list(opt_map["modules"]["local"])

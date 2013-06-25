@@ -115,17 +115,21 @@ class HdlmakeKernel(object):
             raise RuntimeError("Unrecognized or not specified simulation tool: %s" % str(tm.sim_tool))
             quit()
 
-    def _generate_vsim_makefile(self):
-#        p.info("Generating makefile for simulation.")
-        logging.info("Generating ModelSim makefile for simulation.")
-        solver = DependencySolver()
-
+    def _check_all_fetched_or_quit(self):
         pool = self.modules_pool
         if not pool.is_everything_fetched():
             logging.error("A module remains unfetched. "
                           "Fetching must be done prior to makefile generation")
             print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
             quit()
+
+    def _generate_vsim_makefile(self):
+#        p.info("Generating makefile for simulation.")
+        logging.info("Generating ModelSim makefile for simulation.")
+        solver = DependencySolver()
+
+        pool = self.modules_pool
+        self._check_all_fetched_or_quit()
         top_module = pool.get_top_module()
         flist = pool.build_global_file_list()
         flist_sorted = solver.solve(flist)
@@ -138,11 +142,7 @@ class HdlmakeKernel(object):
         solver = DependencySolver()
 
         pool = self.modules_pool
-        if not pool.is_everything_fetched():
-            logging.error("A module remains unfetched. "
-                          "Fetching must be done prior to makefile generation. Try running \"hdlmake --fetch\"")
-            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
-            quit()
+        self._check_all_fetched_or_quit()
         top_module = pool.get_top_module()
         flist = pool.build_global_file_list()
         flist_sorted = solver.solve(flist)
@@ -154,10 +154,7 @@ class HdlmakeKernel(object):
         solver = DependencySolver()
         pool = self.modules_pool
 
-        if not self.modules_pool.is_everything_fetched():
-            logging.error("A module remains unfetched. Fetching must be done prior to makefile generation")
-            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
-            quit()
+        self._check_all_fetched_or_quit()
         tm = pool.get_top_module()
         flist = pool.build_global_file_list()
         flist_sorted = solver.solve(flist)
@@ -199,52 +196,30 @@ class HdlmakeKernel(object):
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server, ise_path=ise_path)
 
     def generate_ise_project(self):
+        env = global_mod.env
         logging.info("Generating/updating ISE project")
-        if self.__is_xilinx_screwed():
-            logging.error("Xilinx environment variable is unset or is wrong.\n"
-                          "Cannot generate ise project")
+        if not env.ise_version:
+            logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
+                          "project file properly. Please use syn_ise_version in the manifest "
+                          "or set")
             quit()
-        if not self.modules_pool.is_everything_fetched():
-            logging.error("A module remains unfetched. Fetching must be done prior to makefile generation")
-            print(str([str(m) for m in self.modules_pool if not m.isfetched]))
-            quit()
-        ise = self.__check_ise_version()
-        if os.path.exists(self.top_module.syn_project):
-            self.__update_existing_ise_project(ise=ise)
         else:
-            self.__create_new_ise_project(ise=ise)
+            logging.info("Generating project for ISE v. %d.%d" % (env.ise_version[0], env.ise_version[1]))
+        self._check_all_fetched_or_quit()
+        if os.path.exists(self.top_module.syn_project):
+            self._update_existing_ise_project()
+        else:
+            self._create_new_ise_project()
 
     def generate_quartus_project(self):
         logging.info("Generating/updating Quartus project.")
 
-        if not self.modules_pool.is_everything_fetched():
-            logging.error("A module remains unfetched. "
-                          "Fetching must be done prior to makefile generation")
-            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
-            quit()
+        self._check_all_fetched_or_quit()
 
         if os.path.exists(self.top_module.syn_project + ".qsf"):
-            self.__update_existing_quartus_project()
+            self._update_existing_quartus_project()
         else:
-            self.__create_new_quartus_project()
-
-    def __figure_out_ise_path(self):
-        if self.options.force_ise is not None:
-            if self.options.force_ise == 0:
-                ise = self.__check_ise_version()
-            else:
-                ise = self.options.force_ise
-        else:
-            ise = 0
-
-        try:
-            ise_path = path.ise_path_32[str(ise)]+'/'
-        except KeyError:
-            if ise != 0:
-                ise_path = "/opt/Xilinx/"+str(ise)+"/ISE_DS/ISE/bin/lin/"
-            else:
-                ise_path = ""
-        return ise_path
+            self._create_new_quartus_project()
 
     def __is_xilinx_screwed(self):
         if self.__check_ise_version() is None:
@@ -252,44 +227,7 @@ class HdlmakeKernel(object):
         else:
             return False
 
-    def __check_ise_version(self):
-        import subprocess
-        import re
-        xst = subprocess.Popen('which xst', shell=True,
-                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                               close_fds=True)
-        lines = xst.stdout.readlines()
-        if not lines:
-            logging.error("Xilinx binaries are not in the PATH variable\n"
-                          "Can't determine ISE version")
-            quit()
-
-        xst = str(lines[0].strip())
-        version_pattern = re.compile(".*?(\d\d\.\d).*")  # First check if we have version in path
-        match = re.match(version_pattern, xst)
-        if match:
-            ise_version = match.group(1)
-        else:  # If it is not the case call the "xst -h" to get version
-            xst_output = subprocess.Popen('xst -h', shell=True,
-                                          stdin=subprocess.PIPE,
-                                          stdout=subprocess.PIPE,
-                                          close_fds=True)
-            xst_output = xst_output.stdout.readlines()[0]
-            xst_output = xst_output.strip()
-            version_pattern = \
-                    re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
-            match = re.match(version_pattern, xst_output)
-            if match:
-                ise_version = ''.join((match.group('major'), '.', match.group('minor')))
-            else:
-                logging.error("xst output is not in expected format: %s\n"
-                              "Can't determine ISE version" % xst_output)
-                return None
-
-        logging.debug("ISE version: " + ise_version)
-        return ise_version
-
-    def __update_existing_ise_project(self, ise):
+    def _update_existing_ise_project(self):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
@@ -299,7 +237,8 @@ class HdlmakeKernel(object):
         all_files.add(non_dependable)
         all_files.add(dependable)
 
-        prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
+        prj = ISEProject(ise=global_mod.env.ise_version,
+                         top_mod=self.modules_pool.get_top_module())
         prj.add_files(all_files)
         from srcfile import SourceFileFactory
         sff = SourceFileFactory()
@@ -309,7 +248,7 @@ class HdlmakeKernel(object):
         prj.load_xml(top_mod.syn_project)
         prj.emit_xml(top_mod.syn_project)
 
-    def __create_new_ise_project(self, ise):
+    def _create_new_ise_project(self, ise):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
@@ -317,7 +256,8 @@ class HdlmakeKernel(object):
         fileset = solver.solve(fileset)
         fileset.add(non_dependable)
 
-        prj = ISEProject(ise=ise, top_mod=self.modules_pool.get_top_module())
+        prj = ISEProject(ise=global_mod.env.ise_version,
+                         top_mod=self.modules_pool.get_top_module())
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
         from srcfile import SourceFileFactory
@@ -331,7 +271,7 @@ class HdlmakeKernel(object):
 
         prj.emit_xml(top_mod.syn_project)
 
-    def __create_new_quartus_project(self):
+    def _create_new_quartus_project(self):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()
@@ -351,7 +291,7 @@ class HdlmakeKernel(object):
 
         prj.emit()
 
-    def __update_existing_quartus_project(self):
+    def _update_existing_quartus_project(self):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
         solver = DependencySolver()

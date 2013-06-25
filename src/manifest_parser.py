@@ -57,6 +57,9 @@ class ManifestParser(ConfigParser):
         self.add_option('syn_package', default=None, help="Package variant of target FPGA", type='')
         self.add_option('syn_top', default=None, help="Top level module for synthesis", type='')
         self.add_option('syn_project', default=None, help="Project file (.xise, .ise, .qpf)", type='')
+        self.add_option('syn_ise_version', default=None, help="Force particular ISE version", type=float)
+        self.add_type('syn_ise_version', type='')
+
 
         self.add_delimiter()
         self.add_option('include_dirs', default=None, help="Include dirs for Verilog sources", type=[])
