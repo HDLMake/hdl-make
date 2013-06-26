@@ -63,6 +63,11 @@ class Module(object):
         self.syn_project = None
         self.syn_top = None
         self.syn_ise_version = None
+        self.syn_pre_script = None
+        self.syn_post_script = None
+        self.sim_only_files = None
+        self.sim_pre_script = None
+        self.sim_post_scritp = None
 
         if source != "local":
             self.url, self.branch, self.revision = path.url_parse(url)
@@ -291,6 +296,11 @@ class Module(object):
                     logging.error("File listed in %s doesn't exist: %s" % (self.manifest.path, file_path))
                     quit()
             self.sim_only_files = self.__create_file_list_from_paths(paths=paths)
+
+        self.syn_pre_script = opt_map["syn_pre_script"]
+        self.syn_post_script = opt_map["syn_post_script"]
+        self.sim_pre_script = opt_map["sim_pre_script"]
+        self.sim_post_scritp = opt_map["sim_post_scritp"]
 
         self.bit_file_targets = SourceFileSet()
         if opt_map["bit_file_targets"] != []:

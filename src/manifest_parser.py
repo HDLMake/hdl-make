@@ -59,6 +59,8 @@ class ManifestParser(ConfigParser):
         self.add_option('syn_project', default=None, help="Project file (.xise, .ise, .qpf)", type='')
         self.add_option('syn_ise_version', default=None, help="Force particular ISE version", type=float)
         self.add_type('syn_ise_version', type='')
+        self.add_option('syn_pre_cmd', default=None, help="Command to be executed before synthesis", type='')
+        self.add_option('syn_post_cmd', default=None, help="Command to be executed after synthesis", type='')
 
 
         self.add_delimiter()
@@ -66,8 +68,10 @@ class ManifestParser(ConfigParser):
         self.add_type('include_dirs', type="")
 
         self.add_delimiter()
-# Modification here!
-        self.add_option('sim_tool', default=None, help = "Simulation tool to be used (e.g. isim, vsim, iverilog)", type = '')
+
+        self.add_option('sim_tool', default=None, help="Simulation tool to be used (e.g. isim, vsim, iverilog)", type = '')
+        self.add_option('sim_pre_cmd', default=None, help="Command to be executed before simulation", type='')
+        self.add_option('sim_post_cmd', default=None, help="Command to be executed after simulation", type='')
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
         self.add_option('vcom_opt', default="", help="Additional options for vcom", type='')
         self.add_option('vlog_opt', default="", help="Additional options for vlog", type='')

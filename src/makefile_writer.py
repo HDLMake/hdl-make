@@ -133,84 +133,98 @@ endif
         pass
 
     def generate_ise_makefile(self, top_mod, ise_path):
-        mk_text = """PROJECT := {1}
+        from string import Template
+        makefile_tmplt = Template("""PROJECT := ${project_name}
 ISE_CRAP := \
 *.b \
-{0}_summary.html \
+${syn_top}_summary.html \
 *.tcl \
-{0}.bld \
-{0}.cmd_log \
+${syn_top}.bld \
+${syn_top}.cmd_log \
 *.drc \
-{0}.lso \
+${syn_top}.lso \
 *.ncd \
-{0}.ngc \
-{0}.ngd \
-{0}.ngr \
-{0}.pad \
-{0}.par \
-{0}.pcf \
-{0}.prj \
-{0}.ptwx \
-{0}.stx \
-{0}.syr \
-{0}.twr \
-{0}.twx \
-{0}.gise \
-{0}.unroutes \
-{0}.ut \
-{0}.xpi \
-{0}.xst \
-{0}_bitgen.xwbt \
-{0}_envsettings.html \
-{0}_guide.ncd \
-{0}_map.map \
-{0}_map.mrp \
-{0}_map.ncd \
-{0}_map.ngm \
-{0}_map.xrpt \
-{0}_ngdbuild.xrpt \
-{0}_pad.csv \
-{0}_pad.txt \
-{0}_par.xrpt \
-{0}_summary.xml \
-{0}_usage.xml \
-{0}_xst.xrpt \
+${syn_top}.ngc \
+${syn_top}.ngd \
+${syn_top}.ngr \
+${syn_top}.pad \
+${syn_top}.par \
+${syn_top}.pcf \
+${syn_top}.prj \
+${syn_top}.ptwx \
+${syn_top}.stx \
+${syn_top}.syr \
+${syn_top}.twr \
+${syn_top}.twx \
+${syn_top}.gise \
+${syn_top}.unroutes \
+${syn_top}.ut \
+${syn_top}.xpi \
+${syn_top}.xst \
+${syn_top}_bitgen.xwbt \
+${syn_top}_envsettings.html \
+${syn_top}_guide.ncd \
+${syn_top}_map.map \
+${syn_top}_map.mrp \
+${syn_top}_map.ncd \
+${syn_top}_map.ngm \
+${syn_top}_map.xrpt \
+${syn_top}_ngdbuild.xrpt \
+${syn_top}_pad.csv \
+${syn_top}_pad.txt \
+${syn_top}_par.xrpt \
+${syn_top}_summary.xml \
+${syn_top}_usage.xml \
+${syn_top}_xst.xrpt \
 usage_statistics_webtalk.html \
 webtalk.log \
 webtalk_pn.xml \
 run.tcl
-"""
-        mk_text2 = """
-#target for performing local synthesis
-local:
-\t\techo "project open $(PROJECT)" > run.tcl
-\t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
-"""
 
-        mk_text3 = """
+syn_post_script: local
+\t\t${syn_post_script}
+
+#target for performing local synthesis
+local: syn_pre_script
+\t\techo "project open $$(PROJECT)" > run.tcl
+\t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
+\t\t${ise_path}/xtclsh run.tcl
+
+syn_pre_script:
+\t\t${syn_pre_script}
+
 #target for cleaing all intermediate stuff
 clean:
-\t\trm -f $(ISE_CRAP)
+\t\trm -f $$(ISE_CRAP)
 \t\trm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
 
 #target for cleaning final files
 mrproper:
 \t\trm -f *.bit *.bin *.mcs
 
-"""
-        self.initialize()
-        self.write(mk_text.format(top_mod.syn_top, top_mod.syn_project))
+.PHONY: mrproper clean syn_pre_scipt syn_post_script local
 
-        xtcl_tmp = "\t\t{0}xtclsh run.tcl"
-        self.write(mk_text2)
-        self.writeln(xtcl_tmp.format(ise_path))
-        self.writeln()
-        self.write(mk_text3)
-        import global_mod
-#        for m in global_mod.mod_pool:
-        for f in global_mod.top_module.incl_makefiles:
+""")
+        self.initialize()
+        if top_mod.syn_pre_script:
+            syn_pre_script = top_mod.syn_pre_script
+        else:
+            syn_pre_script = ''
+
+        if top_mod.syn_post_script:
+            syn_post_script = top_mod.syn_post_script
+        else:
+            syn_post_script = ''
+
+        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.syn_top,
+                                  project_name=top_mod.syn_project,
+                                  ise_path=ise_path,
+                                  syn_pre_script=syn_pre_script,
+                                  syn_post_script=syn_post_script)
+        self.write(makefile_text)
+        for f in top_mod.incl_makefiles:
             if os.path.exists(f):
-                self.write("include " + f + "\n")
+                self.write("include %s\n" % f)
 
     def generate_fetch_makefile(self, modules_pool):
         rp = os.path.relpath
