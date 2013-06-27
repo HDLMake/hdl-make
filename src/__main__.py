@@ -120,8 +120,8 @@ def main():
 
     global_mod.global_target = global_mod.top_module.target
     global_mod.mod_pool = pool
-    global_mod.env = Env(options, top_module)
-    env.check()
+    global_mod.env = Env(options, global_mod.top_module)
+    global_mod.env.check()
 
     ssh = Connection(ssh_user=options.synth_user,
         ssh_server=options.synth_server)

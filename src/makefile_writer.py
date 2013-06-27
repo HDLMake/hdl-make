@@ -23,6 +23,7 @@
 import os
 import string
 import logging
+from string import Template
 
 
 class MakefileWriter(object):
@@ -133,7 +134,6 @@ endif
         pass
 
     def generate_ise_makefile(self, top_mod, ise_path):
-        from string import Template
         makefile_tmplt = Template("""PROJECT := ${project_name}
 ISE_CRAP := \
 *.b \
@@ -181,17 +181,17 @@ webtalk.log \
 webtalk_pn.xml \
 run.tcl
 
-syn_post_script: local
-\t\t${syn_post_script}
+syn_post_cmd: local
+\t\t${syn_post_cmd}
 
 #target for performing local synthesis
-local: syn_pre_script
+local: syn_pre_cmd
 \t\techo "project open $$(PROJECT)" > run.tcl
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
 \t\t${ise_path}/xtclsh run.tcl
 
-syn_pre_script:
-\t\t${syn_pre_script}
+syn_pre_cmd:
+\t\t${syn_pre_cmd}
 
 #target for cleaing all intermediate stuff
 clean:
@@ -202,25 +202,25 @@ clean:
 mrproper:
 \t\trm -f *.bit *.bin *.mcs
 
-.PHONY: mrproper clean syn_pre_scipt syn_post_script local
+.PHONY: mrproper clean syn_pre_scipt syn_post_cmd local
 
 """)
         self.initialize()
-        if top_mod.syn_pre_script:
-            syn_pre_script = top_mod.syn_pre_script
+        if top_mod.syn_pre_cmd:
+            syn_pre_cmd = top_mod.syn_pre_cmd
         else:
-            syn_pre_script = ''
+            syn_pre_cmd = ''
 
-        if top_mod.syn_post_script:
-            syn_post_script = top_mod.syn_post_script
+        if top_mod.syn_post_cmd:
+            syn_post_cmd = top_mod.syn_post_cmd
         else:
-            syn_post_script = ''
+            syn_post_cmd = ''
 
         makefile_text = makefile_tmplt.substitute(syn_top=top_mod.syn_top,
                                   project_name=top_mod.syn_project,
                                   ise_path=ise_path,
-                                  syn_pre_script=syn_pre_script,
-                                  syn_post_script=syn_post_script)
+                                  syn_pre_cmd=syn_pre_cmd,
+                                  syn_post_cmd=syn_post_cmd)
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
@@ -344,8 +344,14 @@ VCOM_FLAGS := -quiet -modelsimini modelsim.ini
 VSIM_FLAGS :=
 VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """
-        make_preambule_p2 = """## rules #################################
-sim: modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
+        make_preambule_p2 = Template("""## rules #################################
+pre_sim_cmd:
+\t\t${pre_sim_cmd}
+
+post_sim_cmd: sim
+\t\t${post_sim_cmd}
+
+sim: pre_sim_cmd modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
 $(VERILOG_OBJ): $(VHDL_OBJ)
 $(VHDL_OBJ): $(LIB_IND) modelsim.ini
 
@@ -353,9 +359,9 @@ modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
 \t\tcp $< .
 clean:
 \t\trm -rf ./modelsim.ini $(LIBS)
-.PHONY: clean
+.PHONY: clean pre_sim_cmd post_sim_cmd
 
-"""
+""")
         #open the file and write the above preambule (part 1)
         self.initialize()
         self.write(make_preambule_p1)
@@ -395,6 +401,18 @@ clean:
         self.write('LIB_IND := ')
         self.write(' '.join([lib+"/."+lib for lib in libs]))
         self.write('\n')
+
+        if top_module.sim_pre_cmd:
+            sim_pre_cmd = top_module.sim_pre_cmd
+        else:
+            sim_pre_cmd = ''
+
+        if top_module.sim_post_cmd:
+            sim_post_cmd = top_module.sim_post_cmd
+        else:
+            sim_post_cmd = ''
+        make_preambule_p2 = make_preambule_p2.substitute(sim_pre_cmd=sim_pre_cmd,
+                                                         sim_post_cmd=sim_post_cmd)
         self.write(make_preambule_p2)
 
         for lib in libs:

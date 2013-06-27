@@ -42,8 +42,6 @@ class HdlmakeKernel(object):
         return self.modules_pool.get_top_module()
 
     def run(self):
-        logging.info("Running automatic flow")
-
         tm = self.top_module
 
         if not self.modules_pool.is_everything_fetched():
@@ -66,7 +64,7 @@ class HdlmakeKernel(object):
             else:
                 raise RuntimeError("Unrecognized target: "+tm.target)
         else:
-            logging.error("`Action' variable was not specified\n"
+            logging.error("'action' variable must be defined in the top manifest\n"
                           "Allowed values are: \"simulation\" or \"synthesis\"\n"
                           "This variable in a manifest file is necessary for Hdlmake\n"
                           "to be able to know what to do with the given modules' structure.\n"
@@ -198,6 +196,7 @@ class HdlmakeKernel(object):
     def generate_ise_project(self):
         env = global_mod.env
         logging.info("Generating/updating ISE project")
+        self._check_all_fetched_or_quit()
         if not env.ise_version:
             logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
                           "project file properly. Please use syn_ise_version in the manifest "
@@ -205,7 +204,6 @@ class HdlmakeKernel(object):
             quit()
         else:
             logging.info("Generating project for ISE v. %d.%d" % (env.ise_version[0], env.ise_version[1]))
-        self._check_all_fetched_or_quit()
         if os.path.exists(self.top_module.syn_project):
             self._update_existing_ise_project()
         else:

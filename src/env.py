@@ -26,6 +26,8 @@ import sys
 from subprocess import Popen, PIPE
 import re
 import logging
+import os.path
+import path
 
 
 class _IsePath(object):
@@ -87,9 +89,11 @@ class Env(dict):
         print("Platform: %s" % platform)
 
         #0: general
+        print("### General variabless ###")
+        self._report_and_set_var("coredir")
         self._report_and_set_var("top_module")
         #1: determine path for ise
-        print("--- ISE synthesis ---")
+        print("\n### ISE synthesis ###")
         xilinx = os.environ.get("XILINX")
         if xilinx:
             print("Environmental variable %s is set: %s." % ("XILINX", xilinx))
@@ -114,24 +118,24 @@ class Env(dict):
                 print("ISE not found in PATH.")
 
         #2: determine ISE version
-        try:
+        if self.top_module.syn_ise_version is not None:
             ise_version = tuple(self.top_module.syn_ise_version)
             print("ise_version set in the manifest: %s.%s" % (ise_version[0], ise_version[1]))
             self["ise_version"] = ise_version
-        except KeyError:
+        else:
             ise_version = None
 
         if "ise_version" not in self:
             ise_version = self._guess_ise_version(xilinx, '')
             if ise_version:
                 print("syn_ise_version not set in the manifest,"
-                      " guessed ISE version: %d.%d." % (ise_version[0], ise_version[1]))
+                      " guessed ISE version: %s.%s." % (ise_version[0], ise_version[1]))
             self["ise_version"] = ise_version
 
             #######
 
         #3: determine modelsim path
-        print("--- Modelsim simulation ---")
+        print("\n### Modelsim simulation ###")
         self._report_and_set_var("modelsim_path")
         if "modelsim_path" in self:
             if not self._check_in_path("vsim", self["modelsim_path"]):
@@ -139,7 +143,7 @@ class Env(dict):
                     self["modelsim_path"] = self._get_path("modelsim_path")
 
         #4: determine iverilog path
-        print("--- Iverilog simulation ---")
+        print("\n### Iverilog simulation ###")
         self._report_in_path("iverilog")
         if "iverilog" in self:
             if not self._check_in_path("iverilog", self["iverilog_path"]):
@@ -147,12 +151,11 @@ class Env(dict):
                     self["iverilog_path"] = self._get_path("iverilog")
 
         #5: determine isim path
-        print("--- ISim simulation ---")
+        print("\n### ISim simulation ###")
         self._report_in_path("isim")
-        self._report_and_set_var("coredir")
 
         #6: remote synthesis with ise
-        print("--- Remote synthesis with ISE ---")
+        print("\n### Remote synthesis with ISE ###")
         self._report_and_set_var("rsynth_user")
         self._report_and_set_var("rsynth_server")
 
@@ -178,7 +181,6 @@ class Env(dict):
                 print("ISE found on remote machine under %s." % self["rsynth_ise_path"])
             else:
                 print("Can't find ISE on remote machine under %s." % self["rsynth_ise_path"])
-
         self._report_and_set_var("rsynth_use_screen")
 
     def _guess_ise_version(self, xilinx, ise_path):

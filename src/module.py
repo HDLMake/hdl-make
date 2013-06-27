@@ -10,6 +10,7 @@ import global_mod
 import logging
 from manifest_parser import Manifest, ManifestParser
 from srcfile import SourceFileSet, SourceFileFactory
+from srcfile import VerilogFile, VHDLFile
 
 
 class Module(object):
@@ -124,7 +125,7 @@ class Module(object):
                     return manifest
         return None
 
-    def __make_list(self, sth):
+    def _flatten_list(self, sth):
         if sth is not None:
             if not isinstance(sth, (list, tuple)):
                 sth = [sth]
@@ -199,7 +200,7 @@ class Module(object):
             fetchto = self.fetchto
 
         if "local" in opt_map["modules"]:
-            local_paths = self.__make_list(opt_map["modules"]["local"])
+            local_paths = self._flatten_list(opt_map["modules"]["local"])
             local_mods = []
             for path in local_paths:
                 if path_mod.is_abs_path(path):
@@ -218,18 +219,15 @@ class Module(object):
         self.vlog_opt = opt_map["vlog_opt"]
         self.iverilog_opt = opt_map["iverilog_opt"]
         self.sim_tool = opt_map["sim_tool"]
+
         mkFileList = []
-        if opt_map["incl_makefiles"] is not None:
-            if isinstance(opt_map["incl_makefiles"], basestring):
-                mkFileList.append(opt_map["incl_makefiles"])
-            else:
-                map(lambda f: mkFileList.append(f), opt_map["incl_makefiles"])
-        for f in mkFileList:
-            if path_mod.is_abs_path(f):
-                logging.error("Found and absolute path in manifest. Exiting ..")
-                quit()
-            else:
-                self.incl_makefiles.append(os.path.relpath(os.path.abspath(os.path.join(self.path, f))))
+        if isinstance(opt_map["incl_makefiles"], basestring):
+            mkFileList.append(opt_map["incl_makefiles"])
+        else:  # list
+            mkFileList = opt_map["incl_makefiles"][:]
+
+        makefiles_paths = self._make_list_of_paths(mkFileList)
+        self.incl_makefiles.extend(makefiles_paths)
 
         #if self.vlog_opt == "":
         #    self.vlog_opt = global_mod.top_module.vlog_opt
@@ -262,63 +260,38 @@ class Module(object):
         if opt_map["files"] == []:
             self.files = SourceFileSet()
         else:
-            opt_map["files"] = self.__make_list(opt_map["files"])
-            paths = []
-            for file_path in opt_map["files"]:
-                if not path_mod.is_abs_path(file_path):
-                    path = path_mod.rel2abs(file_path, self.path)
-                    paths.append(file_path)
-                else:
-                    logging.warning(file_path + " is an absolute path. Omitting.")
-                if not os.path.exists(file_path):
-                    quit()
-
-            from srcfile import VerilogFile, VHDLFile
-            self.files = self.__create_file_list_from_paths(paths=paths)
+            opt_map["files"] = self._flatten_list(opt_map["files"])
+            paths = self._make_list_of_paths(opt_map["files"])
+            self.files = self._create_file_list_from_paths(paths=paths)
             for f in self.files:
                 if isinstance(f, VerilogFile):
                     f.vsim_opt = self.vsim_opt
                 elif isinstance(f, VHDLFile):
                     f.vcom_opt = self.vcom_opt
 
-        if opt_map["sim_only_files"] == []:
+        if len(opt_map["sim_only_files"]) == 0:
             self.sim_only_files = SourceFileSet()
         else:
-            opt_map["sim_only_files"] = self.__make_list(opt_map["sim_only_files"])
-            paths = []
-            for file_path in opt_map["sim_only_files"]:
-                if not path_mod.is_abs_path(file_path):
-                    file_path = path_mod.rel2abs(file_path, self.path)
-                    paths.append(file_path)
-                else:
-                    logging.warning(file_path + " is an absolute path. Omitting.")
-                if not os.path.exists(file_path):
-                    logging.error("File listed in %s doesn't exist: %s" % (self.manifest.path, file_path))
-                    quit()
-            self.sim_only_files = self.__create_file_list_from_paths(paths=paths)
+            opt_map["sim_only_files"] = self._flatten_list(opt_map["sim_only_files"])
+            paths = self._make_list_of_paths(opt_map["sim_only_files"])
+            self.sim_only_files = self._create_file_list_from_paths(paths=paths)
 
-        self.syn_pre_script = opt_map["syn_pre_script"]
-        self.syn_post_script = opt_map["syn_post_script"]
-        self.sim_pre_script = opt_map["sim_pre_script"]
-        self.sim_post_scritp = opt_map["sim_post_scritp"]
+        self.syn_pre_cmd = opt_map["syn_pre_cmd"]
+        #self._check_filepath(self.syn_pre_cmd)
+        self.syn_post_cmd = opt_map["syn_post_cmd"]
+        #self._check_filepath(self.syn_post_cmd)
+        self.sim_pre_cmd = opt_map["sim_pre_cmd"]
+        #self._check_filepath(self.sim_pre_cmd)
+        self.sim_post_cmd = opt_map["sim_post_cmd"]
+        #self._check_filepath(self.sim_post_cmd)
 
         self.bit_file_targets = SourceFileSet()
-        if opt_map["bit_file_targets"] != []:
-            paths = []
-            for path in opt_map["bit_file_targets"]:
-                if not path_mod.is_abs_path(path):
-                    path = path_mod.rel2abs(path, self.path)
-                    paths.append(path)
-                else:
-                    logging.warning(path + " is an absolute path. Omitting.")
-                if not os.path.exists(path):
-                    logging.error("File listed in " + self.manifest.path +
-                                  " doesn't exist: " + path + ".\nExiting.")
-                    quit()
-            self.bit_file_targets = self.__create_file_list_from_paths(paths=paths)
+        if len(opt_map["bit_file_targets"]) != 0:
+            paths = self._make_list_of_paths(opt_map["bit_file_targets"])
+            self.bit_file_targets = self._create_file_list_from_paths(paths=paths)
 
         if "svn" in opt_map["modules"]:
-            opt_map["modules"]["svn"] = self.__make_list(opt_map["modules"]["svn"])
+            opt_map["modules"]["svn"] = self._flatten_list(opt_map["modules"]["svn"])
             svn_mods = []
             for url in opt_map["modules"]["svn"]:
                 svn_mods.append(self.pool.new_module(parent=self, url=url, source="svn", fetchto=fetchto))
@@ -327,7 +300,7 @@ class Module(object):
             self.svn = []
 
         if "git" in opt_map["modules"]:
-            opt_map["modules"]["git"] = self.__make_list(opt_map["modules"]["git"])
+            opt_map["modules"]["git"] = self._flatten_list(opt_map["modules"]["git"])
             git_mods = []
             for url in opt_map["modules"]["git"]:
                 git_mods.append(self.pool.new_module(parent=self, url=url, source="git", fetchto=fetchto))
@@ -352,6 +325,27 @@ class Module(object):
 
         for m in self.submodules():
             m.parse_manifest()
+
+    def _make_list_of_paths(self, list_of_paths):
+        paths = []
+        for filepath in list_of_paths:
+            if self._check_filepath():
+                path = path_mod.rel2abs(filepath, self.path)
+                paths.append(path)
+        return paths
+
+    def _check_filepath(self, filepath):
+        if filepath:
+            if not os.filepath.exists(filepath):
+                logging.error("Specified path doesn't exist: %s" % filepath)
+                quit()
+            if path_mod.is_abs_path(filepath):
+                logging.warning("Specified path seems to be an absolute path: %s\nOmitting." % filepath)
+                return False
+            if not os.filepath.isfile(filepath):
+                logging.warning("Specified path is not a normal file: %s\nOmitting." % filepath)
+                return False
+        return True
 
     def is_fetched_recursively(self):
         if not self.isfetched:
@@ -392,7 +386,7 @@ class Module(object):
             logging.debug("No modules were found in " + self.fetchto)
         return modules
 
-    def __create_file_list_from_paths(self, paths):
+    def _create_file_list_from_paths(self, paths):
         sff = SourceFileFactory()
         srcs = SourceFileSet()
         for p in paths:
