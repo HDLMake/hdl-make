@@ -50,6 +50,7 @@ class ModulePool(list):
                     self.__fetch_from_git(module)
 
             module.parse_manifest()
+            module.process_manifest()
 
             new_modules.extend(module.local)
             new_modules.extend(module.svn)
@@ -141,7 +142,7 @@ class ModulePool(list):
                 return True
         return False
 
-    def new_module(self, parent, url, source, fetchto):
+    def new_module(self, parent, url, source, fetchto, process_manifest=True):
         from module import Module
         if url in [m.url for m in self]:
             return [m for m in self if m.url == url][0]
@@ -157,7 +158,12 @@ class ModulePool(list):
                 global_mod.top_module = new_module
                 self.top_module = new_module
                 new_module.parse_manifest()
+                if process_manifest is True:
+                    new_module.process_manifest()
             return new_module
+
+    def process_top_module_manifest(self):
+        global_mod.top_module.process_manifest()
 
     def _add(self, new_module):
         from module import Module

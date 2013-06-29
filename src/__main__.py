@@ -11,7 +11,7 @@ from connection import Connection
 import global_mod
 import optparse
 import logging
-from fetch import ModulePool
+from module_pool import ModulePool
 from env import Env
 
 try:
@@ -107,7 +107,8 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     pool = ModulePool()
-    pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".")
+    pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".",
+                    process_manifest=False)
 
     # Setting top_module as top module of design (ModulePool class)
     if pool.get_top_module().manifest is None:
@@ -123,12 +124,13 @@ def main():
     global_mod.env = Env(options, global_mod.top_module)
     global_mod.env.check()
 
+    pool.process_top_module_manifest()
+
     ssh = Connection(ssh_user=options.synth_user,
         ssh_server=options.synth_server)
 
     from hdlmake_kernel import HdlmakeKernel
     kernel = HdlmakeKernel(modules_pool=pool, connection=ssh, options=options)
-
     options_kernel_mapping = {
         "fetch" : "fetch",
         "ise_proj" : "generate_ise_project",

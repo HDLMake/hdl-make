@@ -11,6 +11,7 @@ import logging
 from manifest_parser import Manifest, ManifestParser
 from srcfile import SourceFileSet, SourceFileFactory
 from srcfile import VerilogFile, VHDLFile
+import traceback
 
 
 class Module(object):
@@ -39,6 +40,7 @@ class Module(object):
     #PLEASE don't use this constructor. Create all modules with ModulePool.new_module()
     def __init__(self, parent, url, source, fetchto, pool):
         import path
+        self._manifest = None
         self.fetchto = fetchto
         self.pool = pool
         self.source = source
@@ -117,10 +119,14 @@ class Module(object):
         Look for manifest in the given folder
         """
         logging.debug("Looking for manifest in " + self.path)
-        for filename in os.listdir(self.path):
+        dir_files = os.listdir(self.path)
+        if "manifest.py" in dir_files and "Manifest.py" in dir_files:
+            logging.error("Both manifest.py and Manifest.py found in the module directory: %s" % self.path)
+            quit()
+        for filename in dir_files:
             if filename == "manifest.py" or filename == "Manifest.py":
                 if not os.path.isdir(filename):
-                    logging.debug("*** found manifest for module "+self.path)
+                    logging.debug("Found manifest for module %s: %s" % (self.path, filename))
                     manifest = Manifest(path=os.path.abspath(os.path.join(self.path, filename)))
                     return manifest
         return None
@@ -154,6 +160,9 @@ class Module(object):
                 break
 
     def parse_manifest(self):
+        if self._manifest:
+            return
+        logging.debug("parse_manifest: %s" % self.path)
         if self.isparsed is True or self.isfetched is False:
             return
         if self.manifest is None:
@@ -183,9 +192,12 @@ class Module(object):
         except NameError as ne:
             logging.error("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
+        self._manifest = opt_map
 
-        if opt_map["syn_ise_version"]:
-            version = opt_map["syn_ise_version"]
+    def process_manifest(self):
+        print("process_manifest %s" % self.path)
+        if self._manifest["syn_ise_version"]:
+            version = self._manifest["syn_ise_version"]
             if isinstance(version, float):
                 major = int(version//1)
                 self.syn_ise_version = (major, (version-major)*10)
@@ -193,14 +205,14 @@ class Module(object):
                 parts = version.split('.')
                 #assert len(parts) = 2
                 self.syn_ise_version = (int(parts[0]), int(parts[1]))
-        if(opt_map["fetchto"] is not None):
-            fetchto = path_mod.rel2abs(opt_map["fetchto"], self.path)
+        if(self._manifest["fetchto"] is not None):
+            fetchto = path_mod.rel2abs(self._manifest["fetchto"], self.path)
             self.fetchto = fetchto
         else:
             fetchto = self.fetchto
 
-        if "local" in opt_map["modules"]:
-            local_paths = self._flatten_list(opt_map["modules"]["local"])
+        if "local" in self._manifest["modules"]:
+            local_paths = self._flatten_list(self._manifest["modules"]["local"])
             local_mods = []
             for path in local_paths:
                 if path_mod.is_abs_path(path):
@@ -213,18 +225,18 @@ class Module(object):
         else:
             self.local = []
 
-        self.vmap_opt = opt_map["vmap_opt"]
-        self.vcom_opt = opt_map["vcom_opt"]
-        self.vsim_opt = opt_map["vsim_opt"]
-        self.vlog_opt = opt_map["vlog_opt"]
-        self.iverilog_opt = opt_map["iverilog_opt"]
-        self.sim_tool = opt_map["sim_tool"]
+        self.vmap_opt = self._manifest["vmap_opt"]
+        self.vcom_opt = self._manifest["vcom_opt"]
+        self.vsim_opt = self._manifest["vsim_opt"]
+        self.vlog_opt = self._manifest["vlog_opt"]
+        self.iverilog_opt = self._manifest["iverilog_opt"]
+        self.sim_tool = self._manifest["sim_tool"]
 
         mkFileList = []
-        if isinstance(opt_map["incl_makefiles"], basestring):
-            mkFileList.append(opt_map["incl_makefiles"])
+        if isinstance(self._manifest["incl_makefiles"], basestring):
+            mkFileList.append(self._manifest["incl_makefiles"])
         else:  # list
-            mkFileList = opt_map["incl_makefiles"][:]
+            mkFileList = self._manifest["incl_makefiles"][:]
 
         makefiles_paths = self._make_list_of_paths(mkFileList)
         self.incl_makefiles.extend(makefiles_paths)
@@ -238,17 +250,17 @@ class Module(object):
        # if self.vmap_opt == "":
         #    self.vmap_opt = global_mod.top_module.vmap_opt
 
-        self.library = opt_map["library"]
+        self.library = self._manifest["library"]
         self.include_dirs = []
-        if opt_map["include_dirs"] is not None:
-            if isinstance(opt_map["include_dirs"], basestring):
-#                self.include_dirs.append(opt_map["include_dirs"])
-                ll = os.path.relpath(os.path.abspath(os.path.join(self.path, opt_map["include_dirs"])))
+        if self._manifest["include_dirs"] is not None:
+            if isinstance(self._manifest["include_dirs"], basestring):
+#                self.include_dirs.append(self._manifest["include_dirs"])
+                ll = os.path.relpath(os.path.abspath(os.path.join(self.path, self._manifest["include_dirs"])))
                 self.include_dirs.append(ll)
             else:
-#                self.include_dirs.extend(opt_map["include_dirs"])
+#                self.include_dirs.extend(self._manifest["include_dirs"])
                 ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path, x))),
-                         opt_map["include_dirs"])
+                         self._manifest["include_dirs"])
                 self.include_dirs.extend(ll)
 
         for dir in self.include_dirs:
@@ -257,11 +269,11 @@ class Module(object):
             if not os.path.exists(dir):
                 logging.warning(self.path + " has an unexisting include directory: " + dir)
 
-        if opt_map["files"] == []:
+        if self._manifest["files"] == []:
             self.files = SourceFileSet()
         else:
-            opt_map["files"] = self._flatten_list(opt_map["files"])
-            paths = self._make_list_of_paths(opt_map["files"])
+            self._manifest["files"] = self._flatten_list(self._manifest["files"])
+            paths = self._make_list_of_paths(self._manifest["files"])
             self.files = self._create_file_list_from_paths(paths=paths)
             for f in self.files:
                 if isinstance(f, VerilogFile):
@@ -269,82 +281,85 @@ class Module(object):
                 elif isinstance(f, VHDLFile):
                     f.vcom_opt = self.vcom_opt
 
-        if len(opt_map["sim_only_files"]) == 0:
+        if len(self._manifest["sim_only_files"]) == 0:
             self.sim_only_files = SourceFileSet()
         else:
-            opt_map["sim_only_files"] = self._flatten_list(opt_map["sim_only_files"])
-            paths = self._make_list_of_paths(opt_map["sim_only_files"])
+            self._manifest["sim_only_files"] = self._flatten_list(self._manifest["sim_only_files"])
+            paths = self._make_list_of_paths(self._manifest["sim_only_files"])
             self.sim_only_files = self._create_file_list_from_paths(paths=paths)
 
-        self.syn_pre_cmd = opt_map["syn_pre_cmd"]
+        self.syn_pre_cmd = self._manifest["syn_pre_cmd"]
         #self._check_filepath(self.syn_pre_cmd)
-        self.syn_post_cmd = opt_map["syn_post_cmd"]
+        self.syn_post_cmd = self._manifest["syn_post_cmd"]
         #self._check_filepath(self.syn_post_cmd)
-        self.sim_pre_cmd = opt_map["sim_pre_cmd"]
+        self.sim_pre_cmd = self._manifest["sim_pre_cmd"]
         #self._check_filepath(self.sim_pre_cmd)
-        self.sim_post_cmd = opt_map["sim_post_cmd"]
+        self.sim_post_cmd = self._manifest["sim_post_cmd"]
         #self._check_filepath(self.sim_post_cmd)
 
         self.bit_file_targets = SourceFileSet()
-        if len(opt_map["bit_file_targets"]) != 0:
-            paths = self._make_list_of_paths(opt_map["bit_file_targets"])
+        if len(self._manifest["bit_file_targets"]) != 0:
+            paths = self._make_list_of_paths(self._manifest["bit_file_targets"])
             self.bit_file_targets = self._create_file_list_from_paths(paths=paths)
 
-        if "svn" in opt_map["modules"]:
-            opt_map["modules"]["svn"] = self._flatten_list(opt_map["modules"]["svn"])
+        if "svn" in self._manifest["modules"]:
+            self._manifest["modules"]["svn"] = self._flatten_list(self._manifest["modules"]["svn"])
             svn_mods = []
-            for url in opt_map["modules"]["svn"]:
+            for url in self._manifest["modules"]["svn"]:
                 svn_mods.append(self.pool.new_module(parent=self, url=url, source="svn", fetchto=fetchto))
             self.svn = svn_mods
         else:
             self.svn = []
 
-        if "git" in opt_map["modules"]:
-            opt_map["modules"]["git"] = self._flatten_list(opt_map["modules"]["git"])
+        if "git" in self._manifest["modules"]:
+            self._manifest["modules"]["git"] = self._flatten_list(self._manifest["modules"]["git"])
             git_mods = []
-            for url in opt_map["modules"]["git"]:
+            for url in self._manifest["modules"]["git"]:
                 git_mods.append(self.pool.new_module(parent=self, url=url, source="git", fetchto=fetchto))
             self.git = git_mods
         else:
             self.git = []
 
-        self.target = opt_map["target"]
-        self.action = opt_map["action"]
+        self.target = self._manifest["target"]
+        self.action = self._manifest["action"]
 
-        if opt_map["syn_name"] is None and opt_map["syn_project"] is not None:
-            self.syn_name = opt_map["syn_project"][:-5]  # cut out .xise from the end
+        if self._manifest["syn_name"] is None and self._manifest["syn_project"] is not None:
+            self.syn_name = self._manifest["syn_project"][:-5]  # cut out .xise from the end
         else:
-            self.syn_name = opt_map["syn_name"]
-        self.syn_device = opt_map["syn_device"]
-        self.syn_grade = opt_map["syn_grade"]
-        self.syn_package = opt_map["syn_package"]
-        self.syn_project = opt_map["syn_project"]
-        self.syn_top = opt_map["syn_top"]
+            self.syn_name = self._manifest["syn_name"]
+        self.syn_device = self._manifest["syn_device"]
+        self.syn_grade = self._manifest["syn_grade"]
+        self.syn_package = self._manifest["syn_package"]
+        self.syn_project = self._manifest["syn_project"]
+        self.syn_top = self._manifest["syn_top"]
 
         self.isparsed = True
 
         for m in self.submodules():
             m.parse_manifest()
+            m.process_manifest()
 
     def _make_list_of_paths(self, list_of_paths):
         paths = []
         for filepath in list_of_paths:
-            if self._check_filepath():
-                path = path_mod.rel2abs(filepath, self.path)
-                paths.append(path)
+            filepath = path_mod.rel2abs(filepath, self.path)
+            if self._check_filepath(filepath):
+                paths.append(filepath)
         return paths
 
     def _check_filepath(self, filepath):
         if filepath:
-            if not os.filepath.exists(filepath):
+            if not os.path.exists(filepath):
                 logging.error("Specified path doesn't exist: %s" % filepath)
                 quit()
             if path_mod.is_abs_path(filepath):
                 logging.warning("Specified path seems to be an absolute path: %s\nOmitting." % filepath)
-                return False
-            if not os.filepath.isfile(filepath):
+                #return False
+                return True
+            if not os.path.isfile(filepath):
                 logging.warning("Specified path is not a normal file: %s\nOmitting." % filepath)
-                return False
+                #return False
+                return True
         return True
 
     def is_fetched_recursively(self):
