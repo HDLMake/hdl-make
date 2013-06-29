@@ -104,7 +104,8 @@ def main():
     numeric_level = getattr(logging, options.log.upper(), None)
     if not isinstance(numeric_level, int):
         print('Invalid log level: %s' % options.log)
-    logging.basicConfig(level=numeric_level)
+
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=numeric_level)
 
     pool = ModulePool()
     pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".",
