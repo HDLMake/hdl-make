@@ -245,7 +245,7 @@ class VerilogFile(SourceFile):
     def __create_deps(self):
 #        self.dep_requires = self.__search_includes()
 #        self.dep_provides = self.name
-        if global_mod.env.iverilog_path:
+        if global_mod.env["iverilog_path"]:
             self.dep_requires = []
             deps = self.__get_iverilog_dependencies()
             self.dep_requires.extend(deps)

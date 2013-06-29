@@ -197,13 +197,14 @@ class HdlmakeKernel(object):
         env = global_mod.env
         logging.info("Generating/updating ISE project")
         self._check_all_fetched_or_quit()
-        if not env.ise_version:
+        if not env["ise_version"]:
             logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
                           "project file properly. Please use syn_ise_version in the manifest "
                           "or set")
             quit()
         else:
-            logging.info("Generating project for ISE v. %d.%d" % (env.ise_version[0], env.ise_version[1]))
+            logging.info("Generating project for ISE v. %d.%d" % (env["ise_version"][0], env["ise_version"][1]))
+
         if os.path.exists(self.top_module.syn_project):
             self._update_existing_ise_project()
         else:
@@ -235,7 +236,7 @@ class HdlmakeKernel(object):
         all_files.add(non_dependable)
         all_files.add(dependable)
 
-        prj = ISEProject(ise=global_mod.env.ise_version,
+        prj = ISEProject(ise=global_mod.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())
         prj.add_files(all_files)
         from srcfile import SourceFileFactory
@@ -254,7 +255,7 @@ class HdlmakeKernel(object):
         fileset = solver.solve(fileset)
         fileset.add(non_dependable)
 
-        prj = ISEProject(ise=global_mod.env.ise_version,
+        prj = ISEProject(ise=global_mod.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
