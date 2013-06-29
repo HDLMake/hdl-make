@@ -27,7 +27,6 @@ from subprocess import Popen, PIPE
 import re
 import logging
 import os.path
-import path
 
 
 class _IsePath(object):
@@ -138,27 +137,56 @@ class Env(dict):
         print("\n### Modelsim simulation ###")
         self._report_and_set_var("modelsim_path")
         if "modelsim_path" in self:
-            if not self._check_in_path("vsim", self["modelsim_path"]):
-                if self._report_in_path("vsim"):
-                    self["modelsim_path"] = self._get_path("modelsim_path")
+            if self._check_in_path("vsim", self["modelsim_path"]):
+                print("vsim found in HDLMAKE_MODELSIM_PATH: %s." % self["modelsim_path"])
+            else:
+                print("vsim NOT found in HDLMAKE_MODELSIM_PATH: %s." % self["modelsim_path"])
+        else:
+            if self._check_in_system_path("vsim"):
+                self["modelsim_path"] = self._get_path("modelsim_path")
+                print("vsim found in system PATH: %s." % self["modelsim_path"])
+            else:
+                print("vsim can't be found.")
 
         #4: determine iverilog path
         print("\n### Iverilog simulation ###")
-        self._report_in_path("iverilog")
-        if "iverilog" in self:
-            if not self._check_in_path("iverilog", self["iverilog_path"]):
-                if self._report_in_path("iverilog"):
-                    self["iverilog_path"] = self._get_path("iverilog")
+        self._report_and_set_var("iverilog_path")
+        if "iverilog_path" in self:
+            if self._check_in_path("iverilog", self["iverilog_path"]):
+                print("iverilog found under HDLMAKE_IVERILOG_PATH: %s" % self["iverilog_path"])
+            else:
+                print("iverilog NOT found under HDLMAKE_IVERILOG_PATH: %s" % self["iverilog_path"])
+        else:
+            if self._check_in_system_path("iverilog"):
+                self["iverilog_path"] = self._get_path("iverilog")
+                print("iverilog found in system path: %s" % self["iverilog_path"])
+            else:
+                print("iverlog can't be found.")
 
         #5: determine isim path
         print("\n### ISim simulation ###")
-        self._report_in_path("isim")
+        self._report_and_set_var("isim_path")
+
+        if "isim_path" in self:
+            if self._check_in_path("isim", self["isim_path"]):
+                print("isim found under HDLMAKE_ISIM_PATH: %s" % self["isim_path"])
+            else:
+                print("isim NOT found under HDLMAKE_ISIM_PATH: %s" % self["isim_path"])
+        else:
+            if "xilinx" in self:
+                #### TODO:rely on the XILINX var
+                pass
+            else:
+                if self._check_in_system_path("isim"):
+                    self["isim_path"] = self._get_path("isim")
+                    print("isim found in system path: %s" % self["isim_path"])
+                else:
+                    print("iverlog can't be found.")
 
         #6: remote synthesis with ise
         print("\n### Remote synthesis with ISE ###")
         self._report_and_set_var("rsynth_user")
         self._report_and_set_var("rsynth_server")
-
         can_connect = False
         if "rsynth_user" in self and "rsynth_server" in self:
             ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s echo ok 2>&1'
@@ -169,6 +197,7 @@ class Env(dict):
                 print("Can connect to the remote machine: %s@%s." % (self["rsynth_user"], self["rsynth_server"]))
                 can_connect = True
             else:
+                print("Can't connect to the remote machine: %s@%s" % (self["rsynth_user"], self["rsynth_server"]))
                 can_connect = False
 
         self._report_and_set_var("rsynth_ise_path")
@@ -231,13 +260,11 @@ class Env(dict):
             path = self._get_path(name)
             return len(path) > 0
 
-    def _report_in_path(self, name):
+    def _check_in_system_path(self, name):
         path = self._get_path(name)
         if path:
-            print("%s is in PATH: %s." % (name, path))
             return True
         else:
-            print("%s is not in PATH." % name)
             return False
 
     def _report_and_set_var(self, name):
