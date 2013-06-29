@@ -345,21 +345,21 @@ VSIM_FLAGS :=
 VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """
         make_preambule_p2 = Template("""## rules #################################
-pre_sim_cmd:
-\t\t${pre_sim_cmd}
+sim_pre_cmd:
+\t\t${sim_pre_cmd}
 
-post_sim_cmd: sim
-\t\t${post_sim_cmd}
+sim_post_cmd: sim
+\t\t${sim_post_cmd}
 
-sim: pre_sim_cmd modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
-$(VERILOG_OBJ): $(VHDL_OBJ)
-$(VHDL_OBJ): $(LIB_IND) modelsim.ini
+sim: sim_pre_cmd modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
+$$(VERILOG_OBJ): $$(VHDL_OBJ)
+$$(VHDL_OBJ): $$(LIB_IND) modelsim.ini
 
-modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
-\t\tcp $< .
+modelsim.ini: $$(MODELSIM_INI_PATH)/modelsim.ini
+\t\tcp $$< .
 clean:
-\t\trm -rf ./modelsim.ini $(LIBS)
-.PHONY: clean pre_sim_cmd post_sim_cmd
+\t\trm -rf ./modelsim.ini $$(LIBS)
+.PHONY: clean sim_pre_cmd sim_post_cmd
 
 """)
         #open the file and write the above preambule (part 1)
