@@ -71,6 +71,7 @@ class Module(object):
         self.sim_only_files = None
         self.sim_pre_script = None
         self.sim_post_scritp = None
+        self.top_module = None
 
         if source != "local":
             self.url, self.branch, self.revision = path.url_parse(url)
@@ -195,13 +196,15 @@ class Module(object):
         self._manifest = opt_map
 
     def process_manifest(self):
-        print("process_manifest %s" % self.path)
-        if self._manifest["syn_ise_version"]:
+        logging.debug("process_manifest %s" % self.path)
+        if self._manifest["syn_ise_version"] is not None:
             version = self._manifest["syn_ise_version"]
             if isinstance(version, float):
-                major = int(version//1)
-                self.syn_ise_version = (major, (version-major)*10)
-            if isinstance(version, ''):
+                version = str(version).split('.')
+                major = version[0]
+                mino = version[1]
+                self.syn_ise_version = (major, minor)
+            if isinstance(version, basestring):
                 parts = version.split('.')
                 #assert len(parts) = 2
                 self.syn_ise_version = (int(parts[0]), int(parts[1]))
@@ -231,6 +234,9 @@ class Module(object):
         self.vlog_opt = self._manifest["vlog_opt"]
         self.iverilog_opt = self._manifest["iverilog_opt"]
         self.sim_tool = self._manifest["sim_tool"]
+
+        if "top_module" in self._manifest:
+            self.top_module = self._manifest["top_module"]
 
         mkFileList = []
         if isinstance(self._manifest["incl_makefiles"], basestring):

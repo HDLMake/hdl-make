@@ -62,7 +62,7 @@ class ManifestParser(ConfigParser):
         self.add_option('syn_pre_cmd', default=None, help="Command to be executed before synthesis", type='')
         self.add_option('syn_post_cmd', default=None, help="Command to be executed after synthesis", type='')
 
-        self.add_option('top_entity', default=None, help="Top level entity for synthesis and simulation", type='')
+        self.add_option('top_module', default=None, help="Top level entity for synthesis and simulation", type='')
 
         self.add_delimiter()
         self.add_option('include_dirs', default=None, help="Include dirs for Verilog sources", type=[])
