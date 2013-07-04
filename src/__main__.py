@@ -9,7 +9,7 @@
 import os
 from connection import Connection
 import global_mod
-import optparse
+import argparse
 import logging
 from module_pool import ModulePool
 from env import Env
@@ -21,72 +21,75 @@ except:
 
 
 def main():
-    usage = "usage: %prog [options]\n"
-    usage += "type %prog --help to get help message"
+    usage = "usage: prog [options]\n"
+    usage += "type prog --help to get help message"
 
-    parser = optparse.OptionParser(usage=usage)
+    parser = argparse.ArgumentParser(usage=usage)
 
-    parser.add_option("--manifest-help", action="store_true",
+    parser.add_argument("--manifest-help", action="store_true",
     dest="manifest_help", help="print manifest file variables description")
 
-    parser.add_option("--make-sim", dest="make_sim", action="store_true",
+    parser.add_argument("--check-env", action="store_true",
+    dest="check_env", default=False, help="check environment for HDLMAKE-related settings")
+
+    parser.add_argument("--make-sim", dest="make_sim", action="store_true",
     default=None, help="generate a simulation Makefile")
 
-    parser.add_option("--make-fetch", dest="make_fetch", action="store_true",
+    parser.add_argument("--make-fetch", dest="make_fetch", action="store_true",
     default=None, help="generate a makefile for modules' fetching")
 
-    parser.add_option("--make-ise", dest="make_ise", action="store_true",
+    parser.add_argument("--make-ise", dest="make_ise", action="store_true",
     default=None, help="generate a makefile for local ISE synthesis")
 
-    parser.add_option("--make-remote", dest="make_remote", action="store_true",
+    parser.add_argument("--make-remote", dest="make_remote", action="store_true",
     default=None, help="generate a makefile for remote synthesis")
 
-    parser.add_option("-f", "--fetch", action="store_true", dest="fetch",
+    parser.add_argument("-f", "--fetch", action="store_true", dest="fetch",
     default=None, help="fetch and/or update remote modules listed in Manifest")
 
-    parser.add_option("--clean", action="store_true", dest="clean",
+    parser.add_argument("--clean", action="store_true", dest="clean",
     default=None, help="remove all modules fetched for this one")
 
-    parser.add_option("--list", action="store_true", dest="list",
+    parser.add_argument("--list", action="store_true", dest="list",
     default=None, help="List all modules together with their files")
 
-    parser.add_option("--list-files", action="store_true", dest="list_files",
+    parser.add_argument("--list-files", action="store_true", dest="list_files",
     default=None, help="List all files in a from of a space-separated string")
 
-    parser.add_option("--merge-cores=name", default=None, dest="merge_cores",
+    parser.add_argument("--merge-cores=name", default=None, dest="merge_cores",
         help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
 
-    parser.add_option("--ise-proj", action="store_true", dest="ise_proj",
+    parser.add_argument("--ise-proj", action="store_true", dest="ise_proj",
     default=None, help="create/update an ise project including list of project"
         "files")
 
-    parser.add_option("--quartus-proj", action="store_true", dest="quartus_proj",
+    parser.add_argument("--quartus-proj", action="store_true", dest="quartus_proj",
     default=None, help="create/update a quartus project including list of project"
         "files")
 
-    parser.add_option("-l", "--synthesize-locally", dest="local",
+    parser.add_argument("-l", "--synthesize-locally", dest="local",
     default=None, action="store_true", help="perform a local synthesis")
 
-    parser.add_option("-r", "--synthesize-remotelly", dest="remote",
+    parser.add_argument("-r", "--synthesize-remotelly", dest="remote",
     default=None, action="store_true", help="perform a remote synthesis")
 
-    parser.add_option("--synth-server", dest="synth_server",
+    parser.add_argument("--synth-server", dest="synth_server",
     default=None, help="use given SERVER for remote synthesis",
         metavar="SERVER")
 
-    parser.add_option("--synth-user", dest="synth_user",
+    parser.add_argument("--synth-user", dest="synth_user",
     default=None, help="use given USER for remote synthesis", metavar="USER")
 
-    parser.add_option("--py", dest="arbitrary_code",
+    parser.add_argument("--py", dest="arbitrary_code",
     default="", help="add arbitrary code to all manifests' evaluation")
 
-    parser.add_option("--log", dest="log",
+    parser.add_argument("--log", dest="log",
     default="info", help="set logging level (one of debug, info, warning, error, critical")
 
-    parser.add_option("--version", dest="print_version", action="store_true",
+    parser.add_argument("--version", dest="print_version", action="store_true",
     default="false", help="print version id of this Hdlmake build")
 
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     # Setting global variable (global_mod.py)
     global_mod.options = options
