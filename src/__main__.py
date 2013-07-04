@@ -67,19 +67,6 @@ def main():
     default=None, help="create/update a quartus project including list of project"
         "files")
 
-    parser.add_argument("-l", "--synthesize-locally", dest="local",
-    default=None, action="store_true", help="perform a local synthesis")
-
-    parser.add_argument("-r", "--synthesize-remotelly", dest="remote",
-    default=None, action="store_true", help="perform a remote synthesis")
-
-    parser.add_argument("--synth-server", dest="synth_server",
-    default=None, help="use given SERVER for remote synthesis",
-        metavar="SERVER")
-
-    parser.add_argument("--synth-user", dest="synth_user",
-    default=None, help="use given USER for remote synthesis", metavar="USER")
-
     parser.add_argument("--py", dest="arbitrary_code",
     default="", help="add arbitrary code to all manifests' evaluation")
 
@@ -135,11 +122,8 @@ def main():
 
     pool.process_top_module_manifest()
 
-    ssh = Connection(ssh_user=options.synth_user,
-        ssh_server=options.synth_server)
-
     from hdlmake_kernel import HdlmakeKernel
-    kernel = HdlmakeKernel(modules_pool=pool, connection=ssh, options=options)
+    kernel = HdlmakeKernel(modules_pool=pool, options=options)
     options_kernel_mapping = {
         "fetch" : "fetch",
         "ise_proj" : "generate_ise_project",

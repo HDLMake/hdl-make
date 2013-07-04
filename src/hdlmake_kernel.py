@@ -31,9 +31,8 @@ from srcfile import IDependable, SourceFileSet, SourceFileFactory
 
 
 class HdlmakeKernel(object):
-    def __init__(self, modules_pool, connection, options):
+    def __init__(self, modules_pool, options):
         self.modules_pool = modules_pool
-        self.connection = connection
         self.make_writer = MakefileWriter("Makefile")
         self.options = options
 
@@ -172,9 +171,6 @@ class HdlmakeKernel(object):
         self.make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(), ise_path=ise_path)
 
     def generate_remote_synthesis_makefile(self):
-        if self.connection.ssh_user is None or self.connection.ssh_server is None:
-            logging.warning("Connection data is not given. "
-                            "Accessing environmental variables in the makefile")
         logging.info("Generating makefile for remote synthesis.")
 
         top_mod = self.modules_pool.get_top_module()
@@ -182,7 +178,6 @@ class HdlmakeKernel(object):
             logging.warning("There are no modules fetched. "
                             "Are you sure it's correct?")
 
-        ise_path = self.__figure_out_ise_path()
         tcl = self.__search_tcl_file()
 
         if tcl is None:
@@ -195,7 +190,7 @@ class HdlmakeKernel(object):
         files.add(sff.new(top_mod.syn_project))
 
         self.make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
-        cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server, ise_path=ise_path)
+        cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server)
 
     def generate_ise_project(self):
         env = global_mod.env
@@ -307,54 +302,6 @@ class HdlmakeKernel(object):
         prj.postflow = None
         prj.add_files(fileset)
         prj.emit()
-
-    def run_local_synthesis(self):
-        tm = self.modules_pool.get_top_module()
-        if tm.target == "xilinx":
-            import global_mod
-            global_mod.mod_pool = self.modules_pool
-            if not os.path.exists("run.tcl"):
-                self.__generate_tcl()
-            os.system("xtclsh run.tcl")
-        else:
-            logging.error("Target " + tm.target + " is not synthesizable")
-
-    def run_remote_synthesis(self):
-        ssh = self.connection
-        cwd = os.getcwd()
-
-        logging.debug("The program will be using ssh connection: "+str(ssh))
-        if not ssh.is_good():
-            logging.error("SSH connection failure. Remote host doesn't response.")
-            quit()
-
-        if not os.path.exists(self.top_module.fetchto):
-            logging.warning("There are no modules fetched. Are you sure it's correct?")
-
-        files = self.modules_pool.build_very_global_file_list()
-#        tcl = self.__search_tcl_file()
-#        if tcl is None:
-        self.__generate_tcl()
-        tcl = "run.tcl"
-
-        sff = SourceFileFactory()
-        files.add(sff.new(tcl))
-        files.add(sff.new(self.top_module.syn_project))
-
-        dest_folder = ssh.transfer_files_forth(files,
-            dest_folder=self.top_module.syn_name)
-        syn_cmd = "cd "+dest_folder+cwd+" && xtclsh run.tcl"
-
-        logging.debug("Launching synthesis on " + str(ssh) + ": " + syn_cmd)
-        ret = ssh.system(syn_cmd)
-        if ret == 1:
-            logging.error("Synthesis failed. Nothing will be transfered back")
-            quit()
-
-        cur_dir = os.path.basename(cwd)
-        os.chdir("..")
-        ssh.transfer_files_back(what=dest_folder+cwd, where=".")
-        os.chdir(cur_dir)
 
     def __search_tcl_file(self, directory=None):
         if directory is None:

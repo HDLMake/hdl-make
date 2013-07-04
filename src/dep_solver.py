@@ -264,5 +264,5 @@ class DependencySolver:
             f.dep_depends_on = list(set(f.dep_depends_on))
 
         for k in newobj:
-            logging.debug(str(k.dep_index) + " " + k.path + str(k._dep_fixed))
+            logging.debug("DEP_IDX " + str(k.dep_index) + " " + k.path + " DEP_FIXED " + str(k._dep_fixed))
         return newobj

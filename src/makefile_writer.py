@@ -61,7 +61,7 @@ class MakefileWriter(object):
         self._file.close()
         self._file = open(filename, "w")
 
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server, ise_path):
+    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
         if name is None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
@@ -72,7 +72,7 @@ class MakefileWriter(object):
         files_tmpl = "FILES := {0}"
 
         if user is None:
-            user_tmpl = user_tmpl.format("$(HDLMAKE_USER)#take the value from the environment")
+            user_tmpl = user_tmpl.format("$(HDLMAKE_RSYNTH_USER)#take the value from the environment")
             test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
 \t@echo "Remote synthesis user is not set. You can set it by editing variable USER in the makefile." && false
@@ -86,7 +86,7 @@ endif
             test_tmpl = "__test_for_remote_synthesis_variables:\n\t\ttrue #dummy\n"
 
         if server is None:
-            server_tmpl = server_tmpl.format("$(HDLMAKE_SERVER)#take the value from the environment")
+            server_tmpl = server_tmpl.format("$(HDLMAKE_RSYNTH_SERVER)#take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
 
@@ -116,9 +116,14 @@ endif
         self.writeln("")
 
         tcl = "run.tcl"
-        synthesis_cmd = "__do_synthesis:\n\t\t"
-        synthesis_cmd += "ssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && {0}xtclsh {1}'"
-        self.writeln(synthesis_cmd.format(ise_path, tcl))
+        synthesis_cmd = """__do_synthesis:
+ifeq (x$(HDLMAKE_RSYNTH_USE_SCREEN), x1)
+\t\tssh $(USER)@$(SERVER) 'screen bash -c "cd $(R_NAME)$(CWD) && $(HDLMAKE_RSYNTH_ISE_PATH)/xtclsh {1}"'
+else
+\t\tssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && $(HDLMAKE_RSYNTH_ISE_PATH)/xtclsh {1}'
+endif
+"""
+        self.writeln(synthesis_cmd.format(tcl))
 
         self.writeln()
         send_back_cmd = "__send_back: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)$(CWD) . && cd $(CWD)"
