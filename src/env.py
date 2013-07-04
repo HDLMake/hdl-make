@@ -29,6 +29,23 @@ import logging
 import os.path
 
 
+_plain_print = print
+
+
+class _PrintClass(object):
+    def __init__(self):
+        self.verbose = None
+
+    def set_verbose(self, verbose):
+        self.verbose = verbose
+
+    def __call__(self, *args, **kwargs):
+        if self.verbose:
+            _plain_print(*args, **kwargs)
+
+print = _PrintClass()
+
+
 class _IsePath(object):
     _ise_path_64 = {
         10: {0: "/opt/Xilinx/10.0/ISE/bin/lin",
@@ -83,14 +100,15 @@ class Env(dict):
         self.options = options
         self.top_module = top_module
 
-    def check(self):
+    def check(self, verbose=False):
+        print.set_verbose(verbose)
         platform = sys.platform
         print("Platform: %s" % platform)
 
         #0: general
         print("### General variabless ###")
         self._report_and_set_var("coredir")
-        self._report_and_set_var("top_module")
+
         #1: determine path for ise
         print("\n### ISE synthesis ###")
         xilinx = os.environ.get("XILINX")
@@ -117,19 +135,20 @@ class Env(dict):
                 print("ISE not found in PATH.")
 
         #2: determine ISE version
-        if self.top_module.syn_ise_version is not None:
-            ise_version = tuple(self.top_module.syn_ise_version)
-            print("ise_version set in the manifest: %s.%s" % (ise_version[0], ise_version[1]))
-            self["ise_version"] = ise_version
-        else:
-            ise_version = None
+        if self.top_module:
+            if self.top_module.syn_ise_version is not None:
+                ise_version = tuple(self.top_module.syn_ise_version)
+                print("ise_version set in the manifest: %s.%s" % (ise_version[0], ise_version[1]))
+                self["ise_version"] = ise_version
+            else:
+                ise_version = None
 
-        if "ise_version" not in self:
-            ise_version = self._guess_ise_version(xilinx, '')
-            if ise_version:
-                print("syn_ise_version not set in the manifest,"
-                      " guessed ISE version: %s.%s." % (ise_version[0], ise_version[1]))
-            self["ise_version"] = ise_version
+            if "ise_version" not in self:
+                ise_version = self._guess_ise_version(xilinx, '')
+                if ise_version:
+                    print("syn_ise_version not set in the manifest,"
+                          " guessed ISE version: %s.%s." % (ise_version[0], ise_version[1]))
+                self["ise_version"] = ise_version
 
             #######
 
@@ -197,7 +216,7 @@ class Env(dict):
                 print("Can connect to the remote machine: %s@%s." % (self["rsynth_user"], self["rsynth_server"]))
                 can_connect = True
             else:
-                print("Can't connect to the remote machine: %s@%s" % (self["rsynth_user"], self["rsynth_server"]))
+                print("Can't make a passwordless connection to the remote machine: %s@%s" % (self["rsynth_user"], self["rsynth_server"]))
                 can_connect = False
 
         self._report_and_set_var("rsynth_ise_path")
@@ -210,7 +229,14 @@ class Env(dict):
                 print("ISE found on remote machine under %s." % self["rsynth_ise_path"])
             else:
                 print("Can't find ISE on remote machine under %s." % self["rsynth_ise_path"])
-        self._report_and_set_var("rsynth_use_screen")
+        rsynth_screen = self._get("rsynth_use_screen")
+        if rsynth_screen:
+            if rsynth_screen == '1':
+                print("Environmental variable HDLMAKE_RSYNTH_USE_SCREEN is set to 1. Remote synthesis will use screen.")
+            else:
+                print("Environmental variable HDLMAKE_RSYNTH_USE_SCREEN is set to %s.To use screen, set it to '1'." % rsynth_screen)
+        else:
+            print("Environmental variable HDLMAKE_RSYNTH_USE_SCREEN is unset. Set it to '1' to use screen in remote synthesis")
 
     def _guess_ise_version(self, xilinx, ise_path):
         xst = Popen('which xst', shell=True, stdin=PIPE,
@@ -245,6 +271,7 @@ class Env(dict):
     def _get(self, name):
         assert not name.startswith("HDLMAKE_")
         assert isinstance(name, basestring)
+        name = name.upper()
 
         return os.environ.get("HDLMAKE_%s" % name)
 
@@ -269,7 +296,7 @@ class Env(dict):
 
     def _report_and_set_var(self, name):
         name = name.upper()
-        val = os.environ.get("HDLMAKE_%s" % name)
+        val = self._get(name)
         if val:
             print("Environmental variable HDLMAKE_%s is set: %s." % (name, val))
             self[name.lower()] = val
