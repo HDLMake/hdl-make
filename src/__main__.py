@@ -93,11 +93,16 @@ def main():
 
     # Setting global variable (global_mod.py)
     global_mod.options = options
-
+    print(options)
     #HANDLE PROJECT INDEPENDENT OPTIONS
     if options.manifest_help is True:
         from manifest_parser import ManifestParser
         ManifestParser().help()
+        quit()
+
+    if options.check_env is True:
+        env = Env(options, None)
+        env.check(verbose=True)
         quit()
 
     if options.print_version is True:
