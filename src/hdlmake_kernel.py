@@ -142,6 +142,10 @@ class HdlmakeKernel(object):
         pool = self.modules_pool
         self._check_all_fetched_or_quit()
         top_module = pool.get_top_module()
+
+        if not top_module.top_module:
+            logging.error("top_module variable must be set in the top manifest.")
+            quit()
         flist = pool.build_global_file_list()
         flist_sorted = solver.solve(flist)
         self.make_writer.generate_isim_makefile(flist_sorted, top_module)
