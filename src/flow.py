@@ -27,6 +27,8 @@ import xml.dom.minidom
 import xml.parsers.expat
 import logging
 import re
+import global_mod
+import os
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
@@ -373,31 +375,12 @@ class XilinxsiminiReader(object):
 
     @staticmethod
     def xilinxsim_ini_dir():
-        import os
         # Does not really need this
-        try:
-            xilinx_path = os.environ["XILINX"]
-        except KeyError:
-            logging.error("Please set the environment variable XILINX")
-            # Fail completely for now
-            quit()
-
-        # Does not really need this
-        try:
-            host_platform = os.environ["HOST_PLATFORM"]
-        except KeyError:
-            logging.error("Please set the environment variable HOST_PLATFORM")
-            # Fail completely for now
-            quit()
-
-        # Option 1. Look for path through env vars
-        xilinx_ini_path = str(xilinx_path + "/ISE/vhdl/hdp/" + host_platform)
+        # try:
+        #     host_platform = os.environ["HOST_PLATFORM"]
+        # except KeyError:
+        #     logging.error("Please set the environment variable HOST_PLATFORM")
+        #     quit()
+        xilinx_ini_path = str(global_mod.env["xilinx"] + "/ISE/vhdl/hdp/lin")
         # Ensure the path is absolute and normalized
         return os.path.abspath(xilinx_ini_path)
-
-        # Option 2. look for path through a known-location xilinx program.
-        # Search for "fuse" path. it could be vhlcomp or vlogcomp as well.
-        # Read the command output and strip the trailing newlines
-        #fuse_path = os.popen("which fuse").read().strip()
-        #bin_path = os.path.dirname(vsim_path)
-        #return os.path.abspath(bin_path+"/../")
