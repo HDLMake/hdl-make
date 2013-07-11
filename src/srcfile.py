@@ -145,7 +145,7 @@ class VHDLFile(SourceFile):
             try:
                 if global_mod.top_module.sim_tool == "isim":
                     std_libs = flow.XilinxsiminiReader().get_libraries()
-                elif global_mod.top_module.sim_tool == "vsim":
+                elif global_mod.top_module.sim_tool == "vsim" or global_mod.top_module.sim_tool == "modelsim":
                     std_libs = flow.ModelsiminiReader().get_libraries()
                 else:
                     logging.warning("Could not determine simulation tool. Defaulting to Modelsim")
@@ -271,13 +271,14 @@ class VerilogFile(SourceFile):
             command += " " + vlog_opt
         else:
             command += " " + vlog_opt + " " + self.rel_path()
+        logging.debug("running %s" % command)
         retOsSystem = os.system(command)
         if retOsSystem and retOsSystem != 256:
-            logging.error("Dependencies not Met")
+            logging.error("Dependencies not met for %s" % str(self.path))
             logging.debug(command, self.include_dirs, inc_dirs, global_mod.mod_pool)
             quit()
         elif retOsSystem == 256:
-            logging.debug(command)
+            #dependencies met
             pass
         depFile = open(depFileName, "r")
         depFiles = list(set([l.strip() for l in depFile.readlines()]))
