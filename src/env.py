@@ -105,11 +105,27 @@ class Env(dict):
         platform = sys.platform
         print("Platform: %s" % platform)
 
-        #0: general
+        # general
         print("### General variabless ###")
         self._report_and_set_var("coredir")
 
-        #1: determine path for ise
+        # determine path for Quartus
+        print("\n### Quartus synthesis ###")
+        self._report_and_set_var("quartus_path")
+        if self["quartus_path"] is not None:
+            if self._check_in_path("quartus", self["quartus_path"]):
+                print("quartus found under HDLMAKE_QUARTUS_PATH: %s" % self["quartus_path"])
+            else:
+                print("quartus NOT found under HDLMAKE_quartus_PATH: %s" % self["quartus_path"])
+        else:
+            if self._check_in_system_path("quartus"):
+                self["quartus_path"] = self._get_path("quartus")
+                print("quartus found in system path: %s" % self["quartus_path"])
+            else:
+                print("quartus can't be found.")
+
+
+        # determine path for ise
         print("\n### ISE synthesis ###")
         xilinx = os.environ.get("XILINX")
         if xilinx:
@@ -119,22 +135,22 @@ class Env(dict):
             print("Environmental variable XILINX is not set.")
 
         self._report_and_set_var("ise_path")
-        if "ise_path" in self and "xilinx" in self:
+        if self["ise_path"] is not None and self["xilinx"] is not None:
             print("HDLMAKE_ISE_PATH and XILINX can't be set at a time\n"
                   "Ignoring HDLMAKE_ISE_PATH")
             self["ise_path"] = self["xilinx"]
-        if "ise_path" in self:
+        if self["ise_path"] is not None:
             if self._check_in_path("ise", self["ise_path"]):
                 print("ISE found in HDLMAKE_ISE_PATH: %s." % self["ise_path"])
             else:
-                print("ISE not found in HDLMAKE_ISE_PATH: %s." % self("ise_path"))
+                print("ISE not found in HDLMAKE_ISE_PATH: %s." % self["ise_path"])
         else:
             if self._check_in_path("ise"):
                 print("ISE found in PATH: %s." % self._get_path("ise"))
             else:
                 print("ISE not found in PATH.")
 
-        #2: determine ISE version
+        # determine ISE version
         if self.top_module:
             if self.top_module.syn_ise_version is not None:
                 ise_version = tuple(self.top_module.syn_ise_version)
@@ -152,10 +168,10 @@ class Env(dict):
 
             #######
 
-        #3: determine modelsim path
+        # determine modelsim path
         print("\n### Modelsim simulation ###")
         self._report_and_set_var("modelsim_path")
-        if "modelsim_path" in self:
+        if self["modelsim_path"] is not None:
             if self._check_in_path("vsim", self["modelsim_path"]):
                 print("vsim found in HDLMAKE_MODELSIM_PATH: %s." % self["modelsim_path"])
             else:
@@ -167,10 +183,10 @@ class Env(dict):
             else:
                 print("vsim can't be found.")
 
-        #4: determine iverilog path
+        # determine iverilog path
         print("\n### Iverilog simulation ###")
         self._report_and_set_var("iverilog_path")
-        if "iverilog_path" in self:
+        if self["iverilog_path"] is not None: 
             if self._check_in_path("iverilog", self["iverilog_path"]):
                 print("iverilog found under HDLMAKE_IVERILOG_PATH: %s" % self["iverilog_path"])
             else:
@@ -182,17 +198,17 @@ class Env(dict):
             else:
                 print("iverlog can't be found.")
 
-        #5: determine isim path
+        # determine isim path
         print("\n### ISim simulation ###")
         self._report_and_set_var("isim_path")
 
-        if "isim_path" in self:
+        if self["isim_path"] is not None:
             if self._check_in_path("isim", self["isim_path"]):
                 print("isim found under HDLMAKE_ISIM_PATH: %s" % self["isim_path"])
             else:
                 print("isim NOT found under HDLMAKE_ISIM_PATH: %s" % self["isim_path"])
         else:
-            if "xilinx" in self:
+            if self["xilinx"] is not None:
                 #### TODO:rely on the XILINX var
                 pass
             else:
@@ -202,12 +218,12 @@ class Env(dict):
                 else:
                     print("iverlog can't be found.")
 
-        #6: remote synthesis with ise
+        # remote synthesis with ise
         print("\n### Remote synthesis with ISE ###")
         self._report_and_set_var("rsynth_user")
         self._report_and_set_var("rsynth_server")
         can_connect = False
-        if "rsynth_user" in self and "rsynth_server" in self:
+        if self["rsynth_user"] is not None and self["rsynth_server"] is not None:
             ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s echo ok 2>&1'
             ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"])
             ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
@@ -220,7 +236,7 @@ class Env(dict):
                 can_connect = False
 
         self._report_and_set_var("rsynth_ise_path")
-        if can_connect and "rsynth_ise_path" in self:
+        if can_connect and self["rsynth_ise_path"] is not None:
             ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s test -e %s 2>&1'
             ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"], self["rsynth_ise_path"])
             ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
@@ -303,6 +319,7 @@ class Env(dict):
             return True
         else:
             print("Environmental variable HDLMAKE_%s is not set." % name)
+            self[name.lower()] = None
             return False
 
 if __name__ == "__main__":
