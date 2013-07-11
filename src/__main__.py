@@ -7,7 +7,6 @@
 
 
 import os
-from connection import Connection
 import global_mod
 import argparse
 import logging
@@ -80,7 +79,6 @@ def main():
 
     # Setting global variable (global_mod.py)
     global_mod.options = options
-    print(options)
     #HANDLE PROJECT INDEPENDENT OPTIONS
     if options.manifest_help is True:
         from manifest_parser import ManifestParser
@@ -100,7 +98,9 @@ def main():
     if not isinstance(numeric_level, int):
         print('Invalid log level: %s' % options.log)
 
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=numeric_level)
+    logging.basicConfig(format="%(levelname)s %(funcName)s %(filename)s:%(lineno)d: %(message)s", level=numeric_level)
+    logging.debug('1')
+    logging.debug(str(options))
 
     pool = ModulePool()
     pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".",
@@ -117,19 +117,18 @@ def main():
 
     global_mod.global_target = global_mod.top_module.target
     global_mod.mod_pool = pool
-    global_mod.env = Env(options, global_mod.top_module)
+    env = Env(options, global_mod.top_module)
+    global_mod.env = env
     global_mod.env.check()
 
     pool.process_top_module_manifest()
 
     from hdlmake_kernel import HdlmakeKernel
-    kernel = HdlmakeKernel(modules_pool=pool, options=options)
+    kernel = HdlmakeKernel(modules_pool=pool, options=options, env=env)
     options_kernel_mapping = {
         "fetch" : "fetch",
         "ise_proj" : "generate_ise_project",
         "quartus_proj" : "generate_quartus_project",
-        "local" : "run_local_synthesis",
-        "remote": "run_remote_synthesis",
         "make_fetch": "generate_fetch_makefile",
         "make_ise" : "generate_ise_makefile",
         "make_sim" : "generate_simulation_makefile",
