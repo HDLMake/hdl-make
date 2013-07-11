@@ -40,6 +40,10 @@ class Module(object):
     #PLEASE don't use this constructor. Create all modules with ModulePool.new_module()
     def __init__(self, parent, url, source, fetchto, pool):
         import path
+
+        assert url is not None
+        assert source is not None
+
         self._manifest = None
         self.fetchto = fetchto
         self.pool = pool
@@ -163,7 +167,7 @@ class Module(object):
     def parse_manifest(self):
         if self._manifest:
             return
-        logging.debug("parse_manifest: %s" % self.path)
+        logging.debug(self.path)
         if self.isparsed is True or self.isfetched is False:
             return
         if self.manifest is None:
@@ -173,10 +177,11 @@ class Module(object):
         manifest_parser = ManifestParser()
 
         # For non-top modules
-        if(self.parent is not None):
+        if self.parent is not None:
             manifest_parser.add_arbitrary_code("target=\""+str(global_mod.top_module.target)+"\"")
             manifest_parser.add_arbitrary_code("action=\""+str(global_mod.top_module.action)+"\"")
             manifest_parser.add_arbitrary_code("syn_device=\""+str(global_mod.top_module.syn_device)+"\"")
+            manifest_parser.add_arbitrary_code("sim_tool=\""+str(global_mod.top_module.sim_tool)+"\"")
 
         manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
@@ -185,7 +190,6 @@ class Module(object):
             logging.debug("No manifest found in module "+str(self))
         else:
             manifest_parser.add_manifest(self.manifest)
-            logging.debug("Parsing manifest file: " + str(self.manifest))
 
         opt_map = None
         try:
@@ -196,19 +200,22 @@ class Module(object):
         self._manifest = opt_map
 
     def process_manifest(self):
-        logging.debug("process_manifest %s" % self.path)
+        if self._manifest is None:
+            logging.debug("there is no manifest to be processed")
+            return
+        logging.debug(self.path)
         if self._manifest["syn_ise_version"] is not None:
             version = self._manifest["syn_ise_version"]
             if isinstance(version, float):
                 version = str(version).split('.')
                 major = version[0]
-                mino = version[1]
+                minor = version[1]
                 self.syn_ise_version = (major, minor)
             if isinstance(version, basestring):
                 parts = version.split('.')
                 #assert len(parts) = 2
                 self.syn_ise_version = (int(parts[0]), int(parts[1]))
-        if(self._manifest["fetchto"] is not None):
+        if self._manifest["fetchto"] is not None:
             fetchto = path_mod.rel2abs(self._manifest["fetchto"], self.path)
             self.fetchto = fetchto
         else:
@@ -277,8 +284,10 @@ class Module(object):
 
         if self._manifest["files"] == []:
             self.files = SourceFileSet()
+            logging.debug(None)
         else:
             self._manifest["files"] = self._flatten_list(self._manifest["files"])
+            logging.debug(self.path + str(self._manifest["files"]))
             paths = self._make_list_of_paths(self._manifest["files"])
             self.files = self._create_file_list_from_paths(paths=paths)
             for f in self.files:
@@ -295,13 +304,9 @@ class Module(object):
             self.sim_only_files = self._create_file_list_from_paths(paths=paths)
 
         self.syn_pre_cmd = self._manifest["syn_pre_cmd"]
-        #self._check_filepath(self.syn_pre_cmd)
         self.syn_post_cmd = self._manifest["syn_post_cmd"]
-        #self._check_filepath(self.syn_post_cmd)
         self.sim_pre_cmd = self._manifest["sim_pre_cmd"]
-        #self._check_filepath(self.sim_pre_cmd)
         self.sim_post_cmd = self._manifest["sim_post_cmd"]
-        #self._check_filepath(self.sim_post_cmd)
 
         self.bit_file_targets = SourceFileSet()
         if len(self._manifest["bit_file_targets"]) != 0:
@@ -347,21 +352,23 @@ class Module(object):
 
     def _make_list_of_paths(self, list_of_paths):
         paths = []
+        logging.debug(str(list_of_paths))
         for filepath in list_of_paths:
-            filepath = path_mod.rel2abs(filepath, self.path)
             if self._check_filepath(filepath):
-                paths.append(filepath)
+                paths.append(path_mod.rel2abs(filepath, self.path))
         return paths
 
     def _check_filepath(self, filepath):
         if filepath:
-            if not os.path.exists(filepath):
-                logging.error("Specified path doesn't exist: %s" % filepath)
-                quit()
             if path_mod.is_abs_path(filepath):
                 logging.warning("Specified path seems to be an absolute path: %s\nOmitting." % filepath)
                 #return False
                 return True
+            filepath = path_mod.rel2abs(filepath, self.path)
+            if not os.path.exists(filepath):
+                logging.error("Specified path doesn't exist: %s" % filepath)
+                quit()
+
             if not os.path.isfile(filepath):
                 logging.warning("Specified path is not a normal file: %s\nOmitting." % filepath)
                 #return False

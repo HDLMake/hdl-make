@@ -213,7 +213,7 @@ class DependencySolver:
                     if not pf:
                         logging.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                     else:
-                        logging.debug("--> " + pf.path)
+                        logging.debug("%s depends on %s" % (f.path, pf.path))
                         if pf.path != f.path:
                             f.dep_depends_on.append(pf)
             #get rid of duplicates by making a set from the list and vice versa
@@ -230,7 +230,7 @@ class DependencySolver:
                     if not pf:
                         logging.warning("Cannot find depending for file "+str(f)+": "+req)
                     else:
-                        logging.debug("--> " + pf.path)
+                        logging.debug("%s depends on %s " % (f.path, pf.path))
                         f.dep_depends_on.append(pf)
             #get rid of duplicates by making a set from the list and vice versa
             f.dep_depends_on = list(set(f.dep_depends_on))
