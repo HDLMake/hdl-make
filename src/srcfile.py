@@ -107,7 +107,6 @@ class SourceFile(IDependable, File):
 class VHDLFile(SourceFile):
     def __init__(self, path, library=None, vcom_opt=None):
         SourceFile.__init__(self, path, library)
-        self.__create_deps()
         if not vcom_opt:
             self.vcom_opt = ""
         else:
@@ -240,7 +239,6 @@ class VerilogFile(SourceFile):
         if include_dirs:
             self.include_dirs.extend(include_dirs)
         self.include_dirs.append(path_mod.relpath(self.dirname))
-        self.__create_deps()
 
     def __create_deps(self):
 #        self.dep_requires = self.__search_includes()
