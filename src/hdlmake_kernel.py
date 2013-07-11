@@ -31,10 +31,11 @@ from srcfile import IDependable, SourceFileSet, SourceFileFactory
 
 
 class HdlmakeKernel(object):
-    def __init__(self, modules_pool, options):
+    def __init__(self, modules_pool, options, env):
         self.modules_pool = modules_pool
         self.make_writer = MakefileWriter("Makefile")
         self.options = options
+        self.env = env
 
     @property
     def top_module(self):
@@ -122,7 +123,11 @@ class HdlmakeKernel(object):
 
     def _generate_vsim_makefile(self):
 #        p.info("Generating makefile for simulation.")
-        logging.info("Generating ModelSim makefile for simulation.")
+        if self.env["modelsim_path"] is None:
+            logging.error("Can't generate a Modelsim makefile. Modelsim not found.")
+            quit()
+        else:
+            logging.info("Generating ModelSim makefile for simulation.")
         solver = DependencySolver()
 
         pool = self.modules_pool
@@ -135,7 +140,11 @@ class HdlmakeKernel(object):
 
     def _generate_isim_makefile(self):
 #        p.info("Generating makefile for simulation.")
-        logging.info("Generating ISE Simulation (ISim) makefile for simulation.")
+        if self.env["isim_path"] is None:
+            logging.error("Can't generate an ISim makefile. ISim not found.")
+            quit()
+        else:
+            logging.info("Generating ISE Simulation (ISim) makefile for simulation.")
         solver = DependencySolver()
 
         pool = self.modules_pool
@@ -151,7 +160,12 @@ class HdlmakeKernel(object):
 
     def _generate_iverilog_makefile(self):
         from dep_solver import DependencySolver
-        logging.info("Generating makefile for simulation.")
+        if self.env["isim_path"] is None:
+            logging.error("Can't generate an IVerilog makefile. IVerilog not found.")
+            quit()
+        else:
+            logging.info("Generating makefile for simulation.")
+
         solver = DependencySolver()
         pool = self.modules_pool
 
@@ -193,16 +207,19 @@ class HdlmakeKernel(object):
         cwd=os.getcwd(), user=self.connection.ssh_user, server=self.connection.ssh_server)
 
     def generate_ise_project(self):
-        env = global_mod.env
-        logging.info("Generating/updating ISE project")
-        self._check_all_fetched_or_quit()
-        if not env["ise_version"]:
-            logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
-                          "project file properly. Please use syn_ise_version in the manifest "
-                          "or set")
+        env = self.env
+        if self.env["ise_path"] is None:
+            logging.error("Can't generate an ISE project. ISE not found.")
             quit()
         else:
-            logging.info("Generating project for ISE v. %d.%d" % (env["ise_version"][0], env["ise_version"][1]))
+            if not env["ise_version"]:
+                logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
+                  "project file properly. Please use syn_ise_version in the manifest "
+                  "or set")
+                quit()
+            else:
+                logging.info("Generating project for ISE v. %d.%d" % (env["ise_version"][0], env["ise_version"][1]))
+        self._check_all_fetched_or_quit()
 
         if os.path.exists(self.top_module.syn_project):
             self._update_existing_ise_project()
@@ -210,7 +227,11 @@ class HdlmakeKernel(object):
             self._create_new_ise_project()
 
     def generate_quartus_project(self):
-        logging.info("Generating/updating Quartus project.")
+        if self.env["quartus_path"] is None:
+            logging.error("Can't generate a Quartus project. Quartus not found.")
+            quit()
+        else:
+            logging.info("Generating/updating Quartus project.")
 
         self._check_all_fetched_or_quit()
 
@@ -235,7 +256,7 @@ class HdlmakeKernel(object):
         all_files.add(non_dependable)
         all_files.add(dependable)
 
-        prj = ISEProject(ise=global_mod.env["ise_version"],
+        prj = ISEProject(ise=self.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())
         prj.add_files(all_files)
         from srcfile import SourceFileFactory
@@ -254,7 +275,7 @@ class HdlmakeKernel(object):
         fileset = solver.solve(fileset)
         fileset.add(non_dependable)
 
-        prj = ISEProject(ise=global_mod.env["ise_version"],
+        prj = ISEProject(ise=self.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())
         prj.add_files(fileset)
         prj.add_libs(fileset.get_libs())
