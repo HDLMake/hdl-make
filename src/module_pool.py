@@ -23,108 +23,11 @@
 from __future__ import print_function
 import os
 import logging
-import path
 import global_mod
+from fetch import BackendFactory
 
 
 class ModulePool(list):
-
-    class ModuleFetcher:
-        def __init__(self):
-            pass
-
-        def fetch_single_module(self, module):
-            new_modules = []
-            logging.debug("Fetching module: " + str(module))
-
-            if module.source == "local":
-                logging.debug("ModPath: " + module.path)
-            else:
-                logging.info("Fetching module: " + str(module) +
-                             "[parent: " + str(module.parent) + "]")
-                if module.source == "svn":
-                    logging.info("[svn] Fetching to " + module.fetchto)
-                    self.__fetch_from_svn(module)
-                if module.source == "git":
-                    logging.info("[git] Fetching to " + module.fetchto)
-                    self.__fetch_from_git(module)
-
-            module.parse_manifest()
-            module.process_manifest()
-
-            new_modules.extend(module.local)
-            new_modules.extend(module.svn)
-            new_modules.extend(module.git)
-            return new_modules
-
-        def __fetch_from_svn(self, module):
-            if not os.path.exists(module.fetchto):
-                os.mkdir(module.fetchto)
-
-            cur_dir = os.getcwd()
-            os.chdir(module.fetchto)
-
-            cmd = "svn checkout {0} " + module.basename
-            if module.revision:
-                cmd = cmd.format(module.url + '@' + module.revision)
-            else:
-                cmd = cmd.format(module.url)
-
-            rval = True
-
-            logging.debug(cmd)
-            if os.system(cmd) != 0:
-                rval = False
-            os.chdir(cur_dir)
-
-            module.isfetched = True
-            module.path = os.path.join(module.fetchto, module.basename)
-            return rval
-
-        def __fetch_from_git(self, module):
-            if not os.path.exists(module.fetchto):
-                os.mkdir(module.fetchto)
-
-            cur_dir = os.getcwd()
-            if module.branch is None:
-                module.branch = "master"
-
-            basename = path.url_basename(module.url)
-            mod_path = os.path.join(module.fetchto, basename)
-
-            if basename.endswith(".git"):
-                basename = basename[:-4]  # remove trailing .git
-
-            if module.isfetched:
-                update_only = True
-            else:
-                update_only = False
-
-            if update_only:
-                cmd = "(cd {0} && git checkout {1})"
-                cmd = cmd.format(mod_path, module.branch)
-            else:
-                cmd = "(cd {0} && git clone -b {2} {1})"
-                cmd = cmd.format(module.fetchto, module.url, module.branch)
-
-            rval = True
-
-            logging.debug(cmd)
-            if os.system(cmd) != 0:
-                rval = False
-
-            if module.revision and rval:
-                os.chdir(mod_path)
-                cmd = "git checkout " + module.revision
-                logging.debug(cmd)
-                if os.system(cmd) != 0:
-                    rval = False
-                os.chdir(cur_dir)
-
-            module.isfetched = True
-            module.path = mod_path
-            return rval
-
     def __init__(self, *args):
         list.__init__(self, *args)
         self.top_module = None
@@ -141,6 +44,22 @@ class ModulePool(list):
             if mod.url == module.url:
                 return True
         return False
+
+    def _fetch(self, module):
+        new_modules = []
+        logging.debug("Fetching module: " + str(module))
+
+        bf = BackendFactory()
+        fetcher = bf.get_backend(module)
+        fetcher.fetch(module)
+
+        module.parse_manifest()
+        module.process_manifest()
+
+        new_modules.extend(module.local)
+        new_modules.extend(module.svn)
+        new_modules.extend(module.git)
+        return new_modules
 
     def new_module(self, parent, url, source, fetchto, process_manifest=True):
         from module import Module
@@ -178,7 +97,6 @@ class ModulePool(list):
         return True
 
     def fetch_all(self, unfetched_only=False):
-        fetcher = self.ModuleFetcher()
         fetch_queue = [m for m in self]
 
         while len(fetch_queue) > 0:
@@ -188,9 +106,9 @@ class ModulePool(list):
                 if cur_mod.isfetched:
                     new_modules = cur_mod.submodules()
                 else:
-                    new_modules = fetcher.fetch_single_module(cur_mod)
+                    new_modules = self._fetch(cur_mod)
             else:
-                new_modules = fetcher.fetch_single_module(cur_mod)
+                new_modules = self._fetch(cur_mod)
             for mod in new_modules:
                 if not mod.isfetched:
                     logging.debug("Appended to fetch queue: " + str(mod.url))

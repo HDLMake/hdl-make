@@ -26,8 +26,9 @@ import path
 from makefile_writer import MakefileWriter
 from flow import ISEProject
 from flow_altera import QuartusProject
-from dep_solver import DependencySolver
-from srcfile import IDependable, SourceFileSet, SourceFileFactory
+import dep_solver
+from srcfile import SourceFileSet, SourceFileFactory
+from dependable_file import DependableFile
 
 
 class HdlmakeKernel(object):
@@ -128,24 +129,22 @@ class HdlmakeKernel(object):
             quit()
         else:
             logging.info("Generating ModelSim makefile for simulation.")
-        solver = DependencySolver()
 
         pool = self.modules_pool
         self._check_all_fetched_or_quit()
         top_module = pool.get_top_module()
         flist = pool.build_global_file_list()
-        flist_sorted = solver.solve(flist)
+        flist_sorted = dep_solver.solve(flist)
         #self.make_writer.generate_modelsim_makefile(flist_sorted, top_module)
         self.make_writer.generate_vsim_makefile(flist_sorted, top_module)
 
     def _generate_isim_makefile(self):
 #        p.info("Generating makefile for simulation.")
-        if self.env["isim_path"] is None:
+        if self.env["isim_path"] is None and self.env["xilinx"] is None:
             logging.error("Can't generate an ISim makefile. ISim not found.")
             quit()
         else:
             logging.info("Generating ISE Simulation (ISim) makefile for simulation.")
-        solver = DependencySolver()
 
         pool = self.modules_pool
         self._check_all_fetched_or_quit()
@@ -155,24 +154,22 @@ class HdlmakeKernel(object):
             logging.error("top_module variable must be set in the top manifest.")
             quit()
         flist = pool.build_global_file_list()
-        flist_sorted = solver.solve(flist)
+        flist_sorted = dep_solver.solve(flist)
         self.make_writer.generate_isim_makefile(flist_sorted, top_module)
 
     def _generate_iverilog_makefile(self):
-        from dep_solver import DependencySolver
-        if self.env["isim_path"] is None:
+        if self.env["iverilog_path"] is None:
             logging.error("Can't generate an IVerilog makefile. IVerilog not found.")
             quit()
         else:
             logging.info("Generating makefile for simulation.")
 
-        solver = DependencySolver()
         pool = self.modules_pool
 
         self._check_all_fetched_or_quit()
         tm = pool.get_top_module()
         flist = pool.build_global_file_list()
-        flist_sorted = solver.solve(flist)
+        flist_sorted = dep_solver.solve(flist)
         self.make_writer.generate_iverilog_makefile(flist_sorted, tm, pool)
 
     def generate_ise_makefile(self):
@@ -249,9 +246,8 @@ class HdlmakeKernel(object):
     def _update_existing_ise_project(self):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
-        solver = DependencySolver()
-        non_dependable = fileset.inversed_filter(IDependable)
-        dependable = solver.solve(fileset)
+        non_dependable = fileset.inversed_filter(DependableFile)
+        dependable = dep_solver.solve(fileset)
         all_files = SourceFileSet()
         all_files.add(non_dependable)
         all_files.add(dependable)
@@ -270,9 +266,8 @@ class HdlmakeKernel(object):
     def _create_new_ise_project(self, ise):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
-        solver = DependencySolver()
-        non_dependable = fileset.inversed_filter(IDependable)
-        fileset = solver.solve(fileset)
+        non_dependable = fileset.inversed_filter(DependableFile)
+        fileset = dep_solver.solve(fileset)
         fileset.add(non_dependable)
 
         prj = ISEProject(ise=self.env["ise_version"],
@@ -293,9 +288,8 @@ class HdlmakeKernel(object):
     def _create_new_quartus_project(self):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
-        solver = DependencySolver()
-        non_dependable = fileset.inversed_filter(IDependable)
-        fileset = solver.solve(fileset)
+        non_dependable = fileset.inversed_filter(DependableFile)
+        fileset = dep_solver.solve(fileset)
         fileset.add(non_dependable)
 
         prj = QuartusProject(top_mod.syn_project)
@@ -313,9 +307,8 @@ class HdlmakeKernel(object):
     def _update_existing_quartus_project(self):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
-        solver = DependencySolver()
-        non_dependable = fileset.inversed_filter(IDependable)
-        fileset = solver.solve(fileset)
+        non_dependable = fileset.inversed_filter(DependableFile)
+        fileset = dep_solver.solve(fileset)
         fileset.add(non_dependable)
         prj = QuartusProject(top_mod.syn_project)
         prj.read()
@@ -375,8 +368,6 @@ class HdlmakeKernel(object):
         from srcfile import VerilogFile, VHDLFile, NGCFile
         from vlog_parser import VerilogPreprocessor
 
-        solver = DependencySolver()
-
         pool = self.modules_pool
         if not pool.is_everything_fetched():
             logging.error("A module remains unfetched. Fetching must be done prior to makefile generation")
@@ -384,7 +375,7 @@ class HdlmakeKernel(object):
             quit()
 
         flist = pool.build_global_file_list()
-        flist_sorted = solver.solve(flist)
+        flist_sorted = dep_solver.solve(flist)
 #        if not os.path.exists(self.options.merge_cores):
  #           os.makedirs(self.options.merge_cores)
         base = self.options.merge_cores
