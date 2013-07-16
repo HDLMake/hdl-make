@@ -22,80 +22,63 @@
 
 import logging
 import global_mod
-import os.path
+from srcfile import VHDLFile, VerilogFile, SVFile
+from dependable_file import DependableFile
 
 
-class IDependable:
-    def __init__(self):
-        self.dep_index = 0
-        self._dep_fixed = False
-        self.__dep_provides = []
-        self.__dep_requires = []
-        self.__dep_depends_on = []
-        pass
-
-    #use proxy template here
-    def get_dep_provides(self):
-        if self._dep_fixed is False:
-            self.__create_deps()
-#        self._dep_fixed = True
-        return self.__dep_provides
-
-    def set_dep_provides(self, what):
-        self.__dep_provides = what
-    dep_provides = property(get_dep_provides, set_dep_provides)
-
-    def get_dep_requires(self):
-        if self._dep_fixed is False:
-            self.__create_deps()
- #       self._dep_fixed = True
-        return self.__dep_requires
-
-    def set_dep_requires(self, what):
-        self.__dep_requires = what
-    dep_requires = property(get_dep_requires, set_dep_requires)
-
-    def get_dep_depends_on(self):
-        return self.__dep_depends_on
-
-    def set_dep_depends_on(self, what):
-        self.__dep_depends_on = what
-    dep_depends_on = property(get_dep_depends_on, set_dep_depends_on)
-
-    def __create_deps(self):
-        """Used solely for polymorphism"""
-
-
-class DependencySolver:
+class DependencySolver(object):
     def __init__(self):
         self.entities = {}
 
-    def __lookup_post_provider(self, files, start_index, file):
-        requires = file.dep_requires
-        while True:
-            start_index = start_index + 1
-            try:
-                if type(files[start_index]) == type(file):
-                    f = files[start_index]
-                else:
-                    continue
-            except IndexError:
-                break
+    def _find_provider_file(self, req, vhdl_file, fset):
+        raise NotImplementedError()
 
-            if requires:
-                for req in requires:
-                    if req in f.dep_provides:
-                        return start_index
-        return None
+    def solve(self):
+        raise NotImplementedError()
 
-    def __find_provider_vhdl_file(self, files, req):
-        for f in files:
+
+class VHDLDependencySolver(DependencySolver):
+    def _find_provider_file(self, req, vhdl_file, fset):
+        for f in fset:
             if req in f.dep_provides:
                 return f
 
         return None
 
-    def __find_provider_verilog_file(self, req, v_file, fset):
+    def solve(self, vhdl_files):
+        for f in vhdl_files:
+            logging.debug("solving deps for " + f.path)
+            if f.dep_requires:
+                for req in f.dep_requires:
+                    pf = self._find_provider_file(req=req, vhdl_file=f, fset=vhdl_files)
+                    if not pf:
+                        logging.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
+                    else:
+                        logging.debug("%s depends on %s" % (f.path, pf.path))
+                        if pf.path != f.path:
+                            f.dep_depends_on.append(pf)
+            #get rid of duplicates by making a set from the list and vice versa
+            f.dep_depends_on = list(set(f.dep_depends_on))
+            f.dep_resolved = True
+
+
+class VerilogDependencySolver(DependencySolver):
+    def solve(self, verilog_files):
+        for f in verilog_files:
+            logging.debug("solving deps for " + f.path)
+            if f.dep_requires:
+                for req in f.dep_requires:
+                    pf = self._find_provider_file(req, f, verilog_files)
+                    if not pf:
+                        logging.warning("Cannot find depending for file "+str(f)+": "+req)
+                    else:
+                        logging.debug("%s depends on %s " % (f.path, pf.path))
+                        f.dep_depends_on.append(pf)
+            f.dep_resolved = True
+            #get rid of duplicates by making a set from the list and vice versa
+            f.dep_depends_on = list(set(f.dep_depends_on))
+
+    def _find_provider_file(self, req, v_file, fset):
         from srcfile import SourceFileFactory
         import os
         sff = SourceFileFactory()
@@ -112,7 +95,7 @@ class DependencySolver:
         if os.path.exists(h_file) and not os.path.isdir(h_file):
             return sff.new(h_file)
 
-        inc_dirs = self.__parse_vlog_opt(v_file.vlog_opt)
+        inc_dirs = self._parse_vlog_opt(v_file.vlog_opt)
 
         for dir in inc_dirs:
             dir = os.path.join(os.getcwd(), dir)
@@ -124,20 +107,7 @@ class DependencySolver:
                 return sff.new(h_file)
         return None
 
-    #def __parse_vlog_opt(self, vlog_opt):
-    #    import re
-    #    ret = []
-    #    inc_pat = re.compile(".*?\+incdir\+([^ ]+)")
-    #    while True:
-    #        m = re.match(inc_pat, vlog_opt)
-    #        if m:
-    #            ret.append(m.group(1))
-    #            vlog_opt = vlog_opt[m.end():]
-    #        else:
-    #            break
-    #    return ret
-
-    def __parse_vlog_opt(self, vlog_opt):
+    def _parse_vlog_opt(self, vlog_opt):
         import re
         ret = []
         inc_vsim_vlog = re.compile(".*?\+incdir\+([^ ]+)")
@@ -171,89 +141,17 @@ class DependencySolver:
             logging.debug("Include paths are: " + ' '.join(ret))
         return ret
 
-    def solve(self, fileset):
-        n_iter = 0
-        max_iter = 100
-        import copy
 
-        fset = fileset.filter(IDependable)
-        f_nondep = []
-
-        done = False
-        while not done and (n_iter < max_iter):
-            n_iter = n_iter+1
-            done = True
-            for f in fset:
-                if not f._dep_fixed:
-                    idx = fset.index(f)
-                    k = self.__lookup_post_provider(files=fset, start_index=idx, file=f)
-
-                    if k:
-                        done = False
-                        #swap
-                        fset[idx], fset[k] = fset[k], fset[idx]
-
-        if(n_iter == max_iter):
-            logging.error("Maximum number of iterations reached when trying to solve the dependencies.\n"
-                          "Perhaps a cyclic inter-dependency problem.")
-            return None
-
-        for f in fset:
-            if f._dep_fixed:
-                f_nondep.append(copy.copy(f))
-                del f
-
-        f_nondep.sort(key=lambda f: f.dep_index)
-        from srcfile import VHDLFile, VerilogFile
-        for f in [file for file in fset if isinstance(file, VHDLFile)]:
-            logging.debug(f.path)
-            if f.dep_requires:
-                for req in f.dep_requires:
-                    pf = self.__find_provider_vhdl_file([file for file in fset if isinstance(file, VHDLFile)], req)
-                    if not pf:
-                        logging.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
-                    else:
-                        logging.debug("%s depends on %s" % (f.path, pf.path))
-                        if pf.path != f.path:
-                            f.dep_depends_on.append(pf)
-            #get rid of duplicates by making a set from the list and vice versa
-            f.dep_depends_on = list(set(f.dep_depends_on))
-
-        import srcfile as sf
-
-        acc = []
-        for f in [file for file in fset if isinstance(file, VerilogFile)]:
-            logging.debug(f.path)
-            if f.dep_requires:
-                for req in f.dep_requires:
-                    pf = self.__find_provider_verilog_file(req, f, fset+acc)
-                    if not pf:
-                        logging.warning("Cannot find depending for file "+str(f)+": "+req)
-                    else:
-                        logging.debug("%s depends on %s " % (f.path, pf.path))
-                        f.dep_depends_on.append(pf)
-            #get rid of duplicates by making a set from the list and vice versa
-            f.dep_depends_on = list(set(f.dep_depends_on))
-
-        newobj = sf.SourceFileSet()
-        newobj.add(f_nondep)
-        for f in fset:
-            try:
-                if not f._dep_fixed:
-                    newobj.add(f)
-            except:
-                newobj.add(f)
-
-    #search for SV includes (BFS algorithm)
-        from srcfile import SVFile
-        for f in [file for file in newobj if isinstance(file, SVFile)]:
+class SVDependencySolver(VerilogDependencySolver):
+    def solve(self, sv_files):
+        for f in sv_files:
             stack = f.dep_depends_on[:]
             while stack:
                 qf = stack.pop(0)
                 if qf.dep_requires:
                     f.dep_requires.extend(qf.dep_requires)
                     for req in qf.dep_requires:
-                        pf = self.__find_provider_verilog_file(req, f, [])
+                        pf = self._find_provider_file(req, f, [])
                         if not pf:
                             logging.warning("Cannot find include for file "+str(f)+": "+req)
                         else:
@@ -262,7 +160,71 @@ class DependencySolver:
                             stack.append(pf)
              #get rid of duplicates by making a set from the list and vice versa
             f.dep_depends_on = list(set(f.dep_depends_on))
+            f.dep_resolved = True
 
-        for k in newobj:
-            logging.debug("DEP_IDX " + str(k.dep_index) + " " + k.path + " DEP_FIXED " + str(k._dep_fixed))
-        return newobj
+
+def _lookup_provider_index(files, start_index, srcfile):
+    requires = srcfile.dep_requires
+    if not requires:
+        return None
+    for cur_idx in xrange(start_index, len(files)):
+        if type(files[cur_idx]) == type(srcfile):
+            for req in requires:
+                if req in files[cur_idx].dep_provides:
+                    return cur_idx
+    return None
+
+
+def solve(fileset):
+    n_iter = 0
+    max_iter = 100
+    import copy
+
+    fset = fileset.filter(DependableFile)
+    independent_files = []
+
+    done = False
+    while not done and (n_iter < max_iter):
+        n_iter = n_iter+1
+        done = True
+        for f in fset:
+            idx = fset.index(f)
+            k = _lookup_provider_index(files=fset, start_index=idx+1, srcfile=f)
+
+            if k:
+                done = False
+                #swap
+                fset[idx], fset[k] = fset[k], fset[idx]
+
+    if(n_iter == max_iter):
+        logging.error("Maximum number of iterations reached when trying to solve the dependencies.\n"
+                      "Perhaps a cyclic inter-dependency problem.")
+        return None
+
+    for f in fset:
+        if not f.dep_requires:
+            independent_files.append(copy.copy(f))
+            del f
+
+    independent_files.sort(key=lambda f: f.dep_index)
+    vhdl_files = [file for file in fset if isinstance(file, VHDLFile)]
+    vhdl_solver = VHDLDependencySolver()
+    vhdl_solver.solve(vhdl_files)
+
+    import srcfile as sf
+
+    verilog_files = [file for file in fset if isinstance(file, VerilogFile)]
+    verilog_solver = VerilogDependencySolver()
+    verilog_solver.solve(verilog_files)
+
+    sv_files = [file for file in fset if isinstance(file, SVFile)]
+    sv_solver = SVDependencySolver()
+    sv_solver.solve(sv_files)
+
+    sorted_list = sf.SourceFileSet()
+    sorted_list.add(independent_files)
+    sorted_list.add(fset)
+
+    for k in sorted_list:
+        logging.debug("DEP_IDX " + str(k.dep_index) + " " + k.path)
+    return sorted_list

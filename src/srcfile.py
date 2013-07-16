@@ -20,8 +20,9 @@
 #
 
 from __future__ import print_function
-from dep_solver import IDependable
+from dependable_file import DependableFile
 import os
+import sys
 import global_mod
 import logging
 import flow
@@ -88,11 +89,11 @@ class File(object):
         return ext
 
 
-class SourceFile(IDependable, File):
+class SourceFile(DependableFile, File):
     cur_index = 0
 
     def __init__(self, path, library=None):
-        IDependable.__init__(self)
+        DependableFile.__init__(self)
         File.__init__(self, path)
         if not library:
             library = "work"
@@ -121,15 +122,19 @@ class VHDLFile(SourceFile):
         else:
             return False
 
-    def __create_deps(self):
+    def _create_deps_provides(self):
         if self.__check_encryption():
             self.dep_index = SourceFile.gen_index(self)
-            self._dep_fixed = True
         else:
-            self.dep_requires = list(self.__search_use_clauses())
             self.dep_provides = list(self.__search_packages())
         logging.debug(self.path + " provides " + str(self.dep_provides))
-        logging.debug(self.path + " requires " + str(self.dep_requires))
+
+    def _create_deps_requires(self):
+        if self.__check_encryption():
+            self.dep_index = SourceFile.gen_index(self)
+        else:
+            self.dep_requires = list(self.__search_use_clauses())
+        logging.debug(self.path + " provides " + str(self.dep_provides))
 
     def __search_use_clauses(self):
         """
@@ -147,6 +152,8 @@ class VHDLFile(SourceFile):
                     std_libs = flow.XilinxsiminiReader().get_libraries()
                 elif global_mod.top_module.sim_tool == "vsim" or global_mod.top_module.sim_tool == "modelsim":
                     std_libs = flow.ModelsiminiReader().get_libraries()
+                elif global_mod.top_module.sim_tool == "iverilog":
+                    std_libs = flow.MODELSIM_STANDARD_LIBS
                 else:
                     logging.warning("Could not determine simulation tool. Defaulting to Modelsim")
                     std_libs = flow.MODELSIM_STANDARD_LIBS
@@ -240,18 +247,21 @@ class VerilogFile(SourceFile):
             self.include_dirs.extend(include_dirs)
         self.include_dirs.append(path_mod.relpath(self.dirname))
 
-    def __create_deps(self):
+    def _create_deps_provides(self):
+#        self.dep_requires = self.__search_includes()
+#        self.dep_provides = self.name
+        self.dep_provides = self.name
+
+    def _create_deps_requires(self):
 #        self.dep_requires = self.__search_includes()
 #        self.dep_provides = self.name
         if global_mod.env["iverilog_path"]:
-            self.dep_requires = []
-            deps = self.__get_iverilog_dependencies()
-            self.dep_requires.extend(deps)
+            deps = self._get_iverilog_dependencies()
+            self.dep_requires = deps
         else:
-            self.dep_requires = self.__search_includes()
-        self.dep_provides = self.name
+            self.dep_requires = self._search_includes()
 
-    def __get_iverilog_dependencies(self):
+    def _get_iverilog_dependencies(self):
            #TODO: Check to see dependencies.list doesn't exist already
         if self.path.endswith(".vh") and global_mod.top_module.sim_tool == "iverilog":
             return []
@@ -285,7 +295,7 @@ class VerilogFile(SourceFile):
         depFile.close()
         return depFiles
 
-    def __search_includes(self):
+    def _search_includes(self):
         import re
         f = open(self.path, "r")
         try:
@@ -342,7 +352,6 @@ class DPFFile(File):
 class NGCFile(SourceFile):
     def __init__(self, path):
         SourceFile.__init__(self, path)
-        self._dep_fixed = True
 
 
 class WBGenFile(File):
@@ -403,7 +412,7 @@ class SourceFileFactory:
             path = os.path.abspath(path)
         tmp = path.rsplit('.')
         extension = tmp[len(tmp)-1]
-        logging.debug("SFF> " + path)
+        logging.debug("add file " + path)
 
         nf = None
         if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
