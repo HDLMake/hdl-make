@@ -21,7 +21,7 @@ class BackendFactory(object):
             if module.source == "local":
                 return Local()
             else:
-                logging.info("Fetching module: " + str(module) +
+                logging.info("Investigating module: " + str(module) +
                              "[parent: " + str(module.parent) + "]")
                 if module.source == "svn":
                     return Svn()
