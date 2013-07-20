@@ -70,7 +70,7 @@ class ManifestParser(ConfigParser):
 
         self.add_delimiter()
 
-        self.add_option('sim_tool', default=None, help="Simulation tool to be used (e.g. isim, vsim, iverilog)", type = '')
+        self.add_option('sim_tool', default=None, help="Simulation tool to be used (e.g. isim, vsim, iverilog)", type='')
         self.add_option('sim_pre_cmd', default=None, help="Command to be executed before simulation", type='')
         self.add_option('sim_post_cmd', default=None, help="Command to be executed after simulation", type='')
         self.add_option('vsim_opt', default="", help="Additional options for vsim", type='')
@@ -84,8 +84,8 @@ class ManifestParser(ConfigParser):
         self.add_delimiter()
 
         self.add_option('modules', default={}, help="List of local modules", type={})
-        self.add_option('target', default=None, help="What is the target architecture", type='')
-        self.add_option('action', default=None, help="What is the action that should be taken (simulation/synthesis)", type='')
+        self.add_option('target', default='', help="What is the target architecture", type='')
+        self.add_option('action', default='', help="What is the action that should be taken (simulation/synthesis)", type='')
 
         self.add_allowed_key('modules', key="svn")
         self.add_allowed_key('modules', key="git")
