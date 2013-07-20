@@ -278,6 +278,7 @@ class ConfigParser(object):
             #print "out:", s.getvalue()
         except SyntaxError as e:
             logging.error("Invalid syntax in the manifest file " + self.config_file + ":\n" + str(e))
+            logging.error(content)
             quit()
         except:
             logging.error("Encountered unexpected error while parsing " + self.config_file)
