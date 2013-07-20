@@ -20,8 +20,11 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import re
+import os
 import logging
 import global_mod
+from srcfile import SourceFileFactory, SourceFileSet, SourceFile
 from srcfile import VHDLFile, VerilogFile, SVFile
 from dependable_file import DependableFile
 
@@ -39,6 +42,8 @@ class DependencySolver(object):
 
 class VHDLDependencySolver(DependencySolver):
     def _find_provider_file(self, req, vhdl_file, fset):
+        assert isinstance(req, tuple)
+        assert isinstance(vhdl_file, VHDLFile)
         for f in fset:
             if req in f.dep_provides:
                 return f
@@ -51,6 +56,7 @@ class VHDLDependencySolver(DependencySolver):
             if f.dep_requires:
                 for req in f.dep_requires:
                     pf = self._find_provider_file(req=req, vhdl_file=f, fset=vhdl_files)
+                    assert isinstance(pf, SourceFile)
                     if not pf:
                         logging.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
                     else:
@@ -64,6 +70,8 @@ class VHDLDependencySolver(DependencySolver):
 
 class VerilogDependencySolver(DependencySolver):
     def solve(self, verilog_files):
+        assert isinstance(verilog_files, list)
+        assert len(verilog_files) == 0 or isinstance(verilog_files[0], VerilogFile)
         for f in verilog_files:
             logging.debug("solving deps for " + f.path)
             if f.dep_requires:
@@ -79,21 +87,22 @@ class VerilogDependencySolver(DependencySolver):
             f.dep_depends_on = list(set(f.dep_depends_on))
 
     def _find_provider_file(self, req, v_file, fset):
-        from srcfile import SourceFileFactory
-        import os
+        assert isinstance(v_file, VerilogFile)
+        assert isinstance(fset, list)
+
         sff = SourceFileFactory()
         #TODO: Can this be done elsewhere?
         if global_mod.top_module.sim_tool == "iverilog":
             for f in fset:
                 if f.rel_path() == os.path.relpath(req):
                     return f
-            return sff.new(req)
+            return sff.new(req, module=None)
 
         import os
         vf_dirname = v_file.dirname
         h_file = os.path.join(vf_dirname, req)
         if os.path.exists(h_file) and not os.path.isdir(h_file):
-            return sff.new(h_file)
+            return sff.new(h_file, v_file.module)
 
         inc_dirs = self._parse_vlog_opt(v_file.vlog_opt)
 
@@ -104,11 +113,11 @@ class VerilogDependencySolver(DependencySolver):
                 continue
             h_file = os.path.join(dir, req)
             if os.path.exists(h_file) and not os.path.isdir(h_file):
-                return sff.new(h_file)
+                return sff.new(h_file, module=v_file.module)
         return None
 
     def _parse_vlog_opt(self, vlog_opt):
-        import re
+        assert isinstance(vlog_opt, basestring)
         ret = []
         inc_vsim_vlog = re.compile(".*?\+incdir\+([^ ]+)")
         # Either a normal (non-special) character or an escaped special character repeated >= 1 times
@@ -144,6 +153,7 @@ class VerilogDependencySolver(DependencySolver):
 
 class SVDependencySolver(VerilogDependencySolver):
     def solve(self, sv_files):
+        assert len(sv_files) == 0 or isinstance(sv_files[0], VerilogFile)
         for f in sv_files:
             stack = f.dep_depends_on[:]
             while stack:
@@ -155,7 +165,7 @@ class SVDependencySolver(VerilogDependencySolver):
                         if not pf:
                             logging.warning("Cannot find include for file "+str(f)+": "+req)
                         else:
-                            logging.debug("--> " + pf.path)
+                            logging.debug("%s is provider file for %s", pf.path, f.path)
                             f.dep_depends_on.append(pf)
                             stack.append(pf)
              #get rid of duplicates by making a set from the list and vice versa
@@ -164,6 +174,8 @@ class SVDependencySolver(VerilogDependencySolver):
 
 
 def _lookup_provider_index(files, start_index, srcfile):
+    assert isinstance(start_index, int)
+    assert isinstance(srcfile, SourceFile)
     requires = srcfile.dep_requires
     if not requires:
         return None
@@ -176,6 +188,8 @@ def _lookup_provider_index(files, start_index, srcfile):
 
 
 def solve(fileset):
+    assert isinstance(fileset, SourceFileSet)
+
     n_iter = 0
     max_iter = 100
     import copy
