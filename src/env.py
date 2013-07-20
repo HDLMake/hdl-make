@@ -27,6 +27,7 @@ from subprocess import Popen, PIPE
 import re
 import logging
 import os.path
+import path
 
 
 _plain_print = print
@@ -107,11 +108,13 @@ class Env(dict):
 
         # general
         print("### General variabless ###")
-        self._report_and_set_var("coredir")
+        self._report_and_set_hdlmake_var("coredir")
+        if self["coredir"] is not None:
+            print("All modules will be fetched to %s" % path.rel2abs(self["coredir"]))
 
         # determine path for Quartus
         print("\n### Quartus synthesis ###")
-        self._report_and_set_var("quartus_path")
+        self._report_and_set_hdlmake_var("quartus_path")
         if self["quartus_path"] is not None:
             if self._check_in_path("quartus", self["quartus_path"]):
                 print("quartus found under HDLMAKE_QUARTUS_PATH: %s" % self["quartus_path"])
@@ -134,7 +137,7 @@ class Env(dict):
         else:
             print("Environmental variable XILINX is not set.")
 
-        self._report_and_set_var("ise_path")
+        self._report_and_set_hdlmake_var("ise_path")
         if self["ise_path"] is not None and self["xilinx"] is not None:
             print("HDLMAKE_ISE_PATH and XILINX can't be set at a time\n"
                   "Ignoring HDLMAKE_ISE_PATH")
@@ -170,7 +173,7 @@ class Env(dict):
 
         # determine modelsim path
         print("\n### Modelsim simulation ###")
-        self._report_and_set_var("modelsim_path")
+        self._report_and_set_hdlmake_var("modelsim_path")
         if self["modelsim_path"] is not None:
             if self._check_in_path("vsim", self["modelsim_path"]):
                 print("vsim found in HDLMAKE_MODELSIM_PATH: %s." % self["modelsim_path"])
@@ -185,7 +188,7 @@ class Env(dict):
 
         # determine iverilog path
         print("\n### Iverilog simulation ###")
-        self._report_and_set_var("iverilog_path")
+        self._report_and_set_hdlmake_var("iverilog_path")
         if self["iverilog_path"] is not None: 
             if self._check_in_path("iverilog", self["iverilog_path"]):
                 print("iverilog found under HDLMAKE_IVERILOG_PATH: %s" % self["iverilog_path"])
@@ -200,7 +203,7 @@ class Env(dict):
 
         # determine isim path
         print("\n### ISim simulation ###")
-        self._report_and_set_var("isim_path")
+        self._report_and_set_hdlmake_var("isim_path")
 
         if self["isim_path"] is not None:
             if self._check_in_path("isim", self["isim_path"]):
@@ -220,8 +223,8 @@ class Env(dict):
 
         # remote synthesis with ise
         print("\n### Remote synthesis with ISE ###")
-        self._report_and_set_var("rsynth_user")
-        self._report_and_set_var("rsynth_server")
+        self._report_and_set_hdlmake_var("rsynth_user")
+        self._report_and_set_hdlmake_var("rsynth_server")
         can_connect = False
         if self["rsynth_user"] is not None and self["rsynth_server"] is not None:
             ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s echo ok 2>&1'
@@ -235,7 +238,7 @@ class Env(dict):
                 print("Can't make a passwordless connection to the remote machine: %s@%s" % (self["rsynth_user"], self["rsynth_server"]))
                 can_connect = False
 
-        self._report_and_set_var("rsynth_ise_path")
+        self._report_and_set_hdlmake_var("rsynth_ise_path")
         if can_connect and self["rsynth_ise_path"] is not None:
             ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s test -e %s 2>&1'
             ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"], self["rsynth_ise_path"])
@@ -310,7 +313,7 @@ class Env(dict):
         else:
             return False
 
-    def _report_and_set_var(self, name):
+    def _report_and_set_hdlmake_var(self, name):
         name = name.upper()
         val = self._get(name)
         if val:
