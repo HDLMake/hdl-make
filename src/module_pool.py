@@ -24,6 +24,8 @@ from __future__ import print_function
 import os
 import logging
 import global_mod
+import dep_solver
+from srcfile import SourceFileSet
 from fetch import BackendFactory
 
 
@@ -125,41 +127,19 @@ class ModulePool(list):
         return ret
 
     def build_very_global_file_list(self):
-        from srcfile import SourceFileFactory, VerilogFile
-        sff = SourceFileFactory()
-
         files = self.build_global_file_list()
-        extra_verilog_files = set()
-        manifest_verilog_files = files.filter(VerilogFile)
-        queue = manifest_verilog_files
-
-        while len(queue) > 0:
-            vl = queue.pop()
-            for f in vl.dep_requires:
-                nvl = None
-                if global_mod.top_module.sim_tool == "iverilog":
-                    if os.path.relpath(vl.path) == f:
-                        continue
-#                    for fp in list(extra_verilog_files) + manifest_verilog_files:
-                    for fp in files:
-                        if os.path.relpath(fp.path) == f:
-                            nvl = fp
-                    if nvl is None:
-                        nvl = sff.new(f)
-                        if nvl:
-                            queue.append(nvl)
-                else:
-                    nvl = sff.new(os.path.join(vl.dirname, f))
-                    queue.append(nvl)
-                if nvl not in extra_verilog_files and nvl not in manifest_verilog_files:
-                    if nvl:
-                        extra_verilog_files.add(nvl)
-
-        logging.debug("Extra verilog files, not listed in manifests:")
-        for extra_vl in extra_verilog_files:
-            logging.debug(str(extra_vl))
-        for extra_vl in extra_verilog_files:
-            files.add(extra_vl)
+        assert isinstance(files, SourceFileSet)
+        dep_solver.solve(files)
+        assert isinstance(files, list)
+        ret = []
+        for file in files:
+            try:
+                for dep_file in file.dep_depends_on:
+                    if dep_file not in ret:
+                        ret.add(dep_file)
+                ret.add(file)
+            except:
+                pass
         return files
 
     def get_top_module(self):
