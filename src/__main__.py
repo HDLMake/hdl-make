@@ -5,14 +5,19 @@
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
 
-
+from __future__ import print_function
 import os
 import global_mod
 import argparse
 import logging
+import sys
+from manifest_parser import ManifestParser
 from module_pool import ModulePool
 from env import Env
-
+from action import (CleanModules, FetchModules, GenerateFetchMakefile,
+                    GenerateISEMakefile, GenerateISEProject, ListFiles,
+                    ListModules, MergeCores, GenerateQuartusProject,
+                    GenerateRemoteSynthesisMakefile, GenerateSimulationMakefile)
 try:
     from build_hash import BUILD_ID
 except:
@@ -20,142 +25,108 @@ except:
 
 
 def main():
-    usage = "usage: prog [options]\n"
-    usage += "type prog --help to get help message"
+    parser = argparse.ArgumentParser("hdlmake")
+    subparsers = parser.add_subparsers(title="commands", dest="command")
 
-    parser = argparse.ArgumentParser(usage=usage)
-
-    parser.add_argument("--manifest-help", action="store_true",
-    dest="manifest_help", help="print manifest file variables description")
-
-    parser.add_argument("--check-env", action="store_true",
-    dest="check_env", default=False, help="check environment for HDLMAKE-related settings")
-
-    parser.add_argument("--make-sim", dest="make_sim", action="store_true",
-    default=None, help="generate a simulation Makefile")
-
-    parser.add_argument("--make-fetch", dest="make_fetch", action="store_true",
-    default=None, help="generate a makefile for modules' fetching")
-
-    parser.add_argument("--make-ise", dest="make_ise", action="store_true",
-    default=None, help="generate a makefile for local ISE synthesis")
-
-    parser.add_argument("--make-remote", dest="make_remote", action="store_true",
-    default=None, help="generate a makefile for remote synthesis")
-
-    parser.add_argument("-f", "--fetch", action="store_true", dest="fetch",
-    default=None, help="fetch and/or update remote modules listed in Manifest")
-
-    parser.add_argument("--clean", action="store_true", dest="clean",
-    default=None, help="remove all modules fetched for this one")
-
-    parser.add_argument("--list", action="store_true", dest="list",
-    default=None, help="List all modules together with their files")
-
-    parser.add_argument("--list-files", action="store_true", dest="list_files",
-    default=None, help="List all files in a from of a space-separated string")
-
-    parser.add_argument("--merge-cores=name", default=None, dest="merge_cores",
-        help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
-
-    parser.add_argument("--ise-proj", action="store_true", dest="ise_proj",
-    default=None, help="create/update an ise project including list of project"
-        "files")
-
-    parser.add_argument("--quartus-proj", action="store_true", dest="quartus_proj",
-    default=None, help="create/update a quartus project including list of project"
-        "files")
+    check_env = subparsers.add_parser("check-env", help="check environment for HDLMAKE-related settings")
+    manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
+    make_sim = subparsers.add_parser("make-sim", help="generate a simulation Makefile")
+    make_sim.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
+    make_fetch = subparsers.add_parser("make-fetch", help="generate a makefile for modules' fetching")
+    make_fetch.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
+    make_ise = subparsers.add_parser("make-ise", help="generate a makefile for local ISE synthesis")
+    make_ise.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
+    make_remote = subparsers.add_parser("make-remote", help="generate a makefile for remote synthesis")
+    make_remote.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
+    fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
+    clean = subparsers.add_parser("clean", help="remove all modules fetched for this one")
+    listmod = subparsers.add_parser("list-mods", help="List all modules together with their files")
+    listfiles = subparsers.add_parser("list-files", help="List all files in a form of a space-separated string")
+    listfiles.add_argument("--delimiter", help="set delimitier for the list of files", dest="delimiter", default=' ')
+    merge_cores = subparsers.add_parser("merge-cores", help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
+    merge_cores.add_argument("--dest", help="name for output merged file", dest="dest", default=None)
+    ise_proj = subparsers.add_parser("ise-proj", help="create/update an ise project including list of project")
+    quartus_proj = subparsers.add_parser("quartus-proj", help="create/update a quartus project including list of project")
+    version = subparsers.add_parser("version", help="print version id of this Hdlmake build")
 
     parser.add_argument("--py", dest="arbitrary_code",
-    default="", help="add arbitrary code to all manifests' evaluation")
+                        default="", help="add arbitrary code to all manifests' evaluation")
 
     parser.add_argument("--log", dest="log",
-    default="info", help="set logging level (one of debug, info, warning, error, critical")
-
-    parser.add_argument("--version", dest="print_version", action="store_true",
-    default="false", help="print version id of this Hdlmake build")
+                        default="info", help="set logging level (one of debug, info, warning, error, critical")
 
     options = parser.parse_args()
-
-    # Setting global variable (global_mod.py)
     global_mod.options = options
-    #HANDLE PROJECT INDEPENDENT OPTIONS
-    if options.manifest_help is True:
-        from manifest_parser import ManifestParser
-        ManifestParser().help()
-        quit()
-
-    if options.check_env is True:
-        env = Env(options, None)
-        env.check(verbose=True)
-        quit()
-
-    if options.print_version is True:
-        print("Hdlmake build " + BUILD_ID)
-        quit()
 
     numeric_level = getattr(logging, options.log.upper(), None)
     if not isinstance(numeric_level, int):
-        print('Invalid log level: %s' % options.log)
+        sys.exit('Invalid log level: %s' % options.log)
 
-    logging.basicConfig(format="%(levelname)s %(funcName)s %(filename)s:%(lineno)d: %(message)s", level=numeric_level)
-    logging.debug('1')
+    logging.basicConfig(format="%(levelname)s %(funcName)s() %(filename)s:%(lineno)d: %(message)s", level=numeric_level)
     logging.debug(str(options))
 
-    pool = ModulePool()
-    pool.new_module(parent=None, url=os.getcwd(), source="local", fetchto=".",
-                    process_manifest=False)
+    modules_pool = ModulePool()
+    modules_pool.new_module(parent=None, url=os.getcwd(), source="local",
+                            fetchto=".", process_manifest=False)
 
     # Setting top_module as top module of design (ModulePool class)
-    if pool.get_top_module().manifest is None:
+    if modules_pool.get_top_module().manifest is None:
         logging.info("No manifest found. At least an empty one is needed")
         logging.info("To see some help, type hdlmake --help")
-        quit()
+        sys.exit("Exiting")
 
     # Setting global variable (global_mod.py)
-    global_mod.top_module = pool.get_top_module()
+    global_mod.top_module = modules_pool.get_top_module()
 
     global_mod.global_target = global_mod.top_module.target
-    global_mod.mod_pool = pool
+    global_mod.mod_pool = modules_pool
     env = Env(options, global_mod.top_module)
     global_mod.env = env
     global_mod.env.check()
 
-    pool.process_top_module_manifest()
+    modules_pool.process_top_module_manifest()
 
-    from hdlmake_kernel import HdlmakeKernel
-    kernel = HdlmakeKernel(modules_pool=pool, options=options, env=env)
-    options_kernel_mapping = {
-        "fetch" : "fetch",
-        "ise_proj" : "generate_ise_project",
-        "quartus_proj" : "generate_quartus_project",
-        "make_fetch": "generate_fetch_makefile",
-        "make_ise" : "generate_ise_makefile",
-        "make_sim" : "generate_simulation_makefile",
-        "make_remote" : "generate_remote_synthesis_makefile",
-        "list" : "list_modules",
-        "clean" : "clean_modules",
-        "merge_cores" : "merge_cores"
-    }
+    if options.command == "check-env":
+        env.check(verbose=True)
+        quit()
+    elif options.command == "manifest-help":
+        ManifestParser().print_help()
+        quit()
+    elif options.command == "make-sim":
+        action = GenerateSimulationMakefile
+    elif options.command == "make-fetch":
+        action = GenerateFetchMakefile
+    elif options.command == "make-ise":
+        action = GenerateISEMakefile
+    elif options.command == "make-remote":
+        action = GenerateRemoteSynthesisMakefile
+    elif options.command == "fetch":
+        action = FetchModules
+    elif options.command == "clean":
+        action = CleanModules
+    elif options.command == "list-mods":
+        action = ListModules
+    elif options.command == "list-files":
+        action = ListFiles
+    elif options.command == "merge-cores":
+        action = MergeCores
+    elif options.command == "ise-proj":
+        action = GenerateISEProject
+    elif options.command == "quartus-proj":
+        action = GenerateQuartusProject
+    elif options.command == "version":
+        print("Hdlmake build " + BUILD_ID)
+        quit()
 
-    sth_chosen = False
-    import traceback
-    for option, function in options_kernel_mapping.items():
-        try:
-            is_set = getattr(options, option)
-            if is_set:
-                sth_chosen = True
-                getattr(kernel, function)()
-        except Exception, unknown_error:
-            logging.error("Oooops! We've got an error. Here is the appropriate info:\n")
-            print("Hdlmake build " + BUILD_ID)
-            print(str(unknown_error))
-            traceback.print_exc()
+    action_instance = action(modules_pool=modules_pool, options=options, env=env)
 
-    if not sth_chosen:
-        logging.info("No option selected. Running automatic flow")
-        logging.info("To see some help, type hdlmake --help")
-        kernel.run()
+    try:
+        action_instance.run()
+    except Exception as e:
+        import traceback
+        logging.error(e)
+        print("Trace:")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
