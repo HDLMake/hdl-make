@@ -140,6 +140,8 @@ def rel2abs(path, base=None):
     The base is intelligently concatenated to the given relative path.
     @return the relative path of path from base
     """
+    if base is None:
+        base = os.getcwd()
     if os.path.isabs(path):
         return path
     retval = os.path.join(base, path)
