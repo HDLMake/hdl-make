@@ -22,16 +22,20 @@
 from __future__ import print_function
 from dependable_file import DependableFile
 import os
-import sys
 import global_mod
 import logging
 import flow
 import path as path_mod
-
+from subprocess import Popen, PIPE
 
 class File(object):
-    def __init__(self, path):
+    def __init__(self, path, module=None):
         self.path = path
+        if module is None:
+            self.module = global_mod.top_module
+        else:
+            assert not isinstance(module, basestring)
+            self.module = module
 
     @property
     def name(self):
@@ -92,9 +96,9 @@ class File(object):
 class SourceFile(DependableFile, File):
     cur_index = 0
 
-    def __init__(self, path, library=None):
+    def __init__(self, path, module, library=None):
         DependableFile.__init__(self)
-        File.__init__(self, path)
+        File.__init__(self, path=path, module=module)
         if not library:
             library = "work"
 
@@ -106,14 +110,14 @@ class SourceFile(DependableFile, File):
 
 
 class VHDLFile(SourceFile):
-    def __init__(self, path, library=None, vcom_opt=None):
-        SourceFile.__init__(self, path, library)
+    def __init__(self, path, module, library=None, vcom_opt=None):
+        SourceFile.__init__(self, path=path, module=module, library=library)
         if not vcom_opt:
             self.vcom_opt = ""
         else:
             self.vcom_opt = vcom_opt
 
-    def __check_encryption(self):
+    def _check_encryption(self):
         f = open(self.path, "rb")
         s = f.read(3)
         f.close()
@@ -123,20 +127,20 @@ class VHDLFile(SourceFile):
             return False
 
     def _create_deps_provides(self):
-        if self.__check_encryption():
+        if self._check_encryption():
             self.dep_index = SourceFile.gen_index(self)
         else:
-            self.dep_provides = list(self.__search_packages())
+            self.dep_provides = list(self._search_packages())
         logging.debug(self.path + " provides " + str(self.dep_provides))
 
     def _create_deps_requires(self):
-        if self.__check_encryption():
+        if self._check_encryption():
             self.dep_index = SourceFile.gen_index(self)
         else:
-            self.dep_requires = list(self.__search_use_clauses())
+            self.dep_requires = list(self._search_use_clauses())
         logging.debug(self.path + " provides " + str(self.dep_provides))
 
-    def __search_use_clauses(self):
+    def _search_use_clauses(self):
         """
         Reads a file and looks for 'use' clause. For every 'use' with
         non-standard library a tuple (lib, file) is returned in a list.
@@ -207,7 +211,7 @@ class VHDLFile(SourceFile):
         f.close()
         return ret
 
-    def __search_packages(self):
+    def _search_packages(self):
         """
         Reads a file and looks for package clase. Returns list of packages' names
         from the file
@@ -234,10 +238,10 @@ class VHDLFile(SourceFile):
 
 
 class VerilogFile(SourceFile):
-    def __init__(self, path, library=None, vlog_opt=None, include_dirs=None):
+    def __init__(self, path, module, library=None, vlog_opt=None, include_dirs=None):
         if not library:
             library = "work"
-        SourceFile.__init__(self, path, library)
+        SourceFile.__init__(self, path=path, module=module, library=library)
         if not vlog_opt:
             self.vlog_opt = ""
         else:
@@ -255,7 +259,7 @@ class VerilogFile(SourceFile):
     def _create_deps_requires(self):
 #        self.dep_requires = self.__search_includes()
 #        self.dep_provides = self.name
-        if global_mod.env["iverilog_path"]:
+        if global_mod.top_module.sim_tool == "iverilog":
             deps = self._get_iverilog_dependencies()
             self.dep_requires = deps
         else:
@@ -281,13 +285,20 @@ class VerilogFile(SourceFile):
             command += " " + vlog_opt
         else:
             command += " " + vlog_opt + " " + self.rel_path()
-        logging.debug("running %s" % command)
-        retOsSystem = os.system(command)
-        if retOsSystem and retOsSystem != 256:
+            logging.debug("running %s" % command)
+            retcode = os.system(command)
+            # iverilog_cmd = Popen(command, shell=True, stdin=PIPE,
+            #                      stdout=PIPE, close_fds=True)
+            # iverilog_cmd.stdout.readlines()
+            # iverilog_cmd.wait()
+            # retcode = iverilog_cmd.returncode
+            print("retcode", retcode)
+
+        if retcode and retcode != 256:
             logging.error("Dependencies not met for %s" % str(self.path))
             logging.debug(command, self.include_dirs, inc_dirs, global_mod.mod_pool)
             quit()
-        elif retOsSystem == 256:
+        elif retcode == 256:
             #dependencies met
             pass
         depFile = open(depFileName, "r")
@@ -349,9 +360,11 @@ class DPFFile(File):
     pass
 
 
-class NGCFile(SourceFile):
-    def __init__(self, path):
-        SourceFile.__init__(self, path)
+# class NGCFile(SourceFile):
+#     def __init__(self, path, module):
+#         SourceFile.__init__(self, path=path, module=module)
+class NGCFile(File):
+    pass
 
 
 class WBGenFile(File):
@@ -405,7 +418,9 @@ class SourceFileSet(list):
 
 
 class SourceFileFactory:
-    def new(self, path, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
+    def new(self, path, module, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
+        if path =="/home/pawel/cern/wr-cores/testbench/top_level/gn4124_bfm.svh":
+            raise Exception()
         if path is None or path == "":
             raise RuntimeError("Expected a file path, got: "+str(path))
         if not os.path.isabs(path):
@@ -416,29 +431,40 @@ class SourceFileFactory:
 
         nf = None
         if extension == 'vhd' or extension == 'vhdl' or extension == 'vho':
-            nf = VHDLFile(path, library, vcom_opt)
+            nf = VHDLFile(path=path,
+                          module=module,
+                          library=library,
+                          vcom_opt=vcom_opt)
         elif extension == 'v' or extension == 'vh' or extension == 'vo' or extension == 'vm':
-            nf = VerilogFile(path, library, vlog_opt, include_dirs)
+            nf = VerilogFile(path=path,
+                             module=module,
+                             library=library,
+                             vlog_opt=vlog_opt,
+                             include_dirs=include_dirs)
         elif extension == 'sv' or extension == 'svh':
-            nf = SVFile(path, library, vlog_opt, include_dirs)
+            nf = SVFile(path=path, 
+                        module=module,
+                        library=library,
+                        vlog_opt=vlog_opt,
+                        include_dirs=include_dirs)
         elif extension == 'ngc':
-            nf = NGCFile(path)
+            nf = NGCFile(path=path, module=module)
         elif extension == 'ucf':
-            nf = UCFFile(path)
+            nf = UCFFile(path=path, module=module)
         elif extension == 'cdc':
-            nf = CDCFile(path)
+            nf = CDCFile(path=path, module=module)
         elif extension == 'wb':
-            nf = WBGenFile(path)
+            nf = WBGenFile(path=path, module=module)
         elif extension == 'tcl':
-            nf = TCLFile(path)
+            nf = TCLFile(path=path, module=module)
         elif extension == 'xise' or extension == 'ise':
-            nf = XISEFile(path)
+            nf = XISEFile(path=path, module=module)
         elif extension == 'stp':
-            nf = SignalTapFile(path)
+            nf = SignalTapFile(path=path, module=module)
         elif extension == 'sdc':
-            nf = SDCFile(path)
+            nf = SDCFile(path=path, module=module)
         elif extension == 'qip':
-            nf = QIPFile(path)
+            nf = QIPFile(path=path, module=module)
         elif extension == 'dpf':
-            nf = DPFFile(path)
+            nf = DPFFile(path=path, module=module)
         return nf

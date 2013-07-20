@@ -4,14 +4,12 @@
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 
 from __future__ import print_function
+from manifest_parser import Manifest, ManifestParser
+from srcfile import VerilogFile, VHDLFile, SourceFileFactory, SourceFileSet
 import path as path_mod
 import os
 import global_mod
 import logging
-from manifest_parser import Manifest, ManifestParser
-from srcfile import SourceFileSet, SourceFileFactory
-from srcfile import VerilogFile, VHDLFile
-import traceback
 
 
 class Module(object):
@@ -331,8 +329,8 @@ class Module(object):
         else:
             self.git = []
 
-        self.target = self._manifest["target"]
-        self.action = self._manifest["action"]
+        self.target = self._manifest["target"].lower()
+        self.action = self._manifest["action"].lower()
 
         if self._manifest["syn_name"] is None and self._manifest["syn_project"] is not None:
             self.syn_name = self._manifest["syn_project"][:-5]  # cut out .xise from the end
@@ -423,9 +421,19 @@ class Module(object):
                 for f_dir in dir:
                     f_dir = os.path.join(self.path, p, f_dir)
                     if not os.path.isdir(f_dir):
-                        srcs.add(sff.new(f_dir, self.library, self.vcom_opt, self.vlog_opt, self.include_dirs))
+                        srcs.add(sff.new(path=f_dir,
+                                         module=self,
+                                         library=self.library,
+                                         vcom_opt=self.vcom_opt,
+                                         vlog_opt=self.vlog_opt,
+                                         include_dirs=self.include_dirs))
             else:
-                srcs.add(sff.new(p, self.library, self.vcom_opt, self.vlog_opt, self.include_dirs))
+                srcs.add(sff.new(path=p,
+                                 module=self,
+                                 library=self.library,
+                                 vcom_opt=self.vcom_opt,
+                                 vlog_opt=self.vlog_opt,
+                                 include_dirs=self.include_dirs))
         return srcs
 
     def build_global_file_list(self):
