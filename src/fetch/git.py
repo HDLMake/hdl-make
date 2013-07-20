@@ -29,9 +29,11 @@ class Git(object):
             update_only = False
 
         if update_only:
+            logging.info("Updating module %s" % mod_path)
             cmd = "(cd {0} && git checkout {1})"
             cmd = cmd.format(mod_path, module.branch)
         else:
+            logging.info("Cloning module %s" % mod_path)
             cmd = "(cd {0} && git clone -b {2} {1})"
             cmd = cmd.format(module.fetchto, module.url, module.branch)
 
@@ -40,6 +42,12 @@ class Git(object):
         logging.debug("Running %s" % cmd)
         if os.system(cmd) != 0:
             success = False
+
+        if success is True:
+            os.chdir(mod_path)
+            os.system("git submodule init")
+            os.system("git submodule update")
+            os.chdir(cur_dir)
 
         if module.revision is not None and success is True:
             logging.debug("cd %s" % mod_path)
