@@ -80,16 +80,19 @@ def main():
 
     global_mod.global_target = global_mod.top_module.target
     global_mod.mod_pool = modules_pool
-    env = Env(options, global_mod.top_module)
+    env = Env(options)
     global_mod.env = env
-    global_mod.env.check()
+    if options.command == "check-env":
+        env.check_env(verbose=True)
+        quit()
 
     modules_pool.process_top_module_manifest()
 
-    if options.command == "check-env":
-        env.check(verbose=True)
-        quit()
-    elif options.command == "manifest-help":
+    env.top_module = modules_pool.get_top_module()
+    env.check_env(verbose=False)
+    env.check_env_wrt_manifest(verbose=False)
+
+    if options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
     elif options.command == "make-sim":

@@ -76,13 +76,13 @@ class _IsePath(object):
         try:
             minor_dct = dct[major]
             try:
-                path = minor_dct[minor]
-                return path
+                ise_path = minor_dct[minor]
+                return ise_path
             except KeyError:
                 #get latest for the chosen major version
                 minor_keys = sorted(minor_dct.keys())
                 max_minor_key = minor_keys[-1]
-                path = minor_dct[max_minor_key]
+                ise_path = minor_dct[max_minor_key]
 
         except KeyError:
             #get path for the latest version from the dict
@@ -91,17 +91,28 @@ class _IsePath(object):
             minor_dct = dct[max_major_key]
             minor_keys = sorted(minor_dct.keys())
             max_minor_key = minor_keys[-1]
-            path = minor_dct[max_minor_key]
-            return path
+            ise_path = minor_dct[max_minor_key]
+            return ise_path
 
 
 class Env(dict):
-    def __init__(self, options, top_module):
+    def __init__(self, options, top_module=None):
         dict.__init__(self)
         self.options = options
         self.top_module = top_module
 
-    def check(self, verbose=False):
+    def check_env_wrt_manifest(self, verbose=False):
+        # determine ISE version
+        if self.top_module:
+            if self.top_module.syn_ise_version is not None:
+                ise_version = tuple(self.top_module.syn_ise_version)
+                print("ise_version set in the manifest: %s.%s" % (ise_version[0], ise_version[1]))
+                self["ise_version"] = ise_version
+            elif self["ise_version"] is not None:
+                    print("syn_ise_version not set in the manifest,"
+                          " guessed ISE version: %s.%s." % (ise_version[0], ise_version[1]))
+
+    def check_env(self, verbose=False):
         print.set_verbose(verbose)
         platform = sys.platform
         print("Platform: %s" % platform)
@@ -134,6 +145,7 @@ class Env(dict):
             print("Environmental variable %s is set: %s." % ("XILINX", xilinx))
             self["xilinx"] = xilinx
         else:
+            self["xilinx"] = None
             print("Environmental variable XILINX is not set.")
 
         self._report_and_set_hdlmake_var("ise_path")
@@ -144,34 +156,20 @@ class Env(dict):
             else:
                 pass
             self["ise_path"] = os.path.join(self["xilinx"], "ISE/bin/lin")
+
+        self["ise_version"] = None
         if self["ise_path"] is not None:
             if self._check_in_path("ise", self["ise_path"]):
                 print("ISE found in HDLMAKE_ISE_PATH: %s." % self["ise_path"])
+                self["ise_version"] = self._guess_ise_version(self["ise_path"])
             else:
                 print("ISE not found in HDLMAKE_ISE_PATH: %s." % self["ise_path"])
         else:
             if self._check_in_path("ise"):
                 print("ISE found in PATH: %s." % self._get_path("ise"))
+                self["ise_version"] = self._guess_ise_version(self._get_path("ise"))
             else:
                 print("ISE not found in PATH.")
-
-        # determine ISE version
-        if self.top_module:
-            if self.top_module.syn_ise_version is not None:
-                ise_version = tuple(self.top_module.syn_ise_version)
-                print("ise_version set in the manifest: %s.%s" % (ise_version[0], ise_version[1]))
-                self["ise_version"] = ise_version
-            else:
-                ise_version = None
-
-            if "ise_version" not in self:
-                ise_version = self._guess_ise_version(xilinx, '')
-                if ise_version:
-                    print("syn_ise_version not set in the manifest,"
-                          " guessed ISE version: %s.%s." % (ise_version[0], ise_version[1]))
-                self["ise_version"] = ise_version
-
-            #######
 
         # determine modelsim path
         print("\n### Modelsim simulation ###")
@@ -191,7 +189,7 @@ class Env(dict):
         # determine iverilog path
         print("\n### Iverilog simulation ###")
         self._report_and_set_hdlmake_var("iverilog_path")
-        if self["iverilog_path"] is not None: 
+        if self["iverilog_path"] is not None:
             if self._check_in_path("iverilog", self["iverilog_path"]):
                 print("iverilog found under HDLMAKE_IVERILOG_PATH: %s" % self["iverilog_path"])
             else:
@@ -259,7 +257,7 @@ class Env(dict):
         else:
             print("Environmental variable HDLMAKE_RSYNTH_USE_SCREEN is unset. Set it to '1' to use screen in remote synthesis")
 
-    def _guess_ise_version(self, xilinx, ise_path):
+    def _guess_ise_version(self, ise_path):
         xst = Popen('which xst', shell=True, stdin=PIPE,
                     stdout=PIPE, close_fds=True)
         lines = xst.stdout.readlines()
@@ -297,14 +295,14 @@ class Env(dict):
         return os.environ.get("HDLMAKE_%s" % name)
 
     def _get_path(self, name):
-        return os.popen("which %s" % name).read().strip()
+        location = os.popen("which %s" % name).read().strip()
+        return os.path.dirname(location)
 
     def _check_in_path(self, name, path=None):
         if path is not None:
             return os.path.exists(os.path.join(path, name))
         else:
             assert isinstance(name, basestring)
-
             path = self._get_path(name)
             return len(path) > 0
 
