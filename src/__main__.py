@@ -29,6 +29,8 @@ def main():
     subparsers = parser.add_subparsers(title="commands", dest="command")
 
     check_env = subparsers.add_parser("check-env", help="check environment for HDLMAKE-related settings")
+    check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
+    check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
     make_sim = subparsers.add_parser("make-sim", help="generate a simulation Makefile")
     make_sim.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
@@ -85,6 +87,8 @@ def main():
     if options.command == "check-env":
         env.check_env(verbose=True)
         quit()
+    if options.command == "check-manifest":
+        env.check_manifest(modules_pool.get_top_module().manifest, verbose=True)
 
     modules_pool.process_top_module_manifest()
 

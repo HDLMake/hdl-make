@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from check_manifest import CheckManifest
 from clean import CleanModules
 from default import Default
 from fetch import FetchModules
@@ -12,3 +13,4 @@ from merge_cores import MergeCores
 from quartus_project import GenerateQuartusProject
 from remote_synthesis import GenerateRemoteSynthesisMakefile
 from simulation import GenerateSimulationMakefile
+
