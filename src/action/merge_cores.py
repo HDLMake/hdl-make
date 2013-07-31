@@ -3,18 +3,24 @@ import logging
 from action import Action
 from srcfile import VerilogFile, VHDLFile, NGCFile
 from vlog_parser import VerilogPreprocessor
-import dep_solver
+import os
 import os.path
 import time
+import sys
 
 
 class MergeCores(Action):
+    def _check_manifest(self):
+        self._check_manifest_variable_is_equal_to("action", "synthesis")
+
+    def _check_options(self):
+        if not self.options.dest:
+            logging.error("--dest must be given for merge-cores")
+            sys.exit("Exiting")
+
     def run(self):
         pool = self.modules_pool
-        if not pool.is_everything_fetched():
-            logging.error("A module remains unfetched. Fetching must be done prior to makefile generation")
-            print(str([str(m) for m in self.modules_pool.modules if not m.isfetched]))
-            quit()
+        self._check_all_fetched_or_quit()
 
         flist = pool.build_very_global_file_list()
 #        if not os.path.exists(self.options.merge_cores):
@@ -35,8 +41,10 @@ class MergeCores(Action):
 
         for vhdl in flist.filter(VHDLFile):
             f_out.write("\n\n---  File: %s ----\n" % vhdl.rel_path())
-            f_out.write("---   source: %s\n" % vhdl.module.url)
-            f_out.write("---   last modified: %s\n" % time.ctime(os.path.getmtime(vhdl.path)))
+            f_out.write("---  Source: %s\n" % vhdl.module.url)
+            if vhdl.module.revision:
+                f_out.write("---  Revision: %s\n" % vhdl.module.revision)
+            f_out.write("---  Last modified: %s\n" % time.ctime(os.path.getmtime(vhdl.path)))
             f_out.write(open(vhdl.rel_path(), "r").read()+"\n\n")
                 #print("VHDL: %s" % vhdl.rel_path())
         f_out.close()
@@ -56,8 +64,10 @@ class MergeCores(Action):
 
         for vlog in flist.filter(VerilogFile):
             f_out.write("\n\n//  File: %s\n" % vlog.rel_path())
-            f_out.write("//   source: %s\n" % vlog.module.url)
-            f_out.write("//   last modified: %s\n" % time.ctime(os.path.getmtime(vlog.path)))
+            f_out.write("//  Source: %s\n" % vlog.module.url)
+            if vlog.module.revision:
+                f_out.write("//  Revision: %s\n" % vlog.module.revision)
+            f_out.write("//  Last modified: %s\n" % time.ctime(os.path.getmtime(vlog.path)))
             vpp = VerilogPreprocessor()
             for include_path in vlog.include_dirs:
                 vpp.add_path(include_path)
@@ -67,5 +77,5 @@ class MergeCores(Action):
 
         for ngc in flist.filter(NGCFile):
             import shutil
-            print("NGC:%s " % ngc.rel_path())
-            shutil.copy(ngc.rel_path(), self.options.merge_cores+"/")
+            logging.info("copying NGC file: %s" % ngc.rel_path())
+            shutil.copy(ngc.rel_path(), os.getcwd())
