@@ -175,7 +175,6 @@ class Module(object):
 
         manifest_parser = ManifestParser()
 
-        manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
         manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
 
         if self.manifest is None:
@@ -185,7 +184,7 @@ class Module(object):
 
         if self.parent is None:
             allow_unknown = True
-            extra_context = None
+            extra_context = {}
         else:
             allow_unknown = False
             extra_context = dict(global_mod.top_module.manifest_dict)  # copy the dictionary
@@ -196,7 +195,7 @@ class Module(object):
             del extra_context["incl_makefiles"]
             del extra_context["bit_file_targets"]
             del extra_context["library"]
-
+        extra_context["__manifest"] = self.path
 
         opt_map = None
         try:

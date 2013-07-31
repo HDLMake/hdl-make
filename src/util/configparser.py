@@ -284,7 +284,7 @@ class ConfigParser(object):
         except:
             logging.error("Encountered unexpected error while parsing " + self.config_file)
             print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
-            quit()
+            raise
 
         for opt_name, val in list(options.items()):  # check delivered options
             if opt_name.startswith('__'):
@@ -294,6 +294,8 @@ class ConfigParser(object):
                     continue  # finish processing of this variable here
                 elif allow_unknown is True:
                     ret[opt_name] = val
+                    logging.warning("Given variable is not recognized: %s (=%s).\nPlease double check it is not en error" % (opt_name, val))
+                    continue
                 else:
                     #if opt_name.startswith("global_"):
                     #    continue
