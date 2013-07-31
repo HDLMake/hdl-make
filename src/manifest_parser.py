@@ -112,9 +112,6 @@ class ManifestParser(ConfigParser):
     def add_manifest(self, manifest):
         return self.add_config_file(manifest.path)
 
-    def parse(self):
-        return ConfigParser.parse(self)
-
     def print_help(self):
         ConfigParser.help()
 
