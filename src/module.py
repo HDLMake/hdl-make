@@ -188,7 +188,15 @@ class Module(object):
             extra_context = None
         else:
             allow_unknown = False
-            extra_context = global_mod.top_module.manifest_dict
+            extra_context = dict(global_mod.top_module.manifest_dict)  # copy the dictionary
+            del extra_context["modules"]
+            del extra_context["files"]
+            del extra_context["include_dirs"]
+            del extra_context["sim_only_files"]
+            del extra_context["incl_makefiles"]
+            del extra_context["bit_file_targets"]
+            del extra_context["library"]
+
 
         opt_map = None
         try:
