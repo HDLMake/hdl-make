@@ -10,6 +10,8 @@ import path as path_mod
 import os
 import global_mod
 import logging
+import fetch
+import sys
 
 
 class Module(object):
@@ -72,8 +74,9 @@ class Module(object):
         self.syn_post_script = None
         self.sim_only_files = None
         self.sim_pre_script = None
-        self.sim_post_scritp = None
+        self.sim_post_script = None
         self.top_module = None
+        self.commit_id = None
 
         if source != "local":
             self.url, self.branch, self.revision = path.url_parse(url)
@@ -172,6 +175,10 @@ class Module(object):
             self.manifest = self.__search_for_manifest()
         if self.path is None:
             raise RuntimeError()
+        if self.source == "svn":
+            self.revision = fetch.svn.check_revision_number(self.path)
+        elif self.source == "git":
+            self.revision = fetch.git.check_commit_id(self.path)
         manifest_parser = ManifestParser()
 
         # For non-top modules
@@ -360,17 +367,17 @@ class Module(object):
         if filepath:
             if path_mod.is_abs_path(filepath):
                 logging.warning("Specified path seems to be an absolute path: %s\nOmitting." % filepath)
-                #return False
-                return True
-            filepath = path_mod.rel2abs(filepath, self.path)
+                return False
+            filepath = os.path.join(self.path, filepath)
             if not os.path.exists(filepath):
-                logging.error("Specified path doesn't exist: %s" % filepath)
-                quit()
+                logging.error("Path specified in %s doesn't exist: %s" % (self.path, filepath))
+                sys.exit("Exiting")
 
-            if not os.path.isfile(filepath):
-                logging.warning("Specified path is not a normal file: %s\nOmitting." % filepath)
-                #return False
-                return True
+
+            filepath = path_mod.rel2abs(filepath, self.path)
+
+            if os.path.isdir(filepath):
+                logging.warning("Path specified in %s is a directory: %s" % (self.path, filepath))
         return True
 
     def is_fetched_recursively(self):

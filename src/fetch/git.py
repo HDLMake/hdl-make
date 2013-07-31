@@ -3,6 +3,7 @@
 import os
 import path
 import logging
+from subprocess import Popen, PIPE
 
 
 class Git(object):
@@ -61,3 +62,15 @@ class Git(object):
         module.isfetched = True
         module.path = mod_path
         return success
+
+    @staticmethod
+    def check_commit_id(path):
+        cur_dir = os.getcwd()
+        try:
+            os.chdir(path)
+            git_cmd = 'git log -1 --format="%H" | cut -c1-32'
+            git_out = Popen(git_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+            commit = git_out.stdout.readlines()[0].strip()
+        finally:
+            os.chdir(cur_dir)
+        return commit

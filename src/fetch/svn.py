@@ -3,6 +3,7 @@
 import os
 import logging
 import path
+from subprocess import Popen, PIPE
 
 
 class Svn(object):
@@ -36,3 +37,15 @@ class Svn(object):
         module.isfetched = True
         module.path = os.path.join(module.fetchto, module.basename)
         return success
+
+    @staticmethod
+    def check_revision_number(path):
+        cur_dir = os.getcwd()
+        try:
+            os.chdir(path)
+            svn_cmd = "svn info | awk '{if(NR == 5) {print $2}}'"
+            svn_out = Popen(svn_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+            revision = svn_out.stdout.readlines()[0].strip()
+        finally:
+            os.chdir(cur_dir)
+        return revision
