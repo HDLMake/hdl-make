@@ -4,7 +4,7 @@ import os
 from dependable_file import DependableFile
 from action import Action
 import dep_solver
-from flow_altera import QuartusProject
+from tools.quartus import QuartusProject
 
 
 class GenerateQuartusProject(Action):

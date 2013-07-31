@@ -20,6 +20,10 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
+QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
+
+
 class _QuartusProjectProperty:
     SET_GLOBAL_INSTANCE, SET_INSTANCE_ASSIGNMENT, SET_LOCATION_ASSIGNMENT, SET_GLOBAL_ASSIGNMENT = range(4)
     t = {"set_global_instance": SET_GLOBAL_INSTANCE,
@@ -85,7 +89,7 @@ class QuartusProject:
         if self.postflow:
             post = tmp.format("POST_FLOW_SCTIPT_FILE", self.postflow.rel_path())
         return pre+'\n'+post+'\n'
-        
+
     def __emit_files(self):
         from srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile
         tmp = "set_global_assignment -name {0} {1}"
@@ -107,7 +111,7 @@ class QuartusProject:
                 continue
             ret.append(line)
         return ('\n'.join(ret))+'\n'
- 
+
     def add_property(self, val):
         #don't save files (they are unneeded)
         if val.name_type is not None and "_FILE" in val.name_type:
@@ -123,13 +127,13 @@ class QuartusProject:
             i = first_index
             ret = []
             if words[i][0] != '"':
-                return (words[i],1)
+                return (words[i], 1)
             else:
                 while True:
                     ret.append(words[i])
                     if words[i][len(words[i])-1] == '"':
                         return (' '.join(ret), len(ret))
-                    i=i+1
+                    i = i + 1
 
         f = open(self.filename+'.qsf', "r")
         lines = [l.strip() for l in f.readlines()]
@@ -165,8 +169,12 @@ class QuartusProject:
                     what = words[i]
                     i = i+1
                     continue
-            prop = QPP(command=command, what=what, name=name,
-          name_type=name_type, from_=from_, to=to, section_id=section_id)
+            prop = QPP(command=command,
+                       what=what, name=name,
+                       name_type=name_type,
+                       from_=from_,
+                       to=to,
+                       section_id=section_id)
 
             self.add_property(prop)
         f.close()
@@ -174,16 +182,16 @@ class QuartusProject:
     def add_initial_properties(self, syn_device, syn_grade, syn_package, syn_top):
         import re
         family_names = {
-            "^EP2AGX.*$" : "Arria II GX",
-            "^EP3C.*$" : "Cyclone III"
-            }
+            "^EP2AGX.*$": "Arria II GX",
+            "^EP3C.*$": "Cyclone III"
+        }
 
         for key in family_names:
             if re.match(key, syn_device.upper()):
                 family = family_names[key]
-                
-        devstring = (syn_device +syn_package+syn_grade).upper()
-        QPP =_QuartusProjectProperty
+
+        devstring = (syn_device + syn_package + syn_grade).upper()
+        QPP = _QuartusProjectProperty
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='FAMILY', name='"'+family+'"'))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='DEVICE', name=devstring))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='TOP_LEVEL_ENTITY', name=syn_top))

@@ -346,7 +346,7 @@ mrproper:
 
     def generate_vsim_makefile(self, fileset, top_module):
         from srcfile import VerilogFile, VHDLFile, SVFile
-        from flow import ModelsiminiReader
+        from tools.modelsim import ModelsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
 
@@ -470,7 +470,7 @@ clean:
 # Modification here
     def generate_isim_makefile(self, fileset, top_module):
         from srcfile import VerilogFile, VHDLFile
-        from flow import XilinxsiminiReader
+        from tools.ise import XilinxsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
 TOP_MODULE := """ + top_module.top_module + """

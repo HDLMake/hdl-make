@@ -34,13 +34,15 @@ XmlImpl = xml.dom.minidom.getDOMImplementation()
 
 ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
                      'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
-QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
-MODELSIM_STANDARD_LIBS = ['ieee', 'std']
-ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
-                      'simprim', 'unisim', 'unimacro', 'aim', 'cpld',
-                      'pls', 'xilinxcorelib', 'aim_ver', 'cpld_ver',
-                      'simprims_ver', 'unisims_ver', 'uni9000_ver',
-                      'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
+
+FAMILY_NAMES = {
+    "XC6S": "Spartan6",
+    "XC3S": "Spartan3",
+    "XC6V": "Virtex6",
+    "XC5V": "Virtex5",
+    "XC4V": "Virtex4",
+    "XC7K": "Kintex7",
+    "XC7A": "Artix7"}
 
 
 class ISEProjectProperty:
@@ -61,7 +63,7 @@ class ISEProjectProperty:
         return prop
 
 
-class ISEProject:
+class ISEProject(object):
     class StringBuffer(list):
         def __init__(self):
             self.append("")
@@ -82,7 +84,7 @@ class ISEProject:
                 self[len(self)-1] += what
 
     def __init__(self, ise, top_mod=None):
-        self.props = []
+        self.props = {}
         self.files = []
         self.libs = []
         self.xml_doc = None
@@ -98,55 +100,51 @@ class ISEProject:
     def add_files(self, files):
         self.files.extend(files)
 
-    def __add_lib(self, lib):
+    def _add_lib(self, lib):
         if lib not in self.libs:
             self.libs.append(lib)
 
     def add_libs(self, libs):
         for l in libs:
-            self.__add_lib(l)
+            self._add_lib(l)
         self.libs.remove('work')
 
-    def add_property(self, prop):
-        self.props.append(prop)
+    def add_property(self, name, value, is_default=False):
+        self.props[name] = ISEProjectProperty(name=name,
+                                              value=value,
+                                              is_default=is_default)
 
-    def add_initial_properties(self, syn_device, syn_grade, syn_package, syn_top):
-        family_names = {
-            "XC6S": "Spartan6",
-            "XC3S": "Spartan3",
-            "XC6V": "Virtex6",
-            "XC5V": "Virtex5",
-            "XC4V": "Virtex4",
-            "XC7K": "Kintex7",
-            "XC7A": "Artix7"}
+    def add_initial_properties(self):
+        self._set_values_from_manifest()
+        self.add_property("Enable Multi-Threading", "2")
+        self.add_property("Enable Multi-Threading par", "4")
+        self.add_property("Manual Implementation Compile Order", "true")
+        self.add_property("Auto Implementation Top", "false")
+        self.add_property("Hierarchy Separator", "_")
 
-        self.add_property(ISEProjectProperty("Device", syn_device))
-        self.add_property(ISEProjectProperty("Device Family", family_names[syn_device[0:4].upper()]))
-        self.add_property(ISEProjectProperty("Speed Grade", syn_grade))
-        self.add_property(ISEProjectProperty("Package", syn_package))
-        self.add_property(ISEProjectProperty("Enable Multi-Threading", "2"))
-        self.add_property(ISEProjectProperty("Enable Multi-Threading par", "4"))
-        self.add_property(ISEProjectProperty("Implementation Top", "Architecture|"+syn_top))
-        self.add_property(ISEProjectProperty("Manual Implementation Compile Order", "true"))
-        self.add_property(ISEProjectProperty("Auto Implementation Top", "false"))
-        self.add_property(ISEProjectProperty("Implementation Top Instance Path", "/"+syn_top))
-        self.add_property(ISEProjectProperty("Hierarchy Separator", "_"))
+    def _set_values_from_manifest(self):
+        tm = global_mod.mod_pool.get_top_module()
+        self.add_property("Device", tm.syn_device)
+        self.add_property("Device Family", FAMILY_NAMES[tm.syn_device[0:4].upper()])
+        self.add_property("Speed Grade", tm.syn_grade)
+        self.add_property("Package", tm.syn_package)
+        self.add_property("Implementation Top", "Architecture|"+tm.top_module)
+        self.add_property("Implementation Top Instance Path", "/"+tm.top_module)
 
-    def __parse_props(self):
+    def _parse_props(self):
         for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
-            prop = ISEProjectProperty(
-                xmlp.getAttribute("xil_pn:name"),
-                xmlp.getAttribute("xil_pn:value"),
-                xmlp.getAttribute("xil_pn:valueState") == "default"
+            self.add_property(
+                name=xmlp.getAttribute("xil_pn:name"),
+                value=xmlp.getAttribute("xil_pn:value"),
+                is_default=(xmlp.getAttribute("xil_pn:valueState") == "default")
             )
 
-            self.props.append(prop)
-        self.xml_props = self.__purge_dom_node(name="properties", where=self.xml_doc.documentElement)
+        self.xml_props = self._purge_dom_node(name="properties", where=self.xml_doc.documentElement)
 
-    def __parse_libs(self):
+    def _parse_libs(self):
         for l in self.xml_project.getElementsByTagName("libraries")[0].getElementsByTagName("library"):
-            self.__add_lib(l.getAttribute("xil_pn:name"))
-        self.xml_libs = self.__purge_dom_node(name="libraries", where=self.xml_doc.documentElement)
+            self._add_lib(l.getAttribute("xil_pn:name"))
+        self.xml_libs = self._purge_dom_node(name="libraries", where=self.xml_doc.documentElement)
 
     def load_xml(self, filename):
         f = open(filename)
@@ -154,22 +152,22 @@ class ISEProject:
         self.xml_project = self.xml_doc.getElementsByTagName("project")[0]
         import sys
         try:
-            self.__parse_props()
+            self._parse_props()
         except xml.parsers.expat.ExpatError:
             print("Error while parsing existng file's properties:")
             print(str(sys.exc_info()))
             quit()
 
         try:
-            self.__parse_libs()
+            self._parse_libs()
         except xml.parsers.expat.ExpatError:
             print("Error while parsing existng file's libraries:")
             print(str(sys.exc_info()))
             quit()
 
         where = self.xml_doc.documentElement
-        self.xml_files = self.__purge_dom_node(name="files", where=where)
-        self.xml_bindings = self.__purge_dom_node(name="bindings", where=where)
+        self.xml_files = self._purge_dom_node(name="files", where=where)
+        self.xml_bindings = self._purge_dom_node(name="bindings", where=where)
         try:
             node = where.getElementsByTagName("version")[0]
             if not self.ise:
@@ -178,8 +176,9 @@ class ISEProject:
         except:
             pass
         f.close()
+        self._set_values_from_manifest()
 
-    def __purge_dom_node(self, name, where):
+    def _purge_dom_node(self, name, where):
         try:
             node = where.getElementsByTagName(name)[0]
             where.removeChild(node)
@@ -189,8 +188,7 @@ class ISEProject:
         where.appendChild(new)
         return new
 
-    def __output_files(self, node):
-        import os
+    def _output_files(self, node):
         from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
 
         for f in self.files:
@@ -225,7 +223,7 @@ class ISEProject:
             fp.appendChild(assoc)
             node.appendChild(fp)
 
-    def __output_bindings(self, node):
+    def _output_bindings(self, node):
         from srcfile import CDCFile
         for b in [f for f in self.files if isinstance(f, CDCFile)]:
             bp = self.xml_doc.createElement("binding")
@@ -233,17 +231,17 @@ class ISEProject:
             bp.setAttribute("xil_pn:name", b.rel_path())
             node.appendChild(bp)
 
-    def __output_props(self, node):
-        for prop in self.props:
+    def _output_props(self, node):
+        for name, prop in self.props.iteritems():
             node.appendChild(prop.emit_xml(self.xml_doc))
 
-    def __output_libs(self, node):
+    def _output_libs(self, node):
         for l in self.libs:
             ll = self.xml_doc.createElement("library")
             ll.setAttribute("xil_pn:name", l)
             node.appendChild(ll)
 
-    def __output_ise(self, node):
+    def _output_ise(self, node):
         i = self.xml_doc.createElement("version")
         i.setAttribute("xil_pn:ise_version", '%s.%s' % (self.ise[0], self.ise[1]))
         i.setAttribute("xil_pn:schema_version", "2")
@@ -253,11 +251,11 @@ class ISEProject:
         if not self.xml_doc:
             self.create_empty_project()
         else:
-            self.__output_ise(self.xml_doc.documentElement)
-        self.__output_bindings(self.xml_bindings)
-        self.__output_files(self.xml_files)
-        self.__output_props(self.xml_props)
-        self.__output_libs(self.xml_libs)
+            self._output_ise(self.xml_doc.documentElement)
+        self._output_bindings(self.xml_bindings)
+        self._output_files(self.xml_files)
+        self._output_props(self.xml_props)
+        self._output_libs(self.xml_libs)
         output_file = open(filename, "w")
         string_buffer = self.StringBuffer()
         self.xml_doc.writexml(string_buffer, newl="\n", addindent="\t")
@@ -294,51 +292,6 @@ class ISEProject:
         top_element.appendChild(version)
 
 
-class ModelsiminiReader(object):
-    def __init__(self, path=None):
-        if path is None:
-            path = self.modelsim_ini_dir() + "/modelsim.ini"
-        self.path = path
-
-    def get_libraries(self):
-        new_section = "\[[^\[\]]+\]"
-        libs = []
-
-        try:
-            ini = open(self.path, "r")
-        except Exception:
-            return []
-
-        #p.info("Reading 'modelsim.ini' located in: '"+ str(self.path))
-
-        reading_libraries = False
-        for line in ini:
-            line = line.split(" ")[0]
-            line = line.strip()
-            if line == "":
-                continue
-            if line.lower() == "[library]":
-                reading_libraries = True
-                continue
-            if re.search(new_section, line):
-                if reading_libraries is True:
-                #reading_libraries = False
-                    break
-                else:
-                    continue
-            if reading_libraries:
-                line = line.split('=')
-                lib = line[0].strip()
-                libs.append(lib.lower())
-        return libs
-
-    @staticmethod
-    def modelsim_ini_dir():
-        import os
-        vsim_path = os.popen("which vsim").read().strip()
-        bin_path = os.path.dirname(vsim_path)
-        return os.path.abspath(bin_path+"/../")
-
 class XilinxsiminiReader(object):
     def __init__(self, path=None):
         if path is None:
@@ -358,7 +311,6 @@ class XilinxsiminiReader(object):
 
         # Read loggical libraries name, skipping comments and other
         #possible sections
-        reading_libraries = False
         for line in ini:
             # Read line by line, skipping comments and striping newline
             line = line.split('--')[0].strip()

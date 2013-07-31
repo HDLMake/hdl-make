@@ -6,11 +6,20 @@ import os
 from dependable_file import DependableFile
 import dep_solver
 from srcfile import SourceFileSet
-from flow import ISEProject
+from tools.ise import ISEProject
 from srcfile import SourceFileFactory
-
+import global_mod
+import path
 
 class GenerateISEProject(Action):
+    def _check_manifest(self):
+        self._check_manifest_variable_is_set("top_module")
+        self._check_manifest_variable_is_set("syn_device")
+        self._check_manifest_variable_is_set("syn_device")
+        self._check_manifest_variable_is_set("syn_grade")
+        self._check_manifest_variable_is_set("syn_package")
+
+
     def run(self):
         env = self.env
         if self.env["ise_path"] is None:
@@ -23,7 +32,7 @@ class GenerateISEProject(Action):
                               "or set")
                 sys.exit("Exiting")
             else:
-                logging.info("Generating project for ISE v. %d.%d" % (env["ise_version"][0], env["ise_version"][1]))
+                logging.info("Generating project for ISE v. %s.%s" % (env["ise_version"][0], env["ise_version"][1]))
         self._check_all_fetched_or_quit()
 
         if os.path.exists(self.top_module.syn_project) or os.path.exists(self.top_module.syn_project + ".xise"):
@@ -42,16 +51,73 @@ class GenerateISEProject(Action):
 
         prj = ISEProject(ise=self.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())
+        self._write_project_vhd()
         prj.add_files(all_files)
         sff = SourceFileFactory()
         logging.debug(top_mod.vlog_opt)
-        prj.add_files([sff.new(top_mod.vlog_opt)])
+       # prj.add_files([sff.new(top_mod.vlog_opt)])
+
+        prj.add_files([sff.new(path=path.rel2abs("project.vhd"),
+                               module=self.modules_pool.get_module_by_path("."))])
         prj.add_libs(all_files.get_libs())
         if update is True:
             prj.load_xml(top_mod.syn_project)
         else:
-            prj.add_initial_properties(syn_device=top_mod.syn_device,
-                                       syn_grade=top_mod.syn_grade,
-                                       syn_package=top_mod.syn_package,
-                                       syn_top=top_mod.syn_top)
+            prj.add_initial_properties()
         prj.emit_xml(top_mod.syn_project)
+
+    def _write_project_vhd(self):
+        from string import Template
+        from datetime import date
+        import getpass
+
+        today = date.today()
+        date_string = today.strftime("%Y%m%d")
+        template = Template("""library ieee;
+
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+package sdb_meta_pkg is
+
+  ------------------------------------------------------------------------------
+  -- Meta-information sdb records
+  ------------------------------------------------------------------------------
+
+  -- Top module repository url
+  constant c_SDB_REPO_URL : t_sdb_repo_url := (
+    -- url (string, 63 char)
+    repo_url => "$repo_url");
+
+  -- Synthesis informations
+  constant c_SDB_SYNTHESIS : t_sdb_synthesis := (
+    -- Top module name (string, 16 char)
+    syn_module_name  => "$syn_module_name",
+    -- Commit ID (hex string, 128-bit = 32 char)
+    -- git log -1 --format="%H" | cut -c1-32
+    syn_commit_id    => "$syn_commit_id",
+    -- Synthesis tool name (string, 8 char)
+    syn_tool_name    => "$syn_tool_name",
+    -- Synthesis tool version (bcd encoded, 32-bit)
+    syn_tool_version => "$syn_tool_version",
+    -- Synthesis date (bcd encoded, 32-bit)
+    syn_date         => x"$syn_date",
+    -- Synthesised by (string, 15 char)
+    syn_username     => "$syn_username");
+
+end sdb_meta_pkg;
+
+package body sdb_meta_pkg is
+end sdb_meta_pkg;""")
+
+        project_vhd = open("project.vhd", 'w')
+        ise_version = "%s.%s" % (global_mod.env["ise_version"][0], global_mod.env["ise_version"][1])
+        filled_template = template.substitute(repo_url=global_mod.top_module.url,
+                                              syn_module_name=global_mod.top_module.top_module,
+                                              syn_commit_id=global_mod.top_module.revision,
+                                              syn_tool_name="ISE",
+                                              syn_tool_version=ise_version,
+                                              syn_date=date_string,
+                                              syn_username=getpass.getuser())
+        project_vhd.write(filled_template)
+        project_vhd.close()

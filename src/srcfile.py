@@ -24,7 +24,9 @@ from dependable_file import DependableFile
 import os
 import global_mod
 import logging
-import flow
+from tools import ise
+from tools import modelsim
+from tools import quartus
 import path as path_mod
 from subprocess import Popen, PIPE
 
@@ -153,25 +155,23 @@ class VHDLFile(SourceFile):
         if global_mod.top_module.action == "simulation":
             try:
                 if global_mod.top_module.sim_tool == "isim":
-                    std_libs = flow.XilinxsiminiReader().get_libraries()
+                    std_libs = ise.XilinxsiminiReader().get_libraries()
                 elif global_mod.top_module.sim_tool == "vsim" or global_mod.top_module.sim_tool == "modelsim":
-                    std_libs = flow.ModelsiminiReader().get_libraries()
+                    std_libs = modelsim.ModelsiminiReader().get_libraries()
                 elif global_mod.top_module.sim_tool == "iverilog":
-                    std_libs = flow.MODELSIM_STANDARD_LIBS
+                    std_libs = modelsim.MODELSIM_STANDARD_LIBS
                 else:
                     logging.warning("Could not determine simulation tool. Defaulting to Modelsim")
-                    std_libs = flow.MODELSIM_STANDARD_LIBS
+                    std_libs = modelsim.MODELSIM_STANDARD_LIBS
             except RuntimeError as e:
-             #std_libs =  flow.MODELSIM_STANDARD_LIBS
                 logging.error("I/O error: ({0})".format(e.message))
                 logging.error("Picking standard Modelsim simulation libraries. Try to fix the error.")
-                std_libs = flow.MODELSIM_STARDAND_LIBS
+                std_libs = modelsim.MODELSIM_STARDAND_LIBS
         elif global_mod.top_module.action == "synthesis":
-            print("setting std libs for synthesis...")
             if global_mod.top_module.target == "xilinx":
-                std_libs = flow.ISE_STANDARD_LIBS
+                std_libs = ise.ISE_STANDARD_LIBS
             elif global_mod.top_module.target == "altera":
-                std_libs = flow.QUARTUS_STANDARD_LIBS
+                std_libs = quartus.QUARTUS_STANDARD_LIBS
 
         import re
         try:
