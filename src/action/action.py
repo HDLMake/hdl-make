@@ -55,5 +55,5 @@ class Action(object):
             pass
 
         if ok is False:
-            logging.error("Variable %s must be set in the manifest and equal to %s")
+            logging.error("Variable %s must be set in the manifest and equal to '%s'." % (name, value))
             sys.exit("Exiting")
