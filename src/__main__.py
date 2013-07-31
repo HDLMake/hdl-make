@@ -32,7 +32,7 @@ def main():
     check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
     check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
-    make_sim = subparsers.add_parser("make-sim", help="generate a simulation Makefile")
+    make_sim = subparsers.add_parser("make-simulation", help="generate a simulation Makefile")
     make_sim.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
     make_fetch = subparsers.add_parser("make-fetch", help="generate a makefile for modules' fetching")
     make_fetch.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
@@ -47,8 +47,8 @@ def main():
     listfiles.add_argument("--delimiter", help="set delimitier for the list of files", dest="delimiter", default=' ')
     merge_cores = subparsers.add_parser("merge-cores", help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
     merge_cores.add_argument("--dest", help="name for output merged file", dest="dest", default=None)
-    ise_proj = subparsers.add_parser("ise-proj", help="create/update an ise project including list of project")
-    quartus_proj = subparsers.add_parser("quartus-proj", help="create/update a quartus project including list of project")
+    ise_proj = subparsers.add_parser("ise-project", help="create/update an ise project including list of project")
+    quartus_proj = subparsers.add_parser("quartus-project", help="create/update a quartus project including list of project")
     version = subparsers.add_parser("version", help="print version id of this Hdlmake build")
 
     parser.add_argument("--py", dest="arbitrary_code",
@@ -99,7 +99,7 @@ def main():
     if options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
-    elif options.command == "make-sim":
+    elif options.command == "make-simulation":
         action = GenerateSimulationMakefile
     elif options.command == "make-fetch":
         action = GenerateFetchMakefile
@@ -117,9 +117,9 @@ def main():
         action = ListFiles
     elif options.command == "merge-cores":
         action = MergeCores
-    elif options.command == "ise-proj":
+    elif options.command == "ise-project":
         action = GenerateISEProject
-    elif options.command == "quartus-proj":
+    elif options.command == "quartus-project":
         action = GenerateQuartusProject
     elif options.command == "version":
         print("Hdlmake build " + BUILD_ID)
