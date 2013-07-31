@@ -55,11 +55,12 @@ def url_basename(url):
     """
 
     if url.endswith(".git"):
-        ret = os.path.basename(url[:-4])
+        parts = url[:-4].split("/")
     elif url[-1] == '/':
-        ret = os.path.basename(url[:-1])
+        parts = url[:-1].split("/")
     else:
-        ret = os.path.basename(url)
+        parts = url.split("/")
+    ret = parts[-1]
     return ret
 
 

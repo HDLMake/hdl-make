@@ -155,13 +155,10 @@ class Module(object):
         logging.debug("Removing " + self.path)
         shutil.rmtree(self.path)
 
-        parts = self.path.split('/')
         while True:
             try:
-                parts = parts[:-1]
-                tmp = '/'.join(parts)
-                logging.debug("Trying to remove " + tmp)
-                os.rmdir(tmp)
+                logging.debug("Trying to remove " + os.path.dirname(self.path))
+                os.rmdir(os.path.dirname(self.path))
             except OSError:  # a catologue is not empty - we are done
                 break
 
