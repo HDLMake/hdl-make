@@ -192,7 +192,6 @@ class ISEProject(object):
         from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
 
         for f in self.files:
-            logging.debug("Writing .xise file for version " + str(self.ise))
             fp = self.xml_doc.createElement("file")
             fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
             if isinstance(f, VHDLFile):
@@ -252,6 +251,7 @@ class ISEProject(object):
             self.create_empty_project()
         else:
             self._output_ise(self.xml_doc.documentElement)
+        logging.debug("Writing .xise file for version " + str(self.ise))
         self._output_bindings(self.xml_bindings)
         self._output_files(self.xml_files)
         self._output_props(self.xml_props)
