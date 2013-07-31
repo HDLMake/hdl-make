@@ -11,6 +11,7 @@ from srcfile import SourceFileFactory
 import global_mod
 from util import path
 
+
 class GenerateISEProject(Action):
     def _check_manifest(self):
         self._check_manifest_variable_is_set("top_module")
@@ -19,8 +20,7 @@ class GenerateISEProject(Action):
         self._check_manifest_variable_is_set("syn_grade")
         self._check_manifest_variable_is_set("syn_package")
 
-
-    def run(self):
+    def _check_env(self):
         env = self.env
         if self.env["ise_path"] is None:
             logging.error("Can't generate an ISE project. ISE not found.")
@@ -33,6 +33,9 @@ class GenerateISEProject(Action):
                 sys.exit("Exiting")
             else:
                 logging.info("Generating project for ISE v. %s.%s" % (env["ise_version"][0], env["ise_version"][1]))
+
+    def run(self):
+
         self._check_all_fetched_or_quit()
 
         if os.path.exists(self.top_module.syn_project) or os.path.exists(self.top_module.syn_project + ".xise"):
