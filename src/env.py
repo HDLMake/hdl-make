@@ -127,7 +127,6 @@ class Env(dict):
             else:
                 print("quartus can't be found.")
 
-
         # determine path for ise
         print("\n### ISE synthesis ###")
         xilinx = os.environ.get("XILINX")
@@ -138,10 +137,13 @@ class Env(dict):
             print("Environmental variable XILINX is not set.")
 
         self._report_and_set_hdlmake_var("ise_path")
-        if self["ise_path"] is not None and self["xilinx"] is not None:
-            print("HDLMAKE_ISE_PATH and XILINX can't be set at a time\n"
-                  "Ignoring HDLMAKE_ISE_PATH")
-            self["ise_path"] = self["xilinx"]
+        if self["xilinx"] is not None:
+            if self["ise_path"] is not None:
+                print("HDLMAKE_ISE_PATH and XILINX can't be set at a time\n"
+                      "Ignoring HDLMAKE_ISE_PATH")
+            else:
+                pass
+            self["ise_path"] = os.path.join(self["xilinx"], "ISE/bin/lin")
         if self["ise_path"] is not None:
             if self._check_in_path("ise", self["ise_path"]):
                 print("ISE found in HDLMAKE_ISE_PATH: %s." % self["ise_path"])
