@@ -3,6 +3,7 @@
 import os
 from util import path
 import logging
+from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
 
 
@@ -67,14 +68,20 @@ class Git(object):
     def check_commit_id(path):
         cur_dir = os.getcwd()
         commit = None
+        stderr = TemporaryFile()
         try:
             os.chdir(path)
             git_cmd = 'git log -1 --format="%H" | cut -c1-32'
-            git_out = Popen(git_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+            git_out = Popen(git_cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=stderr, close_fds=True)
+            errmsg = stderr.readlines()
+            if errmsg:
+                logging.debug("git error message (in %s): %s" % (path, '\n'.join(errmsg)))
+
             try:
                 commit = git_out.stdout.readlines()[0].strip()
             except IndexError:
                 pass
         finally:
             os.chdir(cur_dir)
+            stderr.close()
         return commit
