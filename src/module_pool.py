@@ -35,6 +35,12 @@ class ModulePool(list):
         self.top_module = None
         self.global_fetch = os.getenv("HDLMAKE_COREDIR")
 
+    def get_module_by_path(self, path):
+        for module in self:
+            if module.path == path:
+                return module
+        return None
+
     def get_fetchable_modules(self):
         return [m for m in self if m.source != "local"]
 
@@ -65,7 +71,7 @@ class ModulePool(list):
 
     def new_module(self, parent, url, source, fetchto, process_manifest=True):
         from module import Module
-        if url in [m.url for m in self]:
+        if url in [m.url for m in self]:  # check if module is not already in the pool
             return [m for m in self if m.url == url][0]
         else:
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
