@@ -21,7 +21,7 @@
 
 from util import path as path_mod
 import os
-from configparser import ConfigParser
+from util.configparser import ConfigParser
 
 
 class Manifest:
