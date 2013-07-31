@@ -233,7 +233,8 @@ class ConfigParser(object):
     def __names(self):
         return [o.name for o in self.options if o is not None]
 
-    def parse(self):
+    def parse(self, allow_unknown=False, verbose=False, extra_context=None):
+        assert isinstance(extra_context, dict) or extra_context is None
         options = {}
         ret = {}
 
@@ -255,7 +256,7 @@ class ConfigParser(object):
         import sys
         try:
             with stdoutIO() as s:
-                exec(self.arbitrary_code, arbitrary_options)
+                exec(self.arbitrary_code, extra_context, arbitrary_options)
             printed = s.getvalue()
             if printed:
                 print(printed)
@@ -269,7 +270,7 @@ class ConfigParser(object):
 
         try:
             with stdoutIO() as s:
-                exec(content, options)
+                exec(content, extra_context, options)
             printed = s.getvalue()
             if len(printed) > 0:
                 logging.info("The manifest inside " + self.config_file + " tried to print something:")
@@ -290,7 +291,9 @@ class ConfigParser(object):
                 continue
             if opt_name not in self.__names():
                 if opt_name in arbitrary_options:
-                    continue
+                    continue  # finish processing of this variable here
+                elif allow_unknown is True:
+                    ret[opt_name] = val
                 else:
                     #if opt_name.startswith("global_"):
                     #    continue
