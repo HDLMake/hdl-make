@@ -27,6 +27,7 @@ import global_mod
 import dep_solver
 from srcfile import SourceFileSet
 from fetch import BackendFactory
+import fetch
 
 
 class ModulePool(list):
@@ -126,7 +127,6 @@ class ModulePool(list):
                     logging.debug("NOT appended to fetch queue: " + str(mod.url))
 
     def build_global_file_list(self):
-        from srcfile import SourceFileSet
         ret = SourceFileSet()
         for module in self:
             ret.add(module.files)

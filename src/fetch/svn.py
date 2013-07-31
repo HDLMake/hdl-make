@@ -41,11 +41,15 @@ class Svn(object):
     @staticmethod
     def check_revision_number(path):
         cur_dir = os.getcwd()
+        revision = None
         try:
             os.chdir(path)
-            svn_cmd = "svn info | awk '{if(NR == 5) {print $2}}'"
-            svn_out = Popen(svn_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
-            revision = svn_out.stdout.readlines()[0].strip()
+            svn_cmd = "svn info 2>/dev/null | awk '{if(NR == 5) {print $2}}'"
+            svn_out = Popen(svn_cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=None, close_fds=True)
+            try:
+                revision = svn_out.stdout.readlines()[0].strip()
+            except IndexError:
+                pass
         finally:
             os.chdir(cur_dir)
         return revision

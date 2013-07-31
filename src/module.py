@@ -172,10 +172,7 @@ class Module(object):
             self.manifest = self.__search_for_manifest()
         if self.path is None:
             raise RuntimeError()
-        if self.source == "svn":
-            self.revision = fetch.svn.check_revision_number(self.path)
-        elif self.source == "git":
-            self.revision = fetch.git.check_commit_id(self.path)
+
         manifest_parser = ManifestParser()
 
         # For non-top modules
@@ -351,6 +348,19 @@ class Module(object):
         for m in self.submodules():
             m.parse_manifest()
             m.process_manifest()
+
+        if self == global_mod.top_module:
+            revision = fetch.Svn.check_revision_number(self.path)
+            if revision is None:
+                commit = fetch.Git.check_commit_id(self.path)
+                self.revision = commit
+            else:
+                self.revision = revision
+        else:
+            if self.source == "svn":
+                self.revision = fetch.Svn.check_revision_number(self.path)
+            elif self.source == "git":
+                self.revision = fetch.Git.check_commit_id(self.path)
 
     def _make_list_of_paths(self, list_of_paths):
         paths = []
