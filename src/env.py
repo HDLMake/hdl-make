@@ -27,7 +27,7 @@ from subprocess import Popen, PIPE
 import re
 import logging
 import os.path
-import path
+from util import path
 
 
 _plain_print = print

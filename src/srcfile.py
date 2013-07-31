@@ -27,8 +27,8 @@ import logging
 from tools import ise
 from tools import modelsim
 from tools import quartus
-import path as path_mod
-from subprocess import Popen, PIPE
+from util import path as path_mod
+
 
 class File(object):
     def __init__(self, path, module=None):
@@ -52,10 +52,9 @@ class File(object):
         return os.path.dirname(self.path)
 
     def rel_path(self, dir=None):
-        import path
         if dir is None:
             dir = os.getcwd()
-        return path.relpath(self.path, dir)
+        return path_mod.relpath(self.path, dir)
 
     def __str__(self):
         return self.path

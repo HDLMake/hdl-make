@@ -19,7 +19,7 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import path as path_mod
+from util import path as path_mod
 import os
 from configparser import ConfigParser
 

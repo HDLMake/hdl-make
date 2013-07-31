@@ -2,7 +2,7 @@
 
 import os
 import logging
-import path
+from util import path
 from subprocess import Popen, PIPE
 
 

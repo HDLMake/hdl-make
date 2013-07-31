@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import path
+from util import path
 import logging
 from subprocess import Popen, PIPE
 

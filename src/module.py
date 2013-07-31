@@ -6,7 +6,7 @@
 from __future__ import print_function
 from manifest_parser import Manifest, ManifestParser
 from srcfile import VerilogFile, VHDLFile, SourceFileFactory, SourceFileSet
-import path as path_mod
+from util import path as path_mod
 import os
 import global_mod
 import logging
@@ -31,7 +31,7 @@ class Module(object):
 
     @property
     def basename(self):
-        import path
+        from util import path
         if self.source == "svn":
             return path.svn_basename(self.url)
         else:
@@ -39,7 +39,7 @@ class Module(object):
 
     #PLEASE don't use this constructor. Create all modules with ModulePool.new_module()
     def __init__(self, parent, url, source, fetchto, pool):
-        import path
+        from util import path
 
         assert url is not None
         assert source is not None

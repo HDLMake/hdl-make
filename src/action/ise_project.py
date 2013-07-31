@@ -9,7 +9,7 @@ from srcfile import SourceFileSet
 from tools.ise import ISEProject
 from srcfile import SourceFileFactory
 import global_mod
-import path
+from util import path
 
 class GenerateISEProject(Action):
     def _check_manifest(self):

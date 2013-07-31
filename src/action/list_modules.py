@@ -1,5 +1,5 @@
 from action import Action
-import path
+from util import path
 
 
 class ListModules(Action):
