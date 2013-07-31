@@ -39,3 +39,21 @@ class Action(object):
                           "Fetching must be done prior to makefile generation")
             print(str([str(m) for m in self.modules_pool if not m.isfetched]))
             sys.exit("Exiting.")
+
+    def _check_manifest_variable_is_set(self, name):
+        if getattr(self.top_module, name) is None:
+            logging.error("Variable %s must be set in the manifest to perform current action", name)
+            sys.exit("Exiting")
+
+    def _check_manifest_variable_is_equal_to(self, name, value):
+        ok = False
+        try:
+            manifest_value = getattr(self.top_module, name)
+            if manifest_value == value:
+                ok = True
+        except:
+            pass
+
+        if ok is False:
+            logging.error("Variable %s must be set in the manifest and equal to %s")
+            sys.exit("Exiting")
