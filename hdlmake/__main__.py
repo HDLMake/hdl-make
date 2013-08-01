@@ -36,6 +36,7 @@ def main():
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
     clean = subparsers.add_parser("clean", help="remove all modules fetched for this one")
     listmod = subparsers.add_parser("list-mods", help="List all modules together with their files")
+    listmod.add_argument("--with-files", help="list modules together with their files", default=False, action="store_true", dest="withfiles")
     listfiles = subparsers.add_parser("list-files", help="List all files in a form of a space-separated string")
     listfiles.add_argument("--delimiter", help="set delimitier for the list of files", dest="delimiter", default=' ')
     merge_cores = subparsers.add_parser("merge-cores", help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
