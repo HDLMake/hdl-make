@@ -32,14 +32,7 @@ def main():
     check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
     check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
-    make_sim = subparsers.add_parser("make-simulation", help="generate a simulation Makefile")
-    make_sim.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
-    make_fetch = subparsers.add_parser("make-fetch", help="generate a makefile for modules' fetching")
-    make_fetch.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
-    make_ise = subparsers.add_parser("make-ise", help="generate a makefile for local ISE synthesis")
-    make_ise.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
-    make_remote = subparsers.add_parser("make-remote", help="generate a makefile for remote synthesis")
-    make_remote.add_argument("--append", help="append generated makefile to the existing one", default=False, action="store_true")
+    auto = subparsers.add_parser("auto", help="default action for hdlmake. Run when no args are given")
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
     clean = subparsers.add_parser("clean", help="remove all modules fetched for this one")
     listmod = subparsers.add_parser("list-mods", help="List all modules together with their files")
@@ -49,7 +42,7 @@ def main():
     merge_cores.add_argument("--dest", help="name for output merged file", dest="dest", default=None)
     ise_proj = subparsers.add_parser("ise-project", help="create/update an ise project including list of project")
     quartus_proj = subparsers.add_parser("quartus-project", help="create/update a quartus project including list of project")
-    version = subparsers.add_parser("version", help="print version id of this Hdlmake build")
+    # version = subparsers.add_parser("version", help="print version id of this Hdlmake build")
 
     parser.add_argument("--py", dest="arbitrary_code",
                         default="", help="add arbitrary code to all manifests' evaluation")
@@ -57,7 +50,10 @@ def main():
     parser.add_argument("--log", dest="log",
                         default="info", help="set logging level (one of debug, info, warning, error, critical")
 
-    options = parser.parse_args()
+    if len(sys.argv) < 2:
+        options = parser.parse_args(['auto'])
+    else:
+        options = parser.parse_args(sys.argv[1:])
     global_mod.options = options
 
     numeric_level = getattr(logging, options.log.upper(), None)
@@ -78,10 +74,16 @@ def main():
         sys.exit("Exiting")
 
     # Setting global variable (global_mod.py)
-    global_mod.top_module = modules_pool.get_top_module()
+    top_mod = modules_pool.get_top_module()
+    global_mod.top_module = top_mod
 
     global_mod.global_target = global_mod.top_module.target
     global_mod.mod_pool = modules_pool
+
+    # if options.command == "version":
+    #     print("Hdlmake build " + BUILD_ID)
+    #     quit()
+
     env = Env(options)
     global_mod.env = env
     if options.command == "check-env":
@@ -96,6 +98,21 @@ def main():
     env.check_env(verbose=False)
     env.check_env_wrt_manifest(verbose=False)
 
+    if options.command == "auto":
+        logging.info("Running automatic flow.")
+        if top_mod.action == "simulation":
+            sim = GenerateSimulationMakefile(modules_pool=modules_pool, options=options, env=env)
+            sim.run()
+            quit()
+        elif top_mod.action == "synthesis":
+            syn = GenerateISEMakefile(modules_pool=modules_pool, options=options, env=env)
+            ise = GenerateISEProject(modules_pool=modules_pool, options=options, env=env)
+            remote = GenerateRemoteSynthesisMakefile(modules_pool=modules_pool, options=options, env=env)
+            syn.run()
+            ise.run()
+            remote.run()
+            quit()
+
     if options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
@@ -109,6 +126,8 @@ def main():
         action = GenerateRemoteSynthesisMakefile
     elif options.command == "fetch":
         action = FetchModules
+    elif options.command == "ise-project":
+        action = GenerateISEProject
     elif options.command == "clean":
         action = CleanModules
     elif options.command == "list-mods":
@@ -117,13 +136,10 @@ def main():
         action = ListFiles
     elif options.command == "merge-cores":
         action = MergeCores
-    elif options.command == "ise-project":
-        action = GenerateISEProject
+
     elif options.command == "quartus-project":
         action = GenerateQuartusProject
-    elif options.command == "version":
-        print("Hdlmake build " + BUILD_ID)
-        quit()
+
 
     action_instance = action(modules_pool=modules_pool, options=options, env=env)
 
