@@ -15,33 +15,29 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 #
-SRC_FILES := configparser.py dep_solver.py env.py\
-flow_altera.py global_mod.py hdlmake_kernel.py __main__.py\
-makefile_writer.py manifest_parser.py module.py module_pool.py path.py \
-srcfile.py vlog_parser.py new_dep_solver.py
-SRC_DIR := src
+SRC_FILES := $(shell find hdlmake -name '*py')
+SRC_FILES_BASENAMES = $(foreach src, $(SRC_FILES), $(shell basename $(src)))
 
-SRC := $(foreach src, $(SRC_FILES), $(SRC_DIR)/$(src))
 TAG = $(shell git describe --abbrev=0 --tags --always)#get the latest tag
 RELEASE = hdlmake-$(TAG).tar.gz
-EXEC := hdlmake
+ARCH := hdlmake$(TAG)
 
-executable: $(EXEC)
-$(EXEC): $(SRC)
+single_file_app: $(ARCH) build_tag
+$(ARCH): $(SRC_FILES)
 	bash embed_build_id.sh
-	cd $(SRC_DIR) &&\
-	zip $(EXEC) build_hash.py $(SRC_FILES) &&\
-	echo '#!/usr/bin/python' > $(EXEC) &&\
-	cat $(EXEC).zip >> $(EXEC) &&\
-	rm $(EXEC).zip &&\
-	chmod +x $(EXEC) &&\
-	mv $(EXEC) ..
+	cd hdlmake &&\
+	zip $(ARCH) build_hash.py $(SRC_FILES_BASENAMES) &&\
+	echo '#!/usr/bin/python' > $(ARCH) &&\
+	cat $(ARCH).zip >> $(ARCH) &&\
+	rm $(ARCH).zip &&\
+	chmod +x $(ARCH) &&\
+	mv $(ARCH) ..
 
 release: $(RELEASE)
-$(RELEASE): $(EXEC) $(SRC)
+$(RELEASE): $(ARCH) $(SRC)
 	tar -zcvf $@ *
 
-.PHONY: clean
+.PHONY: clean build_tag
 
 clean:
 	rm -f $(SRC_DIR)/*~ $(PREFIX)/*pyc $(EXEC) hdlmake-*.tar.gz 
