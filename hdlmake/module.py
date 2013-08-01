@@ -100,7 +100,7 @@ class Module(object):
                 self.isfetched = False
 
         if self.path is not None:
-            self.manifest = self.__search_for_manifest()
+            self.manifest = self._search_for_manifest()
         else:
             self.manifest = None
 
@@ -120,7 +120,7 @@ class Module(object):
 
         return __nonull(self.local) + __nonull(self.git) + __nonull(self.svn)
 
-    def __search_for_manifest(self):
+    def _search_for_manifest(self):
         """
         Look for manifest in the given folder
         """
@@ -128,7 +128,7 @@ class Module(object):
         dir_files = os.listdir(self.path)
         if "manifest.py" in dir_files and "Manifest.py" in dir_files:
             logging.error("Both manifest.py and Manifest.py found in the module directory: %s" % self.path)
-            quit()
+            sys.exit("\nExiting")
         for filename in dir_files:
             if filename == "manifest.py" or filename == "Manifest.py":
                 if not os.path.isdir(filename):
@@ -169,7 +169,7 @@ class Module(object):
         if self.isparsed is True or self.isfetched is False:
             return
         if self.manifest is None:
-            self.manifest = self.__search_for_manifest()
+            self.manifest = self._search_for_manifest()
         if self.path is None:
             raise RuntimeError()
 

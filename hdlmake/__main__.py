@@ -34,6 +34,9 @@ def main():
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
     auto = subparsers.add_parser("auto", help="default action for hdlmake. Run when no args are given")
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
+    fetch.add_argument("--flatten", help="`flatten' modules' hierarchy by storing everything in top module's fetchto direactoru",
+                       default=False, action="store_true")
+    fetch.add_argument("--update", help="force updating of the fetched modules", default=False, action="store_true")
     clean = subparsers.add_parser("clean", help="remove all modules fetched for this one")
     listmod = subparsers.add_parser("list-mods", help="List all modules together with their files")
     listmod.add_argument("--with-files", help="list modules together with their files", default=False, action="store_true", dest="withfiles")

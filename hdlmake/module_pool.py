@@ -28,6 +28,7 @@ import dep_solver
 from srcfile import SourceFileSet
 from fetch import BackendFactory
 import fetch
+from subprocess import PIPE, Popen
 
 
 class ModulePool(list):
@@ -72,13 +73,27 @@ class ModulePool(list):
 
     def new_module(self, parent, url, source, fetchto, process_manifest=True):
         from module import Module
-        if url in [m.url for m in self]:  # check if module is not already in the pool
+        if source != "local":
+            clean_url, branch, revision = path.parse_url(url)
+        else:
+            clean_url, branch, revision = url, None, None
+        if clean_url in [m.url for m in self]:  # check if module is not already in the pool
+            same_url_mod = [m for m in self if m.url == url][0]
+            if branch != same_url_mod.branch:
+                logging.error("Requested the same module, but different branches."
+                              "URL: %s\n" % clean_url +
+                              "branches: %s and %s\n" % (branch, same_url_mod.branch))
+                sys.exit("\nExiting")
+            if revision != same_url_mod.revision:
+                logging.error("Requested the same module, but different revisions."
+                              "URL: %s\n" % clean_url +
+                              "revisions: %s and %s\n" % (revision, same_url_mod.revision))
+                sys.exit("\nExiting")
+
             return [m for m in self if m.url == url][0]
         else:
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
                 fetchto = self.global_fetch  # screw module's particular fetchto
-            elif global_mod.top_module:
-                fetchto = global_mod.top_module.fetchto
 
             new_module = Module(parent=parent, url=url, source=source, fetchto=fetchto, pool=self)
             self._add(new_module)
@@ -91,8 +106,28 @@ class ModulePool(list):
             return new_module
 
     def process_top_module_manifest(self):
+        url = self._guess_origin(global_mod.top_module.path)
+        if url:
+            global_mod.top_module.url = url
         global_mod.top_module.process_manifest()
 
+    def _guess_origin(self, path):
+        cwd = os.getcwd()
+        try:
+            os.chdir(path)
+            git_out = Popen("git config --get remote.origin.url", stdout=PIPE, shell=True, close_fds=True)
+            url = git_out.stdout.readlines()[0].strip()
+            if not url:  # try svn
+                svn_out = Popen("svn info | grep 'Repository Root' | awk '{print $NF}'", stdout=PIPE, shell=True, close_fds=True)
+                url = svn_out.stdout.readlines()[0].strip()
+                if url:
+                    return url
+                else:
+                    return None
+            else:
+                return url
+        finally:
+            os.chdir(cwd)
     def _add(self, new_module):
         from module import Module
         if not isinstance(new_module, Module):
@@ -105,11 +140,13 @@ class ModulePool(list):
         self.append(new_module)
         return True
 
-    def fetch_all(self, unfetched_only=False):
+    def fetch_all(self, unfetched_only=False, flatten=False):
         fetch_queue = [m for m in self]
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
+            if flatten is True:
+                cur_mod.fetchto = global_mod.top_module.fetchto
             new_modules = []
             if unfetched_only:
                 if cur_mod.isfetched:

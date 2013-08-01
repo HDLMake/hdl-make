@@ -35,9 +35,8 @@ class GenerateISEProject(Action):
                 logging.info("Generating project for ISE v. %s.%s" % (env["ise_version"][0], env["ise_version"][1]))
 
     def run(self):
-
         self._check_all_fetched_or_quit()
-
+        logging.info("Generating/updating ISE project file.")
         if os.path.exists(self.top_module.syn_project) or os.path.exists(self.top_module.syn_project + ".xise"):
             self._handle_ise_project(update=True)
         else:

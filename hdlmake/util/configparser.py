@@ -283,6 +283,7 @@ class ConfigParser(object):
             quit()
         except:
             logging.error("Encountered unexpected error while parsing " + self.config_file)
+            logging.error(content)
             print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
             raise
 

@@ -11,8 +11,5 @@ class GenerateFetchMakefile(Action):
                           "No fetch makefile is produced")
             quit()
 
-        if not pool.is_everything_fetched():
-            logging.error("A module remains unfetched. "
-                          "Fetching must be done prior to makefile generation")
-            quit()
+        self._check_all_fetched_or_quit()
         self.make_writer.generate_fetch_makefile(pool)
