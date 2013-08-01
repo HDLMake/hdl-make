@@ -9,5 +9,5 @@ def detect_iverilog_version(path):
                      stdin=PIPE,
                      stdout=PIPE,
                      close_fds=True)
-    version = iverilog.stdout.readlines()[0].stripe()
+    version = iverilog.stdout.readlines()[0].strip()
     return version

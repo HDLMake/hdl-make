@@ -229,15 +229,7 @@ class Module(object):
         logging.debug(self.path)
         if self.manifest_dict["syn_ise_version"] is not None:
             version = self.manifest_dict["syn_ise_version"]
-            if isinstance(version, float):
-                version = str(version).split('.')
-                major = version[0]
-                minor = version[1]
-                self.syn_ise_version = (major, minor)
-            if isinstance(version, basestring):
-                parts = version.split('.')
-                #assert len(parts) = 2
-                self.syn_ise_version = (int(parts[0]), int(parts[1]))
+            self.syn_ise_version = str(version)
         if self.manifest_dict["fetchto"] is not None:
             fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"], self.path)
             self.fetchto = fetchto

@@ -60,7 +60,7 @@ def detect_ise_version(path):
 
     match = re.match(version_pattern, xst)
     if match:
-        ise_version = (match.group('major'), match.group('minor'))
+        ise_version = "%s.%s" % (match.group('major'), match.group('minor'))
     else:  # If it is not the case call the "xst -h" to get version
         xst_output = Popen('xst -h', shell=True, stdin=PIPE,
                            stdout=PIPE, close_fds=True)
@@ -69,7 +69,7 @@ def detect_ise_version(path):
         version_pattern = re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
         match = re.match(version_pattern, xst_output)
         if match:
-            ise_version = (match.group('major'), match.group('minor'))
+            ise_version = "%s.%s" % (match.group('major'), match.group('minor'))
         else:
             logging.error("xst output is not in expected format: %s\n" % xst_output +
                           "Can't determine ISE version")
@@ -274,7 +274,7 @@ class ISEProject(object):
 
     def _output_ise(self, node):
         i = self.xml_doc.createElement("version")
-        i.setAttribute("xil_pn:ise_version", '%s.%s' % (self.ise[0], self.ise[1]))
+        i.setAttribute("xil_pn:ise_version", '%s' % (self.ise))
         i.setAttribute("xil_pn:schema_version", "2")
         node.appendChild(i)
 
@@ -312,7 +312,7 @@ class ISEProject(object):
         self.xml_bindings = self.xml_doc.createElement("bindings")
 
         version = self.xml_doc.createElement("version")
-        version.setAttribute("xil_pn:ise_version", '%s.%s' % (self.ise[0], self.ise[1]))
+        version.setAttribute("xil_pn:ise_version", self.ise)
         version.setAttribute("xil_pn:schema_version", "2")
 
         top_element.appendChild(header)

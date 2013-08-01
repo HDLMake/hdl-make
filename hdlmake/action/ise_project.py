@@ -53,7 +53,7 @@ class GenerateISEProject(Action):
                               "or set")
                 sys.exit("Exiting")
             else:
-                logging.info("Generating project for ISE v. %s.%s" % (env["ise_version"][0], env["ise_version"][1]))
+                logging.info("Generating project for ISE v. %s" % env["ise_version"])
 
     def run(self):
         self._check_all_fetched_or_quit()
@@ -134,12 +134,11 @@ package body sdb_meta_pkg is
 end sdb_meta_pkg;""")
 
         project_vhd = open("project.vhd", 'w')
-        ise_version = "%s.%s" % (global_mod.env["ise_version"][0], global_mod.env["ise_version"][1])
         filled_template = template.substitute(repo_url=global_mod.top_module.url,
                                               syn_module_name=global_mod.top_module.top_module,
                                               syn_commit_id=global_mod.top_module.revision,
                                               syn_tool_name="ISE",
-                                              syn_tool_version=ise_version,
+                                              syn_tool_version=global_mod.env["ise_version"],
                                               syn_date=date_string,
                                               syn_username=getpass.getuser())
         project_vhd.write(filled_template)

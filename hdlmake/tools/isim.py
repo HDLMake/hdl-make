@@ -19,6 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
+from subprocess import Popen, PIPE
+
 
 ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                       'simprim', 'unisim', 'unimacro', 'aim', 'cpld',
@@ -28,4 +31,10 @@ ISIM_STARDAND_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
 
 
 def detect_isim_version(path):
-    pass
+    isim = Popen("%s --version | awk '{print $2}'" % os.path.join(path, "vlogcomp"),
+                 shell=True,
+                 close_fds=True,
+                 stdin=PIPE,
+                 stdout=PIPE)
+    isim_version = isim.stdout.readlines()[0].strip()
+    return isim_version

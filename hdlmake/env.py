@@ -30,7 +30,10 @@ import os.path
 from util import path
 from util.termcolor import colored
 from tools.ise import detect_ise_version
-
+from tools.modelsim import detect_modelsim_version
+from tools.quartus import detect_quartus_version
+from tools.isim import detect_isim_version
+from tools.iverilog import detect_iverilog_version
 
 _plain_print = print
 
@@ -116,7 +119,7 @@ class Env(dict):
         if self.top_module:
             if self.top_module.syn_ise_version is not None:
                 ise_version = tuple(self.top_module.syn_ise_version)
-                print("ise_version set in the manifest: %s.%s" % (ise_version[0], ise_version[1]))
+                print("ise_version set in the manifest: %s" % ise_version)
                 self["ise_version"] = ise_version
             elif self["ise_version"] is not None:
                 iv = self["ise_version"]
@@ -168,7 +171,7 @@ class Env(dict):
                       "Ignoring HDLMAKE_ISE_PATH")
             else:
                 pass
-            self["ise_path"] = os.path.join(self["xilinx"], "ISE/bin/lin")
+            self["ise_path"] = os.path.join(self["xilinx"], 'ISE', 'bin', 'lin')
             print("HDLMAKE_ISE_PATH infered from XILINX variable: %s" % self["ise_path"])
 
         self["ise_version"] = None
@@ -185,7 +188,7 @@ class Env(dict):
             else:
                 print("ISE " + _red("not found"))
         if self["ise_version"] is not None:
-            print("Detected ISE version %s.%s." % (self["ise_version"][0], self["ise_version"][1]))
+            print("Detected ISE version %s" % self["ise_version"])
 
         # determine modelsim path
         print("\n### Modelsim simulation ###")
@@ -201,6 +204,10 @@ class Env(dict):
                 print("vsim " + _green("found") + " in system PATH: %s." % self["modelsim_path"])
             else:
                 print("vsim " + _red("cannot") + " be found.")
+        if self["modelsim_path"] is not None:
+            self["modelsim_version"] = detect_modelsim_version(self["modelsim_path"])
+            print("Detected Modelsim version %s " % self["modelsim_version"])
+
 
         # determine iverilog path
         print("\n### Iverilog simulation ###")
@@ -210,12 +217,16 @@ class Env(dict):
                 print("iverilog " + _green("found") + " under HDLMAKE_IVERILOG_PATH: %s" % self["iverilog_path"])
             else:
                 print("iverilog " + _red("NOT found") + " under HDLMAKE_IVERILOG_PATH: %s" % self["iverilog_path"])
+
         else:
             if self._check_in_system_path("iverilog"):
                 self["iverilog_path"] = self._get_path("iverilog")
                 print("iverilog " + _green("found") + " in system path: %s" % self["iverilog_path"])
             else:
                 print("iverlog " + _red("cannnot") + " be found.")
+        if self["iverilog_path"] is not None:
+            self["iverilog_version"] = detect_iverilog_version(self["iverilog_path"])
+            print("Detected iverilog version %s" % self["iverilog_version"])
 
         # determine isim path
         print("\n### ISim simulation ###")
@@ -226,16 +237,22 @@ class Env(dict):
                 print("isim " + _green("found") + " under HDLMAKE_ISIM_PATH: %s" % self["isim_path"])
             else:
                 print("isim " + _red("NOT found") + " under HDLMAKE_ISIM_PATH: %s" % self["isim_path"])
+        elif self["ise_path"] is not None:
+            self["isim_path"] = self["ise_path"]
+            print("Infered HDLMAKE_ISIM_PATH from ISE path: %s" % self["isim_path"])
         else:
             if self["xilinx"] is not None:
-                #### TODO:rely on the XILINX var
-                pass
+                self["isim_path"] = os.path.join(self["xilinx"], 'ISE', 'bin', 'lin')
+                print("HDLMAKE_ISE_PATH infered from XILINX variable: %s" % self["ise_path"])
             else:
                 if self._check_in_system_path("isim"):
                     self["isim_path"] = self._get_path("isim")
                     print("isim " + _green("found") + " in system path: %s" % self["isim_path"])
                 else:
                     print("isim " + _red("cannnot") + " be found.")
+        if self["isim_path"] is not None:
+            self["isim_version"] = detect_isim_version(self["isim_path"])
+            print("Detected isim version %s" % self["isim_version"])
 
         # remote synthesis with ise
         print("\n### Remote synthesis with ISE ###")
