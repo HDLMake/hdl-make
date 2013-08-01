@@ -4,6 +4,7 @@ from action import Action
 import logging
 import dep_solver
 import sys
+import global_mod
 
 
 class GenerateSimulationMakefile(Action):
@@ -39,7 +40,7 @@ class GenerateSimulationMakefile(Action):
         top_module = pool.get_top_module()
         flist = pool.build_global_file_list()
         flist_sorted = dep_solver.solve(flist)
-        self.make_writer.generate_vsim_makefile(flist_sorted, top_module)
+        global_mod.makefile_writer.generate_vsim_makefile(flist_sorted, top_module)
 
     def _generate_isim_makefile(self):
 #        p.info("Generating makefile for simulation.")
@@ -54,7 +55,7 @@ class GenerateSimulationMakefile(Action):
 
         flist = pool.build_global_file_list()
         flist_sorted = dep_solver.solve(flist)
-        self.make_writer.generate_isim_makefile(flist_sorted, top_module)
+        global_mod.makefile_writer.generate_isim_makefile(flist_sorted, top_module)
 
     def _generate_iverilog_makefile(self):
         if self.env["iverilog_path"] is None:
@@ -68,4 +69,4 @@ class GenerateSimulationMakefile(Action):
         tm = pool.get_top_module()
         flist = pool.build_global_file_list()
         flist_sorted = dep_solver.solve(flist)
-        self.make_writer.generate_iverilog_makefile(flist_sorted, tm, pool)
+        global_mod.makefile_writer.generate_iverilog_makefile(flist_sorted, tm, pool)

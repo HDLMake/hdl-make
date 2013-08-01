@@ -1,6 +1,7 @@
 from __future__ import print_function
 from action import Action
 import logging
+import global_mod
 
 
 class GenerateISEMakefile(Action):
@@ -9,7 +10,7 @@ class GenerateISEMakefile(Action):
         global_mod.mod_pool = self.modules_pool
         logging.info("Generating makefile for local synthesis.")
 
-        ise_path = global_mod.env["ise_path"] 
+        ise_path = global_mod.env["ise_path"]
 
-        self.make_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(),
+        global_mod.makefile_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(),
                                                ise_path=ise_path)

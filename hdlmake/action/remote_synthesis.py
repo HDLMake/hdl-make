@@ -3,6 +3,7 @@ from action import Action
 import logging
 import os
 import sys
+import global_mod
 from srcfile import SourceFileFactory
 
 
@@ -24,7 +25,7 @@ class GenerateRemoteSynthesisMakefile(Action):
         files.add(sff.new(tcl, module=None))
         files.add(sff.new(top_mod.syn_project, module=None))
 
-        self.make_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
+        global_mod.makefile_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
                                                             cwd=os.getcwd(), user=self.env["rsynth_user"],
                                                             server=self.env["rsynth_server"])
 
