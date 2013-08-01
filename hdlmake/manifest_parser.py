@@ -65,7 +65,8 @@ class ManifestParser(ConfigParser):
         self.add_option('top_module', default=None, help="Top level entity for synthesis and simulation", type='')
 
         self.add_delimiter()
-        self.add_option('force_tool', default=None, help="Force certain version of a tool, e.g. 'ise-13.2'")
+        self.add_option('force_tool', default=None, help="Force certain version of a tool, e.g. 'ise < 13.2' or 'iverilog == 0.9.6",
+                        type='')
 
         self.add_delimiter()
         self.add_option('include_dirs', default=None, help="Include dirs for Verilog sources", type=[])

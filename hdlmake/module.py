@@ -80,6 +80,7 @@ class Module(object):
         self._files = None
         self.manifest = None
         self.incl_makefiles = []
+        self.force_tool = None
         self.syn_device = None
         self.syn_grade = None
         self.syn_package = None
@@ -256,6 +257,12 @@ class Module(object):
         self.vlog_opt = self.manifest_dict["vlog_opt"]
         self.iverilog_opt = self.manifest_dict["iverilog_opt"]
         self.sim_tool = self.manifest_dict["sim_tool"]
+        if self.manifest_dict["force_tool"]:
+            ft = self.manifest_dict["force_tool"]
+            self.force_tool = ft.split(' ')
+            if len(self.force_tool) != 3:
+                logging.warning("Incorrect force_tool format %s. Ignoring" % self.force_tool)
+                self.force_tool = None
 
         if "top_module" in self.manifest_dict:
             self.top_module = self.manifest_dict["top_module"]

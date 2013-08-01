@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+from check_condition import CheckCondition
 from check_manifest import CheckManifest
 from clean import CleanModules
 from default import Default

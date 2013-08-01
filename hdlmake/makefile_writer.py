@@ -92,15 +92,15 @@ class MakefileWriter(object):
         user_tmpl = user_tmpl.format("$(HDLMAKE_RSYNTH_USER)#take the value from the environment")
         test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
-\t@echo "Remote synthesis user is not set.
+\t@echo "Remote synthesis user is not set.\
 You can set it by editing variable USER in the makefile or setting env. variable HDLMAKE_RSYNTH_USER." && false
 endif
 ifeq (x$(SERVER),x)
-\t@echo "Remote synthesis server is not set.
+\t@echo "Remote synthesis server is not set.\
 You can set it by editing variable SERVER in the makefile or setting env. variable HDLMAKE_RSYNTH_SERVER." && false
 endif
 ifeq (x$(ISE_PATH),x)
-\t@echo "Remote synthesis server is not set.
+\t@echo "Remote synthesis server is not set.\
 You can set it by editing variable ISE_PATH in the makefile or setting env. variable HDLMAKE_RSYNTH_ISE_PATH." && false
 endif
 """
@@ -207,10 +207,13 @@ webtalk_pn.xml \
 run.tcl
 
 #target for performing local synthesis
-local: syn_pre_cmd
+local: syn_pre_cmd check_tool
 \t\techo "project open $$(PROJECT)" > run.tcl
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
 \t\t${ise_path}/xtclsh run.tcl
+
+check_tool:
+\t\t${check_tool}
 
 syn_post_cmd: local
 \t\t${syn_post_cmd}
@@ -227,7 +230,7 @@ clean:
 mrproper:
 \t\trm -f *.bit *.bin *.mcs
 
-.PHONY: mrproper clean syn_pre_scipt syn_post_cmd local
+.PHONY: mrproper clean syn_pre_scipt syn_post_cmd local check_tool
 
 """)
         self.initialize()
@@ -241,9 +244,20 @@ mrproper:
         else:
             syn_post_cmd = ''
 
+        if top_mod.force_tool:
+            ft = top_mod.force_tool
+            check_tool = """python $(HDLMAKE_HDLMAKE_PATH)/hdlmake _conditioncheck --tool {tool} --reference {reference} --condition "{condition}"\\
+|| (echo "{tool} version does not meet condition: {condition} {reference}" && false)
+""".format(tool=ft[0],
+                condition=ft[1],
+                reference=ft[2])
+        else:
+            check_tool = ''
+
         makefile_text = makefile_tmplt.substitute(syn_top=top_mod.syn_top,
                                   project_name=top_mod.syn_project,
                                   ise_path=ise_path,
+                                  check_tool=check_tool,
                                   syn_pre_cmd=syn_pre_cmd,
                                   syn_post_cmd=syn_post_cmd)
         self.write(makefile_text)

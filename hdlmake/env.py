@@ -287,8 +287,6 @@ class Env(dict):
         else:
             print("To use screen, set it to '1'.")
 
-
-
     def _get(self, name):
         assert not name.startswith("HDLMAKE_")
         assert isinstance(name, basestring)
