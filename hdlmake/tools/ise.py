@@ -29,6 +29,8 @@ import logging
 import re
 import global_mod
 import os
+from subprocess import Popen, PIPE
+
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
@@ -44,6 +46,36 @@ FAMILY_NAMES = {
     "XC7K": "Kintex7",
     "XC7A": "Artix7"}
 
+
+def detect_ise_version(path):
+    xst = Popen('which xst', shell=True, stdin=PIPE,
+                stdout=PIPE, close_fds=True)
+    lines = xst.stdout.readlines()
+    if not lines:
+        return None
+
+    xst = str(lines[0].strip())
+    version_pattern = re.compile('.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
+    # First check if we have version in path
+
+    match = re.match(version_pattern, xst)
+    if match:
+        ise_version = (match.group('major'), match.group('minor'))
+    else:  # If it is not the case call the "xst -h" to get version
+        xst_output = Popen('xst -h', shell=True, stdin=PIPE,
+                           stdout=PIPE, close_fds=True)
+        xst_output = xst_output.stdout.readlines()[0]
+        xst_output = xst_output.strip()
+        version_pattern = re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
+        match = re.match(version_pattern, xst_output)
+        if match:
+            ise_version = (match.group('major'), match.group('minor'))
+        else:
+            logging.error("xst output is not in expected format: %s\n" % xst_output +
+                          "Can't determine ISE version")
+            return None
+
+    return ise_version
 
 class ISEProjectProperty:
     def __init__(self,  name, value, is_default=False):

@@ -33,6 +33,11 @@ XmlImpl = xml.dom.minidom.getDOMImplementation()
 MODELSIM_STANDARD_LIBS = ['ieee', 'std']
 
 
+def detect_modelsim_version(path):
+    pass
+
+
+
 class ModelsiminiReader(object):
     def __init__(self, path=None):
         if path is None:

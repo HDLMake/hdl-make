@@ -24,6 +24,10 @@
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
 
+def detect_quartus_version(path):
+    pass
+
+
 class _QuartusProjectProperty:
     SET_GLOBAL_INSTANCE, SET_INSTANCE_ASSIGNMENT, SET_LOCATION_ASSIGNMENT, SET_GLOBAL_ASSIGNMENT = range(4)
     t = {"set_global_instance": SET_GLOBAL_INSTANCE,

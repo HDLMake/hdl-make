@@ -29,6 +29,7 @@ import logging
 import os.path
 from util import path
 from util.termcolor import colored
+from tools.ise import detect_ise_version
 
 
 _plain_print = print
@@ -118,8 +119,9 @@ class Env(dict):
                 print("ise_version set in the manifest: %s.%s" % (ise_version[0], ise_version[1]))
                 self["ise_version"] = ise_version
             elif self["ise_version"] is not None:
-                    print("syn_ise_version not set in the manifest,"
-                          " guessed ISE version: %s.%s." % (ise_version[0], ise_version[1]))
+                iv = self["ise_version"]
+                print("syn_ise_version not set in the manifest,"
+                      " guessed ISE version: %s.%s." % (iv[0], iv[1]))
 
     def check_env(self, verbose=False):
         print.set_verbose(verbose)
@@ -173,15 +175,17 @@ class Env(dict):
         if self["ise_path"] is not None:
             if self._is_in_path("ise", self["ise_path"]):
                 print(("ISE " + _green("found") + " in HDLMAKE_ISE_PATH: %s.") % self["ise_path"])
-                self["ise_version"] = self._guess_ise_version(self["ise_path"])
+                self["ise_version"] = detect_ise_version(self["ise_path"])
             else:
                 print(("ISE " + _red("not found") + " in HDLMAKE_ISE_PATH: %s.") % self["ise_path"])
         else:
             if self._is_in_path("ise"):
                 print(("ISE " + _green("found") + " in PATH: %s.") % self._get_path("ise"))
-                self["ise_version"] = self._guess_ise_version(self._get_path("ise"))
+                self["ise_version"] = detect_ise_version(self._get_path("ise"))
             else:
                 print("ISE " + _red("not found"))
+        if self["ise_version"] is not None:
+            print("Detected ISE version %s.%s." % (self["ise_version"][0], self["ise_version"][1]))
 
         # determine modelsim path
         print("\n### Modelsim simulation ###")
@@ -266,35 +270,7 @@ class Env(dict):
         else:
             print("To use screen, set it to '1'.")
 
-    def _guess_ise_version(self, ise_path):
-        xst = Popen('which xst', shell=True, stdin=PIPE,
-                    stdout=PIPE, close_fds=True)
-        lines = xst.stdout.readlines()
-        if not lines:
-            return None
 
-        xst = str(lines[0].strip())
-        version_pattern = re.compile('.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
-        # First check if we have version in path
-
-        match = re.match(version_pattern, xst)
-        if match:
-            ise_version = (match.group('major'), match.group('minor'))
-        else:  # If it is not the case call the "xst -h" to get version
-            xst_output = Popen('xst -h', shell=True, stdin=PIPE,
-                               stdout=PIPE, close_fds=True)
-            xst_output = xst_output.stdout.readlines()[0]
-            xst_output = xst_output.strip()
-            version_pattern = re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
-            match = re.match(version_pattern, xst_output)
-            if match:
-                ise_version = (match.group('major'), match.group('minor'))
-            else:
-                logging.error("xst output is not in expected format: %s\n" % xst_output +
-                              "Can't determine ISE version")
-                return None
-
-        return ise_version
 
     def _get(self, name):
         assert not name.startswith("HDLMAKE_")
