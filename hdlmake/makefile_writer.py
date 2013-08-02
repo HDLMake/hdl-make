@@ -381,15 +381,15 @@ VSIM_FLAGS :=
 VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """
         make_preambule_p2 = Template("""## rules #################################
+sim: check_tool sim_pre_cmd modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
+$$(VERILOG_OBJ): $$(VHDL_OBJ)
+$$(VHDL_OBJ): $$(LIB_IND) modelsim.ini
+
 sim_pre_cmd:
 \t\t${sim_pre_cmd}
 
 sim_post_cmd: sim
 \t\t${sim_post_cmd}
-
-sim: check_tool sim_pre_cmd modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
-$$(VERILOG_OBJ): $$(VHDL_OBJ)
-$$(VHDL_OBJ): $$(LIB_IND) modelsim.ini
 
 check_tool:
 \t\t${check_tool}
