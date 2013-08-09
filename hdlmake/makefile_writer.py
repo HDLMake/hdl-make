@@ -307,17 +307,14 @@ mrproper:
         from srcfile import VerilogFile
         #open the file and write the above preambule (part 1)
         self.initialize()
-        import global_mod
 #        for m in global_mod.mod_pool:
         for f in global_mod.top_module.incl_makefiles:
             self.writeln("include " + f)
-        libs = set(f.library for f in fileset)
+        # libs = set(f.library for f in fileset)
         target_list = []
         for vl in fileset.filter(VerilogFile):
             rel_dir_path = os.path.dirname(vl.rel_path())
-            if rel_dir_path:
-                rel_dir_path = rel_dir_path + '/'
-            target_name = os.path.join(rel_dir_path+vl.purename)
+            target_name = os.path.join(rel_dir_path, vl.purename)
             target_list.append(target_name)
 #            dependencies_string = ' '.join([f.rel_path() for f in vl.dep_depends_on if (f.name != vl.name) and not f.name
             dependencies_string = ' '.join([f.rel_path() for f in vl.dep_depends_on if (f.name != vl.name)])
@@ -343,8 +340,8 @@ mrproper:
         for m in global_mod.mod_pool:
             for f in m.sim_only_files:
                 sim_only_files.append(f.name)
-        top_name = global_mod.top_module.syn_top
-        top_name_syn_deps = []
+        # top_name = global_mod.top_module.syn_top
+        # top_name_syn_deps = []
 
         bit_targets = []
         for m in global_mod.mod_pool:
@@ -358,13 +355,13 @@ mrproper:
                     for f in vl.dep_depends_on:
                         if (f.name != vl.name and f.name not in sim_only_files):
                             bt_syn_deps.append(f)
-            self.writeln(bt+'syn_deps = '+ ' '.join([f.rel_path() for f in bt_syn_deps]))
+            self.writeln(bt+'syn_deps = ' + ' '.join([f.rel_path() for f in bt_syn_deps]))
             if not os.path.exists("%s.ucf" % bt):
                 logging.warning("The file %s.ucf doesn't exist!" % bt)
             self.writeln(bt+".bit:\t"+bt+".v $("+bt+"syn_deps) "+bt+".ucf")
-            part=(global_mod.top_module.syn_device+'-'+
-                  global_mod.top_module.syn_package+
-                  global_mod.top_module.syn_grade)
+            part = (global_mod.top_module.syn_device + '-' +
+                    global_mod.top_module.syn_package +
+                    global_mod.top_module.syn_grade)
             self.writeln("\tPART="+part+" $(SYNTH) "+bt+" $^")
             self.writeln("\tmv _xilinx/"+bt+".bit $@")
 
@@ -384,21 +381,23 @@ VSIM_FLAGS :=
 VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """
         make_preambule_p2 = Template("""## rules #################################
+sim: check_tool sim_pre_cmd modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
+$$(VERILOG_OBJ): $$(VHDL_OBJ)
+$$(VHDL_OBJ): $$(LIB_IND) modelsim.ini
+
 sim_pre_cmd:
 \t\t${sim_pre_cmd}
 
 sim_post_cmd: sim
 \t\t${sim_post_cmd}
 
-sim: sim_pre_cmd modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
-$$(VERILOG_OBJ): $$(VHDL_OBJ)
-$$(VHDL_OBJ): $$(LIB_IND) modelsim.ini
-
+check_tool:
+\t\t${check_tool}
 modelsim.ini: $$(MODELSIM_INI_PATH)/modelsim.ini
 \t\tcp $$< .
 clean:
 \t\trm -rf ./modelsim.ini $$(LIBS)
-.PHONY: clean sim_pre_cmd sim_post_cmd
+.PHONY: clean sim_pre_cmd sim_post_cmd check_tool
 
 """)
         #open the file and write the above preambule (part 1)
@@ -450,8 +449,17 @@ clean:
             sim_post_cmd = top_module.sim_post_cmd
         else:
             sim_post_cmd = ''
+        if top_module.force_tool:
+            ft = top_module.force_tool
+            check_tool = """python $(HDLMAKE_HDLMAKE_PATH)/hdlmake _conditioncheck --tool {tool} --reference {reference} --condition "{condition}"\\
+|| (echo "{tool} version does not meet condition: {condition} {reference}" && false)
+""".format(tool=ft[0],
+                condition=ft[1],
+                reference=ft[2])
+
         make_preambule_p2 = make_preambule_p2.substitute(sim_pre_cmd=sim_pre_cmd,
-                                                         sim_post_cmd=sim_post_cmd)
+                                                         sim_post_cmd=sim_post_cmd,
+                                                         check_tool=check_tool)
         self.write(make_preambule_p2)
 
         for lib in libs:
@@ -510,9 +518,12 @@ ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """
         make_preambule_p2 = """## rules #################################
-sim: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
+sim: xilinxsim.ini check_tool $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
 $(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini
 $(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
+
+check_tool:
+\t\t{check_tool}
 
 xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
 \t\tcp $< .
@@ -521,12 +532,11 @@ fuse:
 clean:
 \t\trm -rf ./xilinxsim.ini $(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
 isim.wdb
-.PHONY: clean
+.PHONY: clean check_tool
 
 """
         #open the file and write the above preambule (part 1)
         self.initialize()
-        self.write(make_preambule_p1)
 
         self.write("VERILOG_SRC := ")
         for vl in fileset.filter(VerilogFile):
@@ -563,6 +573,15 @@ isim.wdb
         self.write('LIB_IND := ')
         self.write(' '.join([lib+"/."+lib for lib in libs]))
         self.write('\n')
+
+        if top_module.force_tool:
+            ft = top_module.force_tool
+            check_tool = """python $(HDLMAKE_HDLMAKE_PATH)/hdlmake _conditioncheck --tool {tool} --reference {reference} --condition "{condition}"\\
+|| (echo "{tool} version does not meet condition: {condition} {reference}" && false)
+""".format(tool=ft[0],
+           condition=ft[1],
+           reference=ft[2])
+        self.write(make_preambule_p2.format(check_tool=check_tool))
         self.write(make_preambule_p2)
 
         # ISim does not have a vmap command to insert additional libraries in
