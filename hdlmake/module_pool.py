@@ -24,10 +24,10 @@ from __future__ import print_function
 import os
 import logging
 import global_mod
-import dep_solver
-from srcfile import SourceFileSet
+import new_dep_solver as dep_solver
+from util import path
+import sys
 from fetch import BackendFactory
-import fetch
 from subprocess import PIPE, Popen
 
 
@@ -74,23 +74,25 @@ class ModulePool(list):
     def new_module(self, parent, url, source, fetchto, process_manifest=True):
         from module import Module
         if source != "local":
-            clean_url, branch, revision = path.parse_url(url)
+            clean_url, branch, revision = path.url_parse(url)
         else:
             clean_url, branch, revision = url, None, None
-        if clean_url in [m.url for m in self]:  # check if module is not already in the pool
-            same_url_mod = [m for m in self if m.url == url][0]
-            if branch != same_url_mod.branch:
-                logging.error("Requested the same module, but different branches."
-                              "URL: %s\n" % clean_url +
-                              "branches: %s and %s\n" % (branch, same_url_mod.branch))
-                sys.exit("\nExiting")
-            if revision != same_url_mod.revision:
-                logging.error("Requested the same module, but different revisions."
-                              "URL: %s\n" % clean_url +
-                              "revisions: %s and %s\n" % (revision, same_url_mod.revision))
-                sys.exit("\nExiting")
-
-            return [m for m in self if m.url == url][0]
+        if url in [m.raw_url for m in self]:  # check if module is not already in the pool
+            # same_url_mod = [m for m in self if m.raw_url == url][0]
+            # if branch != same_url_mod.branch:
+            #     logging.error("Requested the same module, but different branches."
+            #                   "URL: %s\n" % clean_url +
+            #                   "branches: %s and %s\n" % (branch, same_url_mod.branch))
+            #     sys.exit("\nExiting")
+            # if revision != same_url_mod.revision:
+            #     logging.error("Requested the same module, but different revisions."
+            #                   "URL: %s\n" % clean_url +
+            #                   "revisions: %s (from %s)\n and \n%s (from %s)\n" % (revision,
+            #                                                                       parent.path,
+            #                                                                       same_url_mod.revision,
+            #                                                                       same_url_mod.parent.path))
+            #     sys.exit("\nExiting")
+            return [m for m in self if m.raw_url == url][0]
         else:
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
                 fetchto = self.global_fetch  # screw module's particular fetchto
@@ -128,6 +130,7 @@ class ModulePool(list):
                 return url
         finally:
             os.chdir(cwd)
+
     def _add(self, new_module):
         from module import Module
         if not isinstance(new_module, Module):
@@ -164,12 +167,14 @@ class ModulePool(list):
                     logging.debug("NOT appended to fetch queue: " + str(mod.url))
 
     def build_global_file_list(self):
+        from srcfile import SourceFileSet
         ret = SourceFileSet()
         for module in self:
             ret.add(module.files)
         return ret
 
     def build_very_global_file_list(self):
+        from srcfile import SourceFileSet   
         files = self.build_global_file_list()
         assert isinstance(files, SourceFileSet)
         dep_solver.solve(files)

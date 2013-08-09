@@ -466,7 +466,7 @@ clean:
         for vl in fileset.filter(VerilogFile):
             self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
             self.write(vl.rel_path() + ' ')
-            self.writeln(' '.join([f.rel_path() for f in vl.dep_depends_on]))
+            self.writeln(' '.join([f.rel_path() for f in vl.depends_on]))
             self.write("\t\tvlog -work "+vl.library)
             self.write(" $(VLOG_FLAGS) ")
             if isinstance(vl, SVFile):
@@ -486,7 +486,7 @@ clean:
             purename = vhdl.purename
             #each .dat depends on corresponding .vhd file
             self.write(os.path.join(lib, purename, "."+purename+"_" + vhdl.extension()) + ": " + vhdl.rel_path())
-            for dep_file in vhdl.dep_depends_on:
+            for dep_file in vhdl.depends_on:
                 name = dep_file.purename
                 self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_vhd" % name))
             self.writeln()

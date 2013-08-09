@@ -21,7 +21,6 @@
 
 from __future__ import print_function
 from manifest_parser import Manifest, ManifestParser
-from srcfile import VerilogFile, VHDLFile, SourceFileFactory, SourceFileSet
 from util import path as path_mod
 import os
 import global_mod
@@ -95,6 +94,7 @@ class Module(object):
         self.top_module = None
         self.commit_id = None
 
+        self.raw_url = url
         if source != "local":
             self.url, self.branch, self.revision = path.url_parse(url)
         else:
@@ -122,7 +122,7 @@ class Module(object):
             self.manifest = None
 
     def __str__(self):
-        return self.url
+        return self.raw_url
 
     @property
     def is_fetched_to(self):
@@ -224,6 +224,7 @@ class Module(object):
         self.manifest_dict = opt_map
 
     def process_manifest(self):
+        from srcfile import VerilogFile, VHDLFile, SourceFileFactory, SourceFileSet
         if self.manifest_dict is None:
             logging.debug("there is no manifest to be processed")
             return
@@ -306,7 +307,7 @@ class Module(object):
 
         if self.manifest_dict["files"] == []:
             self.files = SourceFileSet()
-            logging.debug("No files in the manifest")
+            logging.debug("No files in the manifest %s" % self.manifest.path)
         else:
             self.manifest_dict["files"] = self._flatten_list(self.manifest_dict["files"])
             logging.debug(self.path + str(self.manifest_dict["files"]))
@@ -450,6 +451,7 @@ class Module(object):
         return modules
 
     def _create_file_list_from_paths(self, paths):
+        from srcfile import SourceFileFactory, SourceFileSet
         sff = SourceFileFactory()
         srcs = SourceFileSet()
         for p in paths:

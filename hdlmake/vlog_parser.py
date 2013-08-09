@@ -22,8 +22,13 @@
 # A Verilog preprocessor. Still lots of stuff to be done, but it's already quite useful
 # for calculating dependencies.
 
+from __future__ import print_function
+import os
+import re
+import sys
 import logging
-from new_dep_solver import DepRelation, DepFile
+from new_dep_solver import DepParser
+from dep_file import DepRelation
 
 
 class VerilogPreprocessor:
@@ -65,6 +70,7 @@ class VerilogPreprocessor:
 
     def __init__(self):
         self.vpp_stack = self.VL_Stack()
+        self.vlog_file = None
 
     def _find_macro(self, name):
         for m in self.vpp_macros:
@@ -79,12 +85,10 @@ class VerilogPreprocessor:
                 return ""
             else:
                 return s
-        import re
         pattern = re.compile('//.*?$|/\*.*?\*/|"(?:\\.|[^\\"])*"', re.DOTALL | re.MULTILINE)
         return re.sub(pattern, replacer, s)
 
     def _degapize(self, s):
-        import re
         lempty = re.compile("^\s*$")
         cline = None
         lines = []
@@ -105,7 +109,6 @@ class VerilogPreprocessor:
         return lines
 
     def _search_include(self, filename, parent_dir=None):
-        import os
 #        print("Parent Dir %s" % parent_dir)
         if parent_dir is not None:
             possible_file = os.path.join(parent_dir, filename)
@@ -115,8 +118,9 @@ class VerilogPreprocessor:
             probable_file = os.path.join(searchdir, filename)
             if(os.path.isfile(probable_file)):
                 return probable_file
-        raise RuntimeError("Can't find %s for %s in any of the include directories: %s"
-                           % (filename, self.filename, ', '.join(self.vpp_searchdir)))
+        logging.error("Can't find %s for %s in any of the include directories: %s"
+                      % (filename, self.vlog_file.file_path, ', '.join(self.vpp_searchdir)))
+        sys.exit("\nExiting")
 
     def _parse_macro_def(self, m):
         name = m.group(1)
@@ -132,7 +136,6 @@ class VerilogPreprocessor:
         return mdef
 
     def _preprocess_file(self, file_content, file_name):
-        import re
         exps = {"include": re.compile("^\s*`include\s+\"(.+)\""),
                 "define": re.compile("^\s*`define\s+(\w+)(?:\(([\w\s,]*)\))?(.*)"),
                 "ifdef_elsif": re.compile("^\s*`(ifdef|ifndef|elsif)\s+(\w+)\s*$"),
@@ -142,7 +145,7 @@ class VerilogPreprocessor:
 
         cur_iter = 0
 
-        logging.debug("preprocess file %s %d" % (file_name, len(file_content)))
+        logging.debug("preprocess file %s (of length %d)" % (file_name, len(file_content)))
 #        print("BUF '%s'" %buf)
         buf = self._remove_comment(file_content)
         while True:
@@ -180,17 +183,12 @@ class VerilogPreprocessor:
                     continue
 
                 if matches["include"]:
-                    import os
                     path = self._search_include(last.group(1), os.path.dirname(file_name))
                     logging.debug("Parsed cur. %s file includes %s" % (file_name, path))
                     line = self._preprocess_file(file_content=open(path, "r").read(),
-                                                   file_name=path)
+                                                 file_name=path)
                     # print("IncBuf '%s'" % parsed)
-                    if file_name in self.vpp_filedeps.iterkeys():
-#                        self.vpp_filedeps[cur_file_name].append(path)
-                        pass
-                    else:
-#                        pass
+                    if file_name not in self.vpp_filedeps.iterkeys():
                         self.vpp_filedeps[file_name] = [path]
                     new_buf += line + '\n'
                     continue
@@ -228,10 +226,13 @@ class VerilogPreprocessor:
     def add_path(self, path):
         self.vpp_searchdir.append(path)
 
-    def preprocess(self, filename):
-        self.filename = filename
-        buf = open(filename, "r").read()
-        return self._preprocess_file(file_content=buf, file_name=filename)
+    def preprocess(self, vlog_file):
+        # assert isinstance(vlog_file, VerilogFile)
+        # assert isinstance(vlog_file, DepFile)
+        self.vlog_file = vlog_file
+        file_path = vlog_file.file_path
+        buf = open(file_path, "r").read()
+        return self._preprocess_file(file_content=buf, file_name=file_path)
 
     def _find_first(self, f, l):
         x = filter(f, l)
@@ -248,256 +249,257 @@ class VerilogPreprocessor:
         return list(set(deps))
 
 
-class VerilogParser:
+class VerilogParser(DepParser):
 
     reserved_words = ["accept_on",
-                    "alias",
-                    "always",
-                    "always_comb",
-                    "always_ff",
-                    "always_latch",
-                    "and",
-                    "assert",
-                    "assign",
-                    "assume",
-                    "automatic",
-                    "before",
-                    "begin",
-                    "bind",
-                    "bins",
-                    "binsof",
-                    "bit",
-                    "break",
-                    "buf",
-                    "bufif0",
-                    "bufif1",
-                    "byte",
-                    "case",
-                    "casex",
-                    "casez",
-                    "cell",
-                    "chandle",
-                    "checker",
-                    "class",
-                    "clocking",
-                    "cmos",
-                    "config",
-                    "const",
-                    "constraint",
-                    "context",
-                    "continue",
-                    "cover",
-                    "covergroup",
-                    "coverpoint",
-                    "cross",
-                    "deassign",
-                    "default",
-                    "defparam",
-                    "disable",
-                    "dist",
-                    "do",
-                    "edge",
-                    "else",
-                    "end",
-                    "endcase",
-                    "endchecker",
-                    "endclass",
-                    "endclocking",
-                    "endconfig",
-                    "endfunction",
-                    "endgenerate",
-                    "endgroup",
-                    "endinterface",
-                    "endmodule",
-                    "endpackage",
-                    "endprimitive",
-                    "endprogram",
-                    "endproperty",
-                    "endsequence",
-                    "endspecify",
-                    "endtable",
-                    "endtask",
-                    "enum",
-                    "event",
-                    "eventually",
-                    "expect",
-                    "export",
-                    "extends",
-                    "extern",
-                    "final",
-                    "first_match",
-                    "for",
-                    "force",
-                    "foreach",
-                    "forever",
-                    "fork",
-                    "forkjoin",
-                    "function",
-                    "generate",
-                    "genvar",
-                    "global",
-                    "highz0",
-                    "highz1",
-                    "if",
-                    "iff",
-                    "ifnone",
-                    "ignore_bins",
-                    "illegal_bins",
-                    "implies",
-                    "import",
-                    "incdir",
-                    "include",
-                    "initial",
-                    "inout",
-                    "input",
-                    "inside",
-                    "instance",
-                    "int",
-                    "integer",
-                    "interface",
-                    "intersect",
-                    "join",
-                    "join_any",
-                    "join_none",
-                    "large",
-                    "let",
-                    "liblist",
-                    "library",
-                    "local",
-                    "localparam",
-                    "logic",
-                    "longint",
-                    "macromodule",
-                    "matches",
-                    "medium",
-                    "modport",
-                    "module",
-                    "nand",
-                    "negedge",
-                    "new",
-                    "nexttime",
-                    "nmos",
-                    "nor",
-                    "noshowcancelled",
-                    "not",
-                    "notif0",
-                    "notif1",
-                    "null",
-                    "or",
-                    "output",
-                    "package",
-                    "packed",
-                    "parameter",
-                    "pmos",
-                    "posedge",
-                    "primitive",
-                    "priority",
-                    "program",
-                    "property",
-                    "protected",
-                    "pull0",
-                    "pull1",
-                    "pulldown",
-                    "pullup",
-                    "pulsestyle_ondetect",
-                    "pulsestyle_onevent",
-                    "pure",
-                    "rand",
-                    "randc",
-                    "randcase",
-                    "randsequence",
-                    "rcmos",
-                    "real",
-                    "realtime",
-                    "ref",
-                    "reg",
-                    "reject_on",
-                    "release",
-                    "repeat",
-                    "restrict",
-                    "return",
-                    "rnmos",
-                    "rpmos",
-                    "rtran",
-                    "rtranif0",
-                    "rtranif1",
-                    "s_always",
-                    "scalared",
-                    "sequence",
-                    "s_eventually",
-                    "shortint",
-                    "shortreal",
-                    "showcancelled",
-                    "signed",
-                    "small",
-                    "s_nexttime",
-                    "solve",
-                    "specify",
-                    "specparam",
-                    "static",
-                    "string",
-                    "strong",
-                    "strong0",
-                    "strong1",
-                    "struct",
-                    "s_until",
-                    "super",
-                    "supply0",
-                    "supply1",
-                    "sync_accept_on",
-                    "sync_reject_on",
-                    "table",
-                    "tagged",
-                    "task",
-                    "this",
-                    "throughout",
-                    "time",
-                    "timeprecision",
-                    "timeunit",
-                    "tran",
-                    "tranif0",
-                    "tranif1",
-                    "tri",
-                    "tri0",
-                    "tri1",
-                    "triand",
-                    "trior",
-                    "trireg",
-                    "type",
-                    "typedef",
-                    "union",
-                    "unique",
-                    "unique0",
-                    "unsigned",
-                    "until",
-                    "until_with",
-                    "untypted",
-                    "use",
-                    "var",
-                    "vectored",
-                    "virtual",
-                    "void",
-                    "wait",
-                    "wait_order",
-                    "wand",
-                    "weak",
-                    "weak0",
-                    "weak1",
-                    "while",
-                    "wildcard",
-                    "wire",
-                    "with",
-                    "within",
-                    "wor",
-                    "xnor",
-                    "xor"]
+                      "alias",
+                      "always",
+                      "always_comb",
+                      "always_ff",
+                      "always_latch",
+                      "assert",
+                      "assign",
+                      "assume",
+                      "automatic",
+                      "before",
+                      "begin",
+                      "bind",
+                      "bins",
+                      "binsof",
+                      "bit",
+                      "break",
+                      "buf",
+                      "bufif0",
+                      "bufif1",
+                      "byte",
+                      "case",
+                      "casex",
+                      "casez",
+                      "cell",
+                      "chandle",
+                      "checker",
+                      "class",
+                      "clocking",
+                      "cmos",
+                      "config",
+                      "const",
+                      "constraint",
+                      "context",
+                      "continue",
+                      "cover",
+                      "covergroup",
+                      "coverpoint",
+                      "cross",
+                      "deassign",
+                      "default",
+                      "defparam",
+                      "disable",
+                      "dist",
+                      "do",
+                      "edge",
+                      "else",
+                      "end",
+                      "endcase",
+                      "endchecker",
+                      "endclass",
+                      "endclocking",
+                      "endconfig",
+                      "endfunction",
+                      "endgenerate",
+                      "endgroup",
+                      "endinterface",
+                      "endmodule",
+                      "endpackage",
+                      "endprimitive",
+                      "endprogram",
+                      "endproperty",
+                      "endsequence",
+                      "endspecify",
+                      "endtable",
+                      "endtask",
+                      "enum",
+                      "event",
+                      "eventually",
+                      "expect",
+                      "export",
+                      "extends",
+                      "extern",
+                      "final",
+                      "first_match",
+                      "for",
+                      "force",
+                      "foreach",
+                      "forever",
+                      "fork",
+                      "forkjoin",
+                      "function",
+                      "generate",
+                      "genvar",
+                      "global",
+                      "highz0",
+                      "highz1",
+                      "if",
+                      "iff",
+                      "ifnone",
+                      "ignore_bins",
+                      "illegal_bins",
+                      "implies",
+                      "import",
+                      "incdir",
+                      "include",
+                      "initial",
+                      "inout",
+                      "input",
+                      "inside",
+                      "instance",
+                      "int",
+                      "integer",
+                      "interface",
+                      "intersect",
+                      "join",
+                      "join_any",
+                      "join_none",
+                      "large",
+                      "let",
+                      "liblist",
+                      "library",
+                      "local",
+                      "localparam",
+                      "logic",
+                      "longint",
+                      "macromodule",
+                      "matches",
+                      "medium",
+                      "modport",
+                      "module",
+                      "nand",
+                      "negedge",
+                      "new",
+                      "nexttime",
+                      "nmos",
+                      "nor",
+                      "noshowcancelled",
+                      "not",
+                      "notif0",
+                      "notif1",
+                      "null",
+                      "or",
+                      "output",
+                      "package",
+                      "packed",
+                      "parameter",
+                      "pmos",
+                      "posedge",
+                      "primitive",
+                      "priority",
+                      "program",
+                      "property",
+                      "protected",
+                      "pull0",
+                      "pull1",
+                      "pulldown",
+                      "pullup",
+                      "pulsestyle_ondetect",
+                      "pulsestyle_onevent",
+                      "pure",
+                      "rand",
+                      "randc",
+                      "randcase",
+                      "randsequence",
+                      "rcmos",
+                      "real",
+                      "realtime",
+                      "ref",
+                      "reg",
+                      "reject_on",
+                      "release",
+                      "repeat",
+                      "restrict",
+                      "return",
+                      "rnmos",
+                      "rpmos",
+                      "rtran",
+                      "rtranif0",
+                      "rtranif1",
+                      "s_always",
+                      "scalared",
+                      "sequence",
+                      "s_eventually",
+                      "shortint",
+                      "shortreal",
+                      "showcancelled",
+                      "signed",
+                      "small",
+                      "s_nexttime",
+                      "solve",
+                      "specify",
+                      "specparam",
+                      "static",
+                      "string",
+                      "strong",
+                      "strong0",
+                      "strong1",
+                      "struct",
+                      "s_until",
+                      "super",
+                      "supply0",
+                      "supply1",
+                      "sync_accept_on",
+                      "sync_reject_on",
+                      "table",
+                      "tagged",
+                      "task",
+                      "this",
+                      "throughout",
+                      "time",
+                      "timeprecision",
+                      "timeunit",
+                      "tran",
+                      "tranif0",
+                      "tranif1",
+                      "tri",
+                      "tri0",
+                      "tri1",
+                      "triand",
+                      "trior",
+                      "trireg",
+                      "type",
+                      "typedef",
+                      "union",
+                      "unique",
+                      "unique0",
+                      "unsigned",
+                      "until",
+                      "until_with",
+                      "untypted",
+                      "use",
+                      "var",
+                      "vectored",
+                      "virtual",
+                      "void",
+                      "wait",
+                      "wait_order",
+                      "wand",
+                      "weak",
+                      "weak0",
+                      "weak1",
+                      "while",
+                      "wildcard",
+                      "wire",
+                      "with",
+                      "within",
+                      "wor",
+                      "xnor",
+                      "xor"]
 
-    def __init__(self):
-        self.preproc = VerilogPreprocessor()
+    def __init__(self, dep_file):
+        DepParser.__init__(self, dep_file)
+        self.preprocessor = VerilogPreprocessor()
 
     def add_search_path(self, path):
-        self.preproc.add_path(path)
+        self.preprocessor.add_path(path)
 
+    # unused?
     def remove_procedural_blocks(self, buf):
         buf = buf.replace("(", " ( ")
         buf = buf.replace(")", " ) ")
@@ -529,31 +531,29 @@ class VerilogParser:
 
         return buf2
 
-    def parse(self, f_deps, filename):
-        import copy
-        buf = self.preproc.preprocess(filename)
-        f = open("preproc.v", "w")
-        f.write(buf)
-        f.close()
-        self.preprocessed = copy.copy(buf)
+    def parse(self, dep_file):
+        # assert isinstance(dep_file, DepFile), print("unexpected type: " + str(type(dep_file)))
+        buf = self.preprocessor.preprocess(dep_file)
+        self.preprocessed = buf[:]
 
-        import re
+        #add includes as dependencies
+        for f in self.preprocessor.vpp_filedeps:
+            dep_file.add_relation(DepRelation(f, DepRelation.USE, DepRelation.INCLUDE))
+
         m_inside_module = re.compile("(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)(?:endmodule|endinterface)", re.DOTALL | re.MULTILINE)
         m_instantiation = re.compile("(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*", re.DOTALL | re.MULTILINE)
 
         def do_module(s):
 #            print("module %s" %s.group(1))
-            f_deps.add_relation(DepRelation(s.group(1), DepRelation.PROVIDE, DepRelation.ENTITY))
+            dep_file.add_relation(DepRelation(s.group(1), DepRelation.PROVIDE, DepRelation.ENTITY))
 
             def do_inst(s):
                 mod_name = s.group(1)
                 if(mod_name in self.reserved_words):
                     return
 #                print("-> instantiates %s as %s" % (s.group(1), s.group(2)))
-                f_deps.add_relation(DepRelation(s.group(1), DepRelation.USE, DepRelation.ENTITY))
+                dep_file.add_relation(DepRelation(s.group(1), DepRelation.USE, DepRelation.ENTITY))
             re.subn(m_instantiation, do_inst, s.group(2))
         re.subn(m_inside_module, do_module,  buf)
 
-        for f in self.preproc.vpp_filedeps:
-            f_deps.add_relation(DepRelation(f, DepRelation.USE, DepRelation.INCLUDE))
-        f_deps.add_relation(DepRelation(filename, DepRelation.PROVIDE, DepRelation.INCLUDE))
+        dep_file.add_relation(DepRelation(os.path.basename(dep_file.filename), DepRelation.PROVIDE, DepRelation.INCLUDE))

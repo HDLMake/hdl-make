@@ -131,6 +131,9 @@ def main():
 
     if options.command == "auto":
         logging.info("Running automatic flow.")
+        if not top_mod.action:
+            logging.error("`action' manifest variable has to be specified.\n"
+                          "Otherwise hdlmake doesn't know how to handle the project")
         if top_mod.action == "simulation":
             sim = GenerateSimulationMakefile(modules_pool=modules_pool, options=options, env=env)
             sim.run()

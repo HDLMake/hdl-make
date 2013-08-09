@@ -19,71 +19,107 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class DepRelation:
-    PROVIDE = 1
-    USE = 2
-    
-    ENTITY = 1
-    PACKAGE = 2
-    INCLUDE = 3
 
-    def __init__(self, obj_name, direction, rel_type):
-        self.direction = direction
-        self.rel_type = rel_type
-        self.obj_name = obj_name
-    
-    def satisfies(self, rel_b):
-        if(rel_b.direction == self.USE):
-            return True
-        elif(self.direction == self.PROVIDE and rel_b.rel_type == self.rel_type and rel_b.obj_name == self.obj_name):
-            return True
-        return False    
+from __future__ import print_function
+import logging
+import tools
 
-    def __str__(self):
-        dstr = { self.USE : "Use", self.PROVIDE : "Provide" }
-        ostr = { self.ENTITY : "entity/module", self.PACKAGE : "package", self.INCLUDE : "include/header" }
-        return "%s %s '%s'" % (dstr[self.direction], ostr[self.rel_type], self.obj_name)
 
-class DepFile:
-    def __init__(self, filename, search_path=[]):
-        self.rels = []
-        self.filename = filename
-        parser = ParserFactory().create(self.filename, search_path)
-        parser.parse(self, self.filename)
+class DepParser(object):
+    def __init__(self, dep_file):
+        self.dep_file = dep_file
 
-    def add_relation(self, rel):
-        self.rels.append(rel)        
-        
-    def satisfies(self, rels_b):
-        for r_mine in self.rels:
-                if not any(map(rels_b, lambda x: x.satisfies(r_mine))):
-                    return False
-    
-    def show_relations(self):
-        for r in self.rels:
-            print(str(r))
+    def parse():
+        raise
 
-class DepParser:
-    def __init__(self):
-        pass
-    
-    def parse(f, filename):
-        pass
 
-class ParserFactory:
-    def create(self, filename, search_path):
+class ParserFactory(object):
+    def create(self, dep_file):
         import re
         from vlog_parser import VerilogParser
         from vhdl_parser import VHDLParser
 
-        extension=re.match(re.compile(".+\.(\w+)$"), filename)
-        if not extension :
-            raise ValueError("Unecognized file format : %s" % filename)
+        extension = re.match(re.compile(".+\.(\w+)$"), dep_file.file_path)
+        if not extension:
+            raise ValueError("Unecognized file format : %s" % dep_file.file_path)
         extension = extension.group(1).lower()
-        if(extension in ["vhd", "vhdl"]):
-            return VHDLParser()
-        elif(extension in ["v", "sv"]):
-            vp = VerilogParser()
-            for d in search_path:
+        if extension in ["vhd", "vhdl"]:
+            return VHDLParser(dep_file)
+        elif extension in ["v", "sv"]:
+            vp = VerilogParser(dep_file)
+            for d in dep_file.include_paths:
                 vp.add_search_path(d)
             return vp
+
+# class DepSolver(object):
+#     def solve(self, vhdl_files):
+#         for f in vhdl_files:
+#             logging.debug("solving deps for " + f.path)
+#             if f.dep_requires:
+#                 for req in f.dep_requires:
+#                     pf = self._find_provider_file(req=req, vhdl_file=f, fset=vhdl_files)
+#                     assert isinstance(pf, SourceFile)
+#                     if not pf:
+#                         logging.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
+#                     else:
+#                         logging.debug("%s depends on %s" % (f.path, pf.path))
+#                         if pf.path != f.path:
+#                             f.dep_depends_on.append(pf)
+#             #get rid of duplicates by making a set from the list and vice versa
+#             f.dep_depends_on = list(set(f.dep_depends_on))
+#             f.dep_resolved = True
+
+
+def solve(fileset):
+    from srcfile import SourceFileSet
+    from dep_file import DepFile, DepRelation
+    assert isinstance(fileset, SourceFileSet)
+
+    fset = fileset.filter(DepFile)
+
+    # for fle in fset:
+    #     print(fle.path)
+    #     for rel in fle.rels:
+    #         print('\t' + str(rel))
+
+    for investigated_file in fset:
+        for rel in investigated_file.rels:
+            if rel.direction is DepRelation.PROVIDE:  # PROVIDE relations dont have to be satisfied
+                continue
+            if rel.rel_type is DepRelation.INCLUDE:  # INCLUDE are already solved by preprocessor
+                continue
+            if rel.library() in tools.get_standard_libraries():  # dont care about standard libs
+                continue
+
+            satisfied_by = set()
+            for dep_file in fset:
+                if dep_file is investigated_file:
+                    continue
+                if dep_file.satisfies(rel):
+                    investigated_file.depends_on.add(dep_file)
+                    satisfied_by.add(dep_file)
+            if len(satisfied_by) > 1:
+                logging.warning("Relation %s satisfied by multpiple (%d) files: %s",
+                                str(rel),
+                                len(satisfied_by),
+                                '\n'.join([file.path for file in list(satisfied_by)]))
+            elif len(satisfied_by) == 0:
+                logging.warning("Relation %s not satisfied by any source file", str(rel))
+    logging.info("Dependencies solved")
+
+
+def make_dependency_sorted_list(fileset, purge_unused=True):
+    pass
+    # return list of files sorted in dependency order
+
+if __name__ == "__main__":
+    from dep_file import (DepFile)
+    logging.basicConfig(format="%(levelname)s %(funcName)s() %(filename)s:%(lineno)d: %(message)s", level=logging.DEBUG)
+    df = DepFile("/home/pawel/cern/hdl-make/tests/lr_test/wr-cores/modules/wrc_lm32/lm32_shifter.v", [])
+    df.show_relations()
+
+    print("-----------------------\n"
+          "---------- VHDL -------\n"
+          "-----------------------\n")
+    df1 = DepFile("/home/pawel/cern/hdl-make/examples/fine_delay/hdl/testbench/top/wr-cores/testbench/top_level/gn4124_bfm/mem_model.vhd")
+    df1.show_relations()

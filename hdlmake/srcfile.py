@@ -20,90 +20,31 @@
 #
 
 from __future__ import print_function
-from dependable_file import DependableFile
+#from dependable_file import DependableFile
 import os
 import global_mod
 import logging
+from module import Module
 from tools import ise
 from tools import modelsim
 from tools import quartus
 from util import path as path_mod
+from dep_file import DepFile, File
 
 
-class File(object):
-    def __init__(self, path, module=None):
-        self.path = path
-        if module is None:
-            self.module = global_mod.top_module
-        else:
-            assert not isinstance(module, basestring)
-            self.module = module
-
-    @property
-    def name(self):
-        return os.path.basename(self.path)
-
-    @property
-    def purename(self):
-        return os.path.splitext(self.name)[0]
-
-    @property
-    def dirname(self):
-        return os.path.dirname(self.path)
-
-    def rel_path(self, dir=None):
-        if dir is None:
-            dir = os.getcwd()
-        return path_mod.relpath(self.path, dir)
-
-    def __str__(self):
-        return self.path
-
-    def __eq__(self, other):
-        _NOTFOUND = object()
-        v1, v2 = [getattr(obj, "path", _NOTFOUND) for obj in [self, other]]
-        if v1 is _NOTFOUND or v2 is _NOTFOUND:
-            return False
-        elif v1 != v2:
-            return False
-        return True
-
-    def __hash__(self):
-        return hash(self.path)
-
-    def __cmp__(self, other):
-        if self.path < other.path:
-            return -1
-        if self.path == other.path:
-            return 0
-        if self.path > other.path:
-            return 1
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def isdir(self):
-        return os.path.isdir(self.path)
-
-    def show(self):
-        print(self.path)
-
-    def extension(self):
-        tmp = self.path.rsplit('.')
-        ext = tmp[len(tmp)-1]
-        return ext
-
-
-class SourceFile(DependableFile, File):
+class SourceFile(DepFile):
     cur_index = 0
 
     def __init__(self, path, module, library=None):
-        DependableFile.__init__(self)
-        File.__init__(self, path=path, module=module)
-        if not library:
-            library = "work"
-
+        from dep_file import DepFile
+        assert isinstance(path, basestring)
+        assert isinstance(module, Module)
         self.library = library
+        DepFile.__init__(self,
+                         file_path=path,
+                         module=module,
+                         include_paths=module.include_dirs[:])
+
 
     def gen_index(self):
         self.__class__.cur_index = self.__class__.cur_index+1
@@ -206,31 +147,6 @@ class VHDLFile(SourceFile):
                 if new in self.dep_provides:
                     continue
                 ret.add(new)
-
-        f.close()
-        return ret
-
-    def _search_packages(self):
-        """
-        Reads a file and looks for package clase. Returns list of packages' names
-        from the file
-        """
-        import re
-        f = open(self.path, "r")
-        try:
-            text = f.readlines()
-        except UnicodeDecodeError:
-            return []
-
-        package_pattern = re.compile("^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*.*$")
-
-        ret = set()
-        for line in text:
-            #identifiers and keywords are case-insensitive in VHDL
-            line = line.lower()
-            m = re.match(package_pattern, line)
-            if m is not None:
-                ret.add((self.library.lower(), m.group(1).lower()))
 
         f.close()
         return ret
@@ -408,7 +324,7 @@ class SourceFileSet(list):
 
     def get_libs(self):
         ret = set()
-        for file in self:
+        for file in self.modules_pool.build_global_file_list():
             try:
                 ret.add(file.library)
             except:
@@ -418,7 +334,7 @@ class SourceFileSet(list):
 
 class SourceFileFactory:
     def new(self, path, module, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
-        if path =="/home/pawel/cern/wr-cores/testbench/top_level/gn4124_bfm.svh":
+        if path == "/home/pawel/cern/wr-cores/testbench/top_level/gn4124_bfm.svh":
             raise Exception()
         if path is None or path == "":
             raise RuntimeError("Expected a file path, got: "+str(path))
@@ -441,7 +357,7 @@ class SourceFileFactory:
                              vlog_opt=vlog_opt,
                              include_dirs=include_dirs)
         elif extension == 'sv' or extension == 'svh':
-            nf = SVFile(path=path, 
+            nf = SVFile(path=path,
                         module=module,
                         library=library,
                         vlog_opt=vlog_opt,

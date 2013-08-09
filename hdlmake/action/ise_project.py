@@ -24,8 +24,8 @@ import logging
 from action import Action
 import sys
 import os
-from dependable_file import DependableFile
-import dep_solver
+from dep_file import DepFile
+import new_dep_solver as dep_solver
 from srcfile import SourceFileSet
 from tools.ise import ISEProject
 from srcfile import SourceFileFactory
@@ -66,23 +66,20 @@ class GenerateISEProject(Action):
     def _handle_ise_project(self, update=False):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
-        non_dependable = fileset.inversed_filter(DependableFile)
-        dependable = dep_solver.solve(fileset)
-        all_files = SourceFileSet()
-        all_files.add(non_dependable)
-        all_files.add(dependable)
+        dep_solver.solve(fileset)
+        flist = dep_solver.make_dependency_sorted_list(fileset)
 
         prj = ISEProject(ise=self.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())
         self._write_project_vhd()
-        prj.add_files(all_files)
+        prj.add_files(flist)
         sff = SourceFileFactory()
         logging.debug(top_mod.vlog_opt)
        # prj.add_files([sff.new(top_mod.vlog_opt)])
 
         prj.add_files([sff.new(path=path.rel2abs("project.vhd"),
                                module=self.modules_pool.get_module_by_path("."))])
-        prj.add_libs(all_files.get_libs())
+        prj.add_libs(fileset.get_libs())
         if update is True:
             prj.load_xml(top_mod.syn_project)
         else:
