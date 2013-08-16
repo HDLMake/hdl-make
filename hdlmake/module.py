@@ -65,6 +65,7 @@ class Module(object):
         self.source = source
         self.parent = parent
         self.isparsed = False
+        self.isprocessed = False
         self.include_dirs = None
         self.library = "work"
         self.local = []
@@ -225,6 +226,8 @@ class Module(object):
 
     def process_manifest(self):
         from srcfile import VerilogFile, VHDLFile, SourceFileFactory, SourceFileSet
+        if self.isprocessed is True:
+            return
         if self.manifest_dict is None:
             logging.debug("there is no manifest to be processed")
             return
@@ -368,6 +371,7 @@ class Module(object):
         self.syn_top = self.manifest_dict["syn_top"]
 
         self.isparsed = True
+        self.isprocessed = True
 
         for m in self.submodules():
             m.parse_manifest()
