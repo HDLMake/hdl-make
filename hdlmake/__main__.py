@@ -26,6 +26,7 @@ import global_mod
 import argparse
 import logging
 import sys
+from util.termcolor import colored
 from manifest_parser import ManifestParser
 from module_pool import ModulePool
 from env import Env
@@ -40,12 +41,24 @@ except:
 
 
 def main():
-    parser = argparse.ArgumentParser("hdlmake", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    usage = """hdlmake [command] [options]"""
+    description = """To see optional arguments for particular command type:
+        hdlmake <command> --help
+
+\0
+"""
+    parser = argparse.ArgumentParser("hdlmake",
+                                     usage=usage,
+                                     description=description)
     subparsers = parser.add_subparsers(title="commands", dest="command")
 
-    check_env = subparsers.add_parser("check-env", help="check environment for HDLMAKE-related settings")
-    check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
-    check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
+    check_env = subparsers.add_parser("check-env",
+                                      help="check environment for HDLMAKE-related settings",
+                                      description="Look for environmental variables specific for HDLMAKE.\n"
+                                                  "Hdlmake will examine presence of supported synthesis and simulation"
+                                                  "tools.\n")
+   # check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
+   # check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
     auto = subparsers.add_parser("auto", help="default action for hdlmake. Run when no args are given")
     auto.add_argument("--noprune", help="prevent hdlmake from pruning unneeded files", default=False, action="store_true")
@@ -53,7 +66,7 @@ def main():
     fetch.add_argument("--flatten", help="`flatten' modules' hierarchy by storing everything in top module's fetchto direactoru",
                        default=False, action="store_true")
     fetch.add_argument("--update", help="force updating of the fetched modules", default=False, action="store_true")
-    clean = subparsers.add_parser("clean", help="remove all modules fetched for this one")
+    clean = subparsers.add_parser("clean", help="remove all modules fetched for direct and indirect children of this module")
     listmod = subparsers.add_parser("list-mods", help="List all modules together with their files")
     listmod.add_argument("--with-files", help="list modules together with their files", default=False, action="store_true", dest="withfiles")
     listfiles = subparsers.add_parser("list-files", help="List all files in a form of a space-separated string")
@@ -77,6 +90,8 @@ def main():
 
     if len(sys.argv) < 2:
         options = parser.parse_args(['auto'])
+    elif len(sys.argv) == 2 and sys.argv[1][:5] == "--log":
+        options = parser.parse_args(sys.argv[1:] + ['auto'])
     elif sys.argv[1] == "_conditioncheck":
         options = condition_check.parse_args(sys.argv[2:])
         env = Env(options)
@@ -91,7 +106,7 @@ def main():
     if not isinstance(numeric_level, int):
         sys.exit('Invalid log level: %s' % options.log)
 
-    logging.basicConfig(format="%(levelname)s %(funcName)s() %(filename)s:%(lineno)d: %(message)s", level=numeric_level)
+    logging.basicConfig(format=colored("%(levelname)s", "yellow") + colored("\t%(filename)s:%(lineno)d: %(funcName)s()\t", "blue") + "%(message)s", level=numeric_level)
     logging.debug(str(options))
 
     modules_pool = ModulePool()
