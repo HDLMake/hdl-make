@@ -176,7 +176,7 @@ class ConfigParser(object):
             raise RuntimeError("No such option as " + str(name))
 
     def help(self):
-        print("Variables available in a manifest:")
+        print("Variables with special meaning for Hdlmake:")
         for opt in self.options:
             if opt is None:
                 print("")

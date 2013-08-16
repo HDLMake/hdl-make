@@ -62,6 +62,7 @@ class ManifestParser(ConfigParser):
         self.add_option('syn_pre_cmd', default=None, help="Command to be executed before synthesis", type='')
         self.add_option('syn_post_cmd', default=None, help="Command to be executed after synthesis", type='')
 
+        self.add_delimiter()
         self.add_option('top_module', default=None, help="Top level entity for synthesis and simulation", type='')
 
         self.add_delimiter()
@@ -117,7 +118,7 @@ class ManifestParser(ConfigParser):
         return self.add_config_file(manifest.path)
 
     def print_help(self):
-        ConfigParser.help()
+        self.help()
 
     def search_for_package(self):
         """

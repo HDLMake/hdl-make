@@ -25,8 +25,8 @@
 from __future__ import print_function
 import xml.dom.minidom
 import xml.parsers.expat
-import os
 import re
+import os
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
@@ -37,11 +37,10 @@ def detect_modelsim_version(path):
     pass
 
 
-
 class ModelsiminiReader(object):
     def __init__(self, path=None):
         if path is None:
-            path = self.modelsim_ini_dir() + "/modelsim.ini"
+            path = os.path.join(global_mod.env["modelsim_path"], "/modelsim.ini")
         self.path = path
 
     def get_libraries(self):
@@ -75,9 +74,3 @@ class ModelsiminiReader(object):
                 lib = line[0].strip()
                 libs.append(lib.lower())
         return libs
-
-    @staticmethod
-    def modelsim_ini_dir():
-        vsim_path = os.popen("which vsim").read().strip()
-        bin_path = os.path.dirname(vsim_path)
-        return os.path.abspath(bin_path+"/../")
