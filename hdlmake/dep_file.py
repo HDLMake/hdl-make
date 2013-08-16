@@ -55,10 +55,13 @@ class DepRelation(object):
         else:
             return None
 
-    def __str__(self):
+    def __repr__(self):
         dstr = {self.USE: "Use", self.PROVIDE: "Provide"}
         ostr = {self.ENTITY: "entity/module", self.PACKAGE: "package", self.INCLUDE: "include/header"}
         return "%s %s '%s'" % (dstr[self.direction], ostr[self.rel_type], self.obj_name)
+
+    def __hash__(self):
+        return hash(self.__repr__())
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
@@ -135,38 +138,48 @@ class File(object):
 class DepFile(File):
     def __init__(self, file_path, module, include_paths=None):
         from module import Module
-        from new_dep_solver import ParserFactory
         assert isinstance(file_path, basestring)
         assert isinstance(module, Module)
 
         File.__init__(self, path=file_path, module=module)
         self.file_path = file_path
-        self.rels = set()
+        self._rels = set()
         self.depends_on = set()  # set of files that the file depends on, items of type DepFile
+
+        self.is_parsed = False
         if include_paths is None:
             include_paths = []
         else:
             pass
         self.file_path = file_path
         self.include_paths = include_paths
-        parser = ParserFactory().create(self)
-        parser.parse(self)
+
+    def _parse_if_needed(self):
+        from new_dep_solver import ParserFactory
+        if not self.is_parsed:
+            parser = ParserFactory().create(self)
+            parser.parse(self)
+
+    #use proxy template here
+    def __get_rels(self):
+        self._parse_if_needed()
+        return self._rels
+
+    def __set_rels(self, what):
+        self._rels = what
+
+    rels = property(__get_rels, __set_rels)
 
     def add_relation(self, rel):
-        self.rels.add(rel)
-
-    # def satisfies_any(self, rels_b):
-    #     assert isinstance(rels_b, list)
-    #     for rel_a in self.rels:
-    #             if not any(map(lambda x: x.satisfies(rel_a), rels_b)):
-    #                 return False
-    #     return True
+        self._rels.add(rel)
 
     def satisfies(self, rel_b):
         assert isinstance(rel_b, DepRelation)
+        self._parse_if_needed()
         return any(map(lambda x: x.satisfies(rel_b), self.rels))
 
     def show_relations(self):
+        self._parse_if_needed()
         for r in self.rels:
             print(str(r))
 

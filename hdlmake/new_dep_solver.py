@@ -93,8 +93,8 @@ def solve(fileset):
 
             satisfied_by = set()
             for dep_file in fset:
-                if dep_file is investigated_file:
-                    continue
+               # if dep_file is investigated_file:
+               #     continue
                 if dep_file.satisfies(rel):
                     investigated_file.depends_on.add(dep_file)
                     satisfied_by.add(dep_file)
@@ -104,7 +104,7 @@ def solve(fileset):
                                 len(satisfied_by),
                                 '\n'.join([file.path for file in list(satisfied_by)]))
             elif len(satisfied_by) == 0:
-                logging.warning("Relation %s not satisfied by any source file", str(rel))
+                logging.warning("Relation %s in %s not satisfied by any source file" % (str(rel), investigated_file.name))
     logging.info("Dependencies solved")
 
 

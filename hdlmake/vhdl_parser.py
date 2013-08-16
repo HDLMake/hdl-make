@@ -21,6 +21,7 @@
 
 
 from new_dep_solver import DepParser
+import logging
 
 
 def _remove_gaps(buf, delims, gap_chars, lower_strings=False):
@@ -57,6 +58,9 @@ def _remove_gaps(buf, delims, gap_chars, lower_strings=False):
 class VHDLParser(DepParser):
     def parse(self, dep_file):
         from dep_file import DepRelation
+        if dep_file.is_parsed:
+            return
+        logging.info("Parsing %s" % dep_file.path)
         content = open(dep_file.file_path, "r")
         buf = ""
         # stage 1: strip comments
@@ -156,3 +160,4 @@ class VHDLParser(DepParser):
                 dep_file.add_relation(DepRelation(g.group(2),
                                                   DepRelation.USE,
                                                   DepRelation.ENTITY))
+        dep_file.is_parsed = True

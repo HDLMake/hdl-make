@@ -31,7 +31,7 @@ from new_dep_solver import DepParser
 from dep_file import DepRelation
 
 
-class VerilogPreprocessor:
+class VerilogPreprocessor(object):
 # Reserved verilog preprocessor keywords. The list is certainly not full
     vpp_keywords = ["define", "line", "include", "elsif", "ifdef", "endif", "else", "undef", "timescale"]
 
@@ -45,14 +45,14 @@ class VerilogPreprocessor:
     vpp_filedeps = {}
 
   # Verilog `define class
-    class VL_Define:
+    class VL_Define(object):
         def __init__(self, name, args, expansion):
             self.name = name
             self.args = args
             self.expansion = expansion
 
     # Simple binary stack, for nested `ifdefs    evaluation
-    class VL_Stack:
+    class VL_Stack(object):
         def __init__(self):
             self.stack = []
 
@@ -532,6 +532,9 @@ class VerilogParser(DepParser):
         return buf2
 
     def parse(self, dep_file):
+        if dep_file.is_parsed:
+            return
+        logging.info("Parsing %s" % dep_file.path)
         # assert isinstance(dep_file, DepFile), print("unexpected type: " + str(type(dep_file)))
         buf = self.preprocessor.preprocess(dep_file)
         self.preprocessed = buf[:]
@@ -557,3 +560,4 @@ class VerilogParser(DepParser):
         re.subn(m_inside_module, do_module,  buf)
 
         dep_file.add_relation(DepRelation(os.path.basename(dep_file.filename), DepRelation.PROVIDE, DepRelation.INCLUDE))
+        dep_file.is_parsed = True
