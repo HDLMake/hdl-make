@@ -35,8 +35,10 @@ class ListModules(Action):
                     print(path.relpath(m.path))
                     if m.source in [fetch.SVN, fetch.GIT]:
                         print("# "+m.url)
-                    if m.parent:
-                        print("# defined in %s" % m.parent.url)
+                    elif m.source == fetch.GITSUBMODULE:
+                        print("# submodule of: %s" % m.parent.url)
+                    if m.source in [fetch.SVN, fetch.GIT, fetch.LOCAL] and m.parent:
+                        print("# parent: %s" % m.parent.url)
                     else:
                         print("# root module")
                     if not len(m.files):
