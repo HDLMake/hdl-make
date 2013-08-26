@@ -30,6 +30,7 @@ from util.termcolor import colored
 from manifest_parser import ManifestParser
 from module_pool import ModulePool
 from env import Env
+import fetch as fetch_mod
 from action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMakefile,
                     GenerateISEMakefile, GenerateISEProject, ListFiles,
                     ListModules, MergeCores, GenerateQuartusProject,
@@ -96,7 +97,9 @@ def main():
         options = condition_check.parse_args(sys.argv[2:])
         env = Env(options)
         env.check_env()
-        CheckCondition(modules_pool=None, options=options, env=env).run()
+        CheckCondition(modules_pool=None,
+                       options=options,
+                       env=env).run()
         quit()
     else:
         options = parser.parse_args(sys.argv[1:])
@@ -110,8 +113,11 @@ def main():
     logging.debug(str(options))
 
     modules_pool = ModulePool()
-    modules_pool.new_module(parent=None, url=os.getcwd(), source="local",
-                            fetchto=".", process_manifest=False)
+    modules_pool.new_module(parent=None,
+                            url=os.getcwd(),
+                            source=fetch_mod.LOCAL,
+                            fetchto=".",
+                            process_manifest=False)
 
     # Setting top_module as top module of design (ModulePool class)
     if modules_pool.get_top_module().manifest is None:
@@ -147,16 +153,25 @@ def main():
     if options.command == "auto":
         logging.info("Running automatic flow.")
         if not top_mod.action:
-            logging.error("`action' manifest variable has to be specified.\n"
+            logging.error("`action' manifest variable has to be specified. "
                           "Otherwise hdlmake doesn't know how to handle the project")
+            quit()
         if top_mod.action == "simulation":
-            sim = GenerateSimulationMakefile(modules_pool=modules_pool, options=options, env=env)
+            sim = GenerateSimulationMakefile(modules_pool=modules_pool,
+                                             options=options,
+                                             env=env)
             sim.run()
             quit()
         elif top_mod.action == "synthesis":
-            syn = GenerateISEMakefile(modules_pool=modules_pool, options=options, env=env)
-            ise = GenerateISEProject(modules_pool=modules_pool, options=options, env=env)
-            remote = GenerateRemoteSynthesisMakefile(modules_pool=modules_pool, options=options, env=env)
+            syn = GenerateISEMakefile(modules_pool=modules_pool,
+                                      options=options,
+                                      env=env)
+            ise = GenerateISEProject(modules_pool=modules_pool,
+                                     options=options,
+                                     env=env)
+            remote = GenerateRemoteSynthesisMakefile(modules_pool=modules_pool,
+                                                     options=options,
+                                                     env=env)
             syn.run()
             ise.run()
             remote.run()
@@ -188,7 +203,9 @@ def main():
     elif options.command == "quartus-project":
         action = GenerateQuartusProject
 
-    action_instance = action(modules_pool=modules_pool, options=options, env=env)
+    action_instance = action(modules_pool=modules_pool,
+                             options=options,
+                             env=env)
 
     try:
         action_instance.run()

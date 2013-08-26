@@ -37,7 +37,6 @@ class GenerateISEProject(Action):
     def _check_manifest(self):
         self._check_manifest_variable_is_set("top_module")
         self._check_manifest_variable_is_set("syn_device")
-        self._check_manifest_variable_is_set("syn_device")
         self._check_manifest_variable_is_set("syn_grade")
         self._check_manifest_variable_is_set("syn_package")
 
@@ -84,6 +83,7 @@ class GenerateISEProject(Action):
             prj.load_xml(top_mod.syn_project)
         else:
             prj.add_initial_properties()
+        logging.info("Writing down .xise project file")
         prj.emit_xml(top_mod.syn_project)
 
     def _write_project_vhd(self):

@@ -23,10 +23,12 @@ from __future__ import print_function
 from action import Action
 import logging
 import global_mod
-import dep_solver
 
 
 class GenerateISEMakefile(Action):
+    def _check_manifest(self):
+        self._check_manifest_variable_is_set("syn_tool")
+
     def run(self):
         logging.info("Generating makefile for local synthesis.")
 

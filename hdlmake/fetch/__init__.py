@@ -22,3 +22,8 @@
 from backend_factory import BackendFactory
 from svn import Svn
 from git import Git
+
+GIT = 1
+SVN = 2
+LOCAL = 3
+GITSUBMODULE = 4

@@ -21,6 +21,7 @@
 
 from action import Action
 from util import path
+import fetch
 
 
 class ListModules(Action):
@@ -32,7 +33,7 @@ class ListModules(Action):
                     print(m.url+'\n')
                 else:
                     print(path.relpath(m.path))
-                    if m.source in ["svn", "git"]:
+                    if m.source in [fetch.SVN, fetch.GIT]:
                         print("# "+m.url)
                     if m.parent:
                         print("# defined in %s" % m.parent.url)

@@ -286,7 +286,7 @@ class WBGenFile(File):
     pass
 
 
-class SourceFileSet(list):
+class SourceFileSet(set):
     def __init__(self):
         super(SourceFileSet, self).__init__()
         self = []
@@ -302,11 +302,9 @@ class SourceFileSet(list):
         else:
             try:
                 for f in files:
-                    if f not in self:
-                        self.append(f)
+                    super(SourceFileSet, self).add(f)
             except:  # single file, not a list
-                if files not in self:
-                    self.append(files)
+                super(SourceFileSet, self).add(files)
 
     def filter(self, type):
         out = SourceFileSet()
@@ -324,7 +322,7 @@ class SourceFileSet(list):
 
     def get_libs(self):
         ret = set()
-        for file in self.modules_pool.build_global_file_list():
+        for file in self:
             try:
                 ret.add(file.library)
             except:

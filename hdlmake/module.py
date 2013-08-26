@@ -36,7 +36,7 @@ class Module(object):
 
     @source.setter
     def source(self, value):
-        if value not in ["svn", "git", "local"]:
+        if value not in [fetch.GIT, fetch.SVN, fetch.LOCAL, fetch.GITSUBMODULE]:
             raise ValueError("Inproper source: " + value)
         self._source = value
 
@@ -47,7 +47,7 @@ class Module(object):
     @property
     def basename(self):
         from util import path
-        if self.source == "svn":
+        if self.source == fetch.SVN:
             return path.svn_basename(self.url)
         else:
             return path.url_basename(self.url)
@@ -86,6 +86,7 @@ class Module(object):
         self.syn_package = None
         self.syn_project = None
         self.syn_top = None
+        self.syn_tool = None
         self.syn_ise_version = None
         self.syn_pre_script = None
         self.syn_post_script = None
@@ -96,17 +97,17 @@ class Module(object):
         self.commit_id = None
 
         self.raw_url = url
-        if source != "local":
+        if source != fetch.LOCAL:
             self.url, self.branch, self.revision = path.url_parse(url)
         else:
             self.url, self.branch, self.revision = url, None, None
 
-        if source == "local" and not os.path.exists(url):
+        if source == fetch.LOCAL and not os.path.exists(url):
             logging.error("Path to the local module doesn't exist:\n" + url
                           + "\nThis module was instantiated in: " + str(parent))
             quit()
 
-        if source == "local":
+        if source == fetch.LOCAL:
             self.path = url
             self.isfetched = True
         else:
@@ -117,10 +118,9 @@ class Module(object):
                 self.path = None
                 self.isfetched = False
 
-        if self.path is not None:
-            self.manifest = self._search_for_manifest()
-        else:
-            self.manifest = None
+        self.manifest = None
+
+        self.git_submodules = []
 
     def __str__(self):
         return self.raw_url
@@ -136,7 +136,7 @@ class Module(object):
             else:
                 return x
 
-        return __nonull(self.local) + __nonull(self.git) + __nonull(self.svn)
+        return __nonull(self.local) + __nonull(self.git) + __nonull(self.svn) + __nonull(self.git_submodules)
 
     def _search_for_manifest(self):
         """
@@ -183,7 +183,6 @@ class Module(object):
     def parse_manifest(self):
         if self.manifest_dict:
             return
-        logging.debug(self.path)
         if self.isparsed is True or self.isfetched is False:
             return
         if self.manifest is None:
@@ -198,6 +197,7 @@ class Module(object):
         if self.manifest is None:
             logging.debug("No manifest found in module "+str(self))
         else:
+            logging.debug("Parse manifest in: %s" % self.path)
             manifest_parser.add_manifest(self.manifest)
 
         if self.parent is None:
@@ -250,7 +250,10 @@ class Module(object):
                                   "(" + self.path + ")")
                     quit()
                 path = path_mod.rel2abs(path, self.path)
-                local_mods.append(self.pool.new_module(parent=self, url=path, source="local", fetchto=fetchto))
+                local_mods.append(self.pool.new_module(parent=self,
+                                                       url=path,
+                                                       source=fetch.LOCAL,
+                                                       fetchto=fetchto))
             self.local = local_mods
         else:
             self.local = []
@@ -310,7 +313,10 @@ class Module(object):
 
         if self.manifest_dict["files"] == []:
             self.files = SourceFileSet()
-            logging.debug("No files in the manifest %s" % self.manifest.path)
+            try:
+                logging.debug("No files in the manifest %s" % self.manifest.path)
+            except AttributeError:
+                pass
         else:
             self.manifest_dict["files"] = self._flatten_list(self.manifest_dict["files"])
             logging.debug(self.path + str(self.manifest_dict["files"]))
@@ -343,7 +349,10 @@ class Module(object):
             self.manifest_dict["modules"]["svn"] = self._flatten_list(self.manifest_dict["modules"]["svn"])
             svn_mods = []
             for url in self.manifest_dict["modules"]["svn"]:
-                svn_mods.append(self.pool.new_module(parent=self, url=url, source="svn", fetchto=fetchto))
+                svn_mods.append(self.pool.new_module(parent=self,
+                                                     url=url,
+                                                     source=fetch.SVN,
+                                                     fetchto=fetchto))
             self.svn = svn_mods
         else:
             self.svn = []
@@ -352,11 +361,20 @@ class Module(object):
             self.manifest_dict["modules"]["git"] = self._flatten_list(self.manifest_dict["modules"]["git"])
             git_mods = []
             for url in self.manifest_dict["modules"]["git"]:
-                git_mods.append(self.pool.new_module(parent=self, url=url, source="git", fetchto=fetchto))
+                git_mods.append(self.pool.new_module(parent=self,
+                                                     url=url,
+                                                     source=fetch.GIT,
+                                                     fetchto=fetchto))
             self.git = git_mods
         else:
             self.git = []
 
+        git_submodule_urls = fetch.Git.get_git_submodules(self)
+        for submodule_url in git_submodule_urls:
+            self.git_submodules.append(self.pool.new_module(parent=self,
+                                                            url=submodule_url,
+                                                            fetchto=self.path,
+                                                            source=fetch.GITSUBMODULE))
         self.target = self.manifest_dict["target"].lower()
         self.action = self.manifest_dict["action"].lower()
 
@@ -364,6 +382,7 @@ class Module(object):
             self.syn_name = self.manifest_dict["syn_project"][:-5]  # cut out .xise from the end
         else:
             self.syn_name = self.manifest_dict["syn_name"]
+        self.syn_tool = self.manifest_dict["syn_tool"]
         self.syn_device = self.manifest_dict["syn_device"]
         self.syn_grade = self.manifest_dict["syn_grade"]
         self.syn_package = self.manifest_dict["syn_package"]
@@ -385,14 +404,13 @@ class Module(object):
             else:
                 self.revision = revision
         else:
-            if self.source == "svn":
+            if self.source == fetch.SVN:
                 self.revision = fetch.Svn.check_revision_number(self.path)
-            elif self.source == "git":
+            elif self.source == fetch.GIT:
                 self.revision = fetch.Git.check_commit_id(self.path)
 
     def _make_list_of_paths(self, list_of_paths):
         paths = []
-        logging.debug(str(list_of_paths))
         for filepath in list_of_paths:
             if self._check_filepath(filepath):
                 paths.append(path_mod.rel2abs(filepath, self.path))

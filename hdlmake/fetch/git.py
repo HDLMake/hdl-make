@@ -24,13 +24,47 @@ from util import path
 import logging
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
+import fetch
+
+
+class GitSubmodule(object):
+    def fetch(self, module):
+        if module.source != fetch.GITSUBMODULE:
+            raise ValueError("This backend should get git modules only.")
+        cur_dir = os.getcwd()
+        os.chdir(module.fetchto)
+        os.system("git submodule init")
+        os.system("git submodule update")
+        os.chdir(cur_dir)
 
 
 class Git(object):
     def __init__(self):
         pass
 
+    @staticmethod
+    def get_git_submodules(module):
+        submodule_dir = path.rel2abs(module.path)
+        logging.info("Checking git submodules in %s" % submodule_dir)
+        cmd = "(cd %s && git config --list | grep submodule | sed 's/.*=//')" % submodule_dir
+        config_submodules = Popen(cmd,
+                                  stdout=PIPE,
+                                  stdin=PIPE,
+                                  shell=True)
+        config_submodules = [line.strip() for line in config_submodules.stdout.readlines()]
+        cmd = "(cd %s && cat ./.gitmodules | grep url | sed 's/url = //')" % submodule_dir
+        dotgitmodules_submodules = Popen(cmd,
+                                         stdout=PIPE,
+                                         stdin=PIPE,
+                                         shell=True)
+        dotgitmodules_submodules = [line.strip() for line in dotgitmodules_submodules.stdout.readlines()]
+        set(config_submodules).update(set(dotgitmodules_submodules))
+        submodules = list(config_submodules)
+        return submodules
+
     def fetch(self, module):
+        if module.source != fetch.GIT:
+            raise ValueError("This backend should get git modules only.")
         if not os.path.exists(module.fetchto):
             os.mkdir(module.fetchto)
 
@@ -40,6 +74,8 @@ class Git(object):
 
         basename = path.url_basename(module.url)
         mod_path = os.path.join(module.fetchto, basename)
+
+        logging.info("Fetching git module: %s" % mod_path)
 
         if basename.endswith(".git"):
             basename = basename[:-4]  # remove trailing .git
@@ -64,12 +100,6 @@ class Git(object):
         if os.system(cmd) != 0:
             success = False
 
-        if success is True:
-            os.chdir(mod_path)
-            os.system("git submodule init")
-            os.system("git submodule update")
-            os.chdir(cur_dir)
-
         if module.revision is not None and success is True:
             logging.debug("cd %s" % mod_path)
             os.chdir(mod_path)
@@ -91,7 +121,12 @@ class Git(object):
         try:
             os.chdir(path)
             git_cmd = 'git log -1 --format="%H" | cut -c1-32'
-            git_out = Popen(git_cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=stderr, close_fds=True)
+            git_out = Popen(git_cmd,
+                            shell=True,
+                            stdin=PIPE,
+                            stdout=PIPE,
+                            stderr=stderr,
+                            close_fds=True)
             errmsg = stderr.readlines()
             if errmsg:
                 logging.debug("git error message (in %s): %s" % (path, '\n'.join(errmsg)))

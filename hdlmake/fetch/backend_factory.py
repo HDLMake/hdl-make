@@ -19,9 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from git import Git
+from git import (Git, GitSubmodule)
 from svn import Svn
 import logging
+import fetch
 
 
 class Local(object):
@@ -37,12 +38,14 @@ class BackendFactory(object):
         pass
 
     def get_backend(self, module):
-            if module.source == "local":
+            if module.source == fetch.LOCAL:
                 return Local()
             else:
                 logging.info("Investigating module: " + str(module) +
                              "[parent: " + str(module.parent) + "]")
-                if module.source == "svn":
+                if module.source == fetch.SVN:
                     return Svn()
-                if module.source == "git":
+                if module.source == fetch.GIT:
                     return Git()
+                if module.source == fetch.GITSUBMODULE:
+                    return GitSubmodule()

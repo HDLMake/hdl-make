@@ -109,8 +109,39 @@ def solve(fileset):
 
 
 def make_dependency_sorted_list(fileset, purge_unused=True):
-    pass
-    # return list of files sorted in dependency order
+    # CYCLE_THRESHOLD = 30
+    # ret = list(fileset)
+    # cur_idx = 0
+    # other_file_idx = cur_idx + 1
+    # swapped = 0
+    # while True:
+    #     if swapped >= CYCLE_THRESHOLD:
+    #         cur_idx += 1
+    #     if cur_idx >= len(ret):
+    #         break
+    #     if other_file_idx >= len(ret):
+    #         cur_idx += 1
+    #         other_file_idx = cur_idx + 1
+    #         continue
+    #     dep_file = ret[cur_idx]
+    #     other_file = ret[other_file_idx]
+    #     if other_file in dep_file.depends_on:
+    #         ret[cur_idx], ret[other_file_idx] = ret[other_file_idx], ret[cur_idx]
+    #         other_file_idx = cur_idx + 1
+    #         swapped += 1
+    #     else:
+    #         other_file_idx += 1
+    # return ret
+    def compare_dep_files(f1, f2):
+        if f2 in f1.depends_on:
+            return 1
+        if f1 in f2.depends_on:
+            return -1
+        return 0
+
+    ret = list(fileset)
+    ret = sorted(ret, cmp=compare_dep_files)
+    return ret
 
 if __name__ == "__main__":
     from dep_file import (DepFile)

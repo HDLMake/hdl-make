@@ -25,9 +25,9 @@ import os
 import logging
 import global_mod
 import new_dep_solver as dep_solver
-from util import path
-import sys
+from util import path as path_mod
 from fetch import BackendFactory
+import fetch
 from subprocess import PIPE, Popen
 
 
@@ -38,13 +38,14 @@ class ModulePool(list):
         self.global_fetch = os.getenv("HDLMAKE_COREDIR")
 
     def get_module_by_path(self, path):
+        path = path_mod.rel2abs(path)
         for module in self:
             if module.path == path:
                 return module
         return None
 
     def get_fetchable_modules(self):
-        return [m for m in self if m.source != "local"]
+        return [m for m in self if m.source != fetch.LOCAL]
 
     def __str__(self):
         return str([str(m) for m in self])
@@ -55,26 +56,11 @@ class ModulePool(list):
                 return True
         return False
 
-    def _fetch(self, module):
-        new_modules = []
-        logging.debug("Fetching module: " + str(module))
-
-        bf = BackendFactory()
-        fetcher = bf.get_backend(module)
-        fetcher.fetch(module)
-
-        module.parse_manifest()
-        module.process_manifest()
-
-        new_modules.extend(module.local)
-        new_modules.extend(module.svn)
-        new_modules.extend(module.git)
-        return new_modules
 
     def new_module(self, parent, url, source, fetchto, process_manifest=True):
         from module import Module
-        if source != "local":
-            clean_url, branch, revision = path.url_parse(url)
+        if source != fetch.LOCAL:
+            clean_url, branch, revision = path_mod.url_parse(url)
         else:
             clean_url, branch, revision = url, None, None
         if url in [m.raw_url for m in self]:  # check if module is not already in the pool
@@ -97,7 +83,10 @@ class ModulePool(list):
             if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
                 fetchto = self.global_fetch  # screw module's particular fetchto
 
-            new_module = Module(parent=parent, url=url, source=source, fetchto=fetchto, pool=self)
+            new_module = Module(parent=parent,
+                                url=url, source=source,
+                                fetchto=fetchto,
+                                pool=self)
             self._add(new_module)
             if not self.top_module:
                 global_mod.top_module = new_module
@@ -118,7 +107,10 @@ class ModulePool(list):
         try:
             os.chdir(path)
             git_out = Popen("git config --get remote.origin.url", stdout=PIPE, shell=True, close_fds=True)
-            url = git_out.stdout.readlines()[0].strip()
+            lines = git_out.stdout.readlines()
+            if len(lines) == 0:
+                return None
+            url = lines[0].strip()
             if not url:  # try svn
                 svn_out = Popen("svn info | grep 'Repository Root' | awk '{print $NF}'", stdout=PIPE, shell=True, close_fds=True)
                 url = svn_out.stdout.readlines()[0].strip()
@@ -142,6 +134,23 @@ class ModulePool(list):
                 self._add(mod)
         self.append(new_module)
         return True
+
+    def _fetch(self, module):
+        new_modules = []
+        logging.debug("Fetching module: " + str(module))
+
+        bf = BackendFactory()
+        fetcher = bf.get_backend(module)
+        fetcher.fetch(module)
+
+        module.parse_manifest()
+        module.process_manifest()
+
+        new_modules.extend(module.local)
+        new_modules.extend(module.svn)
+        new_modules.extend(module.git)
+        new_modules.extend(module.git_submodules)
+        return new_modules
 
     def fetch_all(self, unfetched_only=False, flatten=False):
         fetch_queue = [m for m in self]
@@ -178,7 +187,6 @@ class ModulePool(list):
         files = self.build_global_file_list()
         assert isinstance(files, SourceFileSet)
         dep_solver.solve(files)
-        assert isinstance(files, list)
         ret = []
         for file in files:
             try:
