@@ -200,7 +200,7 @@ class Env(dict):
                 print("vsim " + _red("not found") + " in HDLMAKE_MODELSIM_PATH: %s." % self["modelsim_path"])
         else:
             if self._check_in_system_path("vsim"):
-                self["modelsim_path"] = self._get_path("modelsim_path")
+                self["modelsim_path"] = self._get_path("vsim")
                 print("vsim " + _green("found") + " in system PATH: %s." % self["modelsim_path"])
             else:
                 print("vsim " + _red("cannot") + " be found.")
