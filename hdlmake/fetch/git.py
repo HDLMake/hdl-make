@@ -59,12 +59,15 @@ class Git(object):
         config_submodules = [line.split("=")[-1] for line in config_submodule_lines]
 
         #"(cd %s && cat ./.gitmodules 2>/dev/null | grep url | sed 's/url = //')" % submodule_dir
-        dotgitmodules_file = open(".gitmodules", 'r')
-        dotgitmodules_lines = dotgitmodules_file.readlines()
-        url_lines = [line for line in dotgitmodules_lines if 'url' in line]
-        dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
+        try:
+            dotgitmodules_file = open(".gitmodules", 'r')
+            dotgitmodules_lines = dotgitmodules_file.readlines()
+            url_lines = [line for line in dotgitmodules_lines if 'url' in line]
+            dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
 
-        set(config_submodules).update(set(dotgitmodules_submodules))
+            set(config_submodules).update(set(dotgitmodules_submodules))
+        except IOError:
+            pass  # no .gitmodules file
         submodules = list(config_submodules)
         if len(submodules) > 0:
             logging.info("Found git submodules in %s" % module.path)
