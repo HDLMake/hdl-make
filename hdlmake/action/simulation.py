@@ -22,7 +22,6 @@
 from __future__ import print_function
 from action import Action
 import logging
-import new_dep_solver as dep_solver
 import sys
 import global_mod
 
@@ -59,7 +58,6 @@ class GenerateSimulationMakefile(Action):
         pool = self.modules_pool
         top_module = pool.get_top_module()
         fset = pool.build_global_file_list()
-        dep_solver.solve(fset)
         dep_files = fset.filter(DepFile)
         global_mod.makefile_writer.generate_vsim_makefile(dep_files, top_module)
 
@@ -74,7 +72,6 @@ class GenerateSimulationMakefile(Action):
         top_module = pool.get_top_module()
 
         fset = pool.build_global_file_list()
-        dep_solver.solve(fset)
         global_mod.makefile_writer.generate_isim_makefile(fset, top_module)
 
     def _generate_iverilog_makefile(self):
@@ -87,5 +84,4 @@ class GenerateSimulationMakefile(Action):
 
         tm = pool.get_top_module()
         fset = pool.build_global_file_list()
-        dep_solver.solve(fset)
         global_mod.makefile_writer.generate_iverilog_makefile(fset, tm, pool)

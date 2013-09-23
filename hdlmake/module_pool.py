@@ -37,6 +37,7 @@ class ModulePool(list):
         list.__init__(self, *args)
         self.top_module = None
         self.global_fetch = os.getenv("HDLMAKE_COREDIR")
+        self._deps_solved = False
 
     def get_module_by_path(self, path):
         path = path_mod.rel2abs(path)
@@ -60,6 +61,7 @@ class ModulePool(list):
 
     def new_module(self, parent, url, source, fetchto, process_manifest=True):
         from module import Module
+        self._deps_solved = False
         if source != fetch.LOCAL:
             clean_url, branch, revision = path_mod.url_parse(url)
         else:
@@ -179,6 +181,10 @@ class ModulePool(list):
                 else:
                     logging.debug("NOT appended to fetch queue: " + str(mod.url))
 
+    def solve_dependencies(self):
+        dep_solver.solve(self.build_global_file_list())
+        self._deps_solved = True
+
     def build_global_file_list(self):
         from srcfile import SourceFileSet
         ret = SourceFileSet()
@@ -190,7 +196,8 @@ class ModulePool(list):
         from srcfile import SourceFileSet   
         files = self.build_global_file_list()
         assert isinstance(files, SourceFileSet)
-        dep_solver.solve(files)
+        if not self._deps_solved:
+            self.solve_dependencies()
         ret = []
         for file in files:
             try:

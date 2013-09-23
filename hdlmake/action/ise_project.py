@@ -65,7 +65,6 @@ class GenerateISEProject(Action):
     def _handle_ise_project(self, update=False):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_global_file_list()
-        dep_solver.solve(fileset)
         flist = dep_solver.make_dependency_sorted_list(fileset)
 
         prj = ISEProject(ise=self.env["ise_version"],
