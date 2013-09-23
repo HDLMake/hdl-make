@@ -22,6 +22,7 @@
 
 from __future__ import print_function
 import logging
+from dep_file import DepFile
 import tools
 
 
@@ -139,12 +140,14 @@ def make_dependency_sorted_list(fileset, purge_unused=True):
             return -1
         return 0
 
-    ret = list(fileset)
-    ret = sorted(ret, cmp=compare_dep_files)
+    filelist = list(fileset)
+    dependable = [file for file in filelist if isinstance(file, DepFile)]
+    non_depednable = [file for file in filelist if not isinstance(file, DepFile)]
+    ret = sorted(dependable, cmp=compare_dep_files)
+    ret.extend(non_depednable)
     return ret
 
 if __name__ == "__main__":
-    from dep_file import (DepFile)
     logging.basicConfig(format="%(levelname)s %(funcName)s() %(filename)s:%(lineno)d: %(message)s", level=logging.DEBUG)
     df = DepFile("/home/pawel/cern/hdl-make/tests/lr_test/wr-cores/modules/wrc_lm32/lm32_shifter.v", [])
     df.show_relations()
