@@ -24,6 +24,7 @@ from __future__ import print_function
 import os
 import logging
 import global_mod
+import sys
 import new_dep_solver as dep_solver
 from util import path as path_mod
 from fetch import BackendFactory
@@ -141,7 +142,10 @@ class ModulePool(list):
 
         bf = BackendFactory()
         fetcher = bf.get_backend(module)
-        fetcher.fetch(module)
+        result = fetcher.fetch(module)
+        if result is False:
+            logging.error("Unable to fetch module %s" % module.url)
+            sys.exit("Exiting")
 
         module.parse_manifest()
         module.process_manifest()

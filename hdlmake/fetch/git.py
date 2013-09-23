@@ -45,21 +45,29 @@ class Git(object):
     @staticmethod
     def get_git_submodules(module):
         submodule_dir = path.rel2abs(module.path)
-        logging.info("Checking git submodules in %s" % submodule_dir)
-        cmd = "(cd %s && git config --list | grep submodule | sed 's/.*=//')" % submodule_dir
-        config_submodules = Popen(cmd,
+        logging.debug("Checking git submodules in %s" % submodule_dir)
+        curdir = os.getcwd()
+        os.chdir(submodule_dir)
+
+        #"git config --list" | grep submodule | sed 's/.*=//')" % submodule_dir
+        config_content = Popen("git config --list",
                                   stdout=PIPE,
                                   stdin=PIPE,
                                   shell=True)
-        config_submodules = [line.strip() for line in config_submodules.stdout.readlines()]
-        cmd = "(cd %s && cat ./.gitmodules | grep url | sed 's/url = //')" % submodule_dir
-        dotgitmodules_submodules = Popen(cmd,
-                                         stdout=PIPE,
-                                         stdin=PIPE,
-                                         shell=True)
-        dotgitmodules_submodules = [line.strip() for line in dotgitmodules_submodules.stdout.readlines()]
+        config_lines = [line.strip() for line in config_content.stdout.readlines()]
+        config_submodule_lines = [line for line in config_lines if "submodule" in line]
+        config_submodules = [line.split("=")[-1] for line in config_submodule_lines]
+
+        #"(cd %s && cat ./.gitmodules 2>/dev/null | grep url | sed 's/url = //')" % submodule_dir
+        dotgitmodules_file = open(".gitmodules", 'r')
+        dotgitmodules_lines = dotgitmodules_file.readlines()
+        url_lines = [line for line in dotgitmodules_lines if 'url' in line]
+        dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
+
         set(config_submodules).update(set(dotgitmodules_submodules))
         submodules = list(config_submodules)
+        if len(submodules) > 0:
+            logging.info("Found git submodules in %s" % module.path)
         return submodules
 
     def fetch(self, module):
