@@ -40,6 +40,7 @@ class ModulePool(list):
         self._deps_solved = False
 
     def get_module_by_path(self, path):
+        """Get instance of Module being stored at a given location"""
         path = path_mod.rel2abs(path)
         for module in self:
             if module.path == path:
@@ -60,6 +61,11 @@ class ModulePool(list):
 
 
     def new_module(self, parent, url, source, fetchto, process_manifest=True):
+        """Add new module to the pool.
+
+        This is the only way to add new modules to the pool. Thanks to it the pool can easily
+        control its content
+        """
         from module import Module
         self._deps_solved = False
         if source != fetch.LOCAL:
@@ -100,12 +106,14 @@ class ModulePool(list):
             return new_module
 
     def process_top_module_manifest(self):
+        """Process the top module without descending to children modules"""
         url = self._guess_origin(global_mod.top_module.path)
         if url:
             global_mod.top_module.url = url
         global_mod.top_module.process_manifest()
 
     def _guess_origin(self, path):
+        """Guess origin (git, svn, local) of a module at given path"""
         cwd = os.getcwd()
         try:
             os.chdir(path)
@@ -159,6 +167,7 @@ class ModulePool(list):
         return new_modules
 
     def fetch_all(self, unfetched_only=False, flatten=False):
+        """Fetch recursively all modules"""
         fetch_queue = [m for m in self]
 
         while len(fetch_queue) > 0:
@@ -182,22 +191,26 @@ class ModulePool(list):
                     logging.debug("NOT appended to fetch queue: " + str(mod.url))
 
     def solve_dependencies(self):
-        dep_solver.solve(self.build_global_file_list())
-        self._deps_solved = True
-
-    def build_global_file_list(self):
-        from srcfile import SourceFileSet
-        ret = SourceFileSet()
-        for module in self:
-            ret.add(module.files)
-        return ret
-
-    def build_very_global_file_list(self):
-        from srcfile import SourceFileSet   
-        files = self.build_global_file_list()
-        assert isinstance(files, SourceFileSet)
+        """Set dependencies for all project files"""
         if not self._deps_solved:
-            self.solve_dependencies()
+            dep_solver.solve(self.build_file_set())
+            self._deps_solved = True
+
+    def build_file_set(self):
+        """Build set of all files listed in the manifests"""
+        from srcfile import SourceFileSet
+        all_manifested_files = SourceFileSet()
+        for module in self:
+            all_manifested_files.add(module.files)
+
+        return all_manifested_files
+
+    def build_global_file_set(self):
+        """Build set of all files from manifests plus all include files from sources"""
+        from srcfile import SourceFileSet   
+        files = self.build_file_set()
+        assert isinstance(files, SourceFileSet)
+        self.solve_dependencies()
         ret = []
         for file in files:
             try:
@@ -213,6 +226,7 @@ class ModulePool(list):
         return self.top_module
 
     def is_everything_fetched(self):
+        """Check if every module is already fetched"""
         if len([m for m in self if not m.isfetched]) == 0:
             return True
         else:

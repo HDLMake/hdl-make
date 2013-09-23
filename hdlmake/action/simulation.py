@@ -57,7 +57,7 @@ class GenerateSimulationMakefile(Action):
 
         pool = self.modules_pool
         top_module = pool.get_top_module()
-        fset = pool.build_global_file_list()
+        fset = pool.build_file_set()
         dep_files = fset.filter(DepFile)
         global_mod.makefile_writer.generate_vsim_makefile(dep_files, top_module)
 
@@ -71,7 +71,7 @@ class GenerateSimulationMakefile(Action):
         pool = self.modules_pool
         top_module = pool.get_top_module()
 
-        fset = pool.build_global_file_list()
+        fset = pool.build_file_set()
         global_mod.makefile_writer.generate_isim_makefile(fset, top_module)
 
     def _generate_iverilog_makefile(self):
@@ -83,5 +83,5 @@ class GenerateSimulationMakefile(Action):
         pool = self.modules_pool
 
         tm = pool.get_top_module()
-        fset = pool.build_global_file_list()
+        fset = pool.build_file_set()
         global_mod.makefile_writer.generate_iverilog_makefile(fset, tm, pool)

@@ -43,7 +43,7 @@ class MergeCores(Action):
         pool = self.modules_pool
         self._check_all_fetched_or_quit()
 
-        flist = pool.build_very_global_file_list()
+        flist = pool.build_global_file_set()
 #        if not os.path.exists(self.options.merge_cores):
  #           os.makedirs(self.options.merge_cores)
         base = self.options.dest

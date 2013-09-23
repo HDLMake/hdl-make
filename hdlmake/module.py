@@ -225,7 +225,7 @@ class Module(object):
         self.manifest_dict = opt_map
 
     def process_manifest(self):
-        from srcfile import VerilogFile, VHDLFile, SourceFileFactory, SourceFileSet
+        from srcfile import VerilogFile, VHDLFile, SourceFileSet
         if self.isprocessed is True:
             return
         if self.manifest_dict is None:
@@ -496,11 +496,3 @@ class Module(object):
                                  vlog_opt=self.vlog_opt,
                                  include_dirs=self.include_dirs))
         return srcs
-
-    def build_global_file_list(self):
-        f_set = SourceFileSet()
-        modules = self.make_list_of_modules()
-        for m in modules:
-            f_set.add(m.files)
-
-        return f_set

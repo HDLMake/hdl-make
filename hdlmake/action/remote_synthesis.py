@@ -39,7 +39,7 @@ class GenerateRemoteSynthesisMakefile(Action):
         if tcl is None:
             self._generate_tcl()
             tcl = "run.tcl"
-        files = self.modules_pool.build_very_global_file_list()
+        files = self.modules_pool.build_global_file_set()
 
         sff = SourceFileFactory()
         files.add(sff.new(tcl, module=None))

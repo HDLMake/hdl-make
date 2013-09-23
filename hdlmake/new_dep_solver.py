@@ -75,14 +75,13 @@ def solve(fileset):
     from srcfile import SourceFileSet
     from dep_file import DepFile, DepRelation
     assert isinstance(fileset, SourceFileSet)
-
     fset = fileset.filter(DepFile)
 
     # for fle in fset:
     #     print(fle.path)
     #     for rel in fle.rels:
     #         print('\t' + str(rel))
-
+    not_satisfied = 0
     for investigated_file in fset:
         for rel in investigated_file.rels:
             if rel.direction is DepRelation.PROVIDE:  # PROVIDE relations dont have to be satisfied
@@ -106,7 +105,11 @@ def solve(fileset):
                                 '\n'.join([file.path for file in list(satisfied_by)]))
             elif len(satisfied_by) == 0:
                 logging.warning("Relation %s in %s not satisfied by any source file" % (str(rel), investigated_file.name))
-    logging.info("Dependencies solved")
+                not_satisfied += 1
+    if not_satisfied != 0:
+        logging.info("Dependencies solved, but %d relations were not satisfied." % not_satisfied)
+    else:
+        logging.info("Dependencies solved")
 
 
 def make_dependency_sorted_list(fileset, purge_unused=True):

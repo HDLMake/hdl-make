@@ -45,7 +45,7 @@ class GenerateQuartusProject(Action):
 
     def _create_new_quartus_project(self):
         top_mod = self.modules_pool.get_top_module()
-        fileset = self.modules_pool.build_global_file_list()
+        fileset = self.modules_pool.build_file_set()
         non_dependable = fileset.inversed_filter(DependableFile)
         fileset.add(non_dependable)
 
@@ -63,7 +63,7 @@ class GenerateQuartusProject(Action):
 
     def _update_existing_quartus_project(self):
         top_mod = self.modules_pool.get_top_module()
-        fileset = self.modules_pool.build_global_file_list()
+        fileset = self.modules_pool.build_file_set()
         non_dependable = fileset.inversed_filter(DependableFile)
         fileset.add(non_dependable)
         prj = QuartusProject(top_mod.syn_project)

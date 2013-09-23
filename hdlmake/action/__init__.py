@@ -22,7 +22,6 @@
 from check_condition import CheckCondition
 from check_manifest import CheckManifest
 from clean import CleanModules
-from default import Default
 from fetch import FetchModules
 from fetch_makefile import GenerateFetchMakefile
 from ise_makefile import GenerateISEMakefile
