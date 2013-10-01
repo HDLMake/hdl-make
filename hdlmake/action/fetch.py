@@ -35,3 +35,4 @@ class FetchModules(Action):
         logging.info("Fetching needed modules.")
         self.modules_pool.fetch_all(unfetched_only=not self.options.update, flatten=self.options.flatten)
         logging.debug(str(self.modules_pool))
+        logging.info("All modules fetched.")

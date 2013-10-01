@@ -24,7 +24,6 @@ import logging
 import os
 from dependable_file import DependableFile
 from action import Action
-import dep_solver
 from tools.quartus import QuartusProject
 
 
@@ -42,6 +41,7 @@ class GenerateQuartusProject(Action):
             self._update_existing_quartus_project()
         else:
             self._create_new_quartus_project()
+        logging.info("Quartus project file generated.")
 
     def _create_new_quartus_project(self):
         top_mod = self.modules_pool.get_top_module()

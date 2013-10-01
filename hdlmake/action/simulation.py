@@ -21,6 +21,8 @@
 
 from __future__ import print_function
 from action import Action
+from dep_file import DepFile
+import new_dep_solver as dep_solver
 import logging
 import sys
 import global_mod
@@ -38,27 +40,32 @@ class GenerateSimulationMakefile(Action):
 
         tm = self.modules_pool.top_module
         if tm.sim_tool == "iverilog":
+            logging.info("Generating simulation makefile for iverilog")
             self._generate_iverilog_makefile()
         elif tm.sim_tool == "isim":
             self._generate_isim_makefile()
+            logging.info("Generating simulation makefile for isim")
         elif tm.sim_tool == "vsim" or tm.sim_tool == "modelsim":
             self._generate_vsim_makefile()
+            logging.info("Generating simulation makefile for vsim")
         else:
             logging.error("Unrecognized or not specified simulation tool: %s" % str(tm.sim_tool))
             sys.exit("Exiting")
+        logging.info("Simulation makefile generated.")
 
     def _generate_vsim_makefile(self):
         if self.env["modelsim_path"] is None:
             logging.error("Can't generate a Modelsim makefile. Modelsim not found.")
             sys.exit("Exiting")
 
-        from dep_file import DepFile
         logging.info("Generating ModelSim makefile for simulation.")
 
         pool = self.modules_pool
         top_module = pool.get_top_module()
         fset = pool.build_file_set()
+
         dep_files = fset.filter(DepFile)
+        dep_solver.solve(dep_files)
         global_mod.makefile_writer.generate_vsim_makefile(dep_files, top_module)
 
     def _generate_isim_makefile(self):
@@ -72,7 +79,9 @@ class GenerateSimulationMakefile(Action):
         top_module = pool.get_top_module()
 
         fset = pool.build_file_set()
-        global_mod.makefile_writer.generate_isim_makefile(fset, top_module)
+        dep_files = fset.filter(DepFile)
+        dep_solver.solve(dep_files)
+        global_mod.makefile_writer.generate_isim_makefile(dep_files, top_module)
 
     def _generate_iverilog_makefile(self):
         logging.info("Generating IVerilog makefile for simulation.")
@@ -84,4 +93,6 @@ class GenerateSimulationMakefile(Action):
 
         tm = pool.get_top_module()
         fset = pool.build_file_set()
+        dep_solver.solve(fset)
+
         global_mod.makefile_writer.generate_iverilog_makefile(fset, tm, pool)

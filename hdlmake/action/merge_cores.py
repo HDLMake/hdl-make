@@ -43,6 +43,7 @@ class MergeCores(Action):
         pool = self.modules_pool
         self._check_all_fetched_or_quit()
 
+        logging.info("Merging all cores into one source file per language.")
         flist = pool.build_global_file_set()
 #        if not os.path.exists(self.options.merge_cores):
  #           os.makedirs(self.options.merge_cores)
@@ -100,3 +101,5 @@ class MergeCores(Action):
             import shutil
             logging.info("copying NGC file: %s" % ngc.rel_path())
             shutil.copy(ngc.rel_path(), os.getcwd())
+
+        logging.info("Cores merged.")

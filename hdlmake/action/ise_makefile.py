@@ -36,3 +36,4 @@ class GenerateISEMakefile(Action):
 
         global_mod.makefile_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(),
                                                          ise_path=ise_path)
+        logging.info("Local synthesis makefile generated.")

@@ -24,9 +24,7 @@ import logging
 from action import Action
 import sys
 import os
-from dep_file import DepFile
 import new_dep_solver as dep_solver
-from srcfile import SourceFileSet
 from tools.ise import ISEProject
 from srcfile import SourceFileFactory
 import global_mod
@@ -61,11 +59,13 @@ class GenerateISEProject(Action):
             self._handle_ise_project(update=True)
         else:
             self._handle_ise_project(update=False)
+        logging.info("ISE project file generated.")
 
     def _handle_ise_project(self, update=False):
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_file_set()
         flist = dep_solver.make_dependency_sorted_list(fileset)
+        assert isinstance(flist, list)
 
         prj = ISEProject(ise=self.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())

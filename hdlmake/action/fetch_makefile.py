@@ -20,17 +20,19 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from action import Action
+import global_mod
 import logging
 
 
 class GenerateFetchMakefile(Action):
     def run(self):
         pool = self.modules_pool
-
+        logging.info("Generating makefile for fetching modules.")
         if pool.get_fetchable_modules() == []:
             logging.error("There are no fetchable modules. "
                           "No fetch makefile is produced")
             quit()
 
         self._check_all_fetched_or_quit()
-        self.make_writer.generate_fetch_makefile(pool)
+        global_mod.makefile_writer.generate_fetch_makefile(pool)
+        logging.info("Makefile for fetching modules generated.")

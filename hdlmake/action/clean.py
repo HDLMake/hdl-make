@@ -34,3 +34,4 @@ class CleanModules(Action):
                 m.remove_dir_from_disk()
         else:
             logging.info("There are no modules to be removed")
+        logging.info("Modules cleaned.")
