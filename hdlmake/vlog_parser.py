@@ -195,26 +195,24 @@ class VerilogPreprocessor(object):
 
                 elif matches["define"]:
                     self._parse_macro_def(matches["define"])
-                global n_repl
-                n_repl = 0
 
 # the actual macro expansions (no args/vargs support yet, though)
                 def do_expand(what):
-                    global n_repl
 #                    print("Expand %s" % what.group(1))
                     if what.group(1) in self.vpp_keywords:
 #                        print("GotReserved")
                         return '`'+what.group(1)
                     m = self._find_macro(what.group(1))
                     if m:
-                        n_repl += 1
                         return m.expansion
                     else:
                         logging.error("No expansion for macro '`%s'" % what.group(1))
 
-                line = re.sub(vl_macro_expand, do_expand, line)
-                new_buf += line + '\n'
-                n_expansions += n_repl
+                repl_line = re.sub(vl_macro_expand, do_expand, line)
+                new_buf += repl_line + '\n'
+                # if there was any expansion, then keep on iterating
+                if repl_line != line:
+                  n_expansions += 1
                 buf = new_buf
             if n_expansions == 0:
                 return new_buf
