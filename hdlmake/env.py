@@ -53,13 +53,13 @@ print = _PrintClass()
 
 
 class _IsePath(object):
-    _ise_path_64 = {
+    _ise_path_32 = {
         10: {0: "/opt/Xilinx/10.0/ISE/bin/lin",
              1: "/opt/Xilinx/10.1/ISE/bin/lin"},
         12: {1: "/opt/Xilinx/12.1/ISE_DS/ISE/bin/lin",
-             2: "/opt/Xilinx/12.2/ISE_DS/ISE/bin/lin64",
-             4: "/opt/Xilinx/12.4/ISE_DS/ISE/bin/lin64"},
-        13: {1: "/opt/Xilinx/13.1/ISE_DS/ISE/bin/lin64"}
+             2: "/opt/Xilinx/12.2/ISE_DS/ISE/bin/lin",
+             4: "/opt/Xilinx/12.4/ISE_DS/ISE/bin/lin"},
+        13: {1: "/opt/Xilinx/13.1/ISE_DS/ISE/bin/lin"}
     }
 
     _ise_path_64 = {

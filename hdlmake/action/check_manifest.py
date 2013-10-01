@@ -20,6 +20,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from action import Action
+import logging
+import global_mod
 from manifest_parser import ManifestParser
 
 
@@ -32,9 +34,10 @@ class CheckManifest(Action):
         ###
         ### THIS IS JUST A STUB
         ###
-        manifest_parser = ManifestParser()
+        pass
+        #manifest_parser = ManifestParser()
 
-        manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
-        manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
+        #manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
+        #manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
 
-        opt_map = manifest_parser.parse()
+        #opt_map = manifest_parser.parse()

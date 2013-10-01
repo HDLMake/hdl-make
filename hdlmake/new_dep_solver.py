@@ -30,7 +30,7 @@ class DepParser(object):
     def __init__(self, dep_file):
         self.dep_file = dep_file
 
-    def parse():
+    def parse(self, dep_file):
         raise
 
 
@@ -73,7 +73,7 @@ class ParserFactory(object):
 
 def solve(fileset):
     from srcfile import SourceFileSet
-    from dep_file import DepFile, DepRelation
+    from dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
 
@@ -107,7 +107,9 @@ def solve(fileset):
                 logging.warning("Relation %s in %s not satisfied by any source file" % (str(rel), investigated_file.name))
                 not_satisfied += 1
     if not_satisfied != 0:
-        logging.info("Dependencies solved, but %d relations were not satisfied." % not_satisfied)
+        logging.info("Dependencies solved, but %d relations were not satisfied.\n"
+                     "It doesn't necessarily mean that there is some file missing, as it might be defined\n"
+                     "internally in the compiler." % not_satisfied)
     else:
         logging.info("Dependencies solved")
 
@@ -149,14 +151,3 @@ def make_dependency_sorted_list(fileset, purge_unused=True):
     ret = sorted(dependable, cmp=compare_dep_files)
     ret.extend(non_depednable)
     return ret
-
-if __name__ == "__main__":
-    logging.basicConfig(format="%(levelname)s %(funcName)s() %(filename)s:%(lineno)d: %(message)s", level=logging.DEBUG)
-    df = DepFile("/home/pawel/cern/hdl-make/tests/lr_test/wr-cores/modules/wrc_lm32/lm32_shifter.v", [])
-    df.show_relations()
-
-    print("-----------------------\n"
-          "---------- VHDL -------\n"
-          "-----------------------\n")
-    df1 = DepFile("/home/pawel/cern/hdl-make/examples/fine_delay/hdl/testbench/top/wr-cores/testbench/top_level/gn4124_bfm/mem_model.vhd")
-    df1.show_relations()

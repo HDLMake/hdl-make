@@ -54,8 +54,6 @@ class Module(object):
 
     #PLEASE don't use this constructor. Create all modules with ModulePool.new_module()
     def __init__(self, parent, url, source, fetchto, pool):
-        from util import path
-
         assert url is not None
         assert source is not None
 
@@ -98,7 +96,7 @@ class Module(object):
 
         self.raw_url = url
         if source != fetch.LOCAL:
-            self.url, self.branch, self.revision = path.url_parse(url)
+            self.url, self.branch, self.revision = path_mod.url_parse(url)
         else:
             self.url, self.branch, self.revision = url, None, None
 
@@ -168,7 +166,6 @@ class Module(object):
             return
 
         import shutil
-        import os
 
         logging.debug("Removing " + self.path)
         shutil.rmtree(self.path)
@@ -305,11 +302,11 @@ class Module(object):
                          self.manifest_dict["include_dirs"])
                 self.include_dirs.extend(ll)
 
-        for dir in self.include_dirs:
-            if path_mod.is_abs_path(dir):
-                logging.warning("%s contains absolute path to an include directory: %s" % (self.path, dir))
-            if not os.path.exists(dir):
-                logging.warning(self.path + " has an unexisting include directory: " + dir)
+        for dir_ in self.include_dirs:
+            if path_mod.is_abs_path(dir_):
+                logging.warning("%s contains absolute path to an include directory: %s" % (self.path, dir_))
+            if not os.path.exists(dir_):
+                logging.warning(self.path + " has an unexisting include directory: " + dir_)
 
         if self.manifest_dict["files"] == []:
             self.files = SourceFileSet()
@@ -478,8 +475,8 @@ class Module(object):
         srcs = SourceFileSet()
         for p in paths:
             if os.path.isdir(p):
-                dir = os.listdir(p)
-                for f_dir in dir:
+                dir_ = os.listdir(p)
+                for f_dir in dir_:
                     f_dir = os.path.join(self.path, p, f_dir)
                     if not os.path.isdir(f_dir):
                         srcs.add(sff.new(path=f_dir,

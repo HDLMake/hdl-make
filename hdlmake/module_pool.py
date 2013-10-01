@@ -27,7 +27,6 @@ import global_mod
 import sys
 import new_dep_solver as dep_solver
 from util import path as path_mod
-from fetch import BackendFactory
 import fetch
 from subprocess import PIPE, Popen
 
@@ -150,7 +149,7 @@ class ModulePool(list):
         new_modules = []
         logging.debug("Fetching module: " + str(module))
 
-        bf = BackendFactory()
+        bf = fetch.BackendFactory()
         fetcher = bf.get_backend(module)
         result = fetcher.fetch(module)
         if result is False:
