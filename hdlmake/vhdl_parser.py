@@ -109,7 +109,7 @@ class VHDLParser(DepParser):
         import re
 
         patterns = {
-            "use": "^ *use *(\w+) *\. *(\w+) *. *\w+ *;",
+            "use": "^ *use +(\w+) *\. *(\w+) *\. *\w+ *;",
             "entity": "^ *entity +(\w+) +is +(port|generic)",
             "package": "^ *package +(\w+) +is",
             "arch_begin": "^ *architecture +(\w+) +of +(\w+) +is +",
