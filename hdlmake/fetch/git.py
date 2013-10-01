@@ -25,9 +25,10 @@ import logging
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
 import fetch
+from fetcher import Fetcher
 
 
-class GitSubmodule(object):
+class GitSubmodule(Fetcher):
     def fetch(self, module):
         if module.source != fetch.GITSUBMODULE:
             raise ValueError("This backend should get git modules only.")
@@ -38,7 +39,7 @@ class GitSubmodule(object):
         os.chdir(cur_dir)
 
 
-class Git(object):
+class Git(Fetcher):
     def __init__(self):
         pass
 
@@ -46,31 +47,34 @@ class Git(object):
     def get_git_submodules(module):
         submodule_dir = path.rel2abs(module.path)
         logging.debug("Checking git submodules in %s" % submodule_dir)
-        curdir = os.getcwd()
-        os.chdir(submodule_dir)
-
-        #"git config --list" | grep submodule | sed 's/.*=//')" % submodule_dir
-        config_content = Popen("git config --list",
-                                  stdout=PIPE,
-                                  stdin=PIPE,
-                                  shell=True)
-        config_lines = [line.strip() for line in config_content.stdout.readlines()]
-        config_submodule_lines = [line for line in config_lines if "submodule" in line]
-        config_submodules = [line.split("=")[-1] for line in config_submodule_lines]
-
-        #"(cd %s && cat ./.gitmodules 2>/dev/null | grep url | sed 's/url = //')" % submodule_dir
+        cur_dir = os.getcwd()
         try:
-            dotgitmodules_file = open(".gitmodules", 'r')
-            dotgitmodules_lines = dotgitmodules_file.readlines()
-            url_lines = [line for line in dotgitmodules_lines if 'url' in line]
-            dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
+            os.chdir(submodule_dir)
 
-            set(config_submodules).update(set(dotgitmodules_submodules))
-        except IOError:
-            pass  # no .gitmodules file
-        submodules = list(config_submodules)
-        if len(submodules) > 0:
-            logging.info("Found git submodules in %s" % module.path)
+            #"git config --list" | grep submodule | sed 's/.*=//')" % submodule_dir
+            config_content = Popen("git config --list",
+                                      stdout=PIPE,
+                                      stdin=PIPE,
+                                      shell=True)
+            config_lines = [line.strip() for line in config_content.stdout.readlines()]
+            config_submodule_lines = [line for line in config_lines if "submodule" in line]
+            config_submodules = [line.split("=")[-1] for line in config_submodule_lines]
+
+            #"(cd %s && cat ./.gitmodules 2>/dev/null | grep url | sed 's/url = //')" % submodule_dir
+            try:
+                dotgitmodules_file = open(".gitmodules", 'r')
+                dotgitmodules_lines = dotgitmodules_file.readlines()
+                url_lines = [line for line in dotgitmodules_lines if 'url' in line]
+                dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
+
+                set(config_submodules).update(set(dotgitmodules_submodules))
+            except IOError:
+                pass  # no .gitmodules file
+            submodules = list(config_submodules)
+            if len(submodules) > 0:
+                logging.info("Found git submodules in %s" % module.path)
+        finally:
+            os.chdir(cur_dir)
         return submodules
 
     def fetch(self, module):
