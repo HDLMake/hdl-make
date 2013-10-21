@@ -171,7 +171,7 @@ class Env(dict):
                       "Ignoring HDLMAKE_ISE_PATH")
             else:
                 pass
-            self["ise_path"] = os.path.join(self["xilinx"], 'ISE', 'bin', 'lin')
+            self["ise_path"] = os.path.join(self["xilinx"], 'bin', 'lin')
             print("HDLMAKE_ISE_PATH infered from XILINX variable: %s" % self["ise_path"])
 
         self["ise_version"] = None
@@ -242,7 +242,7 @@ class Env(dict):
             print("Infered HDLMAKE_ISIM_PATH from ISE path: %s" % self["isim_path"])
         else:
             if self["xilinx"] is not None:
-                self["isim_path"] = os.path.join(self["xilinx"], 'ISE', 'bin', 'lin')
+                self["isim_path"] = os.path.join(self["xilinx"], 'bin', 'lin')
                 print("HDLMAKE_ISE_PATH infered from XILINX variable: %s" % self["ise_path"])
             else:
                 if self._check_in_system_path("isim"):
