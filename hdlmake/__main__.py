@@ -106,6 +106,12 @@ def main():
         options = parser.parse_args(sys.argv[1:])
     global_mod.options = options
 
+    env = Env(options)
+    global_mod.env = env
+    if options.command == "check-env":
+        env.check_env(verbose=True)
+        quit()
+
     numeric_level = getattr(logging, options.log.upper(), None)
     if not isinstance(numeric_level, int):
         sys.exit('Invalid log level: %s' % options.log)
@@ -137,11 +143,6 @@ def main():
     #     print("Hdlmake build " + BUILD_ID)
     #     quit()
 
-    env = Env(options)
-    global_mod.env = env
-    if options.command == "check-env":
-        env.check_env(verbose=True)
-        quit()
     if options.command == "check-manifest":
         env.check_manifest(modules_pool.get_top_module().manifest, verbose=True)
 
