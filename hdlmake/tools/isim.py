@@ -36,5 +36,9 @@ def detect_isim_version(path):
                  close_fds=True,
                  stdin=PIPE,
                  stdout=PIPE)
-    isim_version = isim.stdout.readlines()[0].strip()
+    print os.path.join(path, "vlogcomp")
+    try:
+      isim_version = isim.stdout.readlines()[0].strip()
+    except:
+      return None
     return isim_version
