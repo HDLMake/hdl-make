@@ -54,7 +54,7 @@ class GenerateSimulationMakefile(Action):
         logging.info("Simulation makefile generated.")
 
     def _generate_vsim_makefile(self):
-        if self.env["modelsim_path"] is None:
+        if self.env["modelsim_path"] is None and self.options.force is not True:
             logging.error("Can't generate a Modelsim makefile. Modelsim not found.")
             sys.exit("Exiting")
 

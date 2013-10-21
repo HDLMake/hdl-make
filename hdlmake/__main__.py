@@ -62,6 +62,7 @@ def main():
    # check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
     auto = subparsers.add_parser("auto", help="default action for hdlmake. Run when no args are given")
+    auto.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
     auto.add_argument("--noprune", help="prevent hdlmake from pruning unneeded files", default=False, action="store_true")
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
     fetch.add_argument("--flatten", help="`flatten' modules' hierarchy by storing everything in top module's fetchto direactoru",
