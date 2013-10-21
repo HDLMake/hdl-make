@@ -49,7 +49,7 @@ class GenerateSimulationMakefile(Action):
             self._generate_vsim_makefile()
             logging.info("Generating simulation makefile for vsim")
         else:
-            logging.error("Unrecognized or not specified simulation tool: %s" % str(tm.sim_tool))
+            logging.error("Unrecognized or not specified simulation tool: %s\nPlease set sim_tool in the top manifest." % str(tm.sim_tool))
             sys.exit("Exiting")
         logging.info("Simulation makefile generated.")
 

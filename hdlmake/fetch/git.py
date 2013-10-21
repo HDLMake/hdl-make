@@ -44,6 +44,22 @@ class Git(Fetcher):
         pass
 
     @staticmethod
+    def get_git_toplevel(module):
+        cur_dir = os.getcwd()
+        try:
+            os.chdir(path.rel2abs(module.path))
+            if not os.path.exists(".gitmodules"):
+                return None
+            tree_root_cmd = Popen("git rev-parse --show-toplevel",
+                              stdout=PIPE,
+                              stdin=PIPE,
+                              shell=True)
+            tree_root_line = tree_root_cmd.stdout.readlines()[0].strip()
+            return tree_root_line
+        finally:
+            os.chdir(cur_dir)
+
+    @staticmethod
     def get_git_submodules(module):
         submodule_dir = path.rel2abs(module.path)
         logging.debug("Checking git submodules in %s" % submodule_dir)
@@ -51,31 +67,49 @@ class Git(Fetcher):
         try:
             os.chdir(submodule_dir)
 
+            if not os.path.exists(".gitmodules"):
+                return {}
             #"git config --list" | grep submodule | sed 's/.*=//')" % submodule_dir
-            config_content = Popen("git config --list",
+            config_submodules = {}
+            config_content = Popen("git config -f .gitmodules --list",
                                       stdout=PIPE,
                                       stdin=PIPE,
                                       shell=True)
             config_lines = [line.strip() for line in config_content.stdout.readlines()]
-            config_submodule_lines = [line for line in config_lines if "submodule" in line]
-            config_submodules = [line.split("=")[-1] for line in config_submodule_lines]
+            """try to parse sth like this:
+paszoste@oplarra1:~/beco/hdlmake-tests/wr-switch-hdl$ git config -f .gitmodules --list
+submodule.ip_cores/general-cores.path=ip_cores/general-cores
+submodule.ip_cores/general-cores.url=git://ohwr.org/hdl-core-lib/general-cores.git
+submodule.ip_cores/wr-cores.path=ip_cores/wr-cores
+submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
+"""
+            config_submodule_lines = [line for line in config_lines if line.startswith("submodule")]
+            for line in config_submodule_lines:
+                line_split = line.split("=")
+                lhs = line_split[0]
+                rhs = line_split[1]
+                lhs_split = lhs.split(".")
+                module_name = '.'.join(lhs_split[1:-1])
+                if module_name not in config_submodules:
+                    config_submodules[module_name] = {}
+                config_submodules[module_name][lhs_split[-1]] = rhs
+
 
             #"(cd %s && cat ./.gitmodules 2>/dev/null | grep url | sed 's/url = //')" % submodule_dir
-            try:
-                dotgitmodules_file = open(".gitmodules", 'r')
-                dotgitmodules_lines = dotgitmodules_file.readlines()
-                url_lines = [line for line in dotgitmodules_lines if 'url' in line]
-                dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
+            #try:
+            ##    dotgitmodules_file = open(".gitmodules", 'r')
+             #   dotgitmodules_lines = dotgitmodules_file.readlines()
+             #   url_lines = [line for line in dotgitmodules_lines if 'url' in line]
+             #   dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
 
-                set(config_submodules).update(set(dotgitmodules_submodules))
-            except IOError:
-                pass  # no .gitmodules file
-            submodules = list(config_submodules)
-            if len(submodules) > 0:
-                logging.info("Found git submodules in %s" % module.path)
+             #  set(config_submodules).update(set(dotgitmodules_submodules))
+            #except IOError:
+             #   pass  # no .gitmodules file
+            if len(list(config_submodules)) > 0:
+                logging.info("Found git submodules in %s: %s" % (module.path, str(config_submodules)))
         finally:
             os.chdir(cur_dir)
-        return submodules
+        return config_submodules
 
     def fetch(self, module):
         if module.source != fetch.GIT:

@@ -112,9 +112,11 @@ class Module(object):
             if os.path.exists(os.path.abspath(os.path.join(fetchto, self.basename))):
                 self.path = os.path.abspath(os.path.join(fetchto, self.basename))
                 self.isfetched = True
+                logging.debug("Module %s (parent: %s) is fetched." % (url, parent.path))
             else:
                 self.path = None
                 self.isfetched = False
+                logging.debug("Module %s (parent: %s) is NOT fetched." % (url, parent.path))
 
         self.manifest = None
 
@@ -226,9 +228,9 @@ class Module(object):
         if self.isprocessed is True:
             return
         if self.manifest_dict is None:
-            logging.debug("there is no manifest to be processed")
+            logging.debug("There is no manifest to be processed in: %s" % self.url)
             return
-        logging.debug(self.path)
+        logging.debug("Process manifest in: %s" % self.path)
         if self.manifest_dict["syn_ise_version"] is not None:
             version = self.manifest_dict["syn_ise_version"]
             self.syn_ise_version = str(version)
@@ -316,7 +318,7 @@ class Module(object):
                 pass
         else:
             self.manifest_dict["files"] = self._flatten_list(self.manifest_dict["files"])
-            logging.debug(self.path + str(self.manifest_dict["files"]))
+            logging.debug("Files in %s: %s" % (self.path, str(self.manifest_dict["files"])))
             paths = self._make_list_of_paths(self.manifest_dict["files"])
             self.files = self._create_file_list_from_paths(paths=paths)
             for f in self.files:
@@ -366,11 +368,16 @@ class Module(object):
         else:
             self.git = []
 
-        git_submodule_urls = fetch.Git.get_git_submodules(self)
-        for submodule_url in git_submodule_urls:
+        git_submodule_dict = fetch.Git.get_git_submodules(self)
+        git_toplevel = fetch.Git.get_git_toplevel(self)
+        for submodule_key in git_submodule_dict.keys():
+            url = git_submodule_dict[submodule_key]["url"]
+            path = git_submodule_dict[submodule_key]["path"]
+            path = os.path.join(git_toplevel, path)
+            fetchto = os.path.sep.join(path.split(os.path.sep)[:-1])
             self.git_submodules.append(self.pool.new_module(parent=self,
-                                                            url=submodule_url,
-                                                            fetchto=self.path,
+                                                            url=url,
+                                                            fetchto=fetchto,
                                                             source=fetch.GITSUBMODULE))
         self.target = self.manifest_dict["target"].lower()
         self.action = self.manifest_dict["action"].lower()
