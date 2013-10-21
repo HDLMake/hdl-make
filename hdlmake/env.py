@@ -50,7 +50,7 @@ class _PrintClass(object):
             _plain_print(*args, **kwargs)
 
 print = _PrintClass()
-_64bit_architecture = sys.maxsize > 2*32
+_64bit_architecture = sys.maxsize > 2**32
 
 class _IsePath(object):
     _ise_path_32 = {
