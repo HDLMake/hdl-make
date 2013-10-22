@@ -24,7 +24,7 @@ import os
 import logging
 import string
 import fetch
-
+import global_mod
 
 class _StaticClassVariable():
     pass
@@ -371,12 +371,16 @@ mrproper:
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
 
-MODELSIM_INI_PATH := $(HDLMAKE_MODELSIM_PATH)"../"
+MODELSIM_INI_PATH := {0}
 
 VCOM_FLAGS := -quiet -modelsimini modelsim.ini
 VSIM_FLAGS :=
 VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_incdirs(top_module.vlog_opt) + """
 """
+        if global_mod.env["modelsim_path"]:
+            make_preambule_p1 = make_preambule_p1.format(os.path.join(global_mod.env["modelsim_path"], ".."))
+        else:
+            make_preambule_p1 = make_preambule_p1.format(os.path.join("$(HDLMAKE_MODELSIM_PATH)", ".."))
         make_preambule_p2 = string.Template("""## rules #################################
 sim: sim_pre_cmd modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
 $$(VERILOG_OBJ): $$(VHDL_OBJ)
@@ -388,7 +392,7 @@ sim_pre_cmd:
 sim_post_cmd: sim
 \t\t${sim_post_cmd}
 
-modelsim.ini: $$(MODELSIM_INI_PATH)/modelsim.ini
+modelsim.ini: ${modelsim_ini_path}
 \t\tcp $$< .
 clean:
 \t\trm -rf ./modelsim.ini $$(LIBS)
@@ -444,7 +448,8 @@ clean:
         else:
             sim_post_cmd = ''
         make_preambule_p2 = make_preambule_p2.substitute(sim_pre_cmd=sim_pre_cmd,
-                                                         sim_post_cmd=sim_post_cmd)
+                                                         sim_post_cmd=sim_post_cmd,
+                                                         modelsim_ini_path=os.path.join("$(MODELSIM_INI_PATH)", "modelsim.ini"))
         self.write(make_preambule_p2)
 
         for lib in libs:
