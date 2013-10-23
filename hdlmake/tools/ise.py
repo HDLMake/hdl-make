@@ -365,6 +365,9 @@ class XilinxsiminiReader(object):
         # except KeyError:
         #     logging.error("Please set the environment variable HOST_PLATFORM")
         #     quit()
-        xilinx_ini_path = str(global_mod.env["xilinx"] + "/ISE/vhdl/hdp/lin")
+        xilinx_ini_path = str(os.path.join(global_mod.env["xilinx"],
+                              "vhdl",
+                              "hdp",
+                              "lin" if global_mod.env["architecture"] is 32 else "lin64"))
         # Ensure the path is absolute and normalized
         return os.path.abspath(xilinx_ini_path)

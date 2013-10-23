@@ -128,6 +128,7 @@ class Env(dict):
 
     def check_env(self, verbose=False):
         print.set_verbose(verbose)
+        self["architecture"] = 64 if _64bit_architecture else 32
         platform = sys.platform
         print("Platform: %s" % platform)
 
