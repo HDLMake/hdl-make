@@ -25,6 +25,7 @@ import logging
 import string
 import fetch
 import global_mod
+from string import Template
 
 class _StaticClassVariable():
     pass
@@ -462,22 +463,32 @@ clean:
 
         #rules for all _primary.dat files for sv
         for vl in fileset.filter(VerilogFile):
-
-            self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
-
-            for dep_file in vl.depends_on:
+            self.write("%s: %s" % (os.path.join(vl.library, vl.purename, ".%s_%s" % (vl.purename, vl.extension())),
+                                   vl.rel_path())
+                      )
+            for dep_file in [dfile for dfile in vl.depends_on if dfile is not vl]:
                 name = dep_file.purename
                 extension = dep_file.extension()
                 self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
-            self.write("\t\tvlog -work "+vl.library)
-            self.write(" $(VLOG_FLAGS) ")
-            if isinstance(vl, SVFile):
-                self.write(" -sv ")
-            incdir = "+incdir+"
-            incdir += '+'.join(vl.include_dirs)
-            incdir += " "
-            self.write(incdir)
-            self.writeln(vl.vlog_opt+" $<")
+            self.writeln()
+
+            ###
+            # self.write("\t\tvlog -work "+vl.library)
+            # self.write(" $(VLOG_FLAGS) ")
+            # if isinstance(vl, SVFile):
+            #     self.write(" -sv ")
+            # incdir = "+incdir+"
+            # incdir += '+'.join(vl.include_dirs)
+            # incdir += " "
+            # self.write(incdir)
+            # self.writeln(vl.vlog_opt+" $<")
+            ####
+            compile_template = Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} +incdir+${include_dirs} ${vlog_opt} $$<")
+            compile_line = compile_template.substitute(library=vl.library,
+                                        sv_option = "-sv" if isinstance(vl, SVFile) else "",
+                                        include_dirs='+'.join(vl.include_dirs),
+                                        vlog_opt=vl.vlog_opt)
+            self.writeln(compile_line)
             self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")
         self.write("\n")
@@ -487,8 +498,9 @@ clean:
             lib = vhdl.library
             purename = vhdl.purename
             #each .dat depends on corresponding .vhd file
-            self.write(os.path.join(lib, purename, "."+purename+"_" + vhdl.extension()) + ": " + vhdl.rel_path())
-
+            self.write("%s: %s" % (os.path.join(lib, purename, "."+purename+"_" + vhdl.extension()),
+                                   vhdl.rel_path())
+                       )
             for dep_file in vhdl.depends_on:
                 name = dep_file.purename
                 extension = dep_file.extension()
