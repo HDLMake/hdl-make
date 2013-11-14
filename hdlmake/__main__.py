@@ -76,6 +76,8 @@ def main():
     merge_cores = subparsers.add_parser("merge-cores", help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
     merge_cores.add_argument("--dest", help="name for output merged file", dest="dest", default=None)
     ise_proj = subparsers.add_parser("ise-project", help="create/update an ise project including list of project")
+    ise_proj.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
+                          dest="generate_project_vhd", default=False, action="store_true")
     quartus_proj = subparsers.add_parser("quartus-project", help="create/update a quartus project including list of project")
 
     condition_check = argparse.ArgumentParser()

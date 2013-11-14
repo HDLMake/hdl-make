@@ -212,7 +212,7 @@ run.tcl
 local: syn_pre_cmd check_tool
 \t\techo "project open $$(PROJECT)" > run.tcl
 \t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
-\t\t${ise_path}/xtclsh run.tcl
+\t\t${xtclsh_path} run.tcl
 
 check_tool:
 \t\t${check_tool}
@@ -260,7 +260,8 @@ mrproper:
                                   ise_path=ise_path,
                                   check_tool=check_tool,
                                   syn_pre_cmd=syn_pre_cmd,
-                                  syn_post_cmd=syn_post_cmd)
+                                  syn_post_cmd=syn_post_cmd,
+                                  xtclsh_path=os.path.join(ise_path, "xtclsh"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
@@ -305,7 +306,6 @@ mrproper:
 
     def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
         from srcfile import VerilogFile
-        import global_mod
         #open the file and write the above preambule (part 1)
 #        for m in global_mod.mod_pool:
         for f in global_mod.top_module.incl_makefiles:

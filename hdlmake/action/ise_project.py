@@ -69,17 +69,23 @@ class GenerateISEProject(Action):
 
         prj = ISEProject(ise=self.env["ise_version"],
                          top_mod=self.modules_pool.get_top_module())
-        self._write_project_vhd()
         prj.add_files(flist)
         sff = SourceFileFactory()
         logging.debug(top_mod.vlog_opt)
-       # prj.add_files([sff.new(top_mod.vlog_opt)])
 
-        prj.add_files([sff.new(path=path.rel2abs("project.vhd"),
-                               module=self.modules_pool.get_module_by_path("."))])
+        if self.options.generate_project_vhd:
+          self._write_project_vhd()
+          prj.add_files([sff.new(path=path.rel2abs("project.vhd"),
+                                 module=self.modules_pool.get_module_by_path("."))])\
+
         prj.add_libs(fileset.get_libs())
         if update is True:
-            prj.load_xml(top_mod.syn_project)
+            try:
+                prj.load_xml(top_mod.syn_project)
+            except:
+                logging.error("Error while reading the project file.\n"
+                              "Are you sure that syn_project indicates a correct ISE project file?")
+                raise
         else:
             prj.add_initial_properties()
         logging.info("Writing down .xise project file")
@@ -93,7 +99,7 @@ class GenerateISEProject(Action):
         today = date.today()
         date_string = today.strftime("%Y%m%d")
         template = Template("""library ieee;
-
+use work.wishbone_pkg.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
