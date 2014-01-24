@@ -394,7 +394,7 @@ sim_post_cmd: sim
 \t\t${sim_post_cmd}
 
 modelsim.ini: ${modelsim_ini_path}
-\t\tcp $$< .
+\t\tcp $$< . 2>&1
 clean:
 \t\trm -rf ./modelsim.ini $$(LIBS)
 .PHONY: clean sim_pre_cmd sim_post_cmd

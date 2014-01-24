@@ -368,6 +368,6 @@ class XilinxsiminiReader(object):
         xilinx_ini_path = str(os.path.join(global_mod.env["xilinx"],
                               "vhdl",
                               "hdp",
-                              "lin" if global_mod.env["architecture"] is 32 else "lin64"))
+                              "lin" if global_mod.env["architecture"] == 32 else "lin64"))
         # Ensure the path is absolute and normalized
         return os.path.abspath(xilinx_ini_path)
