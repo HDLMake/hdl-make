@@ -42,7 +42,7 @@ except:
 
 
 def main():
-    usage = """hdlmake [command] [options]"""
+    usage = """hdlmake [--py CODE] [--debug LVL] [command] [options]"""
     description = """To see optional arguments for particular command type:
         hdlmake <command> --help
 
@@ -87,7 +87,7 @@ def main():
     # version = subparsers.add_parser("version", help="print version id of this Hdlmake build")
 
     parser.add_argument("--py", dest="arbitrary_code",
-                        default="", help="add arbitrary code to all manifests' evaluation")
+                        default="", help="add arbitrary code when evaluation all manifests")
 
     parser.add_argument("--log", dest="log",
                         default="info", help="set logging level (one of debug, info, warning, error, critical")
