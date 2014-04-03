@@ -56,8 +56,8 @@ class GenerateQuartusProject(Action):
                                    top_mod.syn_grade,
                                    top_mod.syn_package,
                                    top_mod.syn_top)
-        prj.preflow = None
-        prj.postflow = None
+        prj.preflow = top_mod.quartus_preflow
+        prj.postflow = top_mod.quartus_postflow
 
         prj.emit()
 
@@ -68,7 +68,7 @@ class GenerateQuartusProject(Action):
         fileset.add(non_dependable)
         prj = QuartusProject(top_mod.syn_project)
         prj.read()
-        prj.preflow = None
-        prj.postflow = None
+        prj.preflow = top_mod.quartus_preflow
+        prj.postflow = top_mod.quartus_postflow
         prj.add_files(fileset)
         prj.emit()

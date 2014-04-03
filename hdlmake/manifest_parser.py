@@ -71,6 +71,10 @@ class ManifestParser(ConfigParser):
                         type='')
 
         self.add_delimiter()
+        self.add_option('quartus_preflow', default=None, help = "Quartus pre-flow script file", type = '')
+        self.add_option('quartus_postflow', default=None, help = "Quartus post-flow script file", type = '')
+
+        self.add_delimiter()
         self.add_option('include_dirs', default=None, help="Include dirs for Verilog sources", type=[])
         self.add_type('include_dirs', type="")
 

@@ -75,6 +75,8 @@ class Module(object):
         self.vlog_opt = None
         self.vcom_opt = None
         self.revision = None
+        self.quartus_preflow = None
+        self.quartus_postflow = None
         self._files = None
         self.manifest = None
         self.incl_makefiles = []
@@ -224,7 +226,7 @@ class Module(object):
         self.manifest_dict = opt_map
 
     def process_manifest(self):
-        from srcfile import VerilogFile, VHDLFile, SourceFileSet
+        from srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
         if self.isprocessed is True:
             return
         if self.manifest_dict is None:
@@ -392,6 +394,22 @@ class Module(object):
         self.syn_package = self.manifest_dict["syn_package"]
         self.syn_project = self.manifest_dict["syn_project"]
         self.syn_top = self.manifest_dict["syn_top"]
+
+        if self.manifest_dict["quartus_preflow"] != None:
+            path = path_mod.rel2abs(self.manifest_dict["quartus_preflow"], self.path);
+            if not os.path.exists(path):
+                p.error("quartus_preflow file listed in " + self.manifest.path + " doesn't exist: "
+                        + path + ".\nExiting.")
+                quit()
+            self.quartus_preflow = TCLFile(path)
+
+        if self.manifest_dict["quartus_postflow"] != None:
+            path = path_mod.rel2abs(self.manifest_dict["quartus_postflow"], self.path);
+            if not os.path.exists(path):
+                p.error("quartus_postflow file listed in " + self.manifest.path + " doesn't exist: "
+                        + path + ".\nExiting.")
+                quit()
+            self.quartus_postflow = TCLFile(path)
 
         self.isparsed = True
         self.isprocessed = True
