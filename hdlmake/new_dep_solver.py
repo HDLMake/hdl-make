@@ -148,6 +148,7 @@ def make_dependency_sorted_list(fileset, purge_unused=True):
     filelist = list(fileset)
     dependable = [file for file in filelist if isinstance(file, DepFile)]
     non_depednable = [file for file in filelist if not isinstance(file, DepFile)]
-    ret = sorted(dependable, cmp=compare_dep_files)
-    ret.extend(non_depednable)
+    ret = non_depednable
+    dependable_sorted = sorted(dependable, cmp=compare_dep_files)
+    ret.extend(dependable_sorted)
     return ret
