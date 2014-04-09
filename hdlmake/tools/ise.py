@@ -160,8 +160,8 @@ class ISEProject(object):
         self.add_property("Device Family", FAMILY_NAMES[tm.syn_device[0:4].upper()])
         self.add_property("Speed Grade", tm.syn_grade)
         self.add_property("Package", tm.syn_package)
-        self.add_property("Implementation Top", "Architecture|"+tm.top_module)
-        self.add_property("Implementation Top Instance Path", "/"+tm.top_module)
+        self.add_property("Implementation Top", "Architecture|"+tm.syn_top)
+        self.add_property("Implementation Top Instance Path", "/"+tm.syn_top)
 
     def _parse_props(self):
         for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):

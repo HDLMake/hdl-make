@@ -118,7 +118,7 @@ class Env(dict):
         # determine ISE version
         if self.top_module:
             if self.top_module.syn_ise_version is not None:
-                ise_version = tuple(self.top_module.syn_ise_version)
+                ise_version = self.top_module.syn_ise_version
                 print("ise_version set in the manifest: %s" % ise_version)
                 self["ise_version"] = ise_version
             elif self["ise_version"] is not None:

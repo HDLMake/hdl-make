@@ -33,10 +33,11 @@ from util import path
 
 class GenerateISEProject(Action):
     def _check_manifest(self):
-        self._check_manifest_variable_is_set("top_module")
+       # self._check_manifest_variable_is_set("top_module")
         self._check_manifest_variable_is_set("syn_device")
         self._check_manifest_variable_is_set("syn_grade")
         self._check_manifest_variable_is_set("syn_package")
+        self._check_manifest_variable_is_set("syn_top")
 
     def _check_env(self):
         env = self.env
@@ -143,7 +144,7 @@ end sdb_meta_pkg;""")
         date_std_logic_vector = []
         import re 
         for digit in date_string:
-            date_std_logic_vector.append("{0:b}".format(digit))
+            date_std_logic_vector.append("{0:b}".format(int(digit)))
 
         syn_tool_version = global_mod.env["ise_version"]
         syn_tool_version = re.sub("\D", "", syn_tool_version)
