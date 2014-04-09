@@ -52,6 +52,10 @@ class GenerateISEProject(Action):
             else:
                 logging.info("Generating project for ISE v. %s" % env["ise_version"])
 
+    def _to_bcd(self, integer):
+        assert integer >= 0 and integer <= 0
+
+
     def run(self):
         self._check_all_fetched_or_quit()
         logging.info("Generating/updating ISE project file.")
@@ -126,7 +130,7 @@ package sdb_meta_pkg is
     -- Synthesis tool version (bcd encoded, 32-bit)
     syn_tool_version => "$syn_tool_version",
     -- Synthesis date (bcd encoded, 32-bit)
-    syn_date         => x"$syn_date",
+    syn_date         => "$syn_date",
     -- Synthesised by (string, 15 char)
     syn_username     => "$syn_username");
 
@@ -136,12 +140,20 @@ package body sdb_meta_pkg is
 end sdb_meta_pkg;""")
 
         project_vhd = open("project.vhd", 'w')
+        date_std_logic_vector = []
+        import re 
+        for digit in date_string:
+            date_std_logic_vector.append("{0:b}".format(digit))
+
+        syn_tool_version = global_mod.env["ise_version"]
+        syn_tool_version = re.sub("\D", "", syn_tool_version)
+
         filled_template = template.substitute(repo_url=global_mod.top_module.url,
                                               syn_module_name=global_mod.top_module.top_module,
                                               syn_commit_id=global_mod.top_module.revision,
                                               syn_tool_name="ISE",
                                               syn_tool_version=global_mod.env["ise_version"],
-                                              syn_date=date_string,
+                                              syn_date=''.join(date_std_logic_vector),
                                               syn_username=getpass.getuser())
         project_vhd.write(filled_template)
         project_vhd.close()
