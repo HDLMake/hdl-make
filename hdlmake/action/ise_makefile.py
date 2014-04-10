@@ -31,8 +31,10 @@ class GenerateISEMakefile(Action):
 
     def run(self):
         logging.info("Generating makefile for local synthesis.")
-
-        ise_path = global_mod.env["ise_path"]
+        if global_mod.env["ise_path"]:
+            ise_path = global_mod.env["ise_path"]
+        else:
+            ise_path = ""
 
         global_mod.makefile_writer.generate_ise_makefile(top_mod=self.modules_pool.get_top_module(),
                                                          ise_path=ise_path)

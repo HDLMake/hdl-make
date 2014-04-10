@@ -41,21 +41,16 @@ class GenerateISEProject(Action):
 
     def _check_env(self):
         env = self.env
-        if self.env["ise_path"] is None:
-            logging.error("Can't generate an ISE project. ISE not found.")
-            quit()
-        else:
-            if not env["ise_version"]:
-                logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
-                              "project file properly. Please use syn_ise_version in the manifest "
-                              "or set")
-                sys.exit("Exiting")
-            else:
-                logging.info("Generating project for ISE v. %s" % env["ise_version"])
-
-    def _to_bcd(self, integer):
-        assert integer >= 0 and integer <= 0
-
+        if not self.options.force:
+            if self.env["ise_path"] is None:
+                logging.error("Can't generate an ISE project. ISE not found.")
+                quit()
+        if not env["ise_version"]:
+            logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
+                          "project file properly. Please use syn_ise_version in the manifest "
+                          "or set")
+            sys.exit("Exiting")
+        logging.info("Generating project for ISE v. %s" % env["ise_version"])
 
     def run(self):
         self._check_all_fetched_or_quit()
