@@ -129,9 +129,9 @@ package sdb_meta_pkg is
     -- Synthesis tool name (string, 8 char)
     syn_tool_name    => "$syn_tool_name",
     -- Synthesis tool version (bcd encoded, 32-bit)
-    syn_tool_version => "$syn_tool_version",
+    syn_tool_version => "$syn_tool_version", -- $syn_tool_version_str
     -- Synthesis date (bcd encoded, 32-bit)
-    syn_date         => "$syn_date",
+    syn_date         => "$syn_date", -- $syn_date_str
     -- Synthesised by (string, 15 char)
     syn_username     => "$syn_username");
 
@@ -144,17 +144,22 @@ end sdb_meta_pkg;""")
         date_std_logic_vector = []
         import re 
         for digit in date_string:
-            date_std_logic_vector.append("{0:b}".format(int(digit)))
+            date_std_logic_vector.append("{0:04b}".format(int(digit)))
 
         syn_tool_version = global_mod.env["ise_version"]
         syn_tool_version = re.sub("\D", "", syn_tool_version)
+	syn_tool_std_logic_vector = []
+	for digit in syn_tool_version:
+	    syn_tool_std_logic_vector.append("{0:04b}".format(int(digit)))
 
         filled_template = template.substitute(repo_url=global_mod.top_module.url,
-                                              syn_module_name=global_mod.top_module.top_module,
+                                              syn_module_name=global_mod.top_module.syn_top,
                                               syn_commit_id=global_mod.top_module.revision,
                                               syn_tool_name="ISE",
-                                              syn_tool_version=global_mod.env["ise_version"],
+                                              syn_tool_version="0000"*(8-len(syn_tool_std_logic_vector))+''.join(syn_tool_std_logic_vector),
+					      syn_tool_version_str=syn_tool_version,
                                               syn_date=''.join(date_std_logic_vector),
+					      syn_date_str=date_string,
                                               syn_username=getpass.getuser())
         project_vhd.write(filled_template)
         project_vhd.close()
