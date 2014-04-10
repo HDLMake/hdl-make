@@ -42,7 +42,7 @@ except:
 
 
 def main():
-    usage = """hdlmake [--py CODE] [--debug LVL] [command] [options]"""
+    usage = """hdlmake [command] [options]"""
     description = """To see optional arguments for particular command type:
         hdlmake <command> --help
 
@@ -61,11 +61,7 @@ def main():
    # check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
    # check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
-    auto = subparsers.add_parser("auto", help="default action for hdlmake. Run when no args are given")
-    auto.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
-    auto.add_argument("--noprune", help="prevent hdlmake from pruning unneeded files", default=False, action="store_true")
-    auto.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
-                          dest="generate_project_vhd", default=False, action="store_true")
+
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
     fetch.add_argument("--flatten", help="`flatten' modules' hierarchy by storing everything in top module's fetchto direactoru",
                        default=False, action="store_true")
@@ -86,28 +82,40 @@ def main():
     condition_check.add_argument("--tool", dest="tool", required=True)
     condition_check.add_argument("--reference", dest="reference", required=True)
     condition_check.add_argument("--condition", dest="condition", required=True)
-    # version = subparsers.add_parser("version", help="print version id of this Hdlmake build")
+
+    auto = subparsers.add_parser("auto", help="default action for hdlmake. Run when no args are given")
+    auto.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
+    auto.add_argument("--noprune", help="prevent hdlmake from pruning unneeded files", default=False, action="store_true")
+    auto.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
+                      dest="generate_project_vhd", default=False, action="store_true")
 
     parser.add_argument("--py", dest="arbitrary_code",
                         default="", help="add arbitrary code when evaluation all manifests")
 
     parser.add_argument("--log", dest="log",
                         default="info", help="set logging level (one of debug, info, warning, error, critical")
+    parser.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
+                          dest="generate_project_vhd", default=False, action="store_true")
+    parser.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
 
-    if len(sys.argv) < 2:
-        options = parser.parse_args(['auto'])
-    elif len(sys.argv) == 2 and sys.argv[1][:5] == "--log":
-        options = parser.parse_args(sys.argv[1:] + ['auto'])
-    elif sys.argv[1] == "_conditioncheck":
-        options = condition_check.parse_args(sys.argv[2:])
-        env = Env(options)
-        env.check_env()
-        CheckCondition(modules_pool=None,
-                       options=options,
-                       env=env).run()
-        quit()
-    else:
-        options = parser.parse_args(sys.argv[1:])
+    options = None
+    if len(sys.argv[1:]) == 0:
+            options = parser.parse_args(['auto'])
+
+    elif len(sys.argv[1:]) == 1:
+        if sys.argv[1] == "_conditioncheck":
+            options = condition_check.parse_args(sys.argv[2:])
+            env = Env(options)
+            env.check_env()
+            CheckCondition(modules_pool=None,
+                           options=options,
+                           env=env).run()
+            quit()
+        elif sys.argv[1] == "--help" or sys.argv[1] == "-h":
+            options = parser.parse_args(sys.argv[1:])
+        else:
+            options = parser.parse_args(["auto"]+sys.argv[1:])
+    print(options)
     global_mod.options = options
 
     env = Env(options)
