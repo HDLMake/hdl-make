@@ -113,8 +113,12 @@ def main():
             quit()
         elif sys.argv[1] == "--help" or sys.argv[1] == "-h":
             options = parser.parse_args(sys.argv[1:])
-        else:
+        elif sys.argv[1].startswith('-'):
             options = parser.parse_args(["auto"]+sys.argv[1:])
+        else:
+            options = parser.parse_args(sys.argv[1:])
+    else:
+        options = parser.parse_args(sys.argv[1:])
     print(options)
     global_mod.options = options
 
