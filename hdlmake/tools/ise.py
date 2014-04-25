@@ -152,6 +152,7 @@ class ISEProject(object):
         self.add_property("Enable Multi-Threading par", "4")
         self.add_property("Manual Implementation Compile Order", "true")
         self.add_property("Auto Implementation Top", "false")
+        self.add_property("Create Binary Configuration File", "true")
 
     def _set_values_from_manifest(self):
         tm = global_mod.mod_pool.get_top_module()
