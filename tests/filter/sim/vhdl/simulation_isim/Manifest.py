@@ -1,8 +1,10 @@
 action = "simulation"
 target = "xilinx"
 sim_tool = "isim"
-top_module = "half3_tb"
+top_module = "tb_myfilter"
 
-modules = {
-  "local" : [ "../../../modules/filtdec" ]
-}
+files = [
+    "../../../modules/fir/tb_myfilter.vhd",
+    "../../../modules/fir/myfilter.vhd"
+]
+
