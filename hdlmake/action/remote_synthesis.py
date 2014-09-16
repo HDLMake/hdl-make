@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013, 2014 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+# Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
 # This file is part of Hdlmake.
 #
@@ -26,29 +27,10 @@ import sys
 import global_mod
 from srcfile import SourceFileFactory
 
+import importlib
+
 
 class GenerateRemoteSynthesisMakefile(Action):
-    def run(self):
-        self._check_all_fetched_or_quit()
-        logging.info("Generating makefile for remote synthesis.")
-
-        top_mod = self.modules_pool.get_top_module()
-
-        tcl = self._search_tcl_file()
-
-        if tcl is None:
-            self._generate_tcl()
-            tcl = "run.tcl"
-        files = self.modules_pool.build_global_file_set()
-
-        sff = SourceFileFactory()
-        files.add(sff.new(tcl, module=None))
-        files.add(sff.new(top_mod.syn_project, module=None))
-
-        global_mod.makefile_writer.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
-                                                            cwd=os.getcwd(), user=self.env["rsynth_user"],
-                                                            server=self.env["rsynth_server"])
-        logging.info("Remote synthesis makefile generated.")
 
     def _check_manifest(self):
         if not self.top_module.action == "synthesis":
@@ -59,7 +41,16 @@ class GenerateRemoteSynthesisMakefile(Action):
             logging.error("syn_project must be set in the manifest.")
             sys.exit("Exiting")
 
+
+    def run(self):
+        self._check_all_fetched_or_quit()
+        self._check_manifest()
+        tool_object = global_mod.tool_module.ToolControls()     
+        self._generate_remote_synthesis_makefile(tool_object)
+
+
     def _search_tcl_file(self, directory=None):
+        # This function is used in _generate_remote_ise_makefile
         if directory is None:
             directory = "."
         filenames = os.listdir(directory)
@@ -76,7 +67,33 @@ class GenerateRemoteSynthesisMakefile(Action):
         return tcls[0]
 
     def _generate_tcl(self):
+        # This function is used in _generate_remote_ise_makefile
         f = open("run.tcl", "w")
         f.write("project open " + self.top_module.syn_project + '\n')
         f.write("process run {Generate Programming File} -force rerun_all\n")
         f.close()
+
+
+    def _generate_remote_synthesis_makefile(self, tool_object):
+
+        logging.info("Generating makefile for remote synthesis.")
+
+        top_mod = self.modules_pool.get_top_module()
+
+        tcl = self._search_tcl_file()
+        if tcl is None:
+            self._generate_tcl()
+            tcl = "run.tcl"
+        files = self.modules_pool.build_global_file_set()
+
+        sff = SourceFileFactory()
+        files.add(sff.new(tcl, module=None))
+        files.add(sff.new(top_mod.syn_project, module=None))
+
+        tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
+                                                            cwd=os.getcwd(), user=self.env["rsynth_user"],
+                                                            server=self.env["rsynth_server"])
+        logging.info("Remote synthesis makefile generated.")
+
+
+

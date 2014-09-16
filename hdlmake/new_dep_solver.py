@@ -1,7 +1,8 @@
 #!/usr/bin/python
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013, 2014 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+# Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
 # This file is part of Hdlmake.
 #
@@ -23,7 +24,8 @@
 from __future__ import print_function
 import logging
 from dep_file import DepFile
-import tools
+
+import global_mod
 
 
 class DepParser(object):
@@ -88,7 +90,7 @@ def solve(fileset):
                 continue
             if rel.rel_type is DepRelation.INCLUDE:  # INCLUDE are already solved by preprocessor
                 continue
-            if rel.library() in tools.get_standard_libraries():  # dont care about standard libs
+            if rel.library() in global_mod.tool_module.ToolControls().get_standard_libraries():  # dont care about standard libs
                 continue
 
             satisfied_by = set()

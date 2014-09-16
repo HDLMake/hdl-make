@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013, 2014 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+# Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com) 
 #
 # This file is part of Hdlmake.
 #
@@ -72,6 +73,7 @@ class ManifestParser(ConfigParser):
 
         self.add_delimiter()
         self.add_option('quartus_preflow', default=None, help = "Quartus pre-flow script file", type = '')
+        self.add_option('quartus_postmodule', default=None, help = "Quartus post-module script file", type = '')
         self.add_option('quartus_postflow', default=None, help = "Quartus post-flow script file", type = '')
 
         self.add_delimiter()

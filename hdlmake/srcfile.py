@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013, 2014 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+# Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
 # This file is part of Hdlmake.
 #
@@ -25,9 +26,6 @@ import os
 import global_mod
 import logging
 from module import Module
-from tools import ise
-from tools import modelsim
-from tools import quartus
 from util import path as path_mod
 from dep_file import DepFile, File
 
@@ -44,11 +42,6 @@ class SourceFile(DepFile):
                          file_path=path,
                          module=module,
                          include_paths=module.include_dirs[:])
-
-
-    # def gen_index(self):
-    #     self.__class__.cur_index = self.__class__.cur_index+1
-    #     return self.__class__.cur_index
 
 
 class VHDLFile(SourceFile):
@@ -68,89 +61,6 @@ class VHDLFile(SourceFile):
         else:
             return False
 
-    # def _create_deps_provides(self):
-    #     if self._check_encryption():
-    #         self.dep_index = SourceFile.gen_index(self)
-    #     else:
-    #         self.dep_provides = list(self._search_packages())
-    #     logging.debug(self.path + " provides " + str(self.dep_provides))
-
-    # def _create_deps_requires(self):
-    #     if self._check_encryption():
-    #         self.dep_index = SourceFile.gen_index(self)
-    #     else:
-    #         self.dep_requires = list(self._search_use_clauses())
-    #     logging.debug(self.path + " provides " + str(self.dep_provides))
-
-    # def _search_use_clauses(self):
-    #     """
-    #     Reads a file and looks for 'use' clause. For every 'use' with
-    #     non-standard library a tuple (lib, file) is returned in a list.
-
-    #     """
-    #     # Modification here! global_mod.top_module.action does not
-    #     # get set for top module in time. FIX this
-
-    #     std_libs = ['std', 'ieee']
-    #     if global_mod.top_module.action == "simulation":
-    #         try:
-    #             if global_mod.top_module.sim_tool == "isim":
-    #                 std_libs = ise.XilinxsiminiReader().get_libraries()
-    #             elif global_mod.top_module.sim_tool == "vsim" or global_mod.top_module.sim_tool == "modelsim":
-    #                 std_libs = modelsim.ModelsiminiReader().get_libraries()
-    #             elif global_mod.top_module.sim_tool == "iverilog":
-    #                 std_libs = modelsim.MODELSIM_STANDARD_LIBS
-    #             else:
-    #                 logging.warning("Could not determine simulation tool. Defaulting to Modelsim")
-    #                 std_libs = modelsim.MODELSIM_STANDARD_LIBS
-    #         except RuntimeError as e:
-    #             logging.error("I/O error: ({0})".format(e.message))
-    #             logging.error("Picking standard Modelsim simulation libraries. Try to fix the error.")
-    #             std_libs = modelsim.MODELSIM_STARDAND_LIBS
-    #     elif global_mod.top_module.action == "synthesis":
-    #         if global_mod.top_module.target == "xilinx":
-    #             std_libs = ise.ISE_STANDARD_LIBS
-    #         elif global_mod.top_module.target == "altera":
-    #             std_libs = quartus.QUARTUS_STANDARD_LIBS
-
-    #     import re
-    #     try:
-    #         f = open(self.path, "r")
-    #         text = f.readlines()
-    #     except UnicodeDecodeError:
-    #         return []
-
-    #     use_pattern = re.compile("^[ \t]*use[ \t]+([^; ]+)[ \t]*;.*$")
-    #     lib_pattern = re.compile("([^.]+)\.([^.]+)\.all")
-
-    #     use_lines = []
-    #     for line in text:
-    #         #identifiers and keywords are case-insensitive in VHDL
-    #         line_lower = line.lower()
-    #         m = re.match(use_pattern, line_lower)
-    #         if m is not None:
-    #             use_lines.append(m.group(1))
-
-    #     ret = set()
-    #     for line in use_lines:
-    #         m = re.match(lib_pattern, line)
-    #         if m is not None:
-    #             #omit standard libraries
-    #             if (m.group(1)).lower() in std_libs:
-    #                 continue
-    #             if self.library != "work":
-    #                 #if a file is put in a library, `work' points this library
-    #                 new = (self.library.lower(), m.group(2).lower())
-    #             else:
-    #                 new = (m.group(1).lower(), m.group(2).lower())
-    #             #dont add if the tuple is already in the list
-    #             if new in self.dep_provides:
-    #                 continue
-    #             ret.add(new)
-
-    #     f.close()
-    #     return ret
-
 
 class VerilogFile(SourceFile):
     def __init__(self, path, module, library=None, vlog_opt=None, include_dirs=None):
@@ -165,78 +75,6 @@ class VerilogFile(SourceFile):
         if include_dirs:
             self.include_dirs.extend(include_dirs)
         self.include_dirs.append(path_mod.relpath(self.dirname))
-
-#     def _create_deps_provides(self):
-# #        self.dep_requires = self.__search_includes()
-# #        self.dep_provides = self.name
-#         self.dep_provides = self.name
-
-#     def _create_deps_requires(self):
-# #        self.dep_requires = self.__search_includes()
-# #        self.dep_provides = self.name
-#         if global_mod.top_module.sim_tool == "iverilog":
-#             deps = self._get_iverilog_dependencies()
-#             self.dep_requires = deps
-#         else:
-#             self.dep_requires = self._search_includes()
-
-#     def _get_iverilog_dependencies(self):
-#            #todo: check to see dependencies.list doesn't exist already
-#         if self.path.endswith(".vh") and global_mod.top_module.sim_tool == "iverilog":
-#             return []
-#         inc_dirs = []
-#         #inc_dirs = global_mod.top_module.include_dirs
-#         inc_dirs = self.include_dirs
-#         if global_mod.mod_pool:
-#             inc_dirs.extend([os.path.relpath(m.path) for m in global_mod.mod_pool])
-#         inc_dirs = list(set(inc_dirs))
-#         vlog_opt = global_mod.top_module.vlog_opt
-#         depfilename = "dependencies.list"
-#         command = "iverilog -dsimulate -wno-timescale -t null -m" + depfilename
-#         command += "".join(map(lambda x: " -y"+x, inc_dirs))
-#         command += "".join(map(lambda x: " -i"+x, inc_dirs))
-#         # todo: have to find a way to handle this cleanly
-#         if self.rel_path().find("config_romx_llrf4") > -1:
-#             command += " " + vlog_opt
-#         else:
-#             command += " " + vlog_opt + " " + self.rel_path()
-#             logging.debug("running %s" % command)
-#             retcode = os.system(command)
-#             # iverilog_cmd = popen(command, shell=true, stdin=pipe,
-#             #                      stdout=pipe, close_fds=true)
-#             # iverilog_cmd.stdout.readlines()
-#             # iverilog_cmd.wait()
-#             # retcode = iverilog_cmd.returncode
-#             print("retcode", retcode)
-
-#         if retcode and retcode != 256:
-#             logging.error("dependencies not met for %s" % str(self.path))
-#             logging.debug(command, self.include_dirs, inc_dirs, global_mod.mod_pool)
-#             quit()
-#         elif retcode == 256:
-#             #dependencies met
-#             pass
-#         depfile = open(depfilename, "r")
-#         depfiles = list(set([l.strip() for l in depfile.readlines()]))
-#         depfile.close()
-#         return depfiles
-
-#     def _search_includes(self):
-#         import re
-#         f = open(self.path, "r")
-#         try:
-#             text = f.readlines()
-#         except unicodedecodeerror:
-#             return []
-#         include_pattern = re.compile("^[ \t]*`include[ \t]+\"([^ \"]+)\".*$")
-#         ret = []
-#         for line in text:
-#             #in verilog and sv identifiers are case-sensitive
-#             m = re.match(include_pattern, line)
-#             if m is not none:
-#                 ret.append(m.group(1))
-#         f.close()
-#         return ret
 
 
 class SVFile(VerilogFile):
@@ -264,6 +102,7 @@ class SignalTapFile(File):
 
 
 class SDCFile(File):
+    # Synopsys Design Constraints
     pass
 
 
@@ -275,12 +114,40 @@ class DPFFile(File):
     pass
 
 
+class XMPFile(File):
+    # Xilinx Embedded Micro Processor
+    pass
+
+class PPRFile(File):
+    # Xilinx PlanAhead Project
+    pass
+
+class XCOFile(File):
+    # Xilinx Core Generator File
+    pass
+
 # class NGCFile(SourceFile):
 #     def __init__(self, path, module):
 #         SourceFile.__init__(self, path=path, module=module)
 class NGCFile(File):
+    # Xilinx Generated Netlist File
     pass
 
+class LDFFile(File):
+    # Lattice Diamond Project File
+    pass
+
+class LPFFile(File):
+    # Lattice Preference/Constraint File
+    pass
+
+class EDFFile(File):
+    # EDIF Netlist Files
+    pass
+
+class PDCFile(File):
+    # Physical Design Constraints
+    pass
 
 class WBGenFile(File):
     pass
@@ -380,4 +247,18 @@ class SourceFileFactory:
             nf = QIPFile(path=path, module=module)
         elif extension == 'dpf':
             nf = DPFFile(path=path, module=module)
+        elif extension == 'xmp':
+            nf = XMPFile(path=path, module=module)
+        elif extension == 'ppr':
+            nf = PPRFile(path=path, module=module)
+        elif extension == 'xco':
+            nf = XCOFile(path=path, module=module)
+        elif extension == 'ldf':
+            nf = LDFFile(path=path, module=module)
+        elif extension == 'lpf':
+            nf = LPFFile(path=path, module=module)
+        elif extension == 'edf' or extension == 'edif' or extension == 'edi' or extension == 'edn':
+            nf = EDFFile(path=path, module=module)
+        elif extension == 'pdc':
+            nf = PDCFile(path=path, module=module)
         return nf

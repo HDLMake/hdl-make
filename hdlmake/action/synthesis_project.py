@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013, 2014 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+# Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
 # This file is part of Hdlmake.
 #
@@ -25,73 +26,43 @@ from action import Action
 import sys
 import os
 import new_dep_solver as dep_solver
-from tools.ise import ISEProject
 from srcfile import SourceFileFactory
+from dependable_file import DependableFile
 import global_mod
 from util import path
 
+import importlib
 
-class GenerateISEProject(Action):
+
+
+class GenerateSynthesisProject(Action):
+
     def _check_manifest(self):
-       # self._check_manifest_variable_is_set("top_module")
-        self._check_manifest_variable_is_set("syn_device")
-        self._check_manifest_variable_is_set("syn_grade")
-        self._check_manifest_variable_is_set("syn_package")
-        self._check_manifest_variable_is_set("syn_top")
-
-    def _check_env(self):
-        env = self.env
-        if not self.options.force:
-            if self.env["ise_path"] is None:
-                logging.error("Can't generate an ISE project. ISE not found.")
-                quit()
-        if not env["ise_version"]:
-            logging.error("Xilinx version cannot be deduced. Cannot generate ISE "
-                          "project file properly. Please use syn_ise_version in the manifest "
-                          "or set")
+        if not self.modules_pool.get_top_module().syn_tool:
+            logging.error("syn_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
-        logging.info("Generating project for ISE v. %s" % env["ise_version"])
+        if not self.modules_pool.get_top_module().syn_device:
+            logging.error("syn_device variable must be set in the top manifest.")
+            sys.exit("Exiting")
+        if not self.modules_pool.get_top_module().syn_grade:
+            logging.error("syn_grade variable must be set in the top manifest.")
+            sys.exit("Exiting")
+        if not self.modules_pool.get_top_module().syn_package:
+            logging.error("syn_package variable must be set in the top manifest.")
+            sys.exit("Exiting")
+        if not self.modules_pool.get_top_module().syn_top:
+            logging.error("syn_top variable must be set in the top manifest.")
+            sys.exit("Exiting")
+
 
     def run(self):
         self._check_all_fetched_or_quit()
-        logging.info("Generating/updating ISE project file.")
-        if os.path.exists(self.top_module.syn_project) or os.path.exists(self.top_module.syn_project + ".xise"):
-            self._handle_ise_project(update=True)
-        else:
-            self._handle_ise_project(update=False)
-        logging.info("ISE project file generated.")
+        self._check_manifest()
+        tool_object = global_mod.tool_module.ToolControls()   
+        self._generate_synthesis_project(tool_object)
 
-    def _handle_ise_project(self, update=False):
-        top_mod = self.modules_pool.get_top_module()
-        fileset = self.modules_pool.build_file_set()
-        flist = dep_solver.make_dependency_sorted_list(fileset)
-        assert isinstance(flist, list)
 
-        prj = ISEProject(ise=self.env["ise_version"],
-                         top_mod=self.modules_pool.get_top_module())
-        prj.add_files(flist)
-        sff = SourceFileFactory()
-        logging.debug(top_mod.vlog_opt)
-
-        if self.options.generate_project_vhd:
-          self._write_project_vhd()
-          prj.add_files([sff.new(path=path.rel2abs("project.vhd"),
-                                 module=self.modules_pool.get_module_by_path("."))])\
-
-        prj.add_libs(fileset.get_libs())
-        if update is True:
-            try:
-                prj.load_xml(top_mod.syn_project)
-            except:
-                logging.error("Error while reading the project file.\n"
-                              "Are you sure that syn_project indicates a correct ISE project file?")
-                raise
-        else:
-            prj.add_initial_properties()
-        logging.info("Writing down .xise project file")
-        prj.emit_xml(top_mod.syn_project)
-
-    def _write_project_vhd(self):
+    def _write_project_vhd(self, tool, version):
         from string import Template
         from datetime import date
         import getpass
@@ -141,7 +112,7 @@ end sdb_meta_pkg;""")
         for digit in date_string:
             date_std_logic_vector.append("{0:04b}".format(int(digit)))
 
-        syn_tool_version = global_mod.env["ise_version"]
+        syn_tool_version = version
         syn_tool_version = re.sub("\D", "", syn_tool_version)
 	syn_tool_std_logic_vector = []
 	for digit in syn_tool_version:
@@ -150,7 +121,7 @@ end sdb_meta_pkg;""")
         filled_template = template.substitute(repo_url=global_mod.top_module.url,
                                               syn_module_name=global_mod.top_module.syn_top,
                                               syn_commit_id=global_mod.top_module.revision,
-                                              syn_tool_name="ISE",
+                                              syn_tool_name=tool.upper(),
                                               syn_tool_version="0000"*(8-len(syn_tool_std_logic_vector))+''.join(syn_tool_std_logic_vector),
 					      syn_tool_version_str=syn_tool_version,
                                               syn_date=''.join(date_std_logic_vector),
@@ -158,3 +129,59 @@ end sdb_meta_pkg;""")
                                               syn_username=getpass.getuser())
         project_vhd.write(filled_template)
         project_vhd.close()
+
+
+
+    def _generate_synthesis_project(self, tool_object):
+
+        tool_info = tool_object.get_keys()
+        if sys.platform == 'cygwin':
+            bin_name = tool_info['windows_bin']
+        else:
+            bin_name = tool_info['linux_bin']
+        path_key = tool_info['id'] + '_path'
+        version_key = tool_info['id'] + '_version'
+        name = tool_info['name']
+        id_value = tool_info['id']
+        ext_value = tool_info['project_ext']
+
+        env = self.env
+        if not self.options.force:
+            if self.env[path_key] is None:
+                logging.error("Can't generate an " + name + " project. " + name + " not found.")
+                quit()
+        if not env[version_key]:
+            logging.error(name + " version cannot be deduced. Cannot generate " + name + " "
+                          "project file properly. Please use syn_" + id_value + "_version in the manifest "
+                          "or set")
+            sys.exit("Exiting")
+        logging.info("Generating project for " + name + " v. %s" % env[version_key])
+        
+        if os.path.exists(self.top_module.syn_project) or os.path.exists(self.top_module.syn_project + "." + ext_value):
+            logging.info("Existing project detected: updating...")
+            update=True
+        else:
+            logging.info("No previous project: creating a new one...")
+            update=False
+
+        top_mod = self.modules_pool.get_top_module()
+        fileset = self.modules_pool.build_file_set()
+        non_dependable = fileset.inversed_filter(DependableFile)
+        fileset.add(non_dependable)
+
+        sff = SourceFileFactory()
+        if self.options.generate_project_vhd:
+          self._write_project_vhd(id_value, env[version_key])
+          fileset.add([sff.new(path=path.rel2abs("project.vhd"),
+                                 module=self.modules_pool.get_module_by_path("."))])\
+
+
+        tool_object.generate_synthesis_project(update=update,
+                         tool_version=self.env[version_key],
+                         top_mod=self.modules_pool.get_top_module(),
+                         fileset = fileset)
+
+        logging.info(name + " project file generated.")
+
+
+

@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013, 2014 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+# Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
 # This file is part of Hdlmake.
 #
@@ -24,11 +25,11 @@ from check_manifest import CheckManifest
 from clean import CleanModules
 from fetch import FetchModules
 from fetch_makefile import GenerateFetchMakefile
-from ise_makefile import GenerateISEMakefile
-from ise_project import GenerateISEProject
 from list_files import ListFiles
 from list_modules import ListModules
 from merge_cores import MergeCores
-from quartus_project import GenerateQuartusProject
+
+from synthesis_project import GenerateSynthesisProject
+from synthesis import GenerateSynthesisMakefile
 from remote_synthesis import GenerateRemoteSynthesisMakefile
 from simulation import GenerateSimulationMakefile

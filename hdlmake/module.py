@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013, 2014 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+# Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
 # This file is part of Hdlmake.
 #
@@ -37,7 +38,7 @@ class Module(object):
     @source.setter
     def source(self, value):
         if value not in [fetch.GIT, fetch.SVN, fetch.LOCAL, fetch.GITSUBMODULE]:
-            raise ValueError("Inproper source: " + value)
+            raise ValueError("Improper source: " + value)
         self._source = value
 
     @source.deleter
@@ -76,6 +77,7 @@ class Module(object):
         self.vcom_opt = None
         self.revision = None
         self.quartus_preflow = None
+        self.quartus_postmodule = None
         self.quartus_postflow = None
         self._files = None
         self.manifest = None
@@ -402,6 +404,14 @@ class Module(object):
                         + path + ".\nExiting.")
                 quit()
             self.quartus_preflow = TCLFile(path)
+
+        if self.manifest_dict["quartus_postmodule"] != None:
+            path = path_mod.rel2abs(self.manifest_dict["quartus_postmodule"], self.path);
+            if not os.path.exists(path):
+                p.error("quartus_postmodule file listed in " + self.manifest.path + " doesn't exist: "
+                        + path + ".\nExiting.")
+                quit()
+            self.quartus_postmodule = TCLFile(path)
 
         if self.manifest_dict["quartus_postflow"] != None:
             path = path_mod.rel2abs(self.manifest_dict["quartus_postflow"], self.path);
