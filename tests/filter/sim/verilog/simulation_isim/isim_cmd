@@ -1,4 +1,0 @@
-vcd dumpfile half2_tb.vcd
-vcd dumpvars -m half2_tb -l 1
-run 100000 ns
-exit

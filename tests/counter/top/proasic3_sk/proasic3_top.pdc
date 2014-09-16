@@ -1,0 +1,31 @@
+# Microsemi Physical design constraints file
+# Family: ProASIC3 , Die: A3P250 , Package: 208 PQFP , Speed grade: -2 
+
+#
+# IO banks setting
+#
+
+set_iobank Bank3 -vcci 3.30 -fixed no
+set_iobank Bank2 -vcci 3.30 -fixed no
+set_iobank Bank1 -vcci 3.30 -fixed no
+set_iobank Bank0 -vcci 3.30 -fixed no
+
+#
+# I/O constraints
+#
+
+set_io led_o\[0\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 63 -fixed yes
+set_io led_o\[1\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 61 -fixed yes
+set_io led_o\[2\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 60 -fixed yes
+set_io led_o\[3\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 59 -fixed yes
+set_io led_o\[4\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 58 -fixed yes
+set_io led_o\[5\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 57 -fixed yes
+set_io led_o\[6\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 56 -fixed yes
+set_io led_o\[7\] -iostd LVTTL -REGISTER No -OUT_DRIVE 12 -SLEW High -RES_PULL None -SKEW Off -OUT_LOAD 35 -pinname 55 -fixed yes
+
+set_io clear_i -iostd LVTTL -REGISTER No -RES_PULL None -pinname 68 -fixed yes
+set_io count_i -iostd LVTTL -REGISTER No -RES_PULL None -pinname 67 -fixed yes
+
+# 40MHz clock
+set_io clock_i -iostd LVTTL -REGISTER No -RES_PULL None -pinname 26 -fixed yes
+

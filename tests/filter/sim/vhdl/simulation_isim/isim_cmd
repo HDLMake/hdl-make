@@ -1,4 +1,0 @@
-vcd dumpfile tb_myfilter.vcd
-vcd dumpvars -m tb_myfilter -l 1
-run 100000 ns
-exit

@@ -1,0 +1,15 @@
+BLOCK RESETPATHS ;
+BLOCK ASYNCPATHS ;
+LOCATE COMP "led_o_0" SITE "46" ;
+LOCATE COMP "led_o_1" SITE "45" ;
+LOCATE COMP "led_o_2" SITE "44" ;
+LOCATE COMP "led_o_3" SITE "43" ;
+LOCATE COMP "led_o_4" SITE "40" ;
+LOCATE COMP "led_o_5" SITE "39" ;
+LOCATE COMP "led_o_6" SITE "38" ;
+LOCATE COMP "led_o_7" SITE "37" ;
+LOCATE COMP "clear_i" SITE "50" ;
+LOCATE COMP "count_i" SITE "53" ;
+LOCATE COMP "clock_i" SITE "21" ;
+LOCATE COMP "clken_o" SITE "22" ;
+

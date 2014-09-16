@@ -1,5 +1,0 @@
-#!/bin/bash
-
-hdlmake
-make
-
