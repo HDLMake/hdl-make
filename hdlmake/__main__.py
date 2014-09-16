@@ -37,7 +37,7 @@ from action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMak
                     ListModules, MergeCores, GenerateSimulationMakefile,
                     GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject)
 
-from argument_parser import get_argument_parser
+#from argument_parser import get_argument_parser
 
 #try:
 #    from build_hash import BUILD_ID
@@ -150,7 +150,7 @@ def main():
                 logging.error("`sim_tool' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know how to simulate the project")
                 quit()
-            action = GenerateSimulationMakefile
+            action = [ GenerateSimulationMakefile ]
         elif top_mod.action == "synthesis":
             if not top_mod.syn_tool:
                 logging.error("`syn_tool' manifest variable has to be specified. "
