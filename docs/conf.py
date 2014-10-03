@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'hdlmake'
-copyright = u'2014, Pawel Szostek, Javier D. Garcia-Lasheras'
+copyright = u'2014, CERN'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -119,7 +119,7 @@ html_theme = 'default'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = 'images/ohr_logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -258,3 +258,7 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# Path to sources
+sys.path.insert(0, os.path.abspath('../hdlmake'))
+

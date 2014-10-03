@@ -54,5 +54,33 @@ http://www.ohwr.org/mailing_list/show?project_id=hdl-make
 
 License
 -------
+.. image:: images/by-sa.*
+   :align: center
+   :target: http://creativecommons.org/licenses/by-sa/4.0/deed.en_US
 
-The project is licensed under the GPL v3 license.
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0
+International License. To view a copy of this license, visit:
+http://creativecommons.org/licenses/by-sa/4.0/deed.en_US
+
+.. image:: images/GPLv3_logo.*
+   :align: center
+   :target: http://www.gnu.org/copyleft/gpl.html
+
+The source code for the hdlmake project is licensed under the GPL license version 3 or later.
+To get more info about this license, visit the following link:
+http://www.gnu.org/copyleft/gpl.html
+
+Copyright notice
+----------------
+
+.. image:: images/CERN_logo.*
+   :scale: 50 %
+   :alt: CERN Logo
+   :align: center
+   :target: http://home.web.cern.ch/
+
+`CERN 
+<http://home.web.cern.ch/>`_, the European Organization for Nuclear Research,
+is the first and sole owner of all copyright of both this document and
+the associated source code deliverables.
+
