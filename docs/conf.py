@@ -192,11 +192,6 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 #'preamble': '',
-
-  # Remove blank pages
-  'classoptions': ',openany,oneside',
-  'babel': '\\usepackage[english]{babel}'
-
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -209,7 +204,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-latex_logo = 'images/ohr_logo.png'
+#latex_logo = None
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
