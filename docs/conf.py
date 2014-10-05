@@ -100,7 +100,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -192,6 +192,11 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 #'preamble': '',
+
+  # Remove blank pages
+  'classoptions': ',openany,oneside',	
+  'babel': '\\usepackage[english]{babel}'
+
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -204,7 +209,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = 'images/ohr_logo.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
