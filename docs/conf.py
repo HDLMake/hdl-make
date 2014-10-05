@@ -199,7 +199,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'hdlmake.tex', u'hdlmake Documentation',
-   u'Pawel Szostek, Javier D. Garcia-Lasheras', 'manual'),
+   u'Javier D. Garcia-Lasheras', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -229,7 +229,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'hdlmake', u'hdlmake Documentation',
-     [u'Pawel Szostek, Javier D. Garcia-Lasheras'], 1)
+     [u'Javier D. Garcia-Lasheras'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -243,7 +243,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'hdlmake', u'hdlmake Documentation',
-   u'Pawel Szostek, Javier D. Garcia-Lasheras', 'hdlmake', 'One line description of project.',
+   u'Javier D. Garcia-Lasheras', 'hdlmake', 'One line description of project.',
    'Miscellaneous'),
 ]
 
