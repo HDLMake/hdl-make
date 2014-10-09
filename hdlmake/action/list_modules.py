@@ -19,9 +19,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from action import Action
+from __future__ import absolute_import
+from action.action import Action
 from util import path
 import fetch
+
+	
+def _convert_to_source_name(source_code):
+    if source_code == fetch.GIT:
+        return "git"
+    elif source_code == fetch.SVN:
+        return "svn"
+    elif source_code == fetch.LOCAL:
+        return "local"
+    elif source_code == fetch.GITSUBMODULE:
+        return "git_submodule"
 
 
 class ListModules(Action):
@@ -50,4 +62,5 @@ class ListModules(Action):
         else:
             print("#path\tsource")
             for m in self.modules_pool:
-                print("%s\t%s" % (path.relpath(m.path), m.source))
+                print("%s\t%s" % (path.relpath(m.path), _convert_to_source_name(m.source)))
+
