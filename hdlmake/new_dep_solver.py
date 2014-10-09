@@ -85,6 +85,7 @@ def solve(fileset):
     #         print('\t' + str(rel))
     not_satisfied = 0
     for investigated_file in fset:
+        logging.debug("Dependency solver investigates %s (%d relations)" % (investigated_file, len(investigated_file.rels)))
         for rel in investigated_file.rels:
             if rel.direction is DepRelation.PROVIDE:  # PROVIDE relations dont have to be satisfied
                 continue
@@ -92,7 +93,6 @@ def solve(fileset):
                 continue
             if rel.library() in global_mod.tool_module.ToolControls().get_standard_libraries():  # dont care about standard libs
                 continue
-
             satisfied_by = set()
             for dep_file in fset:
                # if dep_file is investigated_file:
