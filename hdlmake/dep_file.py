@@ -25,14 +25,18 @@ from util import path as path_mod
 
 
 class DepRelation(object):
+    # direction
     PROVIDE = 1
     USE = 2
 
+    # rel_type
     ENTITY = 1
     PACKAGE = 2
     INCLUDE = 3
 
     def __init__(self, obj_name, direction, rel_type):
+        assert direction in [DepRelation.PROVIDE, DepRelation.USE]
+        assert rel_type in [DepRelation.ENTITY, DepRelation.PACKAGE, DepRelation.INCLUDE]
         self.direction = direction
         self.rel_type = rel_type
         self.obj_name = obj_name
