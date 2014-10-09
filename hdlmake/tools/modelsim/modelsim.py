@@ -159,9 +159,13 @@ clean:
                                    vl.rel_path())
                       )
             for dep_file in [dfile for dfile in vl.depends_on if dfile is not vl]:
-                name = dep_file.purename
-                extension = dep_file.extension()
-                self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
+                if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
+                    name = dep_file.purename
+                    extension = dep_file.extension()
+                    self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
+                else: #the file is included -> we depend directly on the file
+                    self.write(" \\\n" + dep_file.rel_path())
+
             self.writeln()
 
             ###
@@ -194,9 +198,12 @@ clean:
                                    vhdl.rel_path())
                        )
             for dep_file in vhdl.depends_on:
-                name = dep_file.purename
-                extension = dep_file.extension()
-                self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
+                if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
+                    name = dep_file.purename
+                    extension = dep_file.extension()
+                    self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
+                else: #the file is included -> we depend directly on the file
+                    self.write(" \\\n" + dep_file.rel_path())
 
             self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))

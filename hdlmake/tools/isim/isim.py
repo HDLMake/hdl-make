@@ -217,8 +217,11 @@ isim.wdb isim_proj isim_proj.*
             #if len(vhdl.depends_on) != 0:
             self.write(os.path.join(lib, purename, "."+purename) + ":")
             for dep_file in vhdl.depends_on:
-                name = dep_file.purename
-                self.write(" \\\n" + os.path.join(dep_file.library, name, "."+name + "_" + vhdl.extension()))
+                if dep_file in fileset:
+                    name = dep_file.purename
+                    self.write(" \\\n" + os.path.join(dep_file.library, name, "."+name + "_" + vhdl.extension()))
+                else:
+                    self.write(" \\\n" + os.path.join(dep_file.rel_path()))
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 
