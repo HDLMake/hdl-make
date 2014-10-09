@@ -9,7 +9,7 @@ vlog_opt = '+incdir+' + \
            '../../uvm-1.1d/src'
                 
 top_module = "top"
-sim_tool = "vsim"
+sim_tool = "modelsim"
 
 files = ["src/genericTest.sv"]
 
