@@ -25,6 +25,8 @@ from __future__ import print_function
 import logging
 from dep_file import DepFile
 
+from srcfile import VHDLFile, VerilogFile, SVFile
+
 import global_mod
 
 
@@ -41,18 +43,16 @@ class ParserFactory(object):
         import re
         from vlog_parser import VerilogParser
         from vhdl_parser import VHDLParser
-
-        extension = re.match(re.compile(".+\.(\w+)$"), dep_file.file_path)
-        if not extension:
-            raise ValueError("Unecognized file format : %s" % dep_file.file_path)
-        extension = extension.group(1).lower()
-        if extension in ["vhd", "vhdl"]:
+        
+        if isinstance(dep_file, VHDLFile) :
             return VHDLParser(dep_file)
-        elif extension in ["v", "sv"]:
+        elif isinstance(dep_file, VerilogFile) or isinstance(dep_file,  SVFile) :
             vp = VerilogParser(dep_file)
             for d in dep_file.include_paths:
                 vp.add_search_path(d)
             return vp
+        else :
+            raise ValueError("Unecognized file format : %s" % dep_file.file_path)
 
 # class DepSolver(object):
 #     def solve(self, vhdl_files):
