@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2013 CERN
 # Author: Tomasz Wlostowski
+#         Adrian Fiergolski
 #
 # This file is part of Hdlmake.
 #
@@ -549,19 +550,41 @@ class VerilogParser(DepParser):
             logging.debug( "%s has %d includes." % (str(dep_file), len(includes)))
         except KeyError:
             logging.debug(str(dep_file) + " has no includes.")
+         
+        #look for packages used inside in file
+        #it may generate false dependencies as package in SV can be used by:
+        #    import my_package::*;
+        #or directly
+        #    logic var = my_package::MY_CONST;
+        #The same way constants and others can be imported directly from other modules:
+        #    logic var = my_other_module::MY_CONST;
+        #and HdlMake will anyway create dependency marking my_other_module as requested package
+        import_pattern = re.compile("(\w+) *::(\w+|\\*)")
+        def do_imports(s):
+            logging.debug("file %s imports/uses %s package" %( dep_file.path , s.group(1) ) )
+            dep_file.add_relation(DepRelation(s.group(1), DepRelation.USE, DepRelation.PACKAGE))
+        re.subn(import_pattern, do_imports, buf)
+        
+        #packages
+        m_inside_package = re.compile("package\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)endpackage", re.DOTALL | re.MULTILINE)
+        def do_package(s):
+            logging.debug("found pacakge %s" %s.group(1))
+            dep_file.add_relation(DepRelation(s.group(1), DepRelation.PROVIDE, DepRelation.PACKAGE))
+        re.subn(m_inside_package, do_package, buf)
 
+        #modules and instatniations
         m_inside_module = re.compile("(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)(?:endmodule|endinterface)", re.DOTALL | re.MULTILINE)
         m_instantiation = re.compile("(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*", re.DOTALL | re.MULTILINE)
 
         def do_module(s):
-#            print("module %s" %s.group(1))
+            logging.debug("found module %s" %s.group(1))
             dep_file.add_relation(DepRelation(s.group(1), DepRelation.PROVIDE, DepRelation.ENTITY))
 
             def do_inst(s):
                 mod_name = s.group(1)
                 if(mod_name in self.reserved_words):
                     return
-#                print("-> instantiates %s as %s" % (s.group(1), s.group(2)))
+                logging.debug("-> instantiates %s as %s" % (s.group(1), s.group(2) ))
                 dep_file.add_relation(DepRelation(s.group(1), DepRelation.USE, DepRelation.ENTITY))
             re.subn(m_instantiation, do_inst, s.group(2))
         re.subn(m_inside_module, do_module,  buf)
