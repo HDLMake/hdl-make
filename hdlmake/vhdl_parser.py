@@ -114,7 +114,8 @@ class VHDLParser(DepParser):
             "package": "^ *package +(\w+) +is",
             "arch_begin": "^ *architecture +(\w+) +of +(\w+) +is +",
             "arch_end": "^ *end +(\w+) +;",
-            "instance": "^ *(\w+) *\: *(\w+) *(port|generic) *map"
+            "instance": "^ *(\w+) *\: *(\w+) *(port|generic) *map",
+            "instance_from_work_library": "^ *(\w+) *\: *entity *work *\. *(\w+) *(port|generic) *map"
         }
 
         compiled_patterns = map(lambda p: (p, re.compile(patterns[p])), patterns)
@@ -122,7 +123,7 @@ class VHDLParser(DepParser):
         within_architecture = False
 
         for l in lines:
-            matches = filter(lambda (k, v): v is not None, map(lambda (k, v): (k, re.match(v, l)), compiled_patterns))
+            matches = filter(lambda (k, v): v is not None, map(lambda (k, v): (k, re.match(v, l.lower())), compiled_patterns))
             if(not len(matches)):
                 continue
 
@@ -160,4 +161,9 @@ class VHDLParser(DepParser):
                 dep_file.add_relation(DepRelation(g.group(2),
                                                   DepRelation.USE,
                                                   DepRelation.ENTITY))
+            elif(what == "instance_from_work_library" and within_architecture) :
+                dep_file.add_relation(DepRelation(g.group(2),
+                                                  DepRelation.USE,
+                                                  DepRelation.ENTITY))
+
         dep_file.is_parsed = True
