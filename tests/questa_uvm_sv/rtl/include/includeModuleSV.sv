@@ -1,5 +1,5 @@
 //                              -*- Mode: Verilog -*-
-// Filename        : includeModule.sv
+// Filename        : includeModuleSV.sv
 // Description     : Included submodule
 // Author          : Adrian Fiergolski
 // Created On      : Thu Sep 18 10:51:41 2014
@@ -8,7 +8,7 @@
 // Update Count    : 0
 // Status          : Unknown, Use with caution!
 
-module includeModule;
+module includeModuleSV;
 
 
-endmodule // includeModule
+endmodule // includeModuleSV

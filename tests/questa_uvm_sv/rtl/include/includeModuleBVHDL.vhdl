@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- Title : RTLTopModuleVHDL Project :
+-- Title : includeModuleBVHDL Project :
 -------------------------------------------------------------------------------
--- File : RTLTopModuleVHDL.vhdl Author : Adrian Fiergolski <Adrian.Fiergolski@cern.ch> Company : CERN Created : 2014-09-26 Last update: 2014-09-26 Platform : Standard : VHDL'2008
+-- File : includeModuleBVHDL.vhdl Author : Adrian Fiergolski <Adrian.Fiergolski@cern.ch> Company : CERN Created : 2014-09-26 Last update: 2014-09-26 Platform : Standard : VHDL'2008
 -------------------------------------------------------------------------------
 -- Description: The module to test HDLMake
 -------------------------------------------------------------------------------
@@ -22,27 +22,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity RTLTopModuleVHDL is
+entity includeModuleBVHDL is
 
-end entity RTLTopModuleVHDL;
+end entity includeModuleBVHDL;
 
-architecture Behavioral of RTLTopModuleVHDL is
-  component includeModuleVHDL is
-    port();
-  end component;
+architecture Behavioral of includeModuleBVHDL is
   signal probe : STD_LOGIC;
-begin  -- architectureecture Behavioral
+begin  -- architecture Behavioral
 
-  probe <= '1';
-  include_module : includeModuleVHDL
-    port map ();
 
-  a : entity work.includeModuleAVHDL
-    port map();
-
-  GEN : for i in 0 to 3 generate
-    B : entity work.includeModuleBVHDL
-      port map();
-  end generate;
-  
 end architecture Behavioral;

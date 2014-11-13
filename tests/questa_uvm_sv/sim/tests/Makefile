@@ -11,29 +11,35 @@ MODELSIM_INI_PATH := /opt/questa_sv_afv_10.3c_1/questasim//bin/..
 VCOM_FLAGS := -quiet -modelsimini modelsim.ini
 VSIM_FLAGS :=
 VLOG_FLAGS := -quiet -modelsimini modelsim.ini 
-VERILOG_SRC := ../../rtl/RTL_SVPackage.sv \
-../../rtl/include/includeModule.sv \
-../../ipcores/ipcore/ipcore.sv \
-../../rtl/RTLTopModuleSV.sv \
+VERILOG_SRC := src/genericTest.sv \
 ../../rtl/RTLTopModuleVerilogSimulationModel.vo \
-src/genericTest.sv \
+../../rtl/RTL_SVPackage.sv \
+../../rtl/RTLTopModuleSV.sv \
+../../rtl/include/includeModuleSV.sv \
+../../ipcores/ipcore/ipcore.sv \
 
-VERILOG_OBJ := work/RTL_SVPackage/.RTL_SVPackage_sv \
-work/includeModule/.includeModule_sv \
-work/ipcore/.ipcore_sv \
-work/RTLTopModuleSV/.RTLTopModuleSV_sv \
+VERILOG_OBJ := work/genericTest/.genericTest_sv \
 work/RTLTopModuleVerilogSimulationModel/.RTLTopModuleVerilogSimulationModel_vo \
-work/genericTest/.genericTest_sv \
+work/RTL_SVPackage/.RTL_SVPackage_sv \
+work/RTLTopModuleSV/.RTLTopModuleSV_sv \
+work/includeModuleSV/.includeModuleSV_sv \
+work/ipcore/.ipcore_sv \
 
-VHDL_SRC := ../../rtl/RTLTopModuleVHDL.vhdl \
+VHDL_SRC := ../../rtl/include/includeModuleVHDL.vhdl \
+../../rtl/include/includeModuleAVHDL.vhdl \
+../../rtl/include/includeModuleBVHDL.vhdl \
+../../rtl/RTLTopModuleVHDL.vhdl \
 
-VHDL_OBJ := work/RTLTopModuleVHDL/.RTLTopModuleVHDL_vhdl \
+VHDL_OBJ := work/includeModuleVHDL/.includeModuleVHDL_vhdl \
+work/includeModuleAVHDL/.includeModuleAVHDL_vhdl \
+work/includeModuleBVHDL/.includeModuleBVHDL_vhdl \
+work/RTLTopModuleVHDL/.RTLTopModuleVHDL_vhdl \
 
 LIBS := work
 LIB_IND := work/.work
 ## rules #################################
 sim: sim_pre_cmd modelsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)
-$(VERILOG_OBJ): $(VHDL_OBJ)
+$(VERILOG_OBJ) : modelsim.ini
 $(VHDL_OBJ): $(LIB_IND) modelsim.ini
 
 sim_pre_cmd:
@@ -45,18 +51,42 @@ sim_post_cmd: sim
 modelsim.ini: $(MODELSIM_INI_PATH)/modelsim.ini
 		cp $< . 2>&1
 clean:
-		rm -rf ./modelsim.ini $(LIBS)
+		rm -rf ./modelsim.ini $(LIBS) transcript  *.vcd *.wlf
 .PHONY: clean sim_pre_cmd sim_post_cmd
 
 work/.work:
 	(vlib work && vmap -modelsimini modelsim.ini work && touch work/.work )|| rm -rf work 
+
+work/genericTest/.genericTest_sv: src/genericTest.sv \
+../environment/env.sv \
+work/RTLTopModuleVerilogSimulationModel/.RTLTopModuleVerilogSimulationModel_vo \
+../environment/Env_pkg.sv \
+src/FullTest_pkg.sv \
+../environment/top.sv \
+work/RTLTopModuleSV/.RTLTopModuleSV_sv \
+../sequences/sequence.sv
+		vlog -work work $(VLOG_FLAGS) -sv +incdir+../environment+../sequences+src +incdir+../../mvc//questa_mvc_src/sv+../../mvc/questa_mvc_src/sv/mvc_base+../../mvc/include+../../uvm-1.1d/src $<
+		@mkdir -p $(dir $@) && touch $@ 
+
+
+work/RTLTopModuleVerilogSimulationModel/.RTLTopModuleVerilogSimulationModel_vo: ../../rtl/RTLTopModuleVerilogSimulationModel.vo
+		vlog -work work $(VLOG_FLAGS)  +incdir+../../rtl/include+../../rtl  $<
+		@mkdir -p $(dir $@) && touch $@ 
+
 
 work/RTL_SVPackage/.RTL_SVPackage_sv: ../../rtl/RTL_SVPackage.sv
 		vlog -work work $(VLOG_FLAGS) -sv +incdir+../../rtl/include+../../rtl  $<
 		@mkdir -p $(dir $@) && touch $@ 
 
 
-work/includeModule/.includeModule_sv: ../../rtl/include/includeModule.sv
+work/RTLTopModuleSV/.RTLTopModuleSV_sv: ../../rtl/RTLTopModuleSV.sv \
+work/RTL_SVPackage/.RTL_SVPackage_sv \
+work/ipcore/.ipcore_sv
+		vlog -work work $(VLOG_FLAGS) -sv +incdir+../../rtl/include+../../rtl  $<
+		@mkdir -p $(dir $@) && touch $@ 
+
+
+work/includeModuleSV/.includeModuleSV_sv: ../../rtl/include/includeModuleSV.sv
 		vlog -work work $(VLOG_FLAGS) -sv +incdir+../../rtl/include+../../rtl/include  $<
 		@mkdir -p $(dir $@) && touch $@ 
 
@@ -67,30 +97,20 @@ work/ipcore/.ipcore_sv: ../../ipcores/ipcore/ipcore.sv \
 		@mkdir -p $(dir $@) && touch $@ 
 
 
-work/RTLTopModuleSV/.RTLTopModuleSV_sv: ../../rtl/RTLTopModuleSV.sv \
-work/RTL_SVPackage/.RTL_SVPackage_sv \
-work/includeModule/.includeModule_sv \
-work/ipcore/.ipcore_sv
-		vlog -work work $(VLOG_FLAGS) -sv +incdir+../../rtl/include+../../rtl  $<
-		@mkdir -p $(dir $@) && touch $@ 
+
+work/includeModuleVHDL/.includeModuleVHDL_vhdl: ../../rtl/include/includeModuleVHDL.vhdl
+		vcom $(VCOM_FLAGS)  -work work $< 
+		@mkdir -p $(dir $@) && touch $@
 
 
-work/RTLTopModuleVerilogSimulationModel/.RTLTopModuleVerilogSimulationModel_vo: ../../rtl/RTLTopModuleVerilogSimulationModel.vo
-		vlog -work work $(VLOG_FLAGS)  +incdir+../../rtl/include+../../rtl  $<
-		@mkdir -p $(dir $@) && touch $@ 
+work/includeModuleAVHDL/.includeModuleAVHDL_vhdl: ../../rtl/include/includeModuleAVHDL.vhdl
+		vcom $(VCOM_FLAGS)  -work work $< 
+		@mkdir -p $(dir $@) && touch $@
 
 
-work/genericTest/.genericTest_sv: src/genericTest.sv \
-../sequences/sequence.sv \
-../environment/Env_pkg.sv \
-../environment/env.sv \
-work/RTLTopModuleSV/.RTLTopModuleSV_sv \
-work/RTLTopModuleVerilogSimulationModel/.RTLTopModuleVerilogSimulationModel_vo \
-../environment/top.sv \
-src/FullTest_pkg.sv
-		vlog -work work $(VLOG_FLAGS) -sv +incdir+../environment+../sequences+src +incdir+../../mvc//questa_mvc_src/sv+../../mvc/questa_mvc_src/sv/mvc_base+../../mvc/include+../../uvm-1.1d/src $<
-		@mkdir -p $(dir $@) && touch $@ 
-
+work/includeModuleBVHDL/.includeModuleBVHDL_vhdl: ../../rtl/include/includeModuleBVHDL.vhdl
+		vcom $(VCOM_FLAGS)  -work work $< 
+		@mkdir -p $(dir $@) && touch $@
 
 
 work/RTLTopModuleVHDL/.RTLTopModuleVHDL_vhdl: ../../rtl/RTLTopModuleVHDL.vhdl
