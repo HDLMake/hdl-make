@@ -23,26 +23,21 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 entity RTLTopModuleVHDL is
-  port ();
 end entity RTLTopModuleVHDL;
 
 architecture Behavioral of RTLTopModuleVHDL is
   component includeModuleVHDL is
-    port();
   end component;
   signal probe : STD_LOGIC;
 begin  -- architectureecture Behavioral
 
   probe <= '1';
-  include_module : includeModuleVHDL
-    port map ();
+  include_module : includeModuleVHDL;
 
-  a : entity work.includeModuleAVHDL
-    port map();
-
+  a : entity work.includeModuleAVHDL;
+    
   GEN : for i in 0 to 3 generate
-    B : entity work.includeModuleBVHDL
-      port map();
+    B : entity work.includeModuleBVHDL;
   end generate;
   
 end architecture Behavioral;

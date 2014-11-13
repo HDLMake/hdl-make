@@ -100,7 +100,7 @@ class VHDLParser(DepParser):
                 else:
                     prev_is_gap = False
                     buf2 += c.lower()
-                    if c == ";":
+                    if (c == ";" or buf2[-8:] == "generate") :
                         lines.append(buf2)
                         buf2 = ""
             else:
@@ -110,16 +110,15 @@ class VHDLParser(DepParser):
 
         patterns = {
             "use": "^ *use +(\w+) *\. *(\w+) *\. *\w+ *;",
-            "entity": "^ *entity +(\w+) +is +(port|generic)",
+            "entity": "^ *entity +(\w+) +is +(port|generic|end)",
             "package": "^ *package +(\w+) +is",
             "arch_begin": "^ *architecture +(\w+) +of +(\w+) +is +",
             "arch_end": "^ *end +(\w+) +;",
-            "instance": "^ *(\w+) *\: *(\w+) *(port|generic) *map",
-            "instance_from_work_library": "^ *(\w+) *\: *entity *work *\. *(\w+) *(port|generic) *map"
+            "instance": "^ *(\w+) *\: *(\w+) *(port *map|generic *map| *;)",
+            "instance_from_work_library": "^ *(\w+) *\: *entity *work *\. *(\w+) *(port *map|generic *map| *;)"
         }
 
         compiled_patterns = map(lambda p: (p, re.compile(patterns[p])), patterns)
-
         within_architecture = False
 
         for l in lines:
@@ -128,7 +127,6 @@ class VHDLParser(DepParser):
                 continue
 
             what, g = matches[0]
-
             if(what == "use"):
                 logging.debug("use package %s" % g.group(1)+"."+g.group(2) )
                 dep_file.add_relation(DepRelation(g.group(1)+"."+g.group(2), DepRelation.USE, DepRelation.PACKAGE))
@@ -155,8 +153,6 @@ class VHDLParser(DepParser):
                 within_architecture = False
             elif( what in ["instance", "instance_from_work_library"] and within_architecture):
                 logging.debug("-> instantiates %s as %s" % (g.group(1), g.group(2))  )
-                if (what == "instance_from_work_library") :
-                    logging.info("Mam cie !!!!!!!!!!!!!!!!!!!! %s" % g.group(2) )
                 dep_file.add_relation(DepRelation(g.group(2),
                                                   DepRelation.USE,
                                                   DepRelation.ENTITY))
