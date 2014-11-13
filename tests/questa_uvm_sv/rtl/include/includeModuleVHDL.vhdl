@@ -23,7 +23,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 entity includeModuleVHDL is
-
+  port();
 end entity includeModuleVHDL;
 
 architecture Behavioral of includeModuleVHDL is

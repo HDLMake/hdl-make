@@ -113,7 +113,9 @@ work/includeModuleBVHDL/.includeModuleBVHDL_vhdl: ../../rtl/include/includeModul
 		@mkdir -p $(dir $@) && touch $@
 
 
-work/RTLTopModuleVHDL/.RTLTopModuleVHDL_vhdl: ../../rtl/RTLTopModuleVHDL.vhdl
+work/RTLTopModuleVHDL/.RTLTopModuleVHDL_vhdl: ../../rtl/RTLTopModuleVHDL.vhdl \
+work/includeModuleVHDL/.includeModuleVHDL_vhdl \
+work/includeModuleAVHDL/.includeModuleAVHDL_vhdl
 		vcom $(VCOM_FLAGS)  -work work $< 
 		@mkdir -p $(dir $@) && touch $@
 

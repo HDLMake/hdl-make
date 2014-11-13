@@ -130,15 +130,10 @@ class VHDLParser(DepParser):
             what, g = matches[0]
 
             if(what == "use"):
+                logging.debug("use package %s" % g.group(1)+"."+g.group(2) )
                 dep_file.add_relation(DepRelation(g.group(1)+"."+g.group(2), DepRelation.USE, DepRelation.PACKAGE))
-            if(what == "package"):
-                dep_file.add_relation(DepRelation(g.group(1),
-                                                  DepRelation.PROVIDE,
-                                                  DepRelation.PACKAGE))
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
-                                                  DepRelation.PROVIDE,
-                                                  DepRelation.PACKAGE))
             elif(what == "entity"):
+                logging.debug("found entity %s" %g.group(1))
                 dep_file.add_relation(DepRelation(g.group(1),
                                                   DepRelation.PROVIDE,
                                                   DepRelation.ENTITY))
@@ -146,6 +141,7 @@ class VHDLParser(DepParser):
                                                   DepRelation.PROVIDE,
                                                   DepRelation.ENTITY))
             elif(what == "package"):
+                logging.debug("found package %s" %g.group(1))
                 dep_file.add_relation(DepRelation(g.group(1),
                                                   DepRelation.PROVIDE,
                                                   DepRelation.PACKAGE))
@@ -157,11 +153,10 @@ class VHDLParser(DepParser):
                 within_architecture = True
             elif(what == "arch_end" and within_architecture and g.group(1) == arch_name):
                 within_architecture = False
-            elif(what == "instance" and within_architecture):
-                dep_file.add_relation(DepRelation(g.group(2),
-                                                  DepRelation.USE,
-                                                  DepRelation.ENTITY))
-            elif(what == "instance_from_work_library" and within_architecture) :
+            elif( what in ["instance", "instance_from_work_library"] and within_architecture):
+                logging.debug("-> instantiates %s as %s" % (g.group(1), g.group(2))  )
+                if (what == "instance_from_work_library") :
+                    logging.info("Mam cie !!!!!!!!!!!!!!!!!!!! %s" % g.group(2) )
                 dep_file.add_relation(DepRelation(g.group(2),
                                                   DepRelation.USE,
                                                   DepRelation.ENTITY))
