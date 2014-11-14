@@ -115,34 +115,33 @@ class VHDLParser(DepParser):
             "arch_begin": "^ *architecture +(\w+) +of +(\w+) +is +",
             "arch_end": "^ *end +(\w+) +;",
             "instance": "^ *(\w+) *\: *(\w+) *(port *map|generic *map| *;)",
-            "instance_from_work_library": "^ *(\w+) *\: *entity *work *\. *(\w+) *(port *map|generic *map| *;)"
+            "instance_from_library": "^ *(\w+) *\: *entity *(\w+) *\. *(\w+) *(port *map|generic *map| *;)"
         }
 
         compiled_patterns = map(lambda p: (p, re.compile(patterns[p])), patterns)
         within_architecture = False
-
+        
         for l in lines:
             matches = filter(lambda (k, v): v is not None, map(lambda (k, v): (k, re.match(v, l.lower())), compiled_patterns))
             if(not len(matches)):
                 continue
 
             what, g = matches[0]
+            switch = {
             if(what == "use"):
-                logging.debug("use package %s" % g.group(1)+"."+g.group(2) )
-                dep_file.add_relation(DepRelation(g.group(1)+"."+g.group(2), DepRelation.USE, DepRelation.PACKAGE))
+                if ( g.group(1).lower() == "work" ) :
+                    logging.debug("use package %s.%s" % (dep_file.library, g.group(2)) )
+                    dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(2)) , DepRelation.USE, DepRelation.PACKAGE))  #work is a current library in VHDL
+                else :
+                    logging.debug("use package %s.%s" % (g.group(1), g.group(2)) )
+                    dep_file.add_relation(DepRelation("%s.%s" % (g.group(1), g.group(2)), DepRelation.USE, DepRelation.PACKAGE))
             elif(what == "entity"):
-                logging.debug("found entity %s" %g.group(1))
-                dep_file.add_relation(DepRelation(g.group(1),
-                                                  DepRelation.PROVIDE,
-                                                  DepRelation.ENTITY))
+                logging.debug("found entity %s.%s" % ( dep_file.library, g.group(1) ) )
                 dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
                                                   DepRelation.PROVIDE,
                                                   DepRelation.ENTITY))
             elif(what == "package"):
-                logging.debug("found package %s" %g.group(1))
-                dep_file.add_relation(DepRelation(g.group(1),
-                                                  DepRelation.PROVIDE,
-                                                  DepRelation.PACKAGE))
+                logging.debug("found package %s.%s" % (dep_file.library, g.group(1) ))
                 dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
                                                   DepRelation.PROVIDE,
                                                   DepRelation.PACKAGE))
@@ -151,10 +150,10 @@ class VHDLParser(DepParser):
                 within_architecture = True
             elif(what == "arch_end" and within_architecture and g.group(1) == arch_name):
                 within_architecture = False
-            elif( what in ["instance", "instance_from_work_library"] and within_architecture):
-                logging.debug("-> instantiates %s as %s" % (g.group(1), g.group(2))  )
-                dep_file.add_relation(DepRelation(g.group(2),
-                                                  DepRelation.USE,
-                                                  DepRelation.ENTITY))
+            elif( what in ["instance", "instance_from_library"] and within_architecture):
+                              logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, g.group(2), g.group(1))  )
+                              dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(2)),
+                                                                DepRelation.USE,
+                                                                DepRelation.ENTITY))
 
         dep_file.is_parsed = True

@@ -38,10 +38,15 @@ class SourceFile(DepFile):
         assert isinstance(path, basestring)
         assert isinstance(module, Module)
         self.library = library
+        if not library:
+            self.library = "work"
         DepFile.__init__(self,
                          file_path=path,
                          module=module,
                          include_paths=module.include_dirs[:])
+
+    def __hash__(self):
+        return hash(self.path + self.library)
 
 
 class VHDLFile(SourceFile):
@@ -64,8 +69,6 @@ class VHDLFile(SourceFile):
 
 class VerilogFile(SourceFile):
     def __init__(self, path, module, library=None, vlog_opt=None, include_dirs=None):
-        if not library:
-            library = "work"
         SourceFile.__init__(self, path=path, module=module, library=library)
         if not vlog_opt:
             self.vlog_opt = ""
