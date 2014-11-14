@@ -3,6 +3,7 @@
 #
 # Copyright (c) 2013 CERN
 # Author: Tomasz Wlostowski (tomasz.wlostowski@cern.ch)
+#         Adrian Fiergolski (Adrian.Fiergolski@cern.ch)
 #
 # This file is part of Hdlmake.
 #
@@ -100,60 +101,79 @@ class VHDLParser(DepParser):
                 else:
                     prev_is_gap = False
                     buf2 += c.lower()
-                    if (c == ";" or buf2[-8:] == "generate") :
+                    if ( (c == ";") or (buf2[-8:] == "generate") or (buf2[-5:] == "begin")) :
                         lines.append(buf2)
                         buf2 = ""
             else:
                 prev_is_gap = False
 
         import re
+        
+        def use() :
+            if ( g.group(1).lower() == "work" ) : #work is the current library in VHDL
+                logging.debug("use package %s.%s" % (dep_file.library, g.group(2)) )
+                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(2)) , DepRelation.USE, DepRelation.PACKAGE)) 
+            else :
+                logging.debug("use package %s.%s" % (g.group(1), g.group(2)) )
+                dep_file.add_relation(DepRelation("%s.%s" % (g.group(1), g.group(2)), DepRelation.USE, DepRelation.PACKAGE))
 
+        def entity() :
+            logging.debug("found entity %s.%s" % ( dep_file.library, g.group(1) ) )
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
+                                              DepRelation.PROVIDE,
+                                              DepRelation.ENTITY))
+        def package() :
+            logging.debug("found package %s.%s" % (dep_file.library, g.group(1) ))
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
+                                              DepRelation.PROVIDE,
+                                              DepRelation.PACKAGE))
+        def arch_begin() :
+            arch_name = g.group(1)
+            within_architecture = True
+        def arch_end() :    
+            within_architecture = False
+        def instance() :
+            for lib in libraries :
+                logging.debug("-> instantiates %s.%s as %s" % (lib, g.group(2), g.group(1))  )
+                dep_file.add_relation(DepRelation("%s.%s" % (lib, g.group(2)),
+                                                  DepRelation.USE,
+                                                  DepRelation.ENTITY))
+        def instance_from_library() :
+            if ( g.group(2).lower() == "work" ) : #work is the current library in VHDL
+                logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, g.group(3), g.group(1))  )
+                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(3)),
+                                                  DepRelation.USE,
+                                                  DepRelation.ENTITY))
+            else :
+                logging.debug("-> instantiates %s.%s as %s" % (g.group(2), g.group(3), g.group(1))  )
+                dep_file.add_relation(DepRelation("%s.%s" % (g.group(2), g.group(3)),
+                                                  DepRelation.USE,
+                                                  DepRelation.ENTITY))
+        def library() :
+            logging.debug("use library %s" % g.group(1) )
+            libraries.add(g.group(1))
+            
         patterns = {
-            "use": "^ *use +(\w+) *\. *(\w+) *\. *\w+ *;",
-            "entity": "^ *entity +(\w+) +is +(port|generic|end)",
-            "package": "^ *package +(\w+) +is",
-            "arch_begin": "^ *architecture +(\w+) +of +(\w+) +is +",
-            "arch_end": "^ *end +(\w+) +;",
-            "instance": "^ *(\w+) *\: *(\w+) *(port *map|generic *map| *;)",
-            "instance_from_library": "^ *(\w+) *\: *entity *(\w+) *\. *(\w+) *(port *map|generic *map| *;)"
+            use: "^ *use +(\w+) *\. *(\w+) *\. *\w+ *;",
+            entity: "^ *entity +(\w+) +is +(?:port|generic|end)",
+            package: "^ *package +(\w+) +is",
+            arch_begin: "^ *architecture +(\w+) +of +(\w+) +is +",
+            arch_end: "^ *end +(\w+) +;",
+            instance: "^ *(\w+) *\: *(\w+) *(?:port +map|generic +map| *;)",
+            instance_from_library: "^ *(\w+) *\: *entity *(\w+) *\. *(\w+) *(?:port +map|generic +map| *;)",
+            library: "^ *library *(\w+) *;"
         }
-
         compiled_patterns = map(lambda p: (p, re.compile(patterns[p])), patterns)
         within_architecture = False
-        
+        libraries = set([dep_file.library])
+
         for l in lines:
             matches = filter(lambda (k, v): v is not None, map(lambda (k, v): (k, re.match(v, l.lower())), compiled_patterns))
+#            logging.debug("%s" % l )
             if(not len(matches)):
                 continue
 
             what, g = matches[0]
-            switch = {
-            if(what == "use"):
-                if ( g.group(1).lower() == "work" ) :
-                    logging.debug("use package %s.%s" % (dep_file.library, g.group(2)) )
-                    dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(2)) , DepRelation.USE, DepRelation.PACKAGE))  #work is a current library in VHDL
-                else :
-                    logging.debug("use package %s.%s" % (g.group(1), g.group(2)) )
-                    dep_file.add_relation(DepRelation("%s.%s" % (g.group(1), g.group(2)), DepRelation.USE, DepRelation.PACKAGE))
-            elif(what == "entity"):
-                logging.debug("found entity %s.%s" % ( dep_file.library, g.group(1) ) )
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
-                                                  DepRelation.PROVIDE,
-                                                  DepRelation.ENTITY))
-            elif(what == "package"):
-                logging.debug("found package %s.%s" % (dep_file.library, g.group(1) ))
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
-                                                  DepRelation.PROVIDE,
-                                                  DepRelation.PACKAGE))
-            elif(what == "arch_begin"):
-                arch_name = g.group(1)
-                within_architecture = True
-            elif(what == "arch_end" and within_architecture and g.group(1) == arch_name):
-                within_architecture = False
-            elif( what in ["instance", "instance_from_library"] and within_architecture):
-                              logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, g.group(2), g.group(1))  )
-                              dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(2)),
-                                                                DepRelation.USE,
-                                                                DepRelation.ENTITY))
-
+            what()
+            
         dep_file.is_parsed = True
