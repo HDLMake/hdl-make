@@ -544,7 +544,7 @@ class VerilogParser(DepParser):
 
         #add includes as dependencies
         try:
-            includes = self.preprocessor.vpp_filedeps[dep_file.path]
+            includes = self.preprocessor.vpp_filedeps[dep_file.path + dep_file.library]
             for f in includes:
                 dep_file.depends_on.add(SourceFileFactory().new(path=f, module=dep_file.module))
             logging.debug( "%s has %d includes." % (str(dep_file), len(includes)))
