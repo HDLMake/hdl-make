@@ -123,7 +123,7 @@ mrproper:
                                   check_tool=check_tool,
                                   syn_pre_cmd=syn_pre_cmd,
                                   syn_post_cmd=syn_post_cmd,
-                                  planahead_sh_path=os.path.join(tool_path, "planAhead"))
+                                  vivado_sh_path=os.path.join(tool_path, "vivado"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
@@ -197,8 +197,10 @@ mrproper:
                                syn_top):
         PAPP = _VivadoProjectProperty
         self.add_property(PAPP(name='part', value=syn_device+syn_package+syn_grade, objects='current_project'))
+        # self.add_property(PAPP(name='board_part', value='em.avnet.com:microzed_7010:part0:1.0', objects='current_project'))
         self.add_property(PAPP(name='target_language', value='VHDL', objects='current_project'))
-        self.add_property(PAPP(name='ng.output_hdl_format', value='VHDL', objects='get_filesets sim_1'))
+
+        # self.add_property(PAPP(name='ng.output_hdl_format', value='VHDL', objects='get_filesets sim_1'))
         # the bitgen b arg generates a raw configuration bitstream
         # self.add_property(PAPP(name='steps.bitgen.args.b', value='true', objects='get_runs impl_1'))
         self.add_property(PAPP(name='top', value=syn_top, objects='get_property srcset [current_run]'))
@@ -210,7 +212,7 @@ mrproper:
 
     def update_project(self):
         tmp = 'open_project ./{0}'
-        self.header = tmp.format(self.filename+'.ppr')
+        self.header = tmp.format(self.filename+'.xpr')
 
 
     def __emit_properties(self):
@@ -224,11 +226,14 @@ mrproper:
 
     def __emit_files(self):
         tmp = "add_files -norecurse {0}"
+        tcl = "source {0}"
         ret = []
-        from srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile
+        from srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile, BDFile
         for f in self.files:
-            if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile):
+            if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile) or isinstance(f, BDFile):
                 line = tmp.format(f.rel_path())
+            elif isinstance(f, TCLFile):
+                line = tcl.format(f.rel_path())
             else:
                 continue
             ret.append(line)
@@ -246,6 +251,4 @@ class _VivadoProjectProperty:
         tmp = "set_property {0} {1} [{2}]"
         line = tmp.format(self.name, self.value, self.objects)
         return(line)
-
-
 
