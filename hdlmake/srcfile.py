@@ -122,6 +122,14 @@ class PPRFile(File):
     # Xilinx PlanAhead Project
     pass
 
+class XPRFile(File):
+    # Xilinx Vivado Project
+    pass
+
+class BDFile(File):
+    # Xilinx Block Design
+    pass
+
 class XCOFile(File):
     # Xilinx Core Generator File
     pass
@@ -251,6 +259,10 @@ class SourceFileFactory:
             nf = XMPFile(path=path, module=module)
         elif extension == 'ppr':
             nf = PPRFile(path=path, module=module)
+        elif extension == 'xpr':
+            nf = XPRFile(path=path, module=module)
+        elif extension == 'bd':
+            nf = BDFile(path=path, module=module)
         elif extension == 'xco':
             nf = XCOFile(path=path, module=module)
         elif extension == 'ldf':
