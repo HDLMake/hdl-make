@@ -70,7 +70,8 @@ class ToolControls(MakefileWriter):
 
         makefile_tmplt_1 = string.Template("""TOP_MODULE := ${top_module}
 IVERILOG_CRAP := \
-run.command
+run.command \
+ivl_vhdl_work
 
 #target for performing local simulation
 local: sim_pre_cmd simulation sim_post_cmd
