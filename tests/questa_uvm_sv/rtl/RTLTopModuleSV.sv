@@ -14,7 +14,7 @@ module RTLTopModuleSV;
    initial
      l1a <= RTL_SVPackage::CONST;
    
-   includeModule incl();
+   includeModuleSV incl();
    ipcore ip();
 
 endmodule // RTLTopModuleSV
