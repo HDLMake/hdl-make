@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -73,7 +73,9 @@ $$(PROJECT).sta.summary \
 run.tcl
 
 #target for performing local synthesis
-local: syn_pre_cmd check_tool
+local: syn_pre_cmd check_tool synthesis syn_post_cmd
+
+synthesis:
 \t\techo "load_package flow" > run.tcl
 \t\techo "project_open $$(PROJECT)" >> run.tcl
 \t\techo "execute_flow -compile" >> run.tcl
@@ -82,7 +84,7 @@ local: syn_pre_cmd check_tool
 check_tool:
 \t\t${check_tool}
 
-syn_post_cmd: local
+syn_post_cmd:
 \t\t${syn_post_cmd}
 
 syn_pre_cmd:
