@@ -89,7 +89,7 @@ clean:
 mrproper:
 \t\trm -f *.pdb *.stp
 
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd local check_tool
+.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local check_tool
 
 """)
         if top_mod.syn_pre_cmd:
