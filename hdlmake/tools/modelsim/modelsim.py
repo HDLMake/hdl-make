@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -75,21 +75,24 @@ VLOG_FLAGS := -quiet -modelsimini modelsim.ini """ + self.__get_rid_of_vsim_incd
         else:
             make_preambule_p1 = make_preambule_p1.format(os.path.join("$(HDLMAKE_MODELSIM_PATH)", ".."))
         make_preambule_p2 = string.Template("""## rules #################################
-sim: sim_pre_cmd modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
+
+local: sim_pre_cmd simulation sim_post_cmd
+
+simulation: modelsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ)
 $$(VERILOG_OBJ) : modelsim.ini
 $$(VHDL_OBJ): $$(LIB_IND) modelsim.ini
 
 sim_pre_cmd:
 \t\t${sim_pre_cmd}
 
-sim_post_cmd: sim
+sim_post_cmd:
 \t\t${sim_post_cmd}
 
 modelsim.ini: ${modelsim_ini_path}
 \t\tcp $$< . 2>&1
 clean:
 \t\trm -rf ./modelsim.ini $$(LIBS) transcript  *.vcd *.wlf
-.PHONY: clean sim_pre_cmd sim_post_cmd
+.PHONY: clean sim_pre_cmd sim_post_cmd simulation
 
 """)
         #open the file and write the above preambule (part 1)

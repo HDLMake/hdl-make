@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -73,7 +73,9 @@ IVERILOG_CRAP := \
 run.command
 
 #target for performing local simulation
-sim: sim_pre_cmd
+local: sim_pre_cmd simulation sim_post_cmd
+
+simulation:
 """)
 
         makefile_text_1 = makefile_tmplt_1.substitute(
@@ -99,7 +101,7 @@ sim: sim_pre_cmd
 sim_pre_cmd:
 \t\t${sim_pre_cmd}
 
-sim_post_cmd: sim
+sim_post_cmd:
 \t\t${sim_post_cmd}
 
 #target for cleaning all intermediate stuff
@@ -110,7 +112,7 @@ clean:
 mrproper: clean
 \t\trm -f *.vcd *.vvp
 
-.PHONY: mrproper clean sim sim_pre_cmd sim_post_cmd
+.PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation
 
 """)
         if top_module.sim_pre_cmd:
