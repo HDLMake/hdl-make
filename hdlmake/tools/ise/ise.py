@@ -237,7 +237,11 @@ run.tcl
 #target for performing local synthesis
 local: syn_pre_cmd check_tool
 \t\techo "project open $$(PROJECT)" > run.tcl
-\t\techo "process run {Generate Programming File} -force rerun_all" >> run.tcl
+\t\techo "process run {Synthesize - XST}" >> run.tcl
+\t\techo "process run {Translate}" >> run.tcl
+\t\techo "process run {Map}" >> run.tcl
+\t\techo "process run {Place & Route}" >> run.tcl
+\t\techo "process run {Generate Programming File}" >> run.tcl
 \t\t${xtclsh_path} run.tcl
 
 check_tool:
