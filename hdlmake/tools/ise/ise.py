@@ -48,6 +48,8 @@ FAMILY_NAMES = {
     "XC6V": "Virtex6",
     "XC5V": "Virtex5",
     "XC4V": "Virtex4",
+    "XC7Z": "Zynq",
+    "XC7V": "Virtex7",
     "XC7K": "Kintex7",
     "XC7A": "Artix7"}
 
