@@ -622,8 +622,8 @@ This will tell Hdlmake to fetch modules to the project catalog. Let's see how it
 And we finally get the original project we started with.
 
 
-Pre and Post synthesis/simulation commands
-------------------------------------------
+Pre and Post synthesis / simulation commands
+--------------------------------------------
 
 As we have already seen in the simulation example, ``hdlmake`` allows for the injection of optional external shell commands that
 are executed just before and/or just after the selected action has been executed. By using this feature, we can automate other custom tasks
@@ -640,10 +640,10 @@ In order to add external commands to a synthesis top makefile, the following par
 +----------------+--------------+-----------------------------------------------------------------+-----------+
 | Name           | Type         | Description                                                     | Default   |
 +================+==============+=================================================================+===========+
-| syn_pre_cmd     | str         | Command to be executed before synthesis                         | None      |
-+-----------------+-------------+-----------------------------------------------------------------+-----------+
-| syn_post_cmd    | str         | Command to be executed after synthesis                          | None      |
-+-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_pre_cmd    | str          | Command to be executed before synthesis                         | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_cmd   | str          | Command to be executed after synthesis                          | None      |
++----------------+.-------------+-----------------------------------------------------------------+-----------+
 
 As a very simple example, we can introduce both extra commands in the top synthesis makefile we have previously seen:
 
@@ -729,6 +729,60 @@ following example, this approach is exemplified:
        "mkdir /home/user/Workspace/test4\n\t\t" 
        "mkdir /home/user/Workspace/test5" 
    )
+
+
+Custom variables and conditional execution
+------------------------------------------
+
+In order to give an extra level of flexibility when defining the files and modules that are going to be used in a
+specific project, ``hdlmake`` allows for the introduction of custom variables in the top Manifest that can then be
+accessed from inside all of the Manifests in the design hierarchy. This is a very handy feature when different synthesis
+or simulation configurations in complex designs should be selected from the top level Manifest when running ``hdlmake``.
+
+As a very simple example of how this mechanism can be used, suppose that we want to simulate a design that uses a module for which
+two different harware descriptions are available, one in VHDL and one in Verilog (mixed language is a common feature of commercial
+simulation tools and is an under-development feature for Icarus Verilog).
+
+For this purpose, we introduce an ``if`` clause inside a children Manifest in which the ``simulate_vhdl`` boolean variable
+is used to select the content of the following ``modules`` to be scanned:
+
+.. code-block:: python
+
+   if simulate_vhdl:
+       print("We are using the VHDL module")
+       modules = {
+           "local" : [ "../../../modules/counter/vhdl" ],
+       }
+   else:
+       print("We are using the Verilog module")
+       modules = {
+           "local" : [ "../../../modules/counter/verilog" ],
+       }
+
+Now, in order to define the ``simulate_vhdl`` variable value, we can use two different approachs. 
+The first one is to include this as a new variable in the top Manifest.py, i.e.:
+
+.. code-block:: python
+
+   action = "simulation"
+   sim_tool = "modelsim"
+   top_module = "counter_tb"
+
+   simulate_vhdl = False
+
+   modules = {
+       "local" : [ "../../../testbench/counter_tb/verilog" ],
+   }
+
+But we can also define the variable value by injecting custom Python code from the command line
+when ``hdlmake`` is executed:
+
+.. code-block:: bash
+   hdlmake --py "simulate_vhdl = False" auto
+
+
+**NOTE**: New custom variables are not allowed outside the TOP Manifest.py. In this way, despite the fact
+that all of the Manifest.py are executed when ``hdlmake`` is launched, not all of the Python constructions can be implemented.
 
 
 Advanced examples
