@@ -739,54 +739,120 @@ Top Manifest variables
 Universal variables
 -------------------
 
-  fetchto        ; [<type 'str'>]               ; Destination for fetched modules              , default=None  
-  modules        ; [<type 'dict'>]              ; List of local modules                        , default={} 
-  files          ; [<type 'str'>, <type 'list'>]; List of files from the current module        , default=[]  
-  library        ; [<type 'str'>]               ; Destination library for module's VHDL files  , default=work   
-  include_dirs   ; [<type 'list'>, <type 'str'>]; Include dirs for Verilog sources             , default=None    
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| Name           | Type         | Description                                                     | Default   |
++================+==============+=================================================================+===========+
+| fetchto        | str          | Destination for fetched modules                                 | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| modules        | dict         | List of local modules                                           | {}        |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| files          | str, list    | List of files from the current module                           | []        |
++----------------+--------------+-----------------------------------------------------------------+-----------+ 
+| library        | str          | Destination library for module's VHDL files                     | work      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| include_dirs   | list, str    | Include dirs for Verilog sources                                | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+
 
 Simulation variables
 --------------------
 
-  sim_tool       ; [<type 'str'>]               ; Simulation tool to be used (e.g. isim, vsim, iverilog), default=None      
-  sim_pre_cmd    ; [<type 'str'>]               ; Command to be executed before simulation     , default=None      
-  sim_post_cmd   ; [<type 'str'>]               ; Command to be executed after simulation      , default=None     
- 
-  vsim_opt       ; [<type 'str'>]               ; Additional options for vsim                  , default=""        
-  vcom_opt       ; [<type 'str'>]               ; Additional options for vcom                  , default=""        
-  vlog_opt       ; [<type 'str'>]               ; Additional options for vlog                  , default=""        
-  vmap_opt       ; [<type 'str'>]               ; Additional options for vmap                  , default=""        
+Basic simulation variables:
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| Name           | Type         | Description                                                     | Default   |
++================+==============+=================================================================+===========+
+| sim_tool       | str          | Simulation tool to be used (e.g. isim, vsim, iverilog)          | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| sim_pre_cmd    | str          | Command to be executed before simulation                        | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| sim_post_cmd   | str          | Command to be executed after simulation                         | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
 
-  iverilog_opt   ; [<type 'str'>]               ; Additional options for iverilog              , default=""  
+Modelsim/VSim specific variables:
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| Name           | Type         | Description                                                     | Default   |
++================+==============+=================================================================+===========+
+| vsim_opt       | str          | Additional options for vsim                                     | ""        |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| vcom_opt       | str          | Additional options for vcom                                     | ""        |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| vlog_opt       | str          | Additional options for vlog                                     | ""        |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| vmap_opt       | str          | Additional options for vmap                                     | ""        |
++----------------+--------------+-----------------------------------------------------------------+-----------+
 
-  quartus_preflow; [<type 'str'>]               ; Quartus pre-flow script file                 , default=None      
-  quartus_postmodule; [<type 'str'>]            ; Quartus post-module script file              , default=None      
-  quartus_postflow; [<type 'str'>]              ; Quartus post-flow script file                , default=None  
+Icarus Verilog specific variables:
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| Name           | Type         | Description                                                     | Default   |
++================+==============+=================================================================+===========+
+| iverilog_opt   | str          | Additional options for iverilog                                 | ""        |
++----------------+--------------+-----------------------------------------------------------------+-----------+
 
-  sim_only_files ; [<type 'list'>, <type 'str'>]; List of files that are used only in simulation, default=[]        
-  bit_file_targets; [<type 'list'>, <type 'str'>]; List of files that are used only in simulation, default=[]  
+Others:
++-------------------+-----------+-----------------------------------------------------------------+-----------+
+| Name              | Type      | Description                                                     | Default   |
++===================+===========+=================================================================+===========+
+| sim_only_files    | list, str | List of files that are used only in simulation                  | []        |
++-------------------+-----------+-----------------------------------------------------------------+-----------+
+| bit_file_targets  | list, str | List of files that are used only in simulation                  | []        |
++-------------------+-----------+-----------------------------------------------------------------+-----------+
 
 
 Synthesis variables
 -------------------
 
-  target         ; [<type 'str'>]               ; What is the target architecture              , default=""  
-  syn_tool       ; [<type 'str'>]               ; Tool to be used in the synthesis             , default=None      
-  syn_device     ; [<type 'str'>]               ; Target FPGA device                           , default=None      
-  syn_grade      ; [<type 'str'>]               ; Speed grade of target FPGA                   , default=None      
-  syn_package    ; [<type 'str'>]               ; Package variant of target FPGA               , default=None      
-  syn_top        ; [<type 'str'>]               ; Top level module for synthesis               , default=None      
-  syn_project    ; [<type 'str'>]               ; Project file name                            , default=None      
-  syn_ise_version; [<type 'type'>, <type 'str'>]; Force particular ISE version                 , default=None      
-  syn_pre_cmd    ; [<type 'str'>]               ; Command to be executed before synthesis      , default=None      
-  syn_post_cmd   ; [<type 'str'>]               ; Command to be executed after synthesis       , default=None  
+Basic synthesis variables:
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| Name            | Type        | Description                                                     | Default   |
++=================+=============+=================================================================+===========+
+| target          | str         | What is the target architecture                                 | ""        |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_tool        | str         | Tool to be used in the synthesis                                | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_device      | str         | Target FPGA device                                              | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_grade       | str         | Speed grade of target FPGA                                      | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_package     | str         | Package variant of target FPGA                                  | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_top         | str         | Top level module for synthesis                                  | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_project     | str         | Project file name                                               | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_pre_cmd     | str         | Command to be executed before synthesis                         | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_post_cmd    | str         | Command to be executed after synthesis                          | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+
+Xilinx ISE specific variables:
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| Name            | Type        | Description                                                     | Default   |
++=================+=============+=================================================================+===========+
+| syn_ise_version | str         | Force particular ISE version                                    | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+
+Altera QuartusII specific variables:
++--------------------+----------+-----------------------------------------------------------------+-----------+
+| Name               | Type     | Description                                                     | Default   |
++====================+==========+=================================================================+===========+
+| quartus_preflow    | str      | Quartus pre-flow script file                                    | None      |
++--------------------+----------+-----------------------------------------------------------------+-----------+
+| quartus_postmodule | str      | Quartus post-module script file                                 | None      |
++--------------------+----------+-----------------------------------------------------------------+-----------+
+| quartus_postflow   | str      | Quartus post-flow script file                                   | None      |
++--------------------+----------+-----------------------------------------------------------------+-----------+
 
 
 Miscellaneous variables    
 -----------------------
 
-  syn_name       ; [<type 'str'>]               ; Name of the folder at remote synthesis machine, default=None        
-  force_tool     ; [<type 'str'>]               ; Force certain version of a tool, e.g. 'ise < 13.2' or 'iverilog == 0.9.6, default=None      
++-------------+-------+---------------------------------------------------------------------------+-----------+
+| Name        | Type  | Description                                                               | Default   |
++=============+=======+===========================================================================+===========+
+| syn_name    | str   | Name of the folder at remote synthesis machine                            | None      |
++-------------+-------+---------------------------------------------------------------------------+-----------+    
+| force_tool  | str   | Force certain version of a tool, e.g. 'ise < 13.2' or 'iverilog == 0.9.6  | None      |
++-------------+-------+---------------------------------------------------------------------------+-----------+
   
 
 .. _args:
