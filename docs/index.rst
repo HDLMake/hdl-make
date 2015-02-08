@@ -643,7 +643,7 @@ In order to add external commands to a synthesis top makefile, the following par
 | syn_pre_cmd    | str          | Command to be executed before synthesis                         | None      |
 +----------------+--------------+-----------------------------------------------------------------+-----------+
 | syn_post_cmd   | str          | Command to be executed after synthesis                          | None      |
-+----------------+.-------------+-----------------------------------------------------------------+-----------+
++----------------+--------------+-----------------------------------------------------------------+-----------+
 
 As a very simple example, we can introduce both extra commands in the top synthesis makefile we have previously seen:
 
@@ -778,6 +778,7 @@ But we can also define the variable value by injecting custom Python code from t
 when ``hdlmake`` is executed:
 
 .. code-block:: bash
+
    hdlmake --py "simulate_vhdl = False" auto
 
 
