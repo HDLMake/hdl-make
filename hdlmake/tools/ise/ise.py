@@ -118,23 +118,23 @@ class ToolControls(MakefileWriter):
         remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
-        user_tmpl = user_tmpl.format("$(HDLMAKE_RSYNTH_USER)#take the value from the environment")
+        user_tmpl = user_tmpl.format("$(HDLMAKE_RSYNTH_USER) # take the value from the environment")
         test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
-\t@echo "Remote synthesis user is not set.\
+\t@echo "Remote synthesis user is not set. \
 You can set it by editing variable USER in the makefile or setting env. variable HDLMAKE_RSYNTH_USER." && false
 endif
 ifeq (x$(SERVER),x)
-\t@echo "Remote synthesis server is not set.\
+\t@echo "Remote synthesis server is not set. \
 You can set it by editing variable SERVER in the makefile or setting env. variable HDLMAKE_RSYNTH_SERVER." && false
 endif
 ifeq (x$(ISE_PATH),x)
-\t@echo "Remote synthesis server is not set.\
+\t@echo "Remote synthesis server is not set. \
 You can set it by editing variable ISE_PATH in the makefile or setting env. variable HDLMAKE_RSYNTH_ISE_PATH." && false
 endif
 """
         if server is None:
-            server_tmpl = server_tmpl.format("$(HDLMAKE_RSYNTH_SERVER)#take the value from the environment")
+            server_tmpl = server_tmpl.format("$(HDLMAKE_RSYNTH_SERVER) # take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
 
@@ -152,7 +152,7 @@ endif
         self.writeln(files_tmpl.format(' \\\n'.join([s.rel_path() for s in files])))
         self.writeln("")
         self.writeln("#target for running synthesis in the remote location")
-        self.writeln("remote: __test_for_remote_synthesis_variables __send __do_synthesis")
+        self.writeln("remote: __test_for_remote_synthesis_variables generate_tcl __send __do_synthesis")
         self.writeln("__send_back: __do_synthesis")
         self.writeln("__do_synthesis: __send")
         self.writeln("__send: __test_for_remote_synthesis_variables")
@@ -237,15 +237,17 @@ webtalk_pn.xml \
 run.tcl
 
 #target for performing local synthesis
-local: syn_pre_cmd check_tool synthesis syn_post_cmd
+local: syn_pre_cmd check_tool generate_tcl synthesis syn_post_cmd
 
-synthesis:
+generate_tcl:
 \t\techo "project open $$(PROJECT)" > run.tcl
 \t\techo "process run {Synthesize - XST}" >> run.tcl
 \t\techo "process run {Translate}" >> run.tcl
 \t\techo "process run {Map}" >> run.tcl
 \t\techo "process run {Place & Route}" >> run.tcl
 \t\techo "process run {Generate Programming File}" >> run.tcl
+
+synthesis:
 \t\t${xtclsh_path} run.tcl
 
 check_tool:
