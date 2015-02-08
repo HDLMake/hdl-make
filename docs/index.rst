@@ -728,9 +728,9 @@ Top Manifest variables
 .. csv-table:: Frozen Delights!
    :header: "Name", "Type", "Description", "Default"
    :widths: 15, 10, 30, 10
-   action         , str, "What is the action that should be taken (simulation/synthesis)", "" 
-   top_module     , str, "Top level entity for synthesis and simulation" , "None"   
-   incl_makefiles , "list, str" , "List of .mk files appended to toplevel makefile" , "[]"   
+   action         , str, "What is the action that should be taken (simulation/synthesis)"," " 
+   top_module     , str, "Top level entity for synthesis and simulation", "None"
+   incl_makefiles , "list, str" , "List of .mk files appended to toplevel makefile", "[]"
  
 
 Universal variables
