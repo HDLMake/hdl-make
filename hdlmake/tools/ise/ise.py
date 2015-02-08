@@ -118,7 +118,7 @@ class ToolControls(MakefileWriter):
         remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
-        user_tmpl = user_tmpl.format("$(HDLMAKE_RSYNTH_USER) # take the value from the environment")
+        user_tmpl = user_tmpl.format("$(HDLMAKE_RSYNTH_USER)# take the value from the environment")
         test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
 \t@echo "Remote synthesis user is not set. \
@@ -134,7 +134,7 @@ You can set it by editing variable ISE_PATH in the makefile or setting env. vari
 endif
 """
         if server is None:
-            server_tmpl = server_tmpl.format("$(HDLMAKE_RSYNTH_SERVER) # take the value from the environment")
+            server_tmpl = server_tmpl.format("$(HDLMAKE_RSYNTH_SERVER)# take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
 
