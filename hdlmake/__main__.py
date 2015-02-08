@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -221,7 +221,7 @@ def _get_parser():
     """	
 
     usage = """hdlmake [command] [options]"""
-    description = """Release 2014\n
+    description = """Version 2.1\n
         To see optional arguments for particular command type:
         hdlmake <command> --help
 \0
