@@ -622,6 +622,115 @@ This will tell Hdlmake to fetch modules to the project catalog. Let's see how it
 And we finally get the original project we started with.
 
 
+Pre and Post synthesis/simulation commands
+------------------------------------------
+
+As we have already seen in the simulation example, ``hdlmake`` allows for the injection of optional external shell commands that
+are executed just before and/or just after the selected action has been executed. By using this feature, we can automate other custom tasks
+in addition to the ``hdlmake`` specific ones.
+
+If a external command has been defined in the top Manifest, this is automatically written by ``hdlmake`` into the generated Makefile.
+In this way, the external commands are automatically executed in order when a ``make`` command is issued.
+
+
+**Synthesis:**
+
+In order to add external commands to a synthesis top makefile, the following parameters must be introduced:
+
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| Name           | Type         | Description                                                     | Default   |
++================+==============+=================================================================+===========+
+| syn_pre_cmd     | str         | Command to be executed before synthesis                         | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_post_cmd    | str         | Command to be executed after synthesis                          | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+
+As a very simple example, we can introduce both extra commands in the top synthesis makefile we have previously seen:
+
+.. code-block:: python
+
+   target = "xilinx"
+   action = "synthesis"
+
+   syn_device = "xc6slx45t"
+   syn_grade = "-3"
+   syn_package = "fgg484"
+   syn_top = "spec_top"
+   syn_project = "demo.xise"
+   syn_tool = "ise"
+
+   syn_pre_cmd = "echo This is executed just before the synthesis"
+   syn_post_cmd = "echo This is executed just after the synthesis"
+
+   modules = {
+       "local" : [ "../../../top/spec_v4/verilog" ],
+   }
+
+
+**Simulation:**
+
+Now, if we want to add external commands to a simulation top makefile, the following parameters must be introduced:
+
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| Name           | Type         | Description                                                     | Default   |
++================+==============+=================================================================+===========+
+| sim_pre_cmd    | str          | Command to be executed before simulation                        | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+| sim_post_cmd   | str          | Command to be executed after simulation                         | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
+
+As a very simple example, we can introduce both extra commands in the top simulation makefile we have previously seen:
+
+.. code-block:: python
+
+   action = "simulation"
+   sim_tool = "modelsim"
+   top_module = "counter_tb"
+
+   sim_pre_cmd = "echo This is executed just before the simulation"
+   sim_post_cmd = "echo This is executed just after the simulation"
+
+   modules = {
+       "local" : [ "../../../testbench/counter_tb/verilog" ],
+   }
+
+
+**Multiline commands:**
+
+If you need to execute a more complex action from the pre/post synthesis/simulation commands, you can point to an
+external shell script or program. As an alternative, you can use a multiline string in order to inject multiple
+commands into the Makefile.
+
+As a first option, multiple commands can be launched by spliting a single long string into one piece per command.
+The drawback for this approach is that the original single line is reconstructed an inserted into the Makefile, so
+the specific external command Makefile target include just a single entry. This is why, in the following example,
+semicolons are used in order to separate the sequential commands: 
+
+.. code-block:: python
+
+   syn_pre_cmd = (
+       "mkdir /home/user/Workspace/test1;" 
+       "mkdir /home/user/Workspace/test2;" 
+       "mkdir /home/user/Workspace/test3;" 
+       "mkdir /home/user/Workspace/test4;" 
+       "mkdir /home/user/Workspace/test5" 
+   )
+
+A cleaner alternative, is using a multiline text in which line return and tabulation characters has been introduced
+in order to separate in different lines each of the commans when they are written into the Makefiles. In the 
+following example, this approach is exemplified:
+
+.. code-block:: python
+
+   syn_pre_cmd = (
+       "mkdir /home/user/Workspace/test1\n\t\t" 
+       "mkdir /home/user/Workspace/test2\n\t\t" 
+       "mkdir /home/user/Workspace/test3\n\t\t" 
+       "mkdir /home/user/Workspace/test4\n\t\t" 
+       "mkdir /home/user/Workspace/test5" 
+   )
+
+
 Advanced examples
 -----------------
 
@@ -637,7 +746,7 @@ hdlmake supported actions/commands
 Check environment (``check-env``)
 ---------------------------------
 
-Check environment for HDLMAKE-related settings. This scan the top Manifest and report if the potentially used tools or/and environment variables are met or not.
+Check environment for HDLMake-related settings. This scan the top Manifest and report if the potentially used tools or/and environment variables are met or not.
 
 Print manifest file variables description (``manifest-help``)
 -------------------------------------------------------------
