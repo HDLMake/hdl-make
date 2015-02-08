@@ -103,9 +103,21 @@ def main():
     #
     # Load global tool object (global_mod.py)
     #
+    if not top_mod.action:
+        logging.error("`action' manifest variable has to be specified. "
+                      "Otherwise hdlmake doesn't know how to handle the project")
+        quit()
     if top_mod.action == "synthesis":
+        if not top_mod.syn_tool:
+            logging.error("`syn_tool' manifest variable has to be specified. "
+                          "Otherwise hdlmake doesn't know how to synthesize the project")
+            quit()
         tool_name = top_mod.syn_tool
     elif top_mod.action == "simulation":
+        if not top_mod.sim_tool:
+            logging.error("`sim_tool' manifest variable has to be specified. "
+                          "Otherwise hdlmake doesn't know how to simulate the project")
+            quit()
         tool_name = top_mod.sim_tool
     logging.info('import tool module: ' + tool_name)
     try:
