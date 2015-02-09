@@ -782,8 +782,96 @@ when ``hdlmake`` is executed:
    hdlmake --py "simulate_vhdl = False" auto
 
 
-**NOTE**: New custom variables are not allowed outside the TOP Manifest.py. In this way, despite the fact
-that all of the Manifest.py are executed when ``hdlmake`` is launched, not all of the Python constructions can be implemented.
+.. note:: New custom variables are not allowed outside the TOP Manifest.py. In this way, despite the fact that all of the Pyhton code in the used Manifest.py files is executed when ``hdlmake`` is launched, not all of the Python constructions can be implemented.
+
+
+Remote synthesis with Xilinx ISE
+--------------------------------
+
+When using ISE synthesis, ``hdlmake`` allows for the implementation of a centralized synthesis machine.
+For this purpose, when running ``hdlmake`` an extra remote synthesis target is created in the Makefile so that
+the actual resource intensive synthesis process is executed in a remote machine instead of in the local one.
+
+In order to do that, when a remote synthesis is performed the local machine connects to the synthesis server through
+a secure TCP/IP connection by using SSL. For this purpose, the following tools need to be installed:
+
++-----------+--------------------------------------------+
+| Machine   | Communication Software                     |
++===========+============================================+
+| Client    | ISE, ssh-server, rsync, screen (optional)  |
++-----------+--------------------------------------------+
+| Server    | ssh-client, rsync, screen (optional)       |
++-----------+--------------------------------------------+
+
+.. note:: You'll need a local ISE deployment if you want to regenerate the synthesis Makefile or the ISE project (.xise),
+files that are mandatory to perform both local and remote synthesis. But, if you have a valid Makefile and ISE project, you can
+launch the remote synthesis from a local machine in which the ISE toolchain is not installed.
+
+Before running the remote synthesis Makefile targets, there are different parameters that need to defined for proper operation.
+These can be defined as shell environmental variables or, alternatively, inside the Makefile itself:
+
++--------------------------+--------------------+--------------------------------------------+
+| Environmental Variable   | Makefile Variable  | Description                                |
++==========================+====================+============================================+
+| HDLMAKE_RSYNTH_USER      | USER               | Remote synthesis user in the host machine  |
++--------------------------+--------------------+--------------------------------------------+
+| HDLMAKE_RSYNTH_SERVER    | SERVER             | IP/Address of the remote synthesis server  |
++--------------------------+--------------------+--------------------------------------------+
+| HDLMAKE_RSYNTH_ISE_PATH  | ISE_PATH           | Path of the ISE binaries in the server     |
++--------------------------+--------------------+--------------------------------------------+
+
+In addition, an optional ``HDLMAKE_RSYNTH_USE_SCREEN`` environmental variable can be set to 1 in order to use ``screen``
+when the remote connection is stablished. If this variable is not defined or set to other value, 
+a standard shell connection is used (by using ``screen``, the remote synthesis feedback messages are smoothly printed).
+
+As an example, in order to launch a remote synthesis by using the ``screen`` interface to connect with the user "javi",
+available inside the 64 bit Linux machine placed at address 192.168.0.13 in the local network which features 
+a Xilinx ISE deployment in the default installation folder, we should issue:
+
+.. code-block:: bash
+
+   export HDLMAKE_RSYNTH_USER=javi
+   export HDLMAKE_RSYNTH_SERVER=192.168.0.13
+   export HDLMAKE_RSYNTH_ISE_PATH=/opt/Xilinx/14.7/ISE_DS/ISE/bin/lin64/
+   export HDLMAKE_RSYNTH_USE_SCREEN=1
+
+Once this parameters are defined, we can use any of the available remote synthesis Makefile targets, 
+that are enumerated in the following table:
+
++-------------------------+---------------------------------------------------------------------+
+| Remote Makefile Target  | Target Description                                                  |
++=========================+=====================================================================+
+| remote                  | Transfer required files to the remote server and run the synthesis  |
++-------------------------+---------------------------------------------------------------------+
+| sync                    | Copy back the synthesis outcomes in the server to the local folder  |
++-------------------------+---------------------------------------------------------------------+
+| cleanremote             | Delete the remote synthesis folder to free space in the server      |
++-------------------------+---------------------------------------------------------------------+
+
+
+Incremental synthesis in Xilinx ISE
+-----------------------------------
+
+Note that, for both local and remote Xilinx ISE synthesis, the synthesis process in the Makefile generated by ``hdlmake``
+performs the complete process by running a step-by-step approach that goes from synthesis to bitstream generation
+instead of executing a single "build_all" command. Going through this step-by-step path, the synthesis process 
+scans for already performed ISE steps, so that only the pending ones are actually executed 
+(this information is stored in the associated .gise file).
+
+The different Xilinx ISE steps that are performed by the synthesis makefile are:
+
+- Synthesize - XST
+- Translate
+- Map
+- Place & Route
+- Generate Programming File
+
+The main advantage of this approach is that, when synthesizing complex designs, the process can be resumed if
+it fails or is halted and the already performed jobs don't need to be re-launched. The drawback is that a little time
+overhead is introduced while scanning for the already completed stuff, and this can be noticed if the design is trivial.
+
+If you want to re-synthesize the whole system from the start without scanning for already performed jobs, 
+just perform a ``make clean`` or ``make cleanremote`` before executing the ``make`` or ``make remote`` command.
 
 
 Advanced examples
@@ -792,7 +880,8 @@ Advanced examples
 **EVO project**: PlanAhead synthesis project for the Zedboard platform, powered by Xilinx Zynq based ARM Dual Cortex-A9 processor plus Artix grade FPGA and performing an asynchronous logic demo:
 http://www.ohwr.org/projects/evo/repository
 
-**UMV, Mentor Questa & System Verilog simulation**: Work in progress, ready to be merged into Main branch.
+**UMV, Mentor Questa & System Verilog simulation**: A test example involving these tools and languages is included in the ``hdlmake`` source tree.
+You can find it inside the ``tests/questa_uvm_sv`` folder.
 
 
 hdlmake supported actions/commands
