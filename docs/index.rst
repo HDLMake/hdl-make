@@ -784,6 +784,8 @@ when ``hdlmake`` is executed:
 
 .. note:: New custom variables are not allowed outside the TOP Manifest.py. In this way, despite the fact that all of the Pyhton code in the used Manifest.py files is executed when ``hdlmake`` is launched, not all of the Python constructions can be implemented.
 
+.. note:: In order to allow the insertion of new custom variables in the child Manifests, you can try the ``--allow-unknown`` experimental feature. By specifiying this optional argument to the ``hdlmake`` command line, a warning message is raised when an unknown option or variable is defined in a child Manifest.py, but the variable itself is inserted and processed.
+
 
 Remote synthesis with Xilinx ISE
 --------------------------------
@@ -956,6 +958,8 @@ Currently, the following FPGA IDEs are supported:
 Automatic execution (``auto``)
 ------------------------------
 This is the default action for hdlmake, the one that is run when a command is not given.
+
+.. note:: The ``auto`` command is just inferred if the issued command is a plain ``hdlmake``. If an optional argument is provided, you need to specify the specific command that is going to be executed.
 
 The basic behaviour will be defined by the value of the ``action`` manifest parameter in the hierachy top ``Manifest.py``. This can be set to ``simulation`` or ``synthesis``, and the associated command sequence will be:
 
@@ -1173,4 +1177,10 @@ http://www.ohwr.org/projects/fpga-config-space/wiki
 Force hdlmake to generate the makefile, even if the specified tool is missing.
 
 
+``--allow-unknown``
+--------------------------
+
+.. warning:: this is an experimental feature!!
+
+Allow the insertion of new options or variables inside the child Manifest. Is this is option is not specified, the only place in which new options or variables can be defined is the top Manifest.
 

@@ -207,7 +207,10 @@ class Module(object):
             allow_unknown = True
             extra_context = {}
         else:
-            allow_unknown = False
+            if global_mod.options.allow_unknown is True:
+                allow_unknown = True
+            else:
+                allow_unknown = False
             extra_context = dict(global_mod.top_module.manifest_dict)  # copy the dictionary
             del extra_context["modules"]
             del extra_context["files"]

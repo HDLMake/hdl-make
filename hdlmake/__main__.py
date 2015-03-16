@@ -277,6 +277,9 @@ def _get_parser():
     parser.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
                           dest="generate_project_vhd", default=False, action="store_true")
     parser.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
+    parser.add_argument("--allow-unknown", dest="allow_unknown",
+                        default=False, help="allow unknown option insertions in the child Manifests", action="store_true")
+
 
     return parser
 
