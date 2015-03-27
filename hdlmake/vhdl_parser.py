@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
-# Author: Tomasz Wlostowski (tomasz.wlostowski@cern.ch)
-#         Adrian Fiergolski (Adrian.Fiergolski@cern.ch)
+# Copyright (c) 2015 CERN
+# Author: # Adrian Fiergolski (Adrian.Fiergolski@cern.ch)
 #
 # This file is part of Hdlmake.
 #
@@ -23,157 +22,101 @@
 
 from new_dep_solver import DepParser
 import logging
+import re
 
 
-def _remove_gaps(buf, delims, gap_chars, lower_strings=False):
-    da = {}
-    for d in delims:
-        da[d] = False
-    prev_is_gap = False
-    buf2 = ""
-    lines = []
-    for c in buf:
-        for d in delims:
-            if c == d:
-                da[d] = not da[d]
+class VHDLPreprocessor(object):
 
-        within_string = any(da.values()) and not (c in delims)
-        if not within_string:
-            if(c in gap_chars):
-                if(not prev_is_gap):
-                    prev_is_gap = True
-                    buf2 += " "
-            else:
-                prev_is_gap = False
-                buf2 += c
-                if c == ";" or c == "\n":
-                    lines.append(buf2)
-                    buf2 = ""
-        else:
-            buf2 += c
-            prev_is_gap = False
+    def __init__(self):
+        self.vhdl_file = None
 
-    return lines
-
+    def remove_comments_and_strings(self, s):
+        pattern = re.compile( '--.*?$|".?"', re.DOTALL | re.MULTILINE )  
+        return re.sub(pattern,"", s)
+    
+    def _preporcess_file(self, file_content, file_name, library):
+        logging.debug("preprocess file %s (of length %d) in library %s" % (file_name, len(file_content), library) )
+        return self.remove_comments_and_strings(file_content)
+        
+    def preprocess(self, vhdl_file):
+        self.vhdl_file = vhdl_file
+        file_path = vhdl_file.file_path
+        buf = open(file_path, "r").read()
+        return self._preporcess_file(file_content = buf, file_name = file_path, library = vhdl_file.library)
+        
 
 class VHDLParser(DepParser):
+    
+    def __init__(self, dep_file):
+        DepParser.__init__(self, dep_file)
+        self.preprocessor = VHDLPreprocessor()
+    
+
     def parse(self, dep_file):
         from dep_file import DepRelation
         if dep_file.is_parsed:
             return
         logging.info("Parsing %s" % dep_file.path)
-        content = open(dep_file.file_path, "r")
-        buf = ""
-        # stage 1: strip comments
-        for l in content.readlines():
-            ci = l.find("--")
-            if ci == 0:
-                continue
-
-            while ci > 0:
-                quotes = l[:ci].count('"')  # ignore comments in strings
-                if quotes % 2 == 0:
-                    l = l[:ci-1]
-                    break
-                ci = l.find("--", ci+1)
-            buf += l
-
-        # stage 2: remove spaces, crs, lfs, strip strings (we don't need them)
-        buf2 = ""
-        string_literal = char_literal = False
-        prev_is_gap = False
-        gap_chars = " \r\n\t"
-        lines = []
-
-        for c in buf:
-            if c == '"' and not char_literal:
-                string_literal = not string_literal
-            if c == "'" and not string_literal:
-                char_literal = not char_literal
-
-            within_string = (string_literal or char_literal) and (c != '"') and (c != "'")
-
-            if(not within_string):
-                if(c in gap_chars):
-                    if(not prev_is_gap):
-                        prev_is_gap = True
-                        buf2 += " "
-                else:
-                    prev_is_gap = False
-                    buf2 += c.lower()
-                    if ( (c == ";") or (buf2[-8:] == "generate") or (buf2[-5:] == "begin")) :
-                        lines.append(buf2)
-                        buf2 = ""
-            else:
-                prev_is_gap = False
-
-        import re
         
-        def use() :
-            if ( g.group(1).lower() == "work" ) : #work is the current library in VHDL
-                logging.debug("use package %s.%s" % (dep_file.library, g.group(2)) )
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(2)) , DepRelation.USE, DepRelation.PACKAGE)) 
+        buf = self.preprocessor.preprocess(dep_file)
+        
+        #use packages
+        use_pattern = re.compile("^\s*use\s+(\w+)\s*\.\s*(\w+)", re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        def do_use(s) :
+            if ( s.group(1).lower() == "work" ) : #work is the current library in VHDL
+                logging.debug("use package %s.%s" % (dep_file.library, s.group(2) ) )
+                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2).lower() ) , DepRelation.USE, DepRelation.PACKAGE)) 
             else :
-                logging.debug("use package %s.%s" % (g.group(1), g.group(2)) )
-                dep_file.add_relation(DepRelation("%s.%s" % (g.group(1), g.group(2)), DepRelation.USE, DepRelation.PACKAGE))
+                logging.debug("use package %s.%s" % (s.group(1), s.group(2)) )
+                dep_file.add_relation(DepRelation("%s.%s" % (s.group(1).lower(), s.group(2).lower()), DepRelation.USE, DepRelation.PACKAGE))
+        re.subn(use_pattern, do_use, buf)
 
-        def entity() :
-            logging.debug("found entity %s.%s" % ( dep_file.library, g.group(1) ) )
-            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
+        #new entity
+        entity_pattern = re.compile("^\s*entity\s+(\w+)\s+is\s+(?:port|generic|end)", re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        def do_entity(s) :
+            logging.debug("found entity %s.%s" % ( dep_file.library, s.group(1) ) )
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1).lower()),
                                               DepRelation.PROVIDE,
                                               DepRelation.ENTITY))
-        def package() :
-            logging.debug("found package %s.%s" % (dep_file.library, g.group(1) ))
-            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(1)),
+        re.subn(entity_pattern, do_entity, buf)
+        
+        #new package
+        package_pattern = re.compile("^\s*package\s+(\w+)\s+is",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        def do_package(s) :
+            logging.debug("found package %s.%s" % (dep_file.library, s.group(1) ))
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1).lower()),
                                               DepRelation.PROVIDE,
                                               DepRelation.PACKAGE))
-        def arch_begin() :
-            arch_name = g.group(1)
-            within_architecture = True
-        def arch_end() :    
-            within_architecture = False
-        def instance() :
+        re.subn(package_pattern, do_package, buf)
+        
+        #intantions
+        instance_pattern = re.compile("^\s*(\w+)\s*\:\s*(\w+)\s*(?:port\s+map|generic\s+map|\s*;)", re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        instance_from_library_pattern = re.compile("^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port\s+map|generic\s+map|\s*;)",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        libraries = set([dep_file.library])
+        def do_instance(s) :
             for lib in libraries :
-                logging.debug("-> instantiates %s.%s as %s" % (lib, g.group(2), g.group(1))  )
-                dep_file.add_relation(DepRelation("%s.%s" % (lib, g.group(2)),
+                logging.debug("-> instantiates %s.%s as %s" % (lib, s.group(2), s.group(1))  )
+                dep_file.add_relation(DepRelation("%s.%s" % (lib, s.group(2).lower()),
                                                   DepRelation.USE,
                                                   DepRelation.ENTITY))
-        def instance_from_library() :
-            if ( g.group(2).lower() == "work" ) : #work is the current library in VHDL
-                logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, g.group(3), g.group(1))  )
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, g.group(3)),
+        def do_instance_from_library(s) :
+            if ( s.group(2).lower() == "work" ) : #work is the current library in VHDL
+                logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, s.group(3), s.group(1))  )
+                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(3).lower()),
                                                   DepRelation.USE,
                                                   DepRelation.ENTITY))
             else :
-                logging.debug("-> instantiates %s.%s as %s" % (g.group(2), g.group(3), g.group(1))  )
-                dep_file.add_relation(DepRelation("%s.%s" % (g.group(2), g.group(3)),
+                logging.debug("-> instantiates %s.%s as %s" % (s.group(2), s.group(3), s.group(1))  )
+                dep_file.add_relation(DepRelation("%s.%s" % (s.group(2).lower(), s.group(3).lower()),
                                                   DepRelation.USE,
                                                   DepRelation.ENTITY))
-        def library() :
-            logging.debug("use library %s" % g.group(1) )
-            libraries.add(g.group(1))
-            
-        patterns = {
-            use: "^ *use +(\w+) *\. *(\w+) *\. *\w+ *;",
-            entity: "^ *entity +(\w+) +is +(?:port|generic|end)",
-            package: "^ *package +(\w+) +is",
-            arch_begin: "^ *architecture +(\w+) +of +(\w+) +is +",
-            arch_end: "^ *end +(\w+) +;",
-            instance: "^ *(\w+) *\: *(\w+) *(?:port +map|generic +map| *;)",
-            instance_from_library: "^ *(\w+) *\: *entity *(\w+) *\. *(\w+) *(?:port +map|generic +map| *;)",
-            library: "^ *library *(\w+) *;"
-        }
-        compiled_patterns = map(lambda p: (p, re.compile(patterns[p])), patterns)
-        within_architecture = False
-        libraries = set([dep_file.library])
-
-        for l in lines:
-            matches = filter(lambda (k, v): v is not None, map(lambda (k, v): (k, re.match(v, l.lower())), compiled_patterns))
-#            logging.debug("%s" % l )
-            if(not len(matches)):
-                continue
-
-            what, g = matches[0]
-            what()
-            
+        re.subn(instance_pattern, do_instance, buf)
+        re.subn(instance_from_library_pattern, do_instance_from_library, buf)
+        
+        #libraries
+        library_pattern = re.compile("^\s*library\s*(\w+)\s*;",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        def do_library(s) :
+            logging.debug("use library %s" % s.group(1))
+            libraries.add(s.group(1).lower())
+        re.subn(library_pattern, do_library, buf)
         dep_file.is_parsed = True
