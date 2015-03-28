@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2015 CERN
-# Author: # Adrian Fiergolski (Adrian.Fiergolski@cern.ch)
+# Copyright (c) 2013-2015 CERN
+# Author: 
+#     Tomasz Wlostowski (tomasz.wlostowski@cern.ch)
+#     Adrian Fiergolski (Adrian.Fiergolski@cern.ch)
 #
 # This file is part of Hdlmake.
 #
