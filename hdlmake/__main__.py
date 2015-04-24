@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -103,9 +103,21 @@ def main():
     #
     # Load global tool object (global_mod.py)
     #
+    if not top_mod.action:
+        logging.error("`action' manifest variable has to be specified. "
+                      "Otherwise hdlmake doesn't know how to handle the project")
+        quit()
     if top_mod.action == "synthesis":
+        if not top_mod.syn_tool:
+            logging.error("`syn_tool' manifest variable has to be specified. "
+                          "Otherwise hdlmake doesn't know how to synthesize the project")
+            quit()
         tool_name = top_mod.syn_tool
     elif top_mod.action == "simulation":
+        if not top_mod.sim_tool:
+            logging.error("`sim_tool' manifest variable has to be specified. "
+                          "Otherwise hdlmake doesn't know how to simulate the project")
+            quit()
         tool_name = top_mod.sim_tool
     logging.info('import tool module: ' + tool_name)
     try:
@@ -209,7 +221,7 @@ def _get_parser():
     """	
 
     usage = """hdlmake [command] [options]"""
-    description = """Release 2014\n
+    description = """Version 2.1\n
         To see optional arguments for particular command type:
         hdlmake <command> --help
 \0
@@ -265,6 +277,9 @@ def _get_parser():
     parser.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
                           dest="generate_project_vhd", default=False, action="store_true")
     parser.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
+    parser.add_argument("--allow-unknown", dest="allow_unknown",
+                        default=False, help="allow unknown option insertions in the child Manifests", action="store_true")
+
 
     return parser
 

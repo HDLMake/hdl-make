@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -61,7 +61,9 @@ $$(PROJECT)1.sty \
 run.tcl
 
 #target for performing local synthesis
-local: syn_pre_cmd check_tool
+local: syn_pre_cmd check_tool synthesis syn_post_cmd
+
+synthesis:
 \t\techo "prj_project open \"$$(PROJECT).ldf\"" > run.tcl
 \t\techo "prj_run PAR -impl $$(PROJECT)" >> run.tcl
 \t\techo "prj_run Export -impl $$(PROJECT) -task Bitgen" >> run.tcl
@@ -72,7 +74,7 @@ local: syn_pre_cmd check_tool
 check_tool:
 \t\t${check_tool}
 
-syn_post_cmd: local
+syn_post_cmd:
 \t\t${syn_post_cmd}
 
 syn_pre_cmd:
@@ -87,7 +89,7 @@ clean:
 mrproper:
 \t\trm -f *.jed
 
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd local check_tool
+.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local check_tool
 
 """)
         if top_mod.syn_pre_cmd:

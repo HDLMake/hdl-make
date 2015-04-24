@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Modified to allow ISim simulation by Lucas Russo (lucas.russo@lnls.br)
 # Modified to allow ISim simulation by Adrian Byszuk (adrian.byszuk@lnls.br)
@@ -86,14 +86,16 @@ ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_isim_incdirs(top_module.vlog_opt) + """
 """
         make_preambule_p2 = string.Template("""## rules #################################
-sim: sim_pre_cmd xilinxsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ) fuse
+local: sim_pre_cmd simulation sim_post_cmd
+
+simulation: xilinxsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ) fuse
 $$(VERILOG_OBJ): $$(LIB_IND) xilinxsim.ini
 $$(VHDL_OBJ): $$(LIB_IND) xilinxsim.ini
 
 sim_pre_cmd:
 \t\t${sim_pre_cmd}
 
-sim_post_cmd: sim
+sim_post_cmd:
 \t\t${sim_post_cmd}
 
 xilinxsim.ini: $$(XILINX_INI_PATH)/xilinxsim.ini
@@ -104,7 +106,7 @@ fuse:
 clean:
 \t\trm -rf ./xilinxsim.ini $$(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
 isim.wdb isim_proj isim_proj.*
-.PHONY: clean sim_pre_cmd sim_post_cmd
+.PHONY: clean sim_pre_cmd sim_post_cmd simulation
 
 """)
         #open the file and write the above preambule (part 1)

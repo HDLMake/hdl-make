@@ -148,7 +148,7 @@ end sdb_meta_pkg;""")
         env = self.env
         if not self.options.force:
             if self.env[path_key] is None:
-                logging.error("Can't generate an " + name + " project. " + name + " not found.")
+                logging.error("Can't generate the " + name + " project. " + name + " not found.")
                 quit()
         if not env[version_key]:
             logging.error(name + " version cannot be deduced. Cannot generate " + name + " "
