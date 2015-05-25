@@ -28,9 +28,10 @@ import os
 import re
 import sys
 import logging
-from new_dep_solver import DepParser
-from dep_file import DepRelation
-from srcfile import SourceFileFactory
+
+from .new_dep_solver import DepParser
+from .dep_file import DepRelation
+from .srcfile import SourceFileFactory
 
 
 class VerilogPreprocessor(object):

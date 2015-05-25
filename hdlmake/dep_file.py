@@ -19,9 +19,10 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import global_mod
 import os
-from util import path as path_mod
+
+from . import global_mod
+from .util import path as path_mod
 
 
 class DepRelation(object):
@@ -141,7 +142,7 @@ class File(object):
 
 class DepFile(File):
     def __init__(self, file_path, module, include_paths=None):
-        from module import Module
+        from .module import Module
         assert isinstance(file_path, basestring)
         assert isinstance(module, Module)
 
@@ -159,7 +160,7 @@ class DepFile(File):
         self.include_paths = include_paths
 
     def _parse_if_needed(self):
-        from new_dep_solver import ParserFactory
+        from .new_dep_solver import ParserFactory
         if not self.is_parsed:
             parser = ParserFactory().create(self)
             parser.parse(self)

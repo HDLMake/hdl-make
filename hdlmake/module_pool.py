@@ -23,12 +23,13 @@
 from __future__ import print_function
 import os
 import logging
-import global_mod
-import sys
-import new_dep_solver as dep_solver
-from util import path as path_mod
-import fetch
 from subprocess import PIPE, Popen
+import sys
+
+from . import global_mod
+from . import new_dep_solver as dep_solver
+from .util import path as path_mod
+from . import fetch
 
 
 class ModulePool(list):
@@ -65,7 +66,7 @@ class ModulePool(list):
         This is the only way to add new modules to the pool. Thanks to it the pool can easily
         control its content
         """
-        from module import Module
+        from .module import Module
         self._deps_solved = False
         if source != fetch.LOCAL:
             clean_url, branch, revision = path_mod.url_parse(url)
@@ -134,7 +135,7 @@ class ModulePool(list):
             os.chdir(cwd)
 
     def _add(self, new_module):
-        from module import Module
+        from .module import Module
         if not isinstance(new_module, Module):
             raise RuntimeError("Expecting a Module instance")
         if self.__contains(new_module):
@@ -149,8 +150,7 @@ class ModulePool(list):
         new_modules = []
         logging.debug("Fetching module: " + str(module))
 
-        bf = fetch.BackendFactory()
-        fetcher = bf.get_backend(module)
+        fetcher = fetch.fetch_type_lookup.get_backend(module)
         result = fetcher.fetch(module)
         if result is False:
             logging.error("Unable to fetch module %s" % module.url)
@@ -197,7 +197,7 @@ class ModulePool(list):
 
     def build_file_set(self):
         """Build set of all files listed in the manifests"""
-        from srcfile import SourceFileSet
+        from .srcfile import SourceFileSet
         all_manifested_files = SourceFileSet()
         for module in self:
             all_manifested_files.add(module.files)
@@ -206,7 +206,7 @@ class ModulePool(list):
 
     def build_global_file_set(self):
         """Build set of all files from manifests plus all include files from sources"""
-        from srcfile import SourceFileSet   
+        from .srcfile import SourceFileSet   
         files = self.build_file_set()
         assert isinstance(files, SourceFileSet)
         self.solve_dependencies()

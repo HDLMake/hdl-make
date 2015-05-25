@@ -152,28 +152,71 @@ As a prerequisite, you must have the following programs installed in your host m
 - ``git``: you need git for both fetching the ``hdlmake`` code and accessing to remote HDL repositories.
 - ``svn``: svn will only be used when accessing to remote SVN HDL repositories. 
 
-Now, you need to fetch the code from the official ``hdlmake`` git repository, that can be found at the next link: 
+There are two methods to obtain and install ``hdlmake``: via git repository or PyPI. PyPI is the preferred method if you are only interested in releases. Git may be preferred if you are a developer, or would like to stay in sync with active development.
+
+PyPI and ``pip``
+~~~~~~~~~~~~~~~~
+
+Installing ``hdlmake`` via PyPI is straightforward assuming that you have ``pip`` already installed in your local Python environment.
+
+.. note:: For directions on installing ``pip`` see the `pip documentation <https://pip.pypa.io/en/latest/installing.html>`_.
+
+To install directly from `PyPI <https://pypi.python.org/pypi>`_ simply run:
+
+.. code-block:: bash
+
+   pip install hdlmake
+   
+Alternatively, if you have already downloaded a source distribution, you can install it as follows:
+
+.. code-block:: bash
+
+   pip install hdlmake-X.X.tar.gz
+
+At this point, ``hdlmake`` is now installed into your active Python environment and can be run simply by executing ``hdlmake`` in your shell.
+
+Git
+~~~
+
+Fetch the code from the official ``hdlmake`` git repository, that can be found at the next link: 
 http://www.ohwr.org/projects/hdl-make/repository
 
-Once you have a valid ``hdlmake`` source tree, you need to create a launch script in /usr/bin or any other available location at shell $PATH. You can name the script as you prefer so, by doing this, multiple ``hdlmake`` versions can easily be used in the same machine. In any case, in this documentation we will consider that the name for this launch script is just ``hdlmake``.
+Once you have a valid ``hdlmake`` source tree, you can install ``hdlmake`` into your Python site-packages directly via *setup.py install*:
+
+.. code-block:: bash
+   
+   cd /path_to_hdlmake_sources/hdl-make
+   python2.7 setup.py install
+   
+``hdlmake`` is now installed into your active Python environment and can be run simply by executing ``hdlmake`` in your shell.
+
+As a developer, you may wish to avoid installing ``hdlmake`` directly into your site-packages, but can instead link directly to the sources instead:
+
+.. code-block:: bash
+   
+   cd /path_to_hdlmake_sources/hdl-make
+   python2.7 setup.py develop
+   
+Alternatively, you may choose to forgo installing anything in your Python environment and simply directly run from the source by creating a launch script.
+Create a launch script in /usr/bin or any other available location at shell $PATH. You can name the script as you prefer so, by doing this, multiple ``hdlmake`` versions can easily be used in the same machine. In any case, in this documentation we will consider that the name for this launch script is just ``hdlmake``.
 
 .. code-block:: bash
 
    #!/usr/bin/env bash
-   python2.7 /path_to_hdlmake_sources/hdl-make/hdlmake/__main__.py $@
+   PYTHONPATH=/path_to_hdlmake_sources/hdl-make python2.7 /path_to_hdlmake_sources/hdl-make -m hdlmake $@
 
-here:
-
-- ``python2.7`` is the executable of the Python deployment we want to use with ``hdlmake``.
-- ``path_to_hdlmake_sources`` is the absolute path in which the ``hdlmake`` source code has been fetched.
-- ``hdl-make`` is the name of the folder created when you checked out the repo.
-- ``hdlmake`` is the subfolder of hdl-make (this is not binary or a file, this is folder name).
-
-Once the launch script has been created, the appropriated execution rights must be set: 
+Once the launch script has been created, the appropriate execution rights must be set: 
 
 .. code-block:: bash
 
    chmod +x /usr/bin/hdlmake
+
+In the above examples the following nomenclature is used:
+
+- ``python2.7`` is the executable of the Python deployment we want to use with ``hdlmake``.
+- ``path_to_hdlmake_sources`` is the absolute path in which the ``hdlmake`` source code has been fetched.
+- ``hdl-make`` is the name of the folder created when you checked out the repo.
+- ``hdlmake`` is the actual hdlmake package (this is not binary or a file, this is folder name).
 
 Windows specific guidelines
 ---------------------------
@@ -192,11 +235,11 @@ First, install a valid Cygwin environment for your Windows machine. I order to a
 Once you have installed your Cygwin environment, you can just get into the Cygwin console and operate as if you were inside a Linux machine for both installing and working with ``hdlmake``.
 
 Environment
-----------_
+-----------
 
 When working in Linux or Windows inside Cygwin, in order to work with ``hdlmake`` we must assure that the tools executables that are going to be used are accessibles in the shell $PATH. This is a requirement for both simulation and synthesis
 
-..warning:: there is another way to define the specific tools as an environmental variable, but this is buggy and fails when executing some of the actions. The $PATH way is the most easy and stable way to go!
+.. warning:: there is another way to define the specific tools as an environmental variable, but this is buggy and fails when executing some of the actions. The $PATH way is the most easy and stable way to go!
 
 
 Learn by example
@@ -806,8 +849,8 @@ a secure TCP/IP connection by using SSL. For this purpose, the following tools n
 +-----------+--------------------------------------------+
 
 .. note:: You'll need a local ISE deployment if you want to regenerate the synthesis Makefile or the ISE project (.xise),
-files that are mandatory to perform both local and remote synthesis. But, if you have a valid Makefile and ISE project, you can
-launch the remote synthesis from a local machine in which the ISE toolchain is not installed.
+   files that are mandatory to perform both local and remote synthesis. But, if you have a valid Makefile and ISE project, you can
+   launch the remote synthesis from a local machine in which the ISE toolchain is not installed.
 
 Before running the remote synthesis Makefile targets, there are different parameters that need to defined for proper operation.
 These can be defined as shell environmental variables or, alternatively, inside the Makefile itself:

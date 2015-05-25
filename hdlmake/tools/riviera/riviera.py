@@ -23,7 +23,7 @@
 #
 
 from __future__ import print_function
-from .. common.sim_makefile_support import VsimMakefileWriter
+from ..common.sim_makefile_support import VsimMakefileWriter
 
 # as of 2014.06, these are the standard libraries
 # included in an installation

@@ -22,9 +22,11 @@
 import os
 import logging
 from tempfile import TemporaryFile
-from util import path
 from subprocess import Popen, PIPE
-from fetcher import Fetcher
+
+from hdlmake.util import path
+
+from .fetcher import Fetcher
 
 
 class Svn(Fetcher):

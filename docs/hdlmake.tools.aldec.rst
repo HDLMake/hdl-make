@@ -1,13 +1,13 @@
-tools.planahead package
-=======================
+hdlmake.tools.aldec package
+===========================
 
 Submodules
 ----------
 
-tools.planahead.planahead module
+hdlmake.tools.aldec.aldec module
 --------------------------------
 
-.. automodule:: tools.planahead.planahead
+.. automodule:: hdlmake.tools.aldec.aldec
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ tools.planahead.planahead module
 Module contents
 ---------------
 
-.. automodule:: tools.planahead
+.. automodule:: hdlmake.tools.aldec
     :members:
     :undoc-members:
     :show-inheritance:

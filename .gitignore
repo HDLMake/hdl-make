@@ -8,4 +8,10 @@ hdlmake.log
 *.swap
 *.odt
 *.orig
+*.pyc
+*.egg-info/
 .svn
+/pyenv/
+/cyg_pyenv/
+docs/_build
+dist/

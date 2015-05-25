@@ -22,12 +22,12 @@
 #
 
 from subprocess import Popen, PIPE
-
 import string
-from string import Template
-import fetch
+import os
+import logging
 
-from makefile_writer import MakefileWriter
+from hdlmake import global_mod
+from hdlmake.makefile_writer import MakefileWriter
 
 
 IVERILOG_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
@@ -66,7 +66,7 @@ class ToolControls(MakefileWriter):
 
         # TODO: include dir
         
-        from srcfile import VerilogFile, VHDLFile, SVFile
+        from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
         makefile_tmplt_1 = string.Template("""TOP_MODULE := ${top_module}
 IVERILOG_CRAP := \
@@ -137,7 +137,7 @@ mrproper: clean
 
     def generate_iverilog_makefile(self, fileset, top_module, modules_pool):
         print('javi checkpoint 0')
-        from srcfile import VerilogFile
+        from hdlmake.srcfile import VerilogFile
 
         for f in global_mod.top_module.incl_makefiles:
             self.writeln("include " + f)

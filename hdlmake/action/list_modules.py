@@ -20,11 +20,13 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
-from action.action import Action
-from util import path
-import fetch
 
-	
+from hdlmake.util import path
+import hdlmake.fetch as fetch
+
+from .action import Action
+
+
 def _convert_to_source_name(source_code):
     if source_code == fetch.GIT:
         return "git"

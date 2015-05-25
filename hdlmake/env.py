@@ -25,14 +25,12 @@ from __future__ import print_function
 import os
 import sys
 from subprocess import Popen, PIPE
-import re
-import logging
 import os.path
-from util import path
-from util.termcolor import colored
 
-import global_mod
-import importlib
+from .util import path
+from .util.termcolor import colored
+from . import global_mod
+
 
 _plain_print = print
 

@@ -22,8 +22,9 @@
 from __future__ import print_function
 import logging
 import sys
-from action import Action
 import re
+
+from .action import Action
 
 
 class CheckCondition(Action):

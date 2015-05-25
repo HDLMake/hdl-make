@@ -19,10 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from action import Action
 import logging
-import global_mod
-from manifest_parser import ManifestParser
+
+from .action import Action
 
 
 class CheckManifest(Action):

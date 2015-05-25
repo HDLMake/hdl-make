@@ -20,16 +20,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from check_condition import CheckCondition
-from check_manifest import CheckManifest
-from clean import CleanModules
-from fetch import FetchModules
-from fetch_makefile import GenerateFetchMakefile
-from list_files import ListFiles
-from list_modules import ListModules
-from merge_cores import MergeCores
+from .check_condition import CheckCondition
+from .check_manifest import CheckManifest
+from .clean import CleanModules
+from .fetch import FetchModules
+from .fetch_makefile import GenerateFetchMakefile
+from .list_files import ListFiles
+from .list_modules import ListModules
+from .merge_cores import MergeCores
 
-from synthesis_project import GenerateSynthesisProject
-from synthesis import GenerateSynthesisMakefile
-from remote_synthesis import GenerateRemoteSynthesisMakefile
-from simulation import GenerateSimulationMakefile
+from .synthesis_project import GenerateSynthesisProject
+from .synthesis import GenerateSynthesisMakefile
+from .remote_synthesis import GenerateRemoteSynthesisMakefile
+from .simulation import GenerateSimulationMakefile

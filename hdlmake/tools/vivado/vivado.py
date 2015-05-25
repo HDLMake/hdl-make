@@ -24,13 +24,10 @@
 import subprocess
 import sys
 import os
-
 import string
-from string import Template
-import fetch
 import logging
 
-from makefile_writer import MakefileWriter
+from hdlmake.makefile_writer import MakefileWriter
 
 
 VIVADO_STANDARD_LIBS = ['ieee', 'std']
@@ -230,7 +227,7 @@ mrproper:
         tmp = "add_files -norecurse {0}"
         tcl = "source {0}"
         ret = []
-        from srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile, BDFile, TCLFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile, BDFile, TCLFile
         for f in self.files:
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile) or isinstance(f, BDFile):
                 line = tmp.format(f.rel_path())

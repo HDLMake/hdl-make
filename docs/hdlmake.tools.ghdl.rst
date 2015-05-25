@@ -1,13 +1,13 @@
-tools.modelsim package
-======================
+hdlmake.tools.ghdl package
+==========================
 
 Submodules
 ----------
 
-tools.modelsim.modelsim module
+hdlmake.tools.ghdl.ghdl module
 ------------------------------
 
-.. automodule:: tools.modelsim.modelsim
+.. automodule:: hdlmake.tools.ghdl.ghdl
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ tools.modelsim.modelsim module
 Module contents
 ---------------
 
-.. automodule:: tools.modelsim
+.. automodule:: hdlmake.tools.ghdl
     :members:
     :undoc-members:
     :show-inheritance:

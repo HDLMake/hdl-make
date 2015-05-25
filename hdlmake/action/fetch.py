@@ -21,7 +21,8 @@
 
 import logging
 import sys
-from action import Action
+
+from .action import Action
 
 
 class FetchModules(Action):

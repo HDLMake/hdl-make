@@ -24,18 +24,20 @@
 from __future__ import print_function
 import os
 import importlib
-import global_mod
 import argparse
 import logging
 import sys
-from util.termcolor import colored
-from manifest_parser import ManifestParser
-from module_pool import ModulePool
-from env import Env
-import fetch as fetch_mod
-from action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMakefile, ListFiles,
+
+from . import global_mod
+from .util.termcolor import colored
+from .manifest_parser import ManifestParser
+from .module_pool import ModulePool
+from .env import Env
+from . import fetch as fetch_mod
+from .action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMakefile, ListFiles,
                     ListModules, MergeCores, GenerateSimulationMakefile,
                     GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject)
+from ._version import __version__
 
 #from argument_parser import get_argument_parser
 
@@ -121,7 +123,7 @@ def main():
         tool_name = top_mod.sim_tool
     logging.info('import tool module: ' + tool_name)
     try:
-        tool_module = importlib.import_module("tools.%s.%s" % (tool_name, tool_name))
+        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
     except Exception as e:
         logging.error(e)
         quit()
@@ -213,6 +215,7 @@ def main():
         logging.error(e)
         print("Trace:")
         traceback.print_exc()
+        sys.exit("Exiting in failure because exception occurred")
 
 
 def _get_parser():
@@ -221,11 +224,11 @@ def _get_parser():
     """	
 
     usage = """hdlmake [command] [options]"""
-    description = """Version 2.1\n
+    description = """Version %s\n
         To see optional arguments for particular command type:
         hdlmake <command> --help
 \0
-"""
+""" % (__version__,)
 
     parser = argparse.ArgumentParser("hdlmake",
                                      usage=usage,
@@ -264,6 +267,7 @@ def _get_parser():
     condition_check.add_argument("--condition", dest="condition", required=True)
 
     auto = subparsers.add_parser("auto", help="default action for hdlmake. Run when no args are given")
+    auto.add_argument('-v', '--version', action='version', version=parser.prog + " " + __version__)
     auto.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
     auto.add_argument("--noprune", help="prevent hdlmake from pruning unneeded files", default=False, action="store_true")
     auto.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",

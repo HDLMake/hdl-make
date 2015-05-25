@@ -19,12 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from backend_factory import BackendFactory
-from svn import Svn
-from git import Git
-
-GIT = 1
-SVN = 2
-LOCAL = 3
-GITSUBMODULE = 4
-
+from .constants import (GIT, GITSUBMODULE, SVN, LOCAL, fetch_type_lookup)
+from .git import Git
+from .svn import Svn

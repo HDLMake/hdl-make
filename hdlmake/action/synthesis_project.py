@@ -22,18 +22,15 @@
 
 from __future__ import print_function
 import logging
-from action import Action
 import sys
 import os
-import new_dep_solver as dep_solver
-from srcfile import SourceFileFactory
-from dependable_file import DependableFile
-import global_mod
-from util import path
 
-import importlib
+from hdlmake.srcfile import SourceFileFactory
+from hdlmake.dependable_file import DependableFile
+from hdlmake import global_mod
+from hdlmake.util import path
 
-
+from .action import Action
 
 class GenerateSynthesisProject(Action):
 
@@ -150,7 +147,7 @@ end sdb_meta_pkg;""")
             if self.env[path_key] is None:
                 logging.error("Can't generate the " + name + " project. " + name + " not found.")
                 quit()
-        if not env[version_key]:
+        if version_key not in env or not env[version_key]:
             logging.error(name + " version cannot be deduced. Cannot generate " + name + " "
                           "project file properly. Please use syn_" + id_value + "_version in the manifest "
                           "or set")

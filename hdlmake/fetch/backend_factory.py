@@ -19,34 +19,29 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from git import (Git, GitSubmodule)
-from svn import Svn
 import logging
-import fetch
-from fetcher import Fetcher
-
-
-class Local(Fetcher):
-    def __init__(self):
-        pass
-
-    def fetch(self, module):
-        pass
-
+from .constants import (LOCAL)
 
 class BackendFactory(object):
     def __init__(self):
-        pass
+        self.backend_table = {}
 
+    def register_backend(self, backend_id, backend):
+        """Add a mapping: backend_id -> backend"""
+        self.backend_table[backend_id] = backend
+        
     def get_backend(self, module):
-            if module.source == fetch.LOCAL:
-                return Local()
-            else:
+        try:
+            if module.source != LOCAL:
                 logging.info("Investigating module: " + str(module) +
                              "[parent: " + str(module.parent) + "]")
-                if module.source == fetch.SVN:
-                    return Svn()
-                if module.source == fetch.GIT:
-                    return Git()
-                if module.source == fetch.GITSUBMODULE:
-                    return GitSubmodule()
+            backend = self.backend_table[module.source]
+        except KeyError:
+            error_string = "No registered backend found for module: " +\
+                 str(module) + "\n" +\
+                 "Registered backends are:\n"
+            for backend_id in self.backend_table.iterkeys():
+                error_string += "\t%d" % (backend_id)
+            logging.error(error_string)
+            raise  # this is serious enough we should let the exception keep going
+        return backend

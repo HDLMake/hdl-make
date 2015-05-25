@@ -20,9 +20,10 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from util import path as path_mod
 import os
-from util.configparser import ConfigParser
+
+from .util import path as path_mod
+from .util.configparser import ConfigParser
 
 
 class Manifest:

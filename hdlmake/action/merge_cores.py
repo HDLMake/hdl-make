@@ -21,13 +21,15 @@
 
 from __future__ import print_function
 import logging
-from action import Action
-from srcfile import VerilogFile, VHDLFile, NGCFile
-from vlog_parser import VerilogPreprocessor
 import os
 import os.path
 import time
 import sys
+
+from hdlmake.srcfile import VerilogFile, VHDLFile, NGCFile
+from hdlmake.vlog_parser import VerilogPreprocessor
+
+from .action import Action
 
 
 class MergeCores(Action):

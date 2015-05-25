@@ -24,13 +24,11 @@
 import subprocess
 import sys
 import os
-
 import string
 from string import Template
-import fetch
 import logging
 
-from makefile_writer import MakefileWriter
+from hdlmake.makefile_writer import MakefileWriter
 
 
 PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
@@ -229,7 +227,7 @@ mrproper:
     def __emit_files(self):
         tmp = "add_files -norecurse {0}"
         ret = []
-        from srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile
         for f in self.files:
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile):
                 line = tmp.format(f.rel_path())

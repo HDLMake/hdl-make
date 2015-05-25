@@ -21,13 +21,14 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-from manifest_parser import Manifest, ManifestParser
-from util import path as path_mod
 import os
-import global_mod
-import logging
-import fetch
 import sys
+import logging
+
+from .manifest_parser import Manifest, ManifestParser
+from .util import path as path_mod
+from . import global_mod
+from . import fetch
 
 
 class Module(object):
@@ -47,7 +48,7 @@ class Module(object):
 
     @property
     def basename(self):
-        from util import path
+        from .util import path
         if self.source == fetch.SVN:
             return path.svn_basename(self.url)
         else:
@@ -231,7 +232,7 @@ class Module(object):
         self.manifest_dict = opt_map
 
     def process_manifest(self):
-        from srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
+        from .srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
         if self.isprocessed is True:
             return
         if self.manifest_dict is None:
@@ -508,7 +509,7 @@ class Module(object):
         return modules
 
     def _create_file_list_from_paths(self, paths):
-        from srcfile import SourceFileFactory, SourceFileSet
+        from .srcfile import SourceFileFactory, SourceFileSet
         sff = SourceFileFactory()
         srcs = SourceFileSet()
         for p in paths:

@@ -22,13 +22,9 @@
 #
 
 import os
-import sys
-
 import string
-from string import Template
-import fetch
 
-from makefile_writer import MakefileWriter
+from hdlmake.makefile_writer import MakefileWriter
 
 
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
@@ -182,7 +178,7 @@ mrproper:
         return pre+'\n'+mod+'\n'+post+'\n'
 
     def __emit_files(self):
-        from srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile
         tmp = "set_global_assignment -name {0} {1}"
         ret = []
         for f in self.files:

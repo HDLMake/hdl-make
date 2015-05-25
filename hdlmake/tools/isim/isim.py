@@ -23,18 +23,15 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
 import os.path
 from subprocess import Popen, PIPE
-
-import os
+import logging
 import sys
-
 import string
-from string import Template
-import fetch
-import global_mod
 
-from makefile_writer import MakefileWriter
+from hdlmake import global_mod
+from hdlmake.makefile_writer import MakefileWriter
 
 
 ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
@@ -65,15 +62,15 @@ class ToolControls(MakefileWriter):
                      stdout=PIPE)
         print os.path.join(path, "vlogcomp")
         try:
-          isim_version = isim.stdout.readlines()[0].strip()
+            isim_version = isim.stdout.readlines()[0].strip()
         except:
-          return None
+            return None
         return isim_version
 
 
     def generate_simulation_makefile(self, fileset, top_module):
-        from srcfile import VerilogFile, VHDLFile
-        #from tools.ise import XilinxsiminiReader
+        from hdlmake.srcfile import VerilogFile, VHDLFile
+        #from ..ise import XilinxsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
 TOP_MODULE := """ + top_module.top_module + """

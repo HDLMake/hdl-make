@@ -21,15 +21,12 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-from dep_file import DepFile
-import new_dep_solver as dep_solver
 import logging
 import sys
-import global_mod
-from action import Action
 
-import importlib
+from hdlmake import global_mod
 
+from .action import Action
 
 
 class GenerateSynthesisMakefile(Action):
