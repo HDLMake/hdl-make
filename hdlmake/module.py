@@ -113,7 +113,7 @@ class Module(object):
             self.path = url
             self.isfetched = True
         else:
-            if os.path.exists(os.path.abspath(os.path.join(fetchto, self.basename))):
+            if os.path.exists(os.path.abspath(os.path.join(fetchto, self.basename))) and os.listdir(os.path.abspath(os.path.join(fetchto, self.basename))):
                 self.path = os.path.abspath(os.path.join(fetchto, self.basename))
                 self.isfetched = True
                 logging.debug("Module %s (parent: %s) is fetched." % (url, parent.path))
