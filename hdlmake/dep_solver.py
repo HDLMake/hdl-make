@@ -107,7 +107,7 @@ class VerilogDependencySolver(DependencySolver):
         inc_dirs = self._parse_vlog_opt(v_file.vlog_opt)
 
         for dir in inc_dirs:
-            dir = os.path.join(os.getcwd(), dir)
+            dir = os.path.join(global_mod.current_path, dir)
             if not os.path.exists(dir) or not os.path.isdir(dir):
                 logging.warning("Include path "+dir+" doesn't exist")
                 continue

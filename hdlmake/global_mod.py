@@ -29,4 +29,4 @@ mod_pool = None
 sim_tool = None
 env = None
 tool_module = None
-
+current_path = None
