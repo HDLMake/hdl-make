@@ -150,7 +150,8 @@ class ModulePool(list):
         new_modules = []
         logging.debug("Fetching module: " + str(module))
 
-        fetcher = fetch.fetch_type_lookup.get_backend(module)
+        backend = fetch.fetch_type_lookup.get_backend(module)
+        fetcher = backend()
         result = fetcher.fetch(module)
         if result is False:
             logging.error("Unable to fetch module %s" % module.url)
