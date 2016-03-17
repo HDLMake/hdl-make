@@ -24,14 +24,10 @@
 import subprocess
 import sys
 import os
-
 import logging
-
 import string
-from string import Template
-import fetch
 
-from makefile_writer import MakefileWriter
+from hdlmake.makefile_writer import MakefileWriter
 
 DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
@@ -197,7 +193,7 @@ mrproper:
     def __emit_files(self, update=False):
         tmp = 'prj_src {0} \"{1}\"'
         ret = []
-        from srcfile import VHDLFile, VerilogFile, SVFile, EDFFile, LPFFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, EDFFile, LPFFile
         for f in self.files:
             line = ''
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, EDFFile):

@@ -23,17 +23,10 @@
 
 from __future__ import print_function
 import xml.dom.minidom
-import xml.parsers.expat
-import re
 import os
 
-import global_mod
-
-import string
-from string import Template
-import fetch
-
-from .. common.sim_makefile_support import VsimMakefileWriter
+from hdlmake import global_mod
+from ..common.sim_makefile_support import VsimMakefileWriter
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 

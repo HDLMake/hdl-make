@@ -26,18 +26,13 @@ import xml.dom.minidom
 import xml.parsers.expat
 import logging
 import re
-import global_mod
 import os
-import sys
+import string
 from subprocess import Popen, PIPE
 
-import new_dep_solver as dep_solver
-
-import string
-from string import Template
-import fetch
-
-from makefile_writer import MakefileWriter
+from hdlmake import global_mod
+import hdlmake.new_dep_solver as dep_solver
+from hdlmake.makefile_writer import MakefileWriter
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
@@ -105,7 +100,6 @@ class ToolControls(MakefileWriter):
 
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
-        from subprocess import PIPE, Popen
         if name is None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))
@@ -452,7 +446,7 @@ mrproper:
         return new
 
     def _output_files(self, node):
-        from srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
+        from hdlmake.srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
 
         for f in self.files:
             fp = self.xml_doc.createElement("file")
@@ -486,7 +480,7 @@ mrproper:
             node.appendChild(fp)
 
     def _output_bindings(self, node):
-        from srcfile import CDCFile
+        from hdlmake.srcfile import CDCFile
         for b in [f for f in self.files if isinstance(f, CDCFile)]:
             bp = self.xml_doc.createElement("binding")
             bp.setAttribute("xil_pn:location", self.top_mod.syn_top)

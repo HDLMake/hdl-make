@@ -21,13 +21,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import string
-from string import Template
-import fetch
-from makefile_writer import MakefileWriter
-
-import logging
+from hdlmake.makefile_writer import MakefileWriter
 
 
 class ToolControls(MakefileWriter):
@@ -53,7 +48,7 @@ class ToolControls(MakefileWriter):
     def generate_simulation_makefile(self, fileset, top_module):
         # TODO: vhdl87 vs vhdl97 options
         
-        from srcfile import VHDLFile
+        from hdlmake.srcfile import VHDLFile
 
         makefile_tmplt_1 = string.Template("""TOP_MODULE := ${top_module}
 GHDL_CRAP := \

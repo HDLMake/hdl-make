@@ -1,13 +1,13 @@
-tools.iverilog package
-======================
+hdlmake.tools.isim package
+==========================
 
 Submodules
 ----------
 
-tools.iverilog.iverilog module
+hdlmake.tools.isim.isim module
 ------------------------------
 
-.. automodule:: tools.iverilog.iverilog
+.. automodule:: hdlmake.tools.isim.isim
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ tools.iverilog.iverilog module
 Module contents
 ---------------
 
-.. automodule:: tools.iverilog
+.. automodule:: hdlmake.tools.isim
     :members:
     :undoc-members:
     :show-inheritance:

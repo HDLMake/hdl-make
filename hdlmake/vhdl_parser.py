@@ -21,10 +21,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from new_dep_solver import DepParser
 import logging
 import re
+
+from .new_dep_solver import DepParser
 
 
 class VHDLPreprocessor(object):
@@ -55,7 +55,7 @@ class VHDLParser(DepParser):
     
 
     def parse(self, dep_file):
-        from dep_file import DepRelation
+        from .dep_file import DepRelation
         if dep_file.is_parsed:
             return
         logging.info("Parsing %s" % dep_file.path)

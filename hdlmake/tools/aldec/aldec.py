@@ -21,12 +21,9 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import string
-from string import Template
-import fetch
-from makefile_writer import MakefileWriter
-import logging
+
+from hdlmake.makefile_writer import MakefileWriter
 
 
 class ToolControls(MakefileWriter):
@@ -49,7 +46,7 @@ class ToolControls(MakefileWriter):
 
     def generate_simulation_makefile(self, fileset, top_module):
         # TODO: ??
-        from srcfile import VHDLFile, VerilogFile, SVFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile
         makefile_tmplt_1 = string.Template("""TOP_MODULE := ${top_module}
 ALDEC_CRAP := \
 run.command \

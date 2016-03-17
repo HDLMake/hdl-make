@@ -23,18 +23,18 @@
 from __future__ import print_function
 #from dependable_file import DependableFile
 import os
-import global_mod
 import logging
-from module import Module
-from util import path as path_mod
-from dep_file import DepFile, File
+
+from .module import Module
+from .util import path as path_mod
+from .dep_file import DepFile, File
 
 
 class SourceFile(DepFile):
     cur_index = 0
 
     def __init__(self, path, module, library=None):
-        from dep_file import DepFile
+        from .dep_file import DepFile
         assert isinstance(path, basestring)
         assert isinstance(module, Module)
         self.library = library

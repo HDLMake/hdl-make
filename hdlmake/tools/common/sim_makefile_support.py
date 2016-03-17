@@ -21,10 +21,10 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from makefile_writer import MakefileWriter
 import os
 import string
-from string import Template
+
+from hdlmake.makefile_writer import MakefileWriter
 
 
 class VsimMakefileWriter(MakefileWriter):
@@ -63,12 +63,12 @@ class VsimMakefileWriter(MakefileWriter):
         The Makefile format is shared, but flags, dependencies, clean rules,
         etc are defined by the specific tool.
         """
-        from srcfile import VerilogFile, VHDLFile, SVFile
+        from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
         
-	self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.vlog_opt))
-	self.vcom_flags.append(top_module.vcom_opt)
-	self.vmap_flags.append(top_module.vmap_opt)
-	self.vsim_flags.append(top_module.vsim_opt) 
+        self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.vlog_opt))
+        self.vcom_flags.append(top_module.vcom_opt)
+        self.vmap_flags.append(top_module.vmap_opt)
+        self.vsim_flags.append(top_module.vsim_opt) 
 
         tmp = """## variables #############################
 PWD := $(shell pwd)
@@ -194,7 +194,7 @@ sim_post_cmd:
             # self.write(incdir)
             # self.writeln(vl.vlog_opt+" $<")
             ####
-            compile_template = Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} +incdir+${include_dirs} ${vlog_opt} $$<")
+            compile_template = string.Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} +incdir+${include_dirs} ${vlog_opt} $$<")
             compile_line = compile_template.substitute(library=vl.library,
                                                  sv_option="-sv" if isinstance(vl, SVFile) else "",
                                                  include_dirs='+'.join(vl.include_dirs),

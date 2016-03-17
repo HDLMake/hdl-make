@@ -20,17 +20,17 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from util import path
+from hdlmake.util import path
 import logging
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
-import fetch
-from fetcher import Fetcher
+from .constants import (GIT, GITSUBMODULE)
+from .fetcher import Fetcher
 
 
 class GitSubmodule(Fetcher):
     def fetch(self, module):
-        if module.source != fetch.GITSUBMODULE:
+        if module.source != GITSUBMODULE:
             raise ValueError("This backend should get git modules only.")
         cur_dir = os.getcwd()
         os.chdir(module.fetchto)
@@ -112,7 +112,7 @@ submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
         return config_submodules
 
     def fetch(self, module):
-        if module.source != fetch.GIT:
+        if module.source != GIT:
             raise ValueError("This backend should get git modules only.")
         if not os.path.exists(module.fetchto):
             os.mkdir(module.fetchto)

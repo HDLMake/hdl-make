@@ -21,7 +21,6 @@
 
 import sys
 import logging
-from makefile_writer import MakefileWriter
 
 
 class Action(object):

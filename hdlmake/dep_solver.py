@@ -23,10 +23,11 @@
 import re
 import os
 import logging
-import global_mod
-from srcfile import SourceFileFactory, SourceFileSet, SourceFile
-from srcfile import VHDLFile, VerilogFile, SVFile
-from dependable_file import DependableFile
+
+from . import global_mod
+from .srcfile import SourceFileFactory, SourceFileSet, SourceFile
+from .srcfile import VHDLFile, VerilogFile, SVFile
+from .dependable_file import DependableFile
 
 
 class DependencySolver(object):
@@ -225,7 +226,7 @@ def solve(fileset):
     vhdl_solver = VHDLDependencySolver()
     vhdl_solver.solve(vhdl_files)
 
-    import srcfile as sf
+    from . import srcfile as sf
 
     verilog_files = [file for file in fset if isinstance(file, VerilogFile)]
     verilog_solver = VerilogDependencySolver()

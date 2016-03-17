@@ -24,12 +24,10 @@
 import subprocess
 import sys
 import os
-
 import string
-from string import Template
-import fetch
+import logging
 
-from makefile_writer import MakefileWriter
+from hdlmake.makefile_writer import MakefileWriter
 
 
 LIBERO_STANDARD_LIBS = ['ieee', 'std']
@@ -190,7 +188,7 @@ mrproper:
         synthesis_constraints = []
         compilation_constraints = []
         ret = []
-        from srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
         # First stage: linking files
         for f in self.files:
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile):

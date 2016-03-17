@@ -1,0 +1,6 @@
+include COPYING
+include ez_setup.py
+recursive-include docs *
+recursive-include scripts *
+recursive-include tests *
+prune docs/_build

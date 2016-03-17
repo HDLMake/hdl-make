@@ -22,12 +22,9 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
-import logging
-import string
-import fetch
-import global_mod
-from string import Template
+
+from . import fetch
+
 
 class _StaticClassVariable():
     pass

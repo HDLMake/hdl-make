@@ -23,11 +23,10 @@
 
 from __future__ import print_function
 import logging
-from dep_file import DepFile
 
-from srcfile import VHDLFile, VerilogFile, SVFile
-
-import global_mod
+from .dep_file import DepFile
+from .srcfile import VHDLFile, VerilogFile, SVFile
+from . import global_mod
 
 
 class DepParser(object):
@@ -41,8 +40,8 @@ class DepParser(object):
 class ParserFactory(object):
     def create(self, dep_file):
         import re
-        from vlog_parser import VerilogParser
-        from vhdl_parser import VHDLParser
+        from .vlog_parser import VerilogParser
+        from .vhdl_parser import VHDLParser
         
         if isinstance(dep_file, VHDLFile) :
             return VHDLParser(dep_file)
@@ -74,8 +73,8 @@ class ParserFactory(object):
 
 
 def solve(fileset):
-    from srcfile import SourceFileSet
-    from dep_file import DepRelation
+    from .srcfile import SourceFileSet
+    from .dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
 

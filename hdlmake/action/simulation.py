@@ -21,15 +21,14 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-from action import Action
-from dep_file import DepFile
-import new_dep_solver as dep_solver
 import logging
 import sys
-import global_mod
 
-import importlib
+from hdlmake.dep_file import DepFile
+import hdlmake.new_dep_solver as dep_solver
+from hdlmake import global_mod
 
+from .action import Action
 
 class GenerateSimulationMakefile(Action):
 

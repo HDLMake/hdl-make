@@ -1,13 +1,13 @@
-tools.diamond package
-=====================
+hdlmake.tools.ise package
+=========================
 
 Submodules
 ----------
 
-tools.diamond.diamond module
+hdlmake.tools.ise.ise module
 ----------------------------
 
-.. automodule:: tools.diamond.diamond
+.. automodule:: hdlmake.tools.ise.ise
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ tools.diamond.diamond module
 Module contents
 ---------------
 
-.. automodule:: tools.diamond
+.. automodule:: hdlmake.tools.ise
     :members:
     :undoc-members:
     :show-inheritance:

@@ -20,14 +20,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from action import Action
 import logging
 import os
 import sys
-import global_mod
-from srcfile import SourceFileFactory
 
-import importlib
+from hdlmake import global_mod
+from hdlmake.srcfile import SourceFileFactory
+
+from .action import Action
 
 
 class GenerateRemoteSynthesisMakefile(Action):
