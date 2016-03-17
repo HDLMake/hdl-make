@@ -23,10 +23,9 @@ import os
 import logging
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
-
 from hdlmake.util import path
-
 from .fetcher import Fetcher
+import global_mod
 
 
 class Svn(Fetcher):
@@ -37,7 +36,7 @@ class Svn(Fetcher):
         if not os.path.exists(module.fetchto):
             os.mkdir(module.fetchto)
 
-        cur_dir = os.getcwd()
+        cur_dir = global_mod.current_path
         os.chdir(module.fetchto)
 
         basename = path.url_basename(module.url)
@@ -63,7 +62,7 @@ class Svn(Fetcher):
 
     @staticmethod
     def check_revision_number(path):
-        cur_dir = os.getcwd()
+        cur_dir = global_mod.current_path
         revision = None
         stderr = TemporaryFile()
 

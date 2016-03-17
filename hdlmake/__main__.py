@@ -48,13 +48,15 @@ from ._version import __version__
 
 
 def main():
-    """This is the main funcion, where HDLMake starts.
+    """This is the main function, where HDLMake starts.
     Here, we make the next processes:
         -- parse command
         -- check and set the environment
         -- prepare the global module containing the heavy common stuff
-    """	
+    """
 
+    # Remember current path
+    global_mod.current_path = os.getcwd()
 
     #
     # SET & GET PARSER
@@ -82,7 +84,7 @@ def main():
 
     modules_pool = ModulePool()
     modules_pool.new_module(parent=None,
-                            url=os.getcwd(),
+                            url=global_mod.current_path,
                             source=fetch_mod.LOCAL,
                             fetchto=".",
                             process_manifest=False)

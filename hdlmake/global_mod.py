@@ -30,3 +30,4 @@ sim_tool = None
 env = None
 tool_module = None
 makefile_writer = None
+current_path = None

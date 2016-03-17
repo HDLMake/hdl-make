@@ -99,7 +99,7 @@ class File(object):
 
     def rel_path(self, dir=None):
         if dir is None:
-            dir = os.getcwd()
+            dir = global_mod.current_path
         return path_mod.relpath(self.path, dir)
 
     def __str__(self):

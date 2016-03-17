@@ -114,7 +114,7 @@ class ModulePool(list):
 
     def _guess_origin(self, path):
         """Guess origin (git, svn, local) of a module at given path"""
-        cwd = os.getcwd()
+        cwd = global_mod.current_path
         try:
             os.chdir(path)
             git_out = Popen("git config --get remote.origin.url", stdout=PIPE, shell=True, close_fds=True)
