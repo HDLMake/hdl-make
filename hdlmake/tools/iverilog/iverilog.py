@@ -96,8 +96,8 @@ simulation:
             self.writeln("\t\techo \"" + sv.rel_path() + "\" >> run.command")
 
 
-        makefile_tmplt_2 = string.Template("""      
-\t\tiverilog -s $$(TOP_MODULE) -o $$(TOP_MODULE).vvp -c run.command
+        makefile_tmplt_2 = string.Template("""
+\t\tiverilog ${iverilog_opt} -s $$(TOP_MODULE) -o $$(TOP_MODULE).vvp -c run.command
 
 sim_pre_cmd:
 \t\t${sim_pre_cmd}
@@ -116,6 +116,11 @@ mrproper: clean
 .PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation
 
 """)
+        if top_module.iverilog_opt:
+            iverilog_opt = top_module.iverilog_opt
+        else:
+            iverilog_opt = ''
+
         if top_module.sim_pre_cmd:
             sim_pre_cmd = top_module.sim_pre_cmd
         else:
@@ -127,6 +132,7 @@ mrproper: clean
             sim_post_cmd = ''
 
         makefile_text_2 = makefile_tmplt_2.substitute(
+            iverilog_opt=iverilog_opt,
             sim_pre_cmd=sim_pre_cmd,
             sim_post_cmd=sim_post_cmd,
         )
