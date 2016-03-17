@@ -825,10 +825,6 @@ when ``hdlmake`` is executed:
    hdlmake --py "simulate_vhdl = False" auto
 
 
-.. note:: New custom variables are not allowed outside the TOP Manifest.py. In this way, despite the fact that all of the Pyhton code in the used Manifest.py files is executed when ``hdlmake`` is launched, not all of the Python constructions can be implemented.
-
-.. note:: In order to allow the insertion of new custom variables in the child Manifests, you can try the ``--allow-unknown`` experimental feature. By specifiying this optional argument to the ``hdlmake`` command line, a warning message is raised when an unknown option or variable is defined in a child Manifest.py, but the variable itself is inserted and processed.
-
 
 Remote synthesis with Xilinx ISE
 --------------------------------

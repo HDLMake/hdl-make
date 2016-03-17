@@ -233,7 +233,7 @@ class ConfigParser(object):
     def __names(self):
         return [o.name for o in self.options if o is not None]
 
-    def parse(self, allow_unknown=False, verbose=False, extra_context=None):
+    def parse(self, verbose=False, extra_context=None):
         assert isinstance(extra_context, dict) or extra_context is None
         options = {}
         ret = {}
@@ -293,14 +293,10 @@ class ConfigParser(object):
             if opt_name not in self.__names():
                 if opt_name in arbitrary_options:
                     continue  # finish processing of this variable here
-                elif allow_unknown is True:
-                    ret[opt_name] = val
-                    logging.warning("Given variable is not recognized: %s (=%s).\nPlease double check it is not en error" % (opt_name, val))
-                    continue
                 else:
-                    #if opt_name.startswith("global_"):
-                    #    continue
-                    raise NameError("Unrecognized option: " + opt_name)
+                    ret[opt_name] = val
+                    logging.warning("New custom variable found: %s (=%s).\n" % (opt_name, val))
+                    continue
             opt = self[opt_name]
             if type(val) not in opt.types:
                 raise RuntimeError("Given option: %s doesn't match specified types: %s" % (str(type(val)), str(opt.types)))

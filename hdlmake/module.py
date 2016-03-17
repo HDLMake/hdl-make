@@ -205,13 +205,8 @@ class Module(object):
             manifest_parser.add_manifest(self.manifest)
 
         if self.parent is None:
-            allow_unknown = True
             extra_context = {}
         else:
-            if global_mod.options.allow_unknown is True:
-                allow_unknown = True
-            else:
-                allow_unknown = False
             extra_context = dict(global_mod.top_module.manifest_dict)  # copy the dictionary
             del extra_context["modules"]
             del extra_context["files"]
@@ -224,8 +219,7 @@ class Module(object):
 
         opt_map = None
         try:
-            opt_map = manifest_parser.parse(allow_unknown=allow_unknown,
-                                            extra_context=extra_context)
+            opt_map = manifest_parser.parse(extra_context=extra_context)
         except NameError as ne:
             logging.error("Error while parsing {0}:\n{1}: {2}.".format(self.manifest, type(ne), ne))
             quit()
