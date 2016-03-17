@@ -26,7 +26,7 @@ from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
 from .constants import (GIT, GITSUBMODULE)
 from .fetcher import Fetcher
-import global_mod
+from . import global_mod
 
 
 class GitSubmodule(Fetcher):
