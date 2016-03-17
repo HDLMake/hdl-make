@@ -31,7 +31,7 @@ from hdlmake.vlog_parser import VerilogPreprocessor
 
 from .action import Action
 
-from . import global_mod
+from hdlmake import global_mod
 
 
 class MergeCores(Action):

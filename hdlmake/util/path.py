@@ -23,7 +23,7 @@
 from __future__ import print_function
 import os
 import logging
-from . import global_mod
+from hdlmake import global_mod
 
 
 def url_parse(url):

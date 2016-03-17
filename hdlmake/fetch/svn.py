@@ -25,7 +25,7 @@ from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
 from hdlmake.util import path
 from .fetcher import Fetcher
-from . import global_mod
+from hdlmake import global_mod
 
 
 class Svn(Fetcher):
