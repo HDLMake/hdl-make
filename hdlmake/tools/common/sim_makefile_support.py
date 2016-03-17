@@ -68,7 +68,7 @@ class VsimMakefileWriter(MakefileWriter):
         self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.vlog_opt))
         self.vcom_flags.append(top_module.vcom_opt)
         self.vmap_flags.append(top_module.vmap_opt)
-        self.vsim_flags.append(top_module.vsim_opt) 
+        self.vsim_flags.append(top_module.vsim_opt)
 
         tmp = """## variables #############################
 PWD := $(shell pwd)
@@ -173,6 +173,7 @@ sim_post_cmd:
             self.write("%s: %s" % (os.path.join(vl.library, vl.purename, ".%s_%s" % (vl.purename, vl.extension())),
                                           vl.rel_path())
                          )
+            # list dependencies, do not include the target file
             for dep_file in [dfile for dfile in vl.depends_on if dfile is not vl]:
                 if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
                     name = dep_file.purename
@@ -212,7 +213,8 @@ sim_post_cmd:
             self.write("%s: %s" % (os.path.join(lib, purename, "." + purename + "_" + vhdl.extension()),
                                           vhdl.rel_path())
                           )
-            for dep_file in vhdl.depends_on:
+            # list dependencies, do not include the target file
+            for dep_file in [dfile for dfile in vhdl.depends_on if dfile is not vhdl]:
                 if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
                     name = dep_file.purename
                     extension = dep_file.extension()
