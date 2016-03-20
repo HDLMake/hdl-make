@@ -601,7 +601,7 @@ Handling remote modules
 
 Let's take a simple example of how ``hdlmake`` handles repositories. 
 
-Our project consists of 4 HDL modules and one testbench. Its directory looks like this:
+First, consider that we have a project consisting on four HDL modules and one testbench. The project root folder looks like this:
 
 .. code-block:: bash
 
@@ -614,7 +614,7 @@ Our project consists of 4 HDL modules and one testbench. Its directory looks lik
        |-- module4
        `-- tb
 
-Supposing that the testbench will use all modules, the manifest in ``tb`` directory should look like this:
+Supposing that all of the modules are local to the development machine, i.e. the contents of the modules are available in the local host, the ``Manifest.py``  in ``tb`` directory should look like this:
 
 .. code-block:: python
 
@@ -622,7 +622,9 @@ Supposing that the testbench will use all modules, the manifest in ``tb`` direct
        "local":["../module1","../module2","../module3","../module4"]
    }
 
-This case was very trivial. Let's try now to complicate the situation a bit. Let say, that two of our modules are stored in a SVN repository and the last one in a GIT repository. What is more, for module2 we would like to use revision number 25. In that case, the manifest will look as follows:
+We only have the ``local`` key and an asociated four elements list containing the path to the respective local folders where the modules are stored.
+
+This case was very trivial. Let's try now to complicate the situation a bit. Let say, that two of our modules are stored in a SVN repository and the last one in a GIT repository. What is more, for ``module2`` we would like to use revision number 25. In that case, the manifest will look as follows:
 
 .. code-block:: python
 
@@ -635,34 +637,35 @@ This case was very trivial. Let's try now to complicate the situation a bit. Let
        "git":"git@github.com:user/module4.git"
    }
 
-The generated makefile will work fine. The only issue is that the modules will be fetched to the directory of testbench, which is not very elegant. To make it better, add ``fetchto`` to the manifest:
+Now we can see that the ``local`` key just has an associated path (i.e. this is a 1-element list), while we have two additional key identifiers: ``svn``, pointing to a list of two remote SVN repositories, and ``git``, pointing to a single remote GIT repository.
+
+In this way, just as in the SVN list ``module2`` is pointing to the default/head revision and ``module3`` SVN repository is pointing to revision number 25, we can refine the target for GIT repositories too. In our previous example, ``module4`` is the only entry for the GIT module list and it is pointing to the default/master branch, but we can introduce the following extra modifiers too:
+
+* [ ``::`` ] | Point to a specific branch (e.g. "develop")
+
+.. code-block:: python
+
+       # e.g.: target branch is "develop"
+       "git":"git@github.com:user/module4.git::develop"
+
+
+* [ ``@@`` ] | Point to a specific tag  or commit
+
+.. code-block:: python
+
+       # e.g.: target tag is "v1.0"
+       "git":"git@github.com:user/module4.git@@v1.0"
+
+       # e.g.: target commit is "a964df3d84f84ef1f87acb300c4946d8c33e526a"
+       "git":"git@github.com:user/module4.git@@a964df3d84f84ef1f87acb300c4946d8c33e526a"
+
+
+If we run the ``hdlmake fetch`` command from inside the folder where the top Manifest.py is stored, hdlmake will read the local, SVN and GIT module lists and will automatically clone/fetch the remote SVN and GIT repositories. The only issue is that the modules would be fetched to the directory in which we are placed, which is not very elegant. To make the process more flexible, we can add the ``fetchto`` option to the manifest in order to point to the actual folder in which we want to store our remotely hosted modules.
 
 .. code-block:: python
 
    fetchto = ".."
 
-This will tell Hdlmake to fetch modules to the project catalog. Let's see how it works:
-
-.. code-block:: bash
-
-   user@host:~/test/proj$ tree -d
-   .
-   `-- hdl
-       |-- module1
-       `-- tb
-   user@host:~/test/proj$ cd hdl/tb
-   user@host:~/test/proj/hdl/tb$ hdlmake.py -f
-   user@host:~/test/proj$ cd ../..
-   user@host:~/test/proj$ tree -d
-   .
-   `-- hdl
-       |-- module1
-       |-- module2
-       |-- module3
-       |-- module4
-       `-- tb
-
-And we finally get the original project we started with.
 
 
 Pre and Post synthesis / simulation commands
