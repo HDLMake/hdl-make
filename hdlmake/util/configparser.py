@@ -295,7 +295,7 @@ class ConfigParser(object):
                     continue  # finish processing of this variable here
                 else:
                     ret[opt_name] = val
-                    logging.warning("New custom variable found: %s (=%s).\n" % (opt_name, val))
+                    logging.debug("New custom variable found: %s (=%s).\n" % (opt_name, val))
                     continue
             opt = self[opt_name]
             if type(val) not in opt.types:

@@ -123,7 +123,7 @@ def main():
                           "Otherwise hdlmake doesn't know how to simulate the project")
             quit()
         tool_name = top_mod.sim_tool
-    logging.info('import tool module: ' + tool_name)
+    logging.debug('import tool module: ' + tool_name)
     try:
         tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
     except Exception as e:
