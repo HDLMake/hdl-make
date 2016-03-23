@@ -1219,10 +1219,3 @@ http://www.ohwr.org/projects/fpga-config-space/wiki
 Force hdlmake to generate the makefile, even if the specified tool is missing.
 
 
-``--allow-unknown``
---------------------------
-
-.. warning:: this is an experimental feature!!
-
-Allow the insertion of new options or variables inside the child Manifest. Is this is option is not specified, the only place in which new options or variables can be defined is the top Manifest.
-
