@@ -104,37 +104,8 @@ def main():
 
     modules_pool.process_top_module_manifest()
 
-    #
-    # Load global tool object (global_mod.py)
-    #
-    if not top_mod.action:
-        logging.error("`action' manifest variable has to be specified. "
-                      "Otherwise hdlmake doesn't know how to handle the project")
-        quit()
-    if top_mod.action == "synthesis":
-        if not top_mod.syn_tool:
-            logging.error("`syn_tool' manifest variable has to be specified. "
-                          "Otherwise hdlmake doesn't know how to synthesize the project")
-            quit()
-        tool_name = top_mod.syn_tool
-    elif top_mod.action == "simulation":
-        if not top_mod.sim_tool:
-            logging.error("`sim_tool' manifest variable has to be specified. "
-                          "Otherwise hdlmake doesn't know how to simulate the project")
-            quit()
-        tool_name = top_mod.sim_tool
-    logging.debug('import tool module: ' + tool_name)
-    try:
-        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-    except Exception as e:
-        logging.error(e)
-        quit()
-
-    global_mod.tool_module = tool_module
-
-
     #env.top_module = modules_pool.get_top_module()
-    env.check_env(verbose=False)
+    #env.check_env(verbose=False)
     #env.check_env_wrt_manifest(verbose=False)
 
 
@@ -146,16 +117,13 @@ def main():
     if options.command == "check-env":
         env.check_env(verbose=True)
         quit()
-
-    if options.command == "check-manifest":
+    elif options.command == "check-manifest":
         env.check_manifest(modules_pool.get_top_module().manifest, verbose=True)
         quit()
-
-    if options.command == "manifest-help":
+    elif options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
-
-    if options.command == "auto":
+    elif options.command == "auto":
         logging.info("Running automatic flow.")
         if not top_mod.action:
             logging.error("`action' manifest variable has to be specified. "
@@ -177,18 +145,12 @@ def main():
                 GenerateSynthesisMakefile,
                 GenerateRemoteSynthesisMakefile
             ]
-            
-            # TODO: I advocate for removing the remote options -- too much pain, too little gain!!
-            # Why shouldn't we directly use ssh, screen, scp and rsync on a remote HDLMake deployment??
-
-    #elif options.command == "make-simulation":
-    #    action = [ GenerateSimulationMakefile ]
-    #elif options.command == "make-fetch":
-    #    action = [ GenerateFetchMakefile ]
-    #elif options.command == "make-ise":
-    #    action = [ GenerateSynthesisMakefile ]
-    #elif options.command == "make-remote":
-    #    action = [ GenerateRemoteSynthesisMakefile ]
+    elif options.command == "make-simulation":
+        action = [ GenerateSimulationMakefile ]
+    elif options.command == "make-fetch":
+        action = [ GenerateFetchMakefile ]
+    elif options.command == "make-remote":
+        action = [ GenerateRemoteSynthesisMakefile ]
     elif options.command == "fetch":
         action = [ FetchModules ]
     elif options.command == "clean":
@@ -199,10 +161,6 @@ def main():
         action = [ ListFiles ]
     elif options.command == "merge-cores":
         action = [ MergeCores ]
-    elif options.command == "ise-project":
-        action = [ GenerateSynthesisProject ]
-    elif options.command == "quartus-project":
-        action = [ GenerateSynthesisProject ]
     elif options.command == "project":
         action = [ GenerateSynthesisProject ]
 

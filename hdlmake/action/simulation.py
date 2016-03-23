@@ -23,6 +23,7 @@
 from __future__ import print_function
 import logging
 import sys
+import importlib
 
 from hdlmake.dep_file import DepFile
 import hdlmake.new_dep_solver as dep_solver
@@ -44,9 +45,14 @@ class GenerateSimulationMakefile(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_object = global_mod.tool_module.ToolControls()
+        tool_name = self.modules_pool.get_top_module().sim_tool
+        try:
+            tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
+        except Exception as e:
+            logging.error(e)
+            quit()
+        tool_object = tool_module.ToolControls()
         self._generate_simulation_makefile(tool_object)
-        logging.info("Simulation makefile generated.")
 
 
     def _generate_simulation_makefile(self, tool_object):
@@ -60,6 +66,10 @@ class GenerateSimulationMakefile(Action):
         path_key = tool_info['id'] + '_path'
         version_key = tool_info['id'] + '_version'
         name = tool_info['name']
+
+        self.env.check_tool(tool_object)
+        self.env.check_general()
+
         
         if self.env[path_key] is None and self.options.force is not True:
             logging.error("Can't generate a " + name + " makefile. " + bin_name + " not found.")

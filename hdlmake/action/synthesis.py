@@ -23,6 +23,7 @@
 from __future__ import print_function
 import logging
 import sys
+import importlib
 
 from hdlmake import global_mod
 
@@ -44,7 +45,13 @@ class GenerateSynthesisMakefile(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_object = global_mod.tool_module.ToolControls()
+        tool_name = self.modules_pool.get_top_module().syn_tool
+        try:
+            tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
+        except Exception as e:
+            logging.error(e)
+            quit()
+        tool_object = tool_module.ToolControls()
         self._generate_synthesis_makefile(tool_object)
 
 

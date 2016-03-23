@@ -70,10 +70,10 @@ class Env(dict):
     def check_env(self, verbose=True):
         print.set_verbose(verbose)
         # Check and determine general environment
-        self._check_general()
-        tool_object = global_mod.tool_module.ToolControls()      
-        self._check_tool(tool_object)
-        self._check_remote_tool(tool_object)
+        self.check_general()
+        #tool_object = global_mod.tool_module.ToolControls()      
+        #self._check_tool(tool_object)
+        #self._check_remote_tool(tool_object)
 
 
     def _get(self, name):
@@ -105,7 +105,7 @@ class Env(dict):
             return False
 
 
-    def _check_general(self):
+    def check_general(self):
         self["architecture"] = 64 if _64bit_architecture else 32
         self["platform"] = sys.platform
         print("Architecture: %s" % self["architecture"])
@@ -120,7 +120,7 @@ class Env(dict):
             print("'fetchto' variables in the manifests will be respected when fetching.")
 
 
-    def _check_tool(self, info_class):
+    def check_tool(self, info_class):
         
         tool_info = info_class.get_keys()
         if sys.platform == 'cygwin':
@@ -150,7 +150,7 @@ class Env(dict):
             print("Detected " + name +" version %s" % self[version_key])
 
 
-    def _check_remote_tool(self, info_class):
+    def check_remote_tool(self, info_class):
 
         tool_info = info_class.get_keys()
         remote_path_key = 'rsynth_' + tool_info['id'] + '_path'

@@ -24,6 +24,7 @@ from __future__ import print_function
 import logging
 import sys
 import os
+import importlib
 
 from hdlmake.srcfile import SourceFileFactory
 from hdlmake.dependable_file import DependableFile
@@ -55,7 +56,13 @@ class GenerateSynthesisProject(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_object = global_mod.tool_module.ToolControls()   
+        tool_name = self.modules_pool.get_top_module().syn_tool
+        try:
+            tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
+        except Exception as e:
+            logging.error(e)
+            quit()
+        tool_object = tool_module.ToolControls()
         self._generate_synthesis_project(tool_object)
 
 
@@ -143,6 +150,9 @@ end sdb_meta_pkg;""")
         ext_value = tool_info['project_ext']
 
         env = self.env
+        env.check_general()
+        env.check_tool(tool_object)
+
         if not self.options.force:
             if self.env[path_key] is None:
                 logging.error("Can't generate the " + name + " project. " + name + " not found.")

@@ -90,8 +90,8 @@ def solve(fileset):
                 continue
             if rel.rel_type is DepRelation.INCLUDE:  # INCLUDE are already solved by preprocessor
                 continue
-            if rel.library() in global_mod.tool_module.ToolControls().get_standard_libraries():  # dont care about standard libs
-                continue
+            #if rel.library() in global_mod.tool_module.ToolControls().get_standard_libraries():  # dont care about standard libs
+            #    continue
             satisfied_by = set()
             for dep_file in fset:
                # if dep_file is investigated_file:
