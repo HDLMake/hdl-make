@@ -40,32 +40,26 @@ def _convert_to_source_name(source_code):
 
 class ListModules(Action):
     def run(self):
-        if self.options.withfiles:
-            for m in self.modules_pool:
-                if not m.isfetched:
-                    print("#!UNFETCHED")
-                    print(m.url+'\n')
+        for m in self.modules_pool:
+            if not m.isfetched:
+                if not self.options.terse: print("# MODULE UNFETCHED! -> %s" % m.url)
+            else:
+                if not self.options.terse: print("# MODULE START -> %s" % m.url)
+                if m.source in [fetch.SVN, fetch.GIT]:
+                    if not self.options.terse: print("# * URL: "+m.url)
+                elif m.source == fetch.GITSUBMODULE:
+                    if not self.options.terse: print("# * This is a submodule of: %s" % m.parent.url)
+                if m.source in [fetch.SVN, fetch.GIT, fetch.LOCAL] and m.parent:
+                    if not self.options.terse: print("# * The parent for this module is: %s" % m.parent.url)
                 else:
-                    print(path.relpath(m.path))
-                    if m.source in [fetch.SVN, fetch.GIT]:
-                        print("# "+m.url)
-                    elif m.source == fetch.GITSUBMODULE:
-                        print("# submodule of: %s" % m.parent.url)
-                    if m.source in [fetch.SVN, fetch.GIT, fetch.LOCAL] and m.parent:
-                        print("# parent: %s" % m.parent.url)
-                    else:
-                        print("# root module")
+                    if not self.options.terse: print("# * This is the root module")
+                print("%s\t%s" % (path.relpath(m.path), _convert_to_source_name(m.source)))
+                if self.options.withfiles:
                     if not len(m.files):
-                        print("   # no files")
+                        if not self.options.terse: print("# * This module has no files")
                     else:
                         for f in m.files:
-                            print("   " + path.relpath(f.path, m.path))
-                    print("")
-        else:
-            print("#path\tsource")
-            for m in self.modules_pool:
-                if not m.isfetched:
-                    print("# UNFETCHED! -> %s" % m.url)
-                else:
-                    print("%s\t%s" % (path.relpath(m.path), _convert_to_source_name(m.source)))
+                            print("%s\t%s" % (path.relpath(f.path), "file"))
+                if not self.options.terse: print("# MODULE END -> %s" % m.url)
+            if not self.options.terse: print("")
 
