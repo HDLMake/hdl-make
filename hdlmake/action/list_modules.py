@@ -21,6 +21,8 @@
 
 from __future__ import absolute_import
 
+import logging
+
 from hdlmake.util import path
 import hdlmake.fetch as fetch
 
@@ -42,6 +44,7 @@ class ListModules(Action):
     def run(self):
         for m in self.modules_pool:
             if not m.isfetched:
+                logging.warning("Module not fetched: %s" % m.url)
                 if not self.options.terse: print("# MODULE UNFETCHED! -> %s" % m.url)
             else:
                 if not self.options.terse: print("# MODULE START -> %s" % m.url)
