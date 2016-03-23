@@ -20,13 +20,16 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from .action import Action
-
+import logging
 
 class ListFiles(Action):
     def run(self):
+        unfetched_modules = False
         files_str = []
         for m in self.modules_pool:
             if not m.isfetched:
-                continue
-            files_str.append(self.options.delimiter.join([f.path for f in m.files]))
+                unfetched_modules = True
+            else:
+                files_str.append(self.options.delimiter.join([f.path for f in m.files]))
+        if unfetched_modules: logging.warning("Some of the modules have not been fetched!")
         print(" ".join(files_str))
