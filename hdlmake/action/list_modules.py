@@ -64,5 +64,8 @@ class ListModules(Action):
         else:
             print("#path\tsource")
             for m in self.modules_pool:
-                print("%s\t%s" % (path.relpath(m.path), _convert_to_source_name(m.source)))
+                if not m.isfetched:
+                    print("# UNFETCHED! -> %s" % m.url)
+                else:
+                    print("%s\t%s" % (path.relpath(m.path), _convert_to_source_name(m.source)))
 
