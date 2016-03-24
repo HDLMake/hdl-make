@@ -951,21 +951,75 @@ remove all modules fetched for direct and indirect children of this module
 
 List modules (``list-mods``)
 ----------------------------
-List all modules involved in the design described by the top manifest. In addition to the module path & name, a code number indicating the module origin will be returned for each of the modules. These number means:
+List all the modules involved in the design described by the top manifest and its children hierarchy. The output list will be printed in stdout, being each of the modules represented by a single text line made up of two entries separated by a tab. The first entry in a line associated to a module is the relative path to the specific directory where the module is stored, while the second entry is a identifier indicating the origin of the module.
 
-+------+--------+
-| Code | Origin |
-+======+========+
-| 1    | GIT    |
-+------+--------+
-| 2    | SVN    |
-+------+--------+
-| 3    | Local  |
-+------+--------+
+.. note:: the hierarchy will be built considering that the Manifest.py stored in the folder from which we all launching the command is the root one.
+
+If we provide the ``--with-files`` argument to ``list-mods``, the files being directly included by a specific module will be printed just after the line pointing to this specific module. Each of the printed lines associated to a file will be composed by two entries too, the first one pointing to the relative path to the file and the second one indicating that the resource is a file.
+
+In addition to the lines representing modules and files, ``list-mods`` will also print to standard output some comments providing additional information about the structure of the module hierarchy. This modules will start with a ``#`` sign, following in this way the usual shell convention. By providing the ``--terse`` argument to ``list-mods``, the comment lines won't be printed to stdout, being only printed those lines representing an actual resource (module or file).
+
+Summing everything up, the following table compiles the different kind of resources that can be printed when listing the modules:
+
++--------------------+---------------------------------------------------------------------------+
+| Code               | Origin                                                                    |
++====================+===========================================================================+
+| ``local``          | this module is stored in the local host                                   |
++--------------------+---------------------------------------------------------------------------+
+| ``git``            | this is a module hosted in a GIT repository                               |
++--------------------+---------------------------------------------------------------------------+
+| ``git_submodule``  | this module is a GIT submodule from a previous GIT hosted module          |
++--------------------+---------------------------------------------------------------------------+
+| ``svn``            | this is a module hosted in a SVN repository                               |
++--------------------+---------------------------------------------------------------------------+
+| ``file``           | this is a file (included by the module that has been previously printed)  |
++--------------------+---------------------------------------------------------------------------+
+
+Now, here we have some examples of the outputs we should expect when using the ``list-mods`` command:
+
+.. code-block:: bash
+   
+   user@host:~/hdl-make/tests/counter/syn/spec_v4_ise/vhdl$ hdlmake list-mods --with-files
+   # MODULE START -> git@ohwr.org:misc/hdl-make.git
+   # * This is the root module
+   .	local
+   # * This module has no files
+   # MODULE END -> git@ohwr.org:misc/hdl-make.git
+
+   # MODULE START -> /home/javi/Workspace/hdl-make-test/tests/counter/top/spec_v4/vhdl
+   # * The parent for this module is: git@ohwr.org:misc/hdl-make.git
+   ../../../top/spec_v4/vhdl	local
+   ../../../top/spec_v4/spec_top.ucf	file
+   ../../../top/spec_v4/vhdl/spec_top.vhd	file
+   # MODULE END -> /home/javi/Workspace/hdl-make-test/tests/counter/top/spec_v4/vhdl
+
+   # MODULE START -> /home/javi/Workspace/hdl-make-test/tests/counter/modules/counter/vhdl
+   # * The parent for this module is: /home/javi/Workspace/hdl-make-test/tests/counter/top/spec_v4/vhdl
+   ../../../modules/counter/vhdl	local
+   ../../../modules/counter/vhdl/counter.vhd	file
+   # MODULE END -> /home/javi/Workspace/hdl-make-test/tests/counter/modules/counter/vhdl
+
+
+   user@host:~/hdl-make/tests/counter/syn/spec_v4_ise/vhdl$ hdlmake list-mods --with-files --terse
+   .	local
+   ../../../top/spec_v4/vhdl	local
+   ../../../top/spec_v4/spec_top.ucf	file
+   ../../../top/spec_v4/vhdl/spec_top.vhd	file
+   ../../../modules/counter/vhdl	local
+   ../../../modules/counter/vhdl/counter.vhd	file
+
+
+   user@host:~/hdl-make/tests/counter/syn/spec_v4_ise/vhdl$ hdlmake list-mods --terse
+   .	local
+   ../../../top/spec_v4/vhdl	local
+   ../../../modules/counter/vhdl	local
+
 
 List files (``list-files``)
 ---------------------------
-List all the files that are defined inside all the modules in the hierachy in the form of a space-separated string
+List all the files that are defined inside all of the modules included in the hierachy in the form of a space-separated string and print this list to stdout.
+
+.. note:: the file list will be built considering that the Manifest.py stored in the folder from which we all launching the command is the root one.
 
 Merge the different cores of a project (``merge-cores``)
 --------------------------------------------------------
