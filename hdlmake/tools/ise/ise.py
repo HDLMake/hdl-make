@@ -231,18 +231,34 @@ webtalk_pn.xml \
 run.tcl
 
 #target for performing local synthesis
-local: syn_pre_cmd check_tool generate_tcl synthesis syn_post_cmd
+local: bitstream
 
-generate_tcl:
-\t\techo "project open $$(PROJECT)" > run.tcl
-\t\techo "process run {Synthesize - XST}" >> run.tcl
-\t\techo "process run {Translate}" >> run.tcl
-\t\techo "process run {Map}" >> run.tcl
-\t\techo "process run {Place & Route}" >> run.tcl
-\t\techo "process run {Generate Programming File}" >> run.tcl
 
-synthesis:
-\t\t${xtclsh_path} run.tcl
+synthesize:
+\t\techo "project open $$(PROJECT)" > run_synthesize.tcl
+\t\techo "process run {Synthesize - XST}" >> run_synthesize.tcl
+\t\t${xtclsh_path} run_synthesize.tcl
+
+translate:
+\t\techo "project open $$(PROJECT)" > run_translate.tcl
+\t\techo "process run {Translate}" >> run_translate.tcl
+\t\t${xtclsh_path} run_translate.tcl
+
+map:
+\t\techo "project open $$(PROJECT)" > run_map.tcl
+\t\techo "process run {Map}" >> run_map.tcl
+\t\t${xtclsh_path} run_map.tcl
+
+par:
+\t\techo "project open $$(PROJECT)" > run_par.tcl
+\t\techo "process run {Place & Route}" >> run_par.tcl
+\t\t${xtclsh_path} run_par.tcl
+
+bitstream:
+\t\techo "project open $$(PROJECT)" > run_bitstream.tcl
+\t\techo "process run {Generate Programming File}" >> run_bitstream.tcl
+\t\t${xtclsh_path} run_bitstream.tcl
+
 
 check_tool:
 \t\t${check_tool}
@@ -262,7 +278,7 @@ clean:
 mrproper:
 \t\trm -f *.bit *.bin *.mcs
 
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local check_tool
+.PHONY: mrproper clean syn_pre_cmd syn_post_cmd local check_tool
 
 """)
         if top_mod.syn_pre_cmd:
