@@ -56,32 +56,6 @@ class GenerateRemoteSynthesisMakefile(Action):
         self._generate_remote_synthesis_makefile(tool_object)
 
 
-
-    #def _search_tcl_file(self, directory=None):
-    #    # This function is used in _generate_remote_ise_makefile
-    #    if directory is None:
-    #        directory = "."
-    #    filenames = os.listdir(directory)
-    #    tcls = []
-    #    for filename in filenames:
-    #        file_parts = filename.split('.')
-    #        if file_parts[len(file_parts)-1] == "tcl":
-    #            tcls.append(filename)
-    #    if len(tcls) == 0:
-    #        return None
-    #    if len(tcls) > 1:
-    #        logging.warning("Multiple tcls in the current directory: " + str(tcls) + "\n" +
-    #                        "Picking the first one: " + tcls[0])
-    #    return tcls[0]
-
-    #def _generate_tcl(self):
-    #    # This function is used in _generate_remote_ise_makefile
-    #    f = open("run.tcl", "w")
-    #    f.write("project open " + self.top_module.syn_project + '\n')
-    #    f.write("process run {Generate Programming File} -force rerun_all\n")
-    #    f.close()
-
-
     def _generate_remote_synthesis_makefile(self, tool_object):
 
         logging.info("Generating makefile for remote synthesis.")
@@ -91,14 +65,9 @@ class GenerateRemoteSynthesisMakefile(Action):
         self.env.check_remote_tool(tool_object)
         self.env.check_general()
 
-        #tcl = self._search_tcl_file()
-        #if tcl is None:
-        #    self._generate_tcl()
-        #    tcl = "run.tcl"
         files = self.modules_pool.build_global_file_set()
 
         sff = SourceFileFactory()
-        files.add(sff.new("run.tcl", module=None))
         files.add(sff.new(top_mod.syn_project, module=None))
 
         tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,

@@ -146,9 +146,13 @@ endif
         self.writeln(files_tmpl.format(' \\\n'.join([s.rel_path() for s in files])))
         self.writeln("")
         self.writeln("#target for running synthesis in the remote location")
-        self.writeln("remote: __test_for_remote_synthesis_variables generate_tcl __send __do_synthesis")
+        self.writeln("remote: remote_bitstream")
         self.writeln("__send_back: __do_synthesis")
-        self.writeln("__do_synthesis: __send")
+        self.writeln("remote_synthesize: __gen_tcl_synthesize __send")
+        self.writeln("remote_translate: __gen_tcl_translate __send")
+        self.writeln("remote_map: __gen_tcl_map __send")
+        self.writeln("remote_par: __gen_tcl_par __send")
+        self.writeln("remote_bitstream: __gen_tcl_bitstream __send")
         self.writeln("__send: __test_for_remote_synthesis_variables")
         self.writeln("")
 
@@ -158,15 +162,19 @@ endif
         self.writeln(send_cmd)
         self.writeln("")
 
-        tcl = "run.tcl"
-        synthesis_cmd = """__do_synthesis:
+        synthesis_cmd = """remote_{0}:
+\t\trsync -e 'ssh -p $(PORT)' -Ravl $(shell readlink -f run_{0}.tcl) $(USER)@$(SERVER):$(R_NAME)
 ifeq (x$(HDLMAKE_RSYNTH_USE_SCREEN), x1)
-\t\tssh -t $(USER)@$(SERVER) 'screen bash -c "cd $(R_NAME)$(CWD) && $(HDLMAKE_RSYNTH_ISE_PATH)/xtclsh {0}"'
+\t\tssh -t $(USER)@$(SERVER) 'screen bash -c "cd $(R_NAME)$(CWD) && $(HDLMAKE_RSYNTH_ISE_PATH)/xtclsh run_{0}.tcl"'
 else
-\t\tssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && $(HDLMAKE_RSYNTH_ISE_PATH)/xtclsh {0}'
+\t\tssh $(USER)@$(SERVER) 'cd $(R_NAME)$(CWD) && $(HDLMAKE_RSYNTH_ISE_PATH)/xtclsh run_{0}.tcl'
 endif
 """
-        self.writeln(synthesis_cmd.format(tcl))
+        self.writeln(synthesis_cmd.format('synthesize'))
+        self.writeln(synthesis_cmd.format('translate'))
+        self.writeln(synthesis_cmd.format('map'))
+        self.writeln(synthesis_cmd.format('par'))
+        self.writeln(synthesis_cmd.format('bitstream'))
 
         self.writeln()
         send_back_cmd = "sync: \n\t\tcd .. && rsync -av $(USER)@$(SERVER):$(R_NAME)/$(CWD) . && cd $(CWD)"
@@ -228,35 +236,50 @@ usage_statistics_webtalk.html \
 par_usage_statistics.html \
 webtalk.log \
 webtalk_pn.xml \
-run.tcl
+run_synthesize.tcl \
+run_translate.tcl \
+run_map.tcl \
+run_par.tcl \
+run_bitstream.tcl
 
 #target for performing local synthesis
 local: bitstream
 
 
-synthesize:
+__gen_tcl_synthesize:
 \t\techo "project open $$(PROJECT)" > run_synthesize.tcl
 \t\techo "process run {Synthesize - XST}" >> run_synthesize.tcl
-\t\t${xtclsh_path} run_synthesize.tcl
 
-translate:
+__gen_tcl_translate:
 \t\techo "project open $$(PROJECT)" > run_translate.tcl
 \t\techo "process run {Translate}" >> run_translate.tcl
-\t\t${xtclsh_path} run_translate.tcl
 
-map:
+__gen_tcl_map:
 \t\techo "project open $$(PROJECT)" > run_map.tcl
 \t\techo "process run {Map}" >> run_map.tcl
-\t\t${xtclsh_path} run_map.tcl
 
-par:
+__gen_tcl_par:
 \t\techo "project open $$(PROJECT)" > run_par.tcl
 \t\techo "process run {Place & Route}" >> run_par.tcl
-\t\t${xtclsh_path} run_par.tcl
 
-bitstream:
+__gen_tcl_bitstream:
 \t\techo "project open $$(PROJECT)" > run_bitstream.tcl
 \t\techo "process run {Generate Programming File}" >> run_bitstream.tcl
+
+
+synthesize: __gen_tcl_synthesize
+\t\t${xtclsh_path} run_synthesize.tcl
+
+translate: __gen_tcl_translate
+\t\t${xtclsh_path} run_translate.tcl
+
+map: __gen_tcl_map
+\t\t${xtclsh_path} run_map.tcl
+
+par: __gen_tcl_par
+\t\t${xtclsh_path} run_par.tcl
+
+bitstream: __gen_tcl_bitstream
 \t\t${xtclsh_path} run_bitstream.tcl
 
 
