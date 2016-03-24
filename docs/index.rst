@@ -1017,9 +1017,11 @@ Now, here we have some examples of the outputs we should expect when using the `
 
 List files (``list-files``)
 ---------------------------
-List all the files that are defined inside all of the modules included in the hierachy in the form of a space-separated string and print this list to stdout.
+List all the files that are defined inside all of the modules included in the hierachy in the form of a string of elements separated by a DELIMITER and print this list to stdout.
 
-.. note:: the file list will be built considering that the Manifest.py stored in the folder from which we all launching the command is the root one.
+The DELIMITER is defaulted to a white space, but it can be defined by using the ``--delimiter DELIMITER`` argument for the ``list-files`` command.
+
+.. note:: the file list will be built considering that the Manifest.py stored in the folder from which we are launching the command is the root one.
 
 Merge the different cores of a project (``merge-cores``)
 --------------------------------------------------------
