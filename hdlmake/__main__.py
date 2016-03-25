@@ -35,7 +35,7 @@ from .module_pool import ModulePool
 from .env import Env
 from . import fetch as fetch_mod
 from .action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMakefile, ListFiles,
-                    ListModules, MergeCores, GenerateSimulationMakefile,
+                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
                     GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject)
 from ._version import __version__
 
@@ -163,6 +163,8 @@ def main():
         action = [ MergeCores ]
     elif options.command == "project":
         action = [ GenerateSynthesisProject ]
+    elif options.command == "tree":
+        action = [ Tree ]
 
     try:
         for command in action:
@@ -221,7 +223,10 @@ def _get_parser():
                           dest="generate_project_vhd", default=False, action="store_true")
     quartus_proj = subparsers.add_parser("quartus-project", help="create/update a quartus project including list of project")
     synthesis_proj = subparsers.add_parser("project", help="create/update a project for the appropriated tool")
-
+    tree = subparsers.add_parser("tree", help="generate a module hierarchy tree")
+    tree.add_argument("--with-files", help="Add files to the module hierarchy tree", default=False, action="store_true", dest="withfiles")
+    tree.add_argument("--graphviz", dest="graphviz", default=None, help="Activate graphviz and specify the program to be used to plot the graph (twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, circo, neato, acyclic, nop, gvpr, dot, sfdp)")
+    tree.add_argument("--web", help="Edit the tree hierarchy in a web browser", default=False, action="store_true", dest="web")
     condition_check = argparse.ArgumentParser()
     condition_check.add_argument("--tool", dest="tool", required=True)
     condition_check.add_argument("--reference", dest="reference", required=True)
@@ -238,7 +243,7 @@ def _get_parser():
                         default="", help="add arbitrary code when evaluation all manifests")
 
     parser.add_argument("--log", dest="log",
-                        default="info", help="set logging level (one of debug, info, warning, error, critical")
+                        default="info", help="set logging level (one of debug, info, warning, error, critical)")
     parser.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
                           dest="generate_project_vhd", default=False, action="store_true")
     parser.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")

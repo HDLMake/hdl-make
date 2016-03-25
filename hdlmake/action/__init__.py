@@ -28,6 +28,7 @@ from .fetch_makefile import GenerateFetchMakefile
 from .list_files import ListFiles
 from .list_modules import ListModules
 from .merge_cores import MergeCores
+from .tree import Tree
 
 from .synthesis_project import GenerateSynthesisProject
 from .synthesis import GenerateSynthesisMakefile
