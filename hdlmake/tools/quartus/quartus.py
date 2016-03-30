@@ -270,7 +270,8 @@ mrproper:
         import re
         family_names = {
             "^EP2AGX.*$": "Arria II GX",
-            "^EP3C.*$": "Cyclone III"
+            "^EP3C.*$": "Cyclone III",
+            "^EP4CE.*$": "Cyclone IV E",
         }
 
         for key in family_names:
