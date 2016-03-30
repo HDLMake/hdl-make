@@ -163,6 +163,10 @@ class PDCFile(File):
 class WBGenFile(File):
     pass
 
+class QSFFile(File):
+    # Quartus Settings File
+    pass
+
 
 class SourceFileSet(set):
     def __init__(self):
@@ -276,4 +280,6 @@ class SourceFileFactory:
             nf = EDFFile(path=path, module=module)
         elif extension == 'pdc':
             nf = PDCFile(path=path, module=module)
+        elif extension == 'qsf':
+            nf = QSFFile(path=path, module=module)
         return nf

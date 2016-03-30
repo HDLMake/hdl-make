@@ -178,7 +178,7 @@ mrproper:
         return pre+'\n'+mod+'\n'+post+'\n'
 
     def __emit_files(self):
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile, QSFFile
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
         ret = []
@@ -195,6 +195,8 @@ mrproper:
                 line = tmp.format("QIP_FILE", f.rel_path())
             elif isinstance(f, DPFFile):
                 line = tmp.format("MISC_FILE", f.rel_path())
+            elif isinstance(f, QSFFile):
+                line = tmp.format("SOURCE_TCL_SCRIPT_FILE", f.rel_path())
             else:
                 continue
             ret.append(line)
