@@ -180,10 +180,11 @@ mrproper:
     def __emit_files(self):
         from hdlmake.srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile
         tmp = "set_global_assignment -name {0} {1}"
+        tmplib = tmp + " -library {2}"
         ret = []
         for f in self.files:
             if isinstance(f, VHDLFile):
-                line = tmp.format("VHDL_FILE", f.rel_path())
+                line = tmplib.format("VHDL_FILE", f.rel_path(), f.library)
             elif isinstance(f, VerilogFile):
                 line = tmp.format("VERILOG_FILE", f.rel_path())
             elif isinstance(f, SignalTapFile):
