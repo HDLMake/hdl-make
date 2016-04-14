@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 - 2015 CERN
+# Copyright (c) 2013 - 2016 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -178,7 +178,8 @@ mrproper:
         return pre+'\n'+mod+'\n'+post+'\n'
 
     def __emit_files(self):
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile, QSFFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile,
+            QSFFile, BSFFile, BDFFile, TDFFile, GDFFile
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
         ret = []
@@ -197,6 +198,14 @@ mrproper:
                 line = tmp.format("MISC_FILE", f.rel_path())
             elif isinstance(f, QSFFile):
                 line = tmp.format("SOURCE_TCL_SCRIPT_FILE", f.rel_path())
+            elif isinstance(f, BSFFile):
+                line = tmp.format("BSF_FILE", f.rel_path())
+            elif isinstance(f, BDFFile):
+                line = tmp.format("BDF_FILE", f.rel_path())
+            elif isinstance(f, TDFFile):
+                line = tmp.format("AHDL_FILE", f.rel_path())
+            elif isinstance(f, GDFFile):
+                line = tmp.format("GDF_FILE", f.rel_path())
             else:
                 continue
             ret.append(line)

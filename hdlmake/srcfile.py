@@ -167,6 +167,23 @@ class QSFFile(File):
     # Quartus Settings File
     pass
 
+class BSFFile(File):
+    # Quartus Block Symbol File
+    pass
+
+class BDFFile(File):
+    # Quartus Block Design File
+    pass
+
+class TDFFile(File):
+    # Quartus Text Design File
+    pass
+
+class GDFFile(File):
+    # Quartus Graphic Design File
+    pass
+
+
 
 class SourceFileSet(set):
     def __init__(self):
@@ -282,4 +299,12 @@ class SourceFileFactory:
             nf = PDCFile(path=path, module=module)
         elif extension == 'qsf':
             nf = QSFFile(path=path, module=module)
+        elif extension == 'bsf':
+            nf = BSFFile(path=path, module=module)
+        elif extension == 'bdf':
+            nf = BDFFile(path=path, module=module)
+        elif extension == 'tdf':
+            nf = TDFFile(path=path, module=module)
+        elif extension == 'gdf':
+            nf = GDFFile(path=path, module=module)
         return nf
