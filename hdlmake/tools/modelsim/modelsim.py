@@ -30,7 +30,7 @@ from ..common.sim_makefile_support import VsimMakefileWriter
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
-MODELSIM_STANDARD_LIBS = ['ieee', 'std']
+MODELSIM_STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
 
 
 class ToolControls(VsimMakefileWriter):
