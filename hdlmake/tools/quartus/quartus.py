@@ -23,6 +23,9 @@
 
 import os
 import string
+from string import Template
+import fetch
+import logging
 
 from hdlmake.makefile_writer import MakefileWriter
 
@@ -283,7 +286,7 @@ mrproper:
         family_names = {
             "^EP2AGX.*$": "Arria II GX",
             "^EP3C.*$": "Cyclone III",
-            "^EP4CE.*$": "Cyclone IV E",
+            "^5S.*$": "Stratix V",
         }
 
         for key in family_names:
