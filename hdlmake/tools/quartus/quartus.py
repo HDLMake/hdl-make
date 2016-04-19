@@ -27,6 +27,7 @@ import sys
 import string
 from string import Template
 import fetch
+import logging
 
 from makefile_writer import MakefileWriter
 
@@ -274,7 +275,8 @@ mrproper:
         import re
         family_names = {
             "^EP2AGX.*$": "Arria II GX",
-            "^EP3C.*$": "Cyclone III"
+            "^EP3C.*$": "Cyclone III",
+            "^5S.*$": "Stratix V",
         }
 
         for key in family_names:
