@@ -98,7 +98,8 @@ def solve(fileset):
                # if dep_file is investigated_file:
                #     continue
                 if dep_file.satisfies(rel):
-                    investigated_file.depends_on.add(dep_file)
+                    if dep_file is not investigated_file:
+                        investigated_file.depends_on.add(dep_file)
                     satisfied_by.add(dep_file)
             if len(satisfied_by) > 1:
                 logging.warning("Relation %s satisfied by multpiple (%d) files: %s",

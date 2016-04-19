@@ -80,7 +80,16 @@ class VHDLParser(DepParser):
             dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1).lower()),
                                               DepRelation.PROVIDE,
                                               DepRelation.ENTITY))
-        re.subn(entity_pattern, do_entity, buf)
+        re.subn(entity_pattern, do_entity, buf)    
+
+        #new architecture
+        architecture_pattern = re.compile("^\s*architecture\s+(\w+)\s+of\s+(\w+)\s+is", re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        def do_architecture(s) :
+            logging.debug("found architecture %s of entity %s.%s" % ( s.group(1), dep_file.library, s.group(2) ) )
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2).lower()),
+                                              DepRelation.USE,
+                                              DepRelation.ENTITY))
+        re.subn(architecture_pattern, do_architecture, buf)
         
         #new package
         package_pattern = re.compile("^\s*package\s+(\w+)\s+is",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
