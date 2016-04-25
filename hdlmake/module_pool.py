@@ -204,10 +204,20 @@ class ModulePool(list):
 
         return all_manifested_files
 
+    def build_limited_file_set(self, top_entity=None):
+        if not top_entity:
+            top_entity = self.top_module.top_module
+        self.solve_dependencies();
+        files = dep_solver.make_dependency_set(self.build_file_set(),top_entity)
+        from srcfile import SourceFileSet
+        source_files = SourceFileSet()
+        source_files.add(files)
+        return source_files
+
     def build_global_file_set(self):
         """Build set of all files from manifests plus all include files from sources"""
         from srcfile import SourceFileSet   
-        files = self.build_file_set()
+        files = self.build_limited_file_set()
         assert isinstance(files, SourceFileSet)
         self.solve_dependencies()
         ret = []

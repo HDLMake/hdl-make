@@ -20,13 +20,20 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
 from action import Action
-
+import new_dep_solver as dep_solver
 
 class ListFiles(Action):
     def run(self):
-        files_str = []
-        for m in self.modules_pool:
-            if not m.isfetched:
-                continue
-            files_str.append(self.options.delimiter.join([f.path for f in m.files]))
-        print(" ".join(files_str))
+        file_set = self.modules_pool.build_limited_file_set()
+        file_list = dep_solver.make_dependency_sorted_list(file_set)
+        files_str = [f.path for f in file_list]
+        print(self.options.delimiter.join(files_str))
+
+# class ListFiles(Action):
+#     def run(self):
+#         files_str = []
+#         for m in self.modules_pool:
+#             if not m.isfetched:
+#                 continue
+#             files_str.append(self.options.delimiter.join([f.path for f in m.files]))
+#         print(" ".join(files_str))
