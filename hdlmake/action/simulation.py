@@ -71,9 +71,9 @@ class GenerateSimulationMakefile(Action):
         pool = self.modules_pool
         top_module = pool.get_top_module()
         
-        fset = pool.build_file_set()
+        fset = pool.build_limited_file_set()
         dep_files = fset.filter(DepFile)
-        dep_solver.solve(dep_files)
+        #dep_solver.solve(dep_files)
         
         tool_object.generate_simulation_makefile(dep_files, top_module)
 
