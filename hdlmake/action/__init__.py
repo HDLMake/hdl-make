@@ -34,3 +34,4 @@ from .synthesis_project import GenerateSynthesisProject
 from .synthesis import GenerateSynthesisMakefile
 from .remote_synthesis import GenerateRemoteSynthesisMakefile
 from .simulation import GenerateSimulationMakefile
+from .qsys_hw_tcl_update import QsysHwTclUpdate

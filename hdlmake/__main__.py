@@ -36,7 +36,8 @@ from .env import Env
 from . import fetch as fetch_mod
 from .action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMakefile, ListFiles,
                     ListModules, MergeCores, Tree, GenerateSimulationMakefile,
-                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject)
+                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
+                    QsysHwTclUpdate,)
 from ._version import __version__
 
 #from argument_parser import get_argument_parser
@@ -104,6 +105,35 @@ def main():
 
     modules_pool.process_top_module_manifest()
 
+    #
+    # Load global tool object (global_mod.py)
+    #
+    if not top_mod.action:
+        logging.error("`action' manifest variable has to be specified. "
+                      "Otherwise hdlmake doesn't know how to handle the project")
+        quit()
+    if top_mod.action == "synthesis":
+        if not top_mod.syn_tool:
+            logging.error("`syn_tool' manifest variable has to be specified. "
+                          "Otherwise hdlmake doesn't know how to synthesize the project")
+            quit()
+        tool_name = top_mod.syn_tool
+    elif top_mod.action == "simulation":
+        if not top_mod.sim_tool:
+            logging.error("`sim_tool' manifest variable has to be specified. "
+                          "Otherwise hdlmake doesn't know how to simulate the project")
+            quit()
+        tool_name = top_mod.sim_tool
+    logging.info('import tool module: ' + tool_name)
+    try:
+        tool_module = importlib.import_module("tools.%s.%s" % (tool_name, tool_name))
+    except Exception as e:
+        logging.error(e)
+        quit()
+
+    global_mod.tool_module = tool_module
+
+
     #env.top_module = modules_pool.get_top_module()
     #env.check_env(verbose=False)
     #env.check_env_wrt_manifest(verbose=False)
@@ -127,18 +157,18 @@ def main():
         logging.info("Running automatic flow.")
         if not top_mod.action:
             logging.error("`action' manifest variable has to be specified. "
-                          "Otherwise hdlmake doesn't know how to handle the project")
+                          "Otherwise hdlmake doesn't know how to handle the project.")
             quit()
         if top_mod.action == "simulation":
             if not top_mod.sim_tool:
                 logging.error("`sim_tool' manifest variable has to be specified. "
-                              "Otherwise hdlmake doesn't know how to simulate the project")
+                              "Otherwise hdlmake doesn't know how to simulate the project.")
                 quit()
             action = [ GenerateSimulationMakefile ]
         elif top_mod.action == "synthesis":
             if not top_mod.syn_tool:
                 logging.error("`syn_tool' manifest variable has to be specified. "
-                              "Otherwise hdlmake doesn't know how to synthesize the project")
+                              "Otherwise hdlmake doesn't know how to synthesize the project.")
                 quit()
             action = [
                 GenerateSynthesisProject,
@@ -177,7 +207,7 @@ def main():
         logging.error(e)
         print("Trace:")
         traceback.print_exc()
-        sys.exit("Exiting in failure because exception occurred")
+        sys.exit("Exiting in failure because exception occurred.")
 
 
 def _get_parser():
