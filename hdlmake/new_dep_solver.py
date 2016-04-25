@@ -29,7 +29,6 @@ from srcfile import VHDLFile, VerilogFile, SVFile
 
 import global_mod
 
-
 class DepParser(object):
     def __init__(self, dep_file):
         self.dep_file = dep_file
@@ -52,7 +51,7 @@ class ParserFactory(object):
                 vp.add_search_path(d)
             return vp
         else :
-            raise ValueError("Unecognized file format : %s" % dep_file.file_path)
+            raise ValueError("Unrecognized file format : %s" % dep_file.file_path)
 
 # class DepSolver(object):
 #     def solve(self, vhdl_files):
@@ -95,8 +94,6 @@ def solve(fileset):
                 continue
             satisfied_by = set()
             for dep_file in fset:
-               # if dep_file is investigated_file:
-               #     continue
                 if dep_file.satisfies(rel):
                     if dep_file is not investigated_file:
                         investigated_file.depends_on.add(dep_file)
@@ -118,40 +115,46 @@ def solve(fileset):
 
 
 def make_dependency_sorted_list(fileset, purge_unused=True):
-    # CYCLE_THRESHOLD = 30
-    # ret = list(fileset)
-    # cur_idx = 0
-    # other_file_idx = cur_idx + 1
-    # swapped = 0
-    # while True:
-    #     if swapped >= CYCLE_THRESHOLD:
-    #         cur_idx += 1
-    #     if cur_idx >= len(ret):
-    #         break
-    #     if other_file_idx >= len(ret):
-    #         cur_idx += 1
-    #         other_file_idx = cur_idx + 1
-    #         continue
-    #     dep_file = ret[cur_idx]
-    #     other_file = ret[other_file_idx]
-    #     if other_file in dep_file.depends_on:
-    #         ret[cur_idx], ret[other_file_idx] = ret[other_file_idx], ret[cur_idx]
-    #         other_file_idx = cur_idx + 1
-    #         swapped += 1
-    #     else:
-    #         other_file_idx += 1
-    # return ret
-    def compare_dep_files(f1, f2):
-        if f2 in f1.depends_on:
-            return 1
-        if f1 in f2.depends_on:
-            return -1
-        return 0
-
-    filelist = list(fileset)
-    dependable = [file for file in filelist if isinstance(file, DepFile)]
-    non_depednable = [file for file in filelist if not isinstance(file, DepFile)]
-    ret = non_depednable
-    dependable_sorted = sorted(dependable, cmp=compare_dep_files)
-    ret.extend(dependable_sorted)
-    return ret
+    """Sort files in order of dependency. 
+    Files with no dependencies first. 
+    All files that another depends on will be earlier in the list."""
+    dependable = [f for f in fileset if isinstance(f, DepFile)]
+    non_dependable = [f for f in fileset if not isinstance(f, DepFile)]
+    dependable.sort(key=lambda f: f.file_path.lower()) # Not necessary, but will tend to group files more nicely in the output.
+    dependable.sort(key=DepFile.get_dep_level)
+    return non_dependable + dependable
+    
+def make_dependency_set(fileset, top_level_entity):
+    """Create a set of all files required to build the named top_level_entity."""
+    from srcfile import SourceFileSet
+    from dep_file import DepRelation
+    assert isinstance(fileset, SourceFileSet)
+    fset = fileset.filter(DepFile)
+    # Find the file that provides the named top level entity
+    top_rel = DepRelation(top_level_entity,DepRelation.PROVIDE, DepRelation.ENTITY)
+    top_file = None
+    for chk_file in fset:
+        for rel in chk_file.rels:
+            if rel == top_rel:
+                top_file = chk_file
+                break;
+        if top_file:
+            break
+    if top_file == None:
+        logging.critical('Could not find a top level file that provides the top_module="%s". Continuing with the full file set.' % top_level_entity)
+        return fileset
+    # Collect only the files that the top level entity is dependant on, by walking the dependancy tree.
+    try:
+        dep_file_set = set()
+        file_set = set([top_file])
+        while True:
+            chk_file = file_set.pop()
+            dep_file_set.add(chk_file)
+            file_set.update(chk_file.depends_on - dep_file_set)
+    except KeyError:
+        # no files left
+        pass
+    logging.info("Found %d files as dependancies of %s." % (len(dep_file_set), top_level_entity))
+    #for dep_file in dep_file_set:
+    #    logging.info("\t" + str(dep_file))
+    return dep_file_set
