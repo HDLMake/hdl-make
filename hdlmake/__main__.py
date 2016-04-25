@@ -35,7 +35,8 @@ from env import Env
 import fetch as fetch_mod
 from action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMakefile, ListFiles,
                     ListModules, MergeCores, GenerateSimulationMakefile,
-                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject)
+                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
+                    QsysHwTclUpdate,)
 
 #from argument_parser import get_argument_parser
 
@@ -119,20 +120,20 @@ def main():
                           "Otherwise hdlmake doesn't know how to simulate the project")
             quit()
         tool_name = top_mod.sim_tool
-    logging.info('import tool module: ' + tool_name)
-    try:
-        tool_module = importlib.import_module("tools.%s.%s" % (tool_name, tool_name))
-    except Exception as e:
-        logging.error(e)
-        quit()
 
-    global_mod.tool_module = tool_module
-
+    if top_mod.action in ("synthesis", "simulation"):
+        try:
+            logging.info('import tool module: ' + tool_name)
+            global_mod.tool_module = importlib.import_module("tools.%s.%s" % (tool_name, tool_name))
+        except Exception as e:
+            logging.error(e)
+            quit()
+    else:
+        global_mod.tool_module = importlib.import_module("tools.notool.notool")
 
     #env.top_module = modules_pool.get_top_module()
     env.check_env(verbose=False)
     #env.check_env_wrt_manifest(verbose=False)
-
 
     #                                   #
     # EXECUTE THE COMMANDS/ACTIONS HERE #
@@ -155,24 +156,33 @@ def main():
         logging.info("Running automatic flow.")
         if not top_mod.action:
             logging.error("`action' manifest variable has to be specified. "
-                          "Otherwise hdlmake doesn't know how to handle the project")
+                          "Otherwise hdlmake doesn't know how to handle the project.")
             quit()
         if top_mod.action == "simulation":
             if not top_mod.sim_tool:
                 logging.error("`sim_tool' manifest variable has to be specified. "
-                              "Otherwise hdlmake doesn't know how to simulate the project")
+                              "Otherwise hdlmake doesn't know how to simulate the project.")
                 quit()
             action = [ GenerateSimulationMakefile ]
         elif top_mod.action == "synthesis":
             if not top_mod.syn_tool:
                 logging.error("`syn_tool' manifest variable has to be specified. "
-                              "Otherwise hdlmake doesn't know how to synthesize the project")
+                              "Otherwise hdlmake doesn't know how to synthesize the project.")
                 quit()
             action = [
                 GenerateSynthesisProject,
                 GenerateSynthesisMakefile,
                 GenerateRemoteSynthesisMakefile
             ]
+        elif top_mod.action == "qsys_hw_tcl_update":
+            if not top_mod.hw_tcl_filename:
+                logging.error("'hw_tcl_filename' manifest variable has to be specified. "
+                              "Otherwise hdlmake doesn't know which file to update.")
+                quit()
+            action = [
+                QsysHwTclUpdate,
+            ]
+
             
             # TODO: I advocate for removing the remote options -- too much pain, too little gain!!
             # Why shouldn't we directly use ssh, screen, scp and rsync on a remote HDLMake deployment??
@@ -201,7 +211,6 @@ def main():
         action = [ GenerateSynthesisProject ]
     elif options.command == "project":
         action = [ GenerateSynthesisProject ]
-
     try:
         for command in action:
             action_instance = command(modules_pool=modules_pool,

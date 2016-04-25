@@ -97,7 +97,8 @@ class Module(object):
         self.sim_post_script = None
         self.top_module = None
         self.commit_id = None
-
+        self.hw_tcl_filename = None
+        
         self.raw_url = url
         if source != fetch.LOCAL:
             self.url, self.branch, self.revision = path_mod.url_parse(url)
@@ -424,6 +425,9 @@ class Module(object):
                 quit()
             self.quartus_postflow = TCLFile(path)
 
+        if "hw_tcl_filename" in self.manifest_dict:
+            self.hw_tcl_filename = self.manifest_dict["hw_tcl_filename"]
+            
         self.isparsed = True
         self.isprocessed = True
 
