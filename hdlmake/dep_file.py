@@ -150,7 +150,8 @@ class DepFile(File):
         self.file_path = file_path
         self._rels = set()
         self.depends_on = set()  # set of files that the file depends on, items of type DepFile
-
+        self.dep_level = None
+        
         self.is_parsed = False
         if include_paths is None:
             include_paths = []
@@ -191,3 +192,12 @@ class DepFile(File):
     @property
     def filename(self):
         return os.path.basename(self.file_path)
+
+    def get_dep_level(self):
+        if self.dep_level == None:
+            if len(self.depends_on) == 0:
+                self.dep_level = 0
+            else:
+                # recurse, to find the largest number of levels below.
+                self.dep_level = 1 + max([dep.get_dep_level() for dep in self.depends_on]);
+        return self.dep_level
