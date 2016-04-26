@@ -218,7 +218,7 @@ class ModulePool(list):
     def build_global_file_set(self):
         """Build set of all files from manifests plus all include files from sources"""
         from .srcfile import SourceFileSet   
-        files = self.build_limited_file_set()
+        files = self.build_file_set()
         assert isinstance(files, SourceFileSet)
         self.solve_dependencies()
         ret = []

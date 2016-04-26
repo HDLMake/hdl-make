@@ -27,9 +27,8 @@ class ListFiles(Action):
     def run(self):
         unfetched_modules = [m for m in self.modules_pool if not m.isfetched]
         for m in unfetched_modules:
-	    logging.warning("List incomplete, module %s has not been fetched!", m)
-	
-	file_set = self.modules_pool.build_limited_file_set()
+            logging.warning("List incomplete, module %s has not been fetched!", m)
+        file_set = self.modules_pool.build_limited_file_set()
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [f.path for f in file_list]
         print(self.options.delimiter.join(files_str))
