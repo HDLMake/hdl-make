@@ -19,8 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from action import Action
-import new_dep_solver as dep_solver
+from .action import Action
+import hdlmake.new_dep_solver as dep_solver
 import os
 
 class QsysHwTclUpdate(Action):

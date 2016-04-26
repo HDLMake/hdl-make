@@ -21,7 +21,7 @@
 
 from .action import Action
 import logging
-import new_dep_solver as dep_solver
+import hdlmake.new_dep_solver as dep_solver
 
 class ListFiles(Action):
     def run(self):
