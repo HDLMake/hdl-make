@@ -124,9 +124,12 @@ def main():
                           "Otherwise hdlmake doesn't know how to simulate the project")
             quit()
         tool_name = top_mod.sim_tool
+    else:
+        tool_name = "notool"
+        
     logging.info('import tool module: ' + tool_name)
     try:
-        tool_module = importlib.import_module("tools.%s.%s" % (tool_name, tool_name))
+        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
     except Exception as e:
         logging.error(e)
         quit()
@@ -174,6 +177,14 @@ def main():
                 GenerateSynthesisProject,
                 GenerateSynthesisMakefile,
                 GenerateRemoteSynthesisMakefile
+            ]
+        elif top_mod.action == "qsys_hw_tcl_update":
+            if not top_mod.hw_tcl_filename:
+                logging.error("'hw_tcl_filename' manifest variable has to be specified. "
+                              "Otherwise hdlmake doesn't know which file to update.")
+                quit()
+            action = [
+                QsysHwTclUpdate,
             ]
     elif options.command == "make-simulation":
         action = [ GenerateSimulationMakefile ]
