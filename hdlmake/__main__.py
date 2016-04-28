@@ -24,7 +24,6 @@
 from __future__ import print_function
 import os
 import importlib
-import global_mod
 import argparse
 import logging
 import sys
