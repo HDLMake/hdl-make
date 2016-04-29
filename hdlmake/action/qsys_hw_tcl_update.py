@@ -22,22 +22,26 @@
 from .action import Action
 import hdlmake.new_dep_solver as dep_solver
 import os
+import shutil
+import logging
+
 
 class QsysHwTclUpdate(Action):
     def run(self):
         file_set = self.modules_pool.build_limited_file_set()
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [os.path.relpath(f.path) for f in file_list]
-        #print(self.options.delimiter.join(files_str))
         
         tl = " TOP_LEVEL_FILE"
         file_tcl = []
         for fs in reversed(files_str):
             path, fname = os.path.split(fs)
-            file_tcl.append("add_fileset_file %30s VHDL PATH %s%s\n" % (fname, fs, tl))
+            file_tcl.append("add_fileset_file %s VHDL PATH %s%s\n" % (fname, fs, tl))
             tl = ""
 
         hw_tcl_filename = self.modules_pool.get_top_module().hw_tcl_filename;
+        hw_tcl_filename_backup = hw_tcl_filename + ".bak"
+        shutil.copy2(hw_tcl_filename, hw_tcl_filename_backup)
 
         infile = open(hw_tcl_filename,"r")
         inserted = False
@@ -52,6 +56,9 @@ class QsysHwTclUpdate(Action):
 
         infile.close()
 
+        logging.info("Updating the file list in %s", hw_tcl_filename)
+        logging.info("Old hw.tcl file backed up to %s", hw_tcl_filename_backup)
+        
         outfile = open(hw_tcl_filename, "w")
         outfile.writelines(out_lines)
         outfile.close()
