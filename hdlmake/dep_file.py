@@ -197,12 +197,12 @@ class DepFile(File):
         if self.dep_level == None:
             if len(self.depends_on) == 0:
                 self.dep_level = 0
-            elif self.dep_level >= 1000000:
-                raise Exception("Probably run into a circular reference of file dependencies.")
             else:
-                # set stupidly large value so can detect if the recusion below brings us back to
+                # set dep_level to a negative value so we can detect if the recusion below brings us back to
                 # this file in a circular reference, that would otherwise result in an infinite loop.
-                self.dep_level = 1000000
+                self.dep_level = -1
                 # recurse, to find the largest number of levels below.
                 self.dep_level = 1 + max([dep.get_dep_level() for dep in self.depends_on]);
+        elif self.dep_level < 0:
+                raise Exception("Probably run into a circular reference of file dependencies.")
         return self.dep_level
