@@ -132,7 +132,8 @@ def make_dependency_set(fileset, top_level_entity):
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
     # Find the file that provides the named top level entity
-    top_rel = DepRelation(top_level_entity,DepRelation.PROVIDE, DepRelation.ENTITY)
+    # top_rel = DepRelation(top_level_entity,DepRelation.PROVIDE, DepRelation.ENTITY)
+    top_rel = DepRelation("%s.%s" % ("work", top_level_entity), DepRelation.PROVIDE, DepRelation.ENTITY)
     top_file = None
     for chk_file in fset:
         for rel in chk_file.rels:
