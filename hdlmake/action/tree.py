@@ -23,16 +23,16 @@ from .action import Action
 from hdlmake.util import path
 
 import logging
-#import pygraphviz as pgv
-import networkx as nx
-
-import numpy as np
-import colorsys
-
-# THIS IS THE BEST I'VE FOUND: http://bl.ocks.org/robschmuecker/7880033
 
 class Tree(Action):
     def run(self):
+        try:
+            import networkx as nx
+            import numpy as np
+            import colorsys
+        except Exception as e:
+            logging.error(e)
+            quit()
         unfetched_modules = False
         files_str = []
         hierarchy = nx.DiGraph()
