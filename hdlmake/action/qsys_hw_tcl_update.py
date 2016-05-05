@@ -32,32 +32,40 @@ class QsysHwTclUpdate(Action):
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [os.path.relpath(f.path) for f in file_list]
         
-        tl = " TOP_LEVEL_FILE"
         file_tcl = []
-        for fs in reversed(files_str):
+        for fs in files_str:
             path, fname = os.path.split(fs)
-            file_tcl.append("add_fileset_file %s VHDL PATH %s%s\n" % (fname, fs, tl))
-            tl = ""
+            file_tcl.append("add_fileset_file %s VHDL PATH %s" % (fname, fs))
 
+        # mark the last file as the top level file. 
+        file_tcl[-1] += " TOP_LEVEL_FILE"
+        file_tcl.append("\n")
+        
         hw_tcl_filename = self.modules_pool.get_top_module().hw_tcl_filename;
-        hw_tcl_filename_backup = hw_tcl_filename + ".bak"
-        shutil.copy2(hw_tcl_filename, hw_tcl_filename_backup)
 
         infile = open(hw_tcl_filename,"r")
-        inserted = False
+        inserted = True
         out_lines = []
         for line in infile.readlines():
+            if line.startswith("add_fileset QUARTUS_SYNTH"):
+                inserted = False
+            if line.startswith("add_fileset SIM_VHDL"):
+                inserted = False
             if line.startswith("add_fileset_file"):
                 if not inserted:
-                    out_lines.extend(file_tcl)
+                    out_lines.append("\n".join(file_tcl))
                     inserted = True
             else:
                 out_lines.append(line)
 
         infile.close()
 
-        logging.info("Updating the file list in %s", hw_tcl_filename)
+        hw_tcl_filename_backup = hw_tcl_filename + ".bak"
+        shutil.copy2(hw_tcl_filename, hw_tcl_filename_backup)
         logging.info("Old hw.tcl file backed up to %s", hw_tcl_filename_backup)
+
+        logging.info("Updating the file list in %s", hw_tcl_filename)
+        
         
         outfile = open(hw_tcl_filename, "w")
         outfile.writelines(out_lines)
