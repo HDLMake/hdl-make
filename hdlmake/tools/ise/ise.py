@@ -587,6 +587,15 @@ mrproper:
         top_element.appendChild(self.xml_bindings)
         top_element.appendChild(version)
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import UCFFile, CDCFile, NGCFile, SourceFileSet
+        sup_files = SourceFileSet()
+        for f in fileset:
+            if (isinstance(f, UCFFile)) or (isinstance(f, NGCFile)) or (isinstance(f, CDCFile)):
+                sup_files.add(f)
+            else:
+                continue
+        return sup_files
 
 
 class ISEProjectProperty:

@@ -203,6 +203,12 @@ class ModulePool(list):
         else:
             return self.build_complete_file_set()
 
+    def build_proprietary_file_set(self, tool_object):
+        files = tool_object.supported_files(self.build_complete_file_set())
+        from srcfile import SourceFileSet
+        tool_files = SourceFileSet()
+        tool_files.add(files)
+        return tool_files
 
     def build_complete_file_set(self):
         """Build set of all files listed in the manifests"""
