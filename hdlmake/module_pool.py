@@ -193,44 +193,33 @@ class ModulePool(list):
     def solve_dependencies(self):
         """Set dependencies for all project files"""
         if not self._deps_solved:
-            dep_solver.solve(self.build_file_set())
+            dep_solver.solve(self.build_complete_file_set())
             self._deps_solved = True
 
+
     def build_file_set(self):
+        if global_mod.options.parser == True:
+            return self.build_limited_file_set()
+        else:
+            return self.build_complete_file_set()
+
+
+    def build_complete_file_set(self):
         """Build set of all files listed in the manifests"""
         from .srcfile import SourceFileSet
         all_manifested_files = SourceFileSet()
         for module in self:
             all_manifested_files.add(module.files)
-
         return all_manifested_files
 
-    def build_limited_file_set(self, top_entity=None):
-        if not top_entity:
-            top_entity = self.top_module.top_module
+    def build_limited_file_set(self):
+        top_entity = self.top_module.top_module
         self.solve_dependencies();
-        files = dep_solver.make_dependency_set(self.build_file_set(),top_entity)
+        files = dep_solver.make_dependency_set(self.build_complete_file_set(),top_entity)
         from srcfile import SourceFileSet
         source_files = SourceFileSet()
         source_files.add(files)
         return source_files
-
-    def build_global_file_set(self):
-        """Build set of all files from manifests plus all include files from sources"""
-        from .srcfile import SourceFileSet   
-        files = self.build_file_set()
-        assert isinstance(files, SourceFileSet)
-        self.solve_dependencies()
-        ret = []
-        for file in files:
-            try:
-                for dep_file in file.dep_depends_on:
-                    if dep_file not in ret:
-                        ret.add(dep_file)
-                ret.add(file)
-            except:
-                pass
-        return files
 
     def get_top_module(self):
         return self.top_module

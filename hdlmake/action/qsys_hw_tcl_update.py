@@ -28,7 +28,7 @@ import logging
 
 class QsysHwTclUpdate(Action):
     def run(self):
-        file_set = self.modules_pool.build_limited_file_set()
+        file_set = self.modules_pool.build_file_set()
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [os.path.relpath(f.path) for f in file_list]
         

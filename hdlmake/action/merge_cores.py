@@ -48,9 +48,7 @@ class MergeCores(Action):
         self._check_all_fetched_or_quit()
 
         logging.info("Merging all cores into one source file per language.")
-        flist = pool.build_global_file_set()
-#        if not os.path.exists(self.options.merge_cores):
- #           os.makedirs(self.options.merge_cores)
+        flist = pool.build_file_set()
         base = self.options.dest
 
         f_out = open(base+".vhd", "w")

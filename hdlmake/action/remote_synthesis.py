@@ -65,7 +65,7 @@ class GenerateRemoteSynthesisMakefile(Action):
         self.env.check_remote_tool(tool_object)
         self.env.check_general()
 
-        files = self.modules_pool.build_global_file_set()
+        files = self.modules_pool.build_file_set()
 
         sff = SourceFileFactory()
         files.add(sff.new(top_mod.syn_project, module=None))
