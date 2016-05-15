@@ -61,6 +61,12 @@ class ToolControls(MakefileWriter):
         return version
 
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SourceFileSet
+        sup_files = SourceFileSet()
+        return sup_files
+
+
     def generate_simulation_makefile(self, fileset, top_module):
         # TODO FLAGS: 2009 enables SystemVerilog (ongoing support) and partial VHDL support
 

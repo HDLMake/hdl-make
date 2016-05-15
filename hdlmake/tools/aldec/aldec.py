@@ -44,6 +44,13 @@ class ToolControls(MakefileWriter):
         ALDEC_STANDARD_LIBS = ['ieee', 'std']
         return ALDEC_STANDARD_LIBS
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SourceFileSet
+        sup_files = SourceFileSet()
+        # Return an empty fileset
+        return sup_files
+
+
     def generate_simulation_makefile(self, fileset, top_module):
         # TODO: ??
         from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile

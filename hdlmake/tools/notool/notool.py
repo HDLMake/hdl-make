@@ -44,3 +44,9 @@ class ToolControls(MakefileWriter):
 
     def generate_simulation_makefile(self, fileset, top_module):
         pass
+
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SourceFileSet
+        sup_files = SourceFileSet()
+        return sup_files
+

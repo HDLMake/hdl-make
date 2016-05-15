@@ -40,7 +40,6 @@ class ToolControls(VsimMakefileWriter):
     def detect_version(self, path):
         pass
 
-
     def get_keys(self):
         tool_info = {
             'name': 'Modelsim',
@@ -52,6 +51,11 @@ class ToolControls(VsimMakefileWriter):
 
     def get_standard_libraries(self):
         return MODELSIM_STANDARD_LIBS
+
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SourceFileSet
+        sup_files = SourceFileSet()
+        return sup_files
 
     def generate_simulation_makefile(self, fileset, top_module):
         self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])

@@ -45,6 +45,12 @@ class ToolControls(MakefileWriter):
         return GHDL_STANDARD_LIBS
 
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SourceFileSet
+        sup_files = SourceFileSet()
+        return sup_files
+
+
     def generate_simulation_makefile(self, fileset, top_module):
         # TODO: vhdl87 vs vhdl97 options
         

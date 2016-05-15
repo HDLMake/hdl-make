@@ -223,3 +223,13 @@ mrproper:
         return ('\n'.join(ret))+'\n'
 
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SDCFile, PDCFile, SourceFileSet
+        sup_files = SourceFileSet()
+        for f in fileset:
+            if (isinstance(f, SDCFile)) or (isinstance(f, PDCFile))):
+                sup_files.add(f)
+            else:
+                continue
+        return sup_files
+

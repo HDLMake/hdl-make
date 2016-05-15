@@ -68,6 +68,12 @@ class ToolControls(MakefileWriter):
         return isim_version
 
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SourceFileSet
+        sup_files = SourceFileSet()
+        return sup_files
+
+
     def generate_simulation_makefile(self, fileset, top_module):
         from hdlmake.srcfile import VerilogFile, VHDLFile
         #from ..ise import XilinxsiminiReader

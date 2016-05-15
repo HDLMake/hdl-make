@@ -214,6 +214,29 @@ mrproper:
             ret.append(line)
         return ('\n'.join(ret))+'\n'
 
+
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import SignalTapFile, SDCFile, QIPFile, DPFFile, QSFFile 
+        from hdlmake.srcfile import BSFFile, BDFFile, TDFFile, GDFFile, SourceFileSet
+        sup_files = SourceFileSet()
+        for f in fileset:
+            if (
+                   (isinstance(f, SignalTapFile)) or 
+                   (isinstance(f, SDCFile)) or 
+                   (isinstance(f, QIPFile)) or 
+                   (isinstance(f, DPFFile)) or 
+                   (isinstance(f, QSFFile)) or 
+                   (isinstance(f, BSFFile)) or 
+                   (isinstance(f, BDFFile)) or 
+                   (isinstance(f, TDFFile)) or 
+                   (isinstance(f, GDFFile)) 
+               ):
+                sup_files.add(f)
+            else:
+                continue
+        return sup_files
+
+
     def add_property(self, val):
         #don't save files (they are unneeded)
         if val.name_type is not None and "_FILE" in val.name_type:

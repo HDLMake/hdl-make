@@ -238,6 +238,24 @@ mrproper:
             ret.append(line)
         return ('\n'.join(ret))+'\n'
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import UCFFile, NGCFile, XMPFile, XCOFile
+        from hdlmake.srcfile import BDFile, TCLFile, SourceFileSet
+        sup_files = SourceFileSet()
+        for f in fileset:
+            if (
+                   (isinstance(f, UCFFile)) or
+                   (isinstance(f, NGCFile)) or
+                   (isinstance(f, XMPFile)) or
+                   (isinstance(f, XCOFile)) or
+                   (isinstance(f, BDFile)) or
+                   (isinstance(f, TCLFile))
+               ):
+                sup_files.add(f)
+            else:
+                continue
+        return sup_files
+
 
 
 class _VivadoProjectProperty:

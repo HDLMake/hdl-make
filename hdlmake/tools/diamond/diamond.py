@@ -190,6 +190,17 @@ mrproper:
         self.header = tmp.format(self.filename+'.ldf')
 
 
+    def supported_files(self, fileset):
+        from hdlmake.srcfile import EDFFile, LPFFile, SourceFileSet
+        sup_files = SourceFileSet()
+        for f in fileset:
+            if (isinstance(f, EDFFile)) or (isinstance(f, LPFFile))):
+                sup_files.add(f)
+            else:
+                continue
+        return sup_files
+
+
     def __emit_files(self, update=False):
         tmp = 'prj_src {0} \"{1}\"'
         ret = []

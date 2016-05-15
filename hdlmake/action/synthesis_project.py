@@ -173,8 +173,6 @@ end sdb_meta_pkg;""")
 
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_file_set()
-        proprietary_fileset = self.modules_pool.build_proprietary_file_set(tool_object)
-        fileset.add(proprietary_fileset)
         non_dependable = fileset.inversed_filter(DependableFile)
         fileset.add(non_dependable)
 

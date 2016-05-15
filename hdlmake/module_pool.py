@@ -198,17 +198,13 @@ class ModulePool(list):
 
 
     def build_file_set(self):
-        if global_mod.options.parser == True:
-            return self.build_limited_file_set()
-        else:
-            return self.build_complete_file_set()
-
-    def build_proprietary_file_set(self, tool_object):
-        files = tool_object.supported_files(self.build_complete_file_set())
         from srcfile import SourceFileSet
-        tool_files = SourceFileSet()
-        tool_files.add(files)
-        return tool_files
+        build_files = SourceFileSet()
+        if global_mod.options.parser == True:
+            build_files.add(self.build_limited_file_set())
+        else:
+            build_files.add(self.build_complete_file_set())
+        return build_files
 
     def build_complete_file_set(self):
         """Build set of all files listed in the manifests"""
@@ -220,11 +216,13 @@ class ModulePool(list):
 
     def build_limited_file_set(self):
         top_entity = self.top_module.top_module
-        self.solve_dependencies();
-        files = dep_solver.make_dependency_set(self.build_complete_file_set(),top_entity)
+        tool_object = global_mod.tool_module.ToolControls()
+        self.solve_dependencies()
+        all_files = self.build_complete_file_set()
         from srcfile import SourceFileSet
         source_files = SourceFileSet()
-        source_files.add(files)
+        source_files.add(dep_solver.make_dependency_set(all_files, top_entity))
+        source_files.add(tool_object.supported_files(all_files))
         return source_files
 
     def get_top_module(self):
