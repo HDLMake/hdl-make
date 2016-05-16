@@ -22,6 +22,7 @@
 import logging
 
 from hdlmake import global_mod
+from hdlmake.makefile_writer import MakefileWriter
 from .action import Action
 
 class GenerateFetchMakefile(Action):
@@ -34,5 +35,6 @@ class GenerateFetchMakefile(Action):
             quit()
 
         self._check_all_fetched_or_quit()
-        global_mod.makefile_writer.generate_fetch_makefile(pool)
+        makefile_writer = MakefileWriter()
+        makefile_writer.generate_fetch_makefile(pool)
         logging.info("Makefile for fetching modules generated.")

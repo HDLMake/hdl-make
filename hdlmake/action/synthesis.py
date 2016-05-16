@@ -66,6 +66,10 @@ class GenerateSynthesisMakefile(Action):
         version_key = tool_info['id'] + '_version'
         name = tool_info['name']
 
+        env = self.env
+        env.check_general()
+        env.check_tool(tool_object)
+
         if global_mod.env[path_key]:
             tool_path = global_mod.env[path_key]
         else:

@@ -188,6 +188,8 @@ def main():
             ]
     elif options.command == "make-simulation":
         action = [ GenerateSimulationMakefile ]
+    elif options.command == "make-synthesis":
+        action = [ GenerateSynthesisMakefile ]
     elif options.command == "make-fetch":
         action = [ GenerateFetchMakefile ]
     elif options.command == "make-remote":
@@ -202,10 +204,6 @@ def main():
         action = [ ListFiles ]
     elif options.command == "merge-cores":
         action = [ MergeCores ]
-    elif options.command == "ise-project":
-        action = [ GenerateSynthesisProject ]
-    elif options.command == "quartus-project":
-        action = [ GenerateSynthesisProject ]
     elif options.command == "project":
         action = [ GenerateSynthesisProject ]
     elif options.command == "tree":
@@ -247,9 +245,12 @@ def _get_parser():
                                       description="Look for environmental variables specific for HDLMAKE.\n"
                                                   "Hdlmake will examine presence of supported synthesis and simulation"
                                                   "tools.\n")
-    # check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
-    # check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
+    check_manifest = subparsers.add_parser("check-manifest", help="check manifest for formal correctness")
+    check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
+    make_simulation = subparsers.add_parser("make-simulation", help="generate simulation makefile")
+    make_fetch = subparsers.add_parser("make-fetch", help="generate fetch makefile")
+    make_synthesis = subparsers.add_parser("make-synthesis", help="generate synthesis makefile")
 
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
     fetch.add_argument("--flatten", help="`flatten' modules' hierarchy by storing everything in top module's fetchto direactoru",
@@ -263,10 +264,6 @@ def _get_parser():
     listfiles.add_argument("--delimiter", help="set delimitier for the list of files", dest="delimiter", default=' ')
     merge_cores = subparsers.add_parser("merge-cores", help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
     merge_cores.add_argument("--dest", help="name for output merged file", dest="dest", default=None)
-    ise_proj = subparsers.add_parser("ise-project", help="create/update an ise project including list of project")
-    ise_proj.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
-                          dest="generate_project_vhd", default=False, action="store_true")
-    quartus_proj = subparsers.add_parser("quartus-project", help="create/update a quartus project including list of project")
     synthesis_proj = subparsers.add_parser("project", help="create/update a project for the appropriated tool")
     tree = subparsers.add_parser("tree", help="generate a module hierarchy tree")
     tree.add_argument("--with-files", help="Add files to the module hierarchy tree", default=False, action="store_true", dest="withfiles")
@@ -281,8 +278,6 @@ def _get_parser():
     auto.add_argument('-v', '--version', action='version', version=parser.prog + " " + __version__)
     auto.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
     auto.add_argument("--noprune", help="prevent hdlmake from pruning unneeded files", default=False, action="store_true")
-    auto.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
-                      dest="generate_project_vhd", default=False, action="store_true")
 
     parser.add_argument("--py", dest="arbitrary_code",
                         default="", help="add arbitrary code when evaluation all manifests")
