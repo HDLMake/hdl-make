@@ -1272,23 +1272,21 @@ This option is targeted to VHDL designs in which the SDB (Self Describing Bus) s
 http://www.ohwr.org/projects/fpga-config-space/wiki 
 
 
-``--parse``
+``--no-parse``
 --------------------------
-
-.. warning:: this is an experimental feature!!
 
 HDLMake includes both a VHDL and a Verilog parser, allowing for building optimal 
 dependency-driven filesets by performing a recursive relation search with the
 selected ``top_module`` as the root.
 
-By default, the parser is disabled and all the files included in the module
-hierarchy will be used when building a design file set.
-
-When the ``--parse`` argument is provided, only the strictly neccessary files will
+By default, the parser is enabled and only the strictly neccessary files will
 be added to the file set, this is:
 
 - All those files containing entities that our ``top_module`` requires.
 - All those tool-specific files that cannot be parsed but are mandatory.
+
+When the ``--no-parse`` argument is provided, the parser is disabled and all the files included in the module
+hierarchy will be used when building a design file set.
 
 
 ``--force``

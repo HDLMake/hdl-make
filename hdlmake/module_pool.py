@@ -200,7 +200,7 @@ class ModulePool(list):
     def build_file_set(self):
         from srcfile import SourceFileSet
         build_files = SourceFileSet()
-        if global_mod.options.parser == True:
+        if global_mod.options.no_parse == False:
             build_files.add(self.build_limited_file_set())
         else:
             build_files.add(self.build_complete_file_set())

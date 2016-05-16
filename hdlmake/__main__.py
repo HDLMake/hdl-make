@@ -292,8 +292,8 @@ def _get_parser():
     parser.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
                           dest="generate_project_vhd", default=False, action="store_true")
     parser.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
-    parser.add_argument("--parser", dest="parser",
-                        default=False, help="enable smart parser engine", action="store_true")
+    parser.add_argument("--no-parse", dest="no_parse",
+                        default=False, help="disable smart parser engine", action="store_true")
 
 
     return parser
