@@ -108,10 +108,6 @@ def main():
     #
     # Load global tool object (global_mod.py)
     #
-    if not top_mod.action:
-        logging.error("`action' manifest variable has to be specified. "
-                      "Otherwise hdlmake doesn't know how to handle the project")
-        quit()
     if top_mod.action == "synthesis":
         if not top_mod.syn_tool:
             logging.error("`syn_tool' manifest variable has to be specified. "
