@@ -247,6 +247,7 @@ def _get_parser():
     make_simulation = subparsers.add_parser("make-simulation", help="generate simulation makefile")
     make_fetch = subparsers.add_parser("make-fetch", help="generate fetch makefile")
     make_synthesis = subparsers.add_parser("make-synthesis", help="generate synthesis makefile")
+    make_remote = subparsers.add_parser("make-remote", help="generate remote synthesis makefile")
 
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
     fetch.add_argument("--flatten", help="`flatten' modules' hierarchy by storing everything in top module's fetchto direactoru",
