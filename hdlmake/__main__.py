@@ -259,6 +259,7 @@ def _get_parser():
     listmod.add_argument("--terse", help="do not print comments", default=False, action="store_true", dest="terse")
     listfiles = subparsers.add_parser("list-files", help="List all files in a form of a space-separated string")
     listfiles.add_argument("--delimiter", help="set delimitier for the list of files", dest="delimiter", default=' ')
+    listfiles.add_argument("--reverse", help="reverse the order for the list of files", dest="reverse", default=False, action="store_true")
     merge_cores = subparsers.add_parser("merge-cores", help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
     merge_cores.add_argument("--dest", help="name for output merged file", dest="dest", default=None)
     synthesis_proj = subparsers.add_parser("project", help="create/update a project for the appropriated tool")

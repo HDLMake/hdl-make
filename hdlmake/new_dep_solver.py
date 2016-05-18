@@ -123,7 +123,10 @@ def make_dependency_sorted_list(fileset, purge_unused=True):
     non_dependable = [f for f in fileset if not isinstance(f, DepFile)]
     dependable.sort(key=lambda f: f.file_path.lower()) # Not necessary, but will tend to group files more nicely in the output.
     dependable.sort(key=DepFile.get_dep_level)
-    return non_dependable + dependable
+    sorted_list = non_dependable + dependable
+    if global_mod.options.reverse == True:
+        sorted_list = list(reversed(sorted_list))
+    return sorted_list
     
 def make_dependency_set(fileset, top_level_entity):
     """Create a set of all files required to build the named top_level_entity."""
