@@ -203,7 +203,7 @@ Create a launch script in /usr/bin or any other available location at shell $PAT
 .. code-block:: bash
 
    #!/usr/bin/env bash
-   PYTHONPATH=/path_to_hdlmake_sources/hdl-make python2.7 /path_to_hdlmake_sources/hdl-make -m hdlmake $@
+   PYTHONPATH=/path_to_hdlmake_sources/hdl-make python2.7 -m hdlmake $@
 
 Once the launch script has been created, the appropriate execution rights must be set: 
 
