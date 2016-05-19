@@ -181,7 +181,7 @@ mrproper:
         return pre+'\n'+mod+'\n'+post+'\n'
 
     def __emit_files(self):
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SignalTapFile, SDCFile, QIPFile, DPFFile,
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, SignalTapFile, SDCFile, QIPFile, DPFFile,
             QSFFile, BSFFile, BDFFile, TDFFile, GDFFile
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
@@ -189,6 +189,8 @@ mrproper:
         for f in self.files:
             if isinstance(f, VHDLFile):
                 line = tmplib.format("VHDL_FILE", f.rel_path(), f.library)
+            elif isinstance(f, SVFile):
+                line = tmplib.format("SYSTEMVERILOG_FILE", f.rel_path(), f.library)
             elif isinstance(f, VerilogFile):
                 line = tmp.format("VERILOG_FILE", f.rel_path())
             elif isinstance(f, SignalTapFile):
