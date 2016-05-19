@@ -24,9 +24,9 @@
 import os
 import string
 from string import Template
-import fetch
 import logging
 
+from hdlmake import fetch
 from hdlmake.makefile_writer import MakefileWriter
 
 
