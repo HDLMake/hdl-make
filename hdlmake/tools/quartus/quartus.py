@@ -181,8 +181,9 @@ mrproper:
         return pre+'\n'+mod+'\n'+post+'\n'
 
     def __emit_files(self):
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, SignalTapFile, SDCFile, QIPFile, DPFFile,
-            QSFFile, BSFFile, BDFFile, TDFFile, GDFFile
+        from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, 
+                                     SignalTapFile, SDCFile, QIPFile, DPFFile,
+                                     QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
         ret = []
