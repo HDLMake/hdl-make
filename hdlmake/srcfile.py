@@ -113,6 +113,11 @@ class QIPFile(File):
     pass
 
 
+class QSYSFile(File):
+    # Qsys - Altera's System Integration Tool
+    pass
+
+
 class DPFFile(File):
     pass
 
@@ -277,6 +282,8 @@ class SourceFileFactory:
             nf = SDCFile(path=path, module=module)
         elif extension == 'qip':
             nf = QIPFile(path=path, module=module)
+        elif extension == 'qsys':
+            nf = QSYSFile(path=path, module=module)
         elif extension == 'dpf':
             nf = DPFFile(path=path, module=module)
         elif extension == 'xmp':

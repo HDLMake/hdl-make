@@ -182,7 +182,7 @@ mrproper:
 
     def __emit_files(self):
         from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, 
-                                     SignalTapFile, SDCFile, QIPFile, DPFFile,
+                                     SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
                                      QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
@@ -200,6 +200,8 @@ mrproper:
                 line = tmp.format("SDC_FILE", f.rel_path())
             elif isinstance(f, QIPFile):
                 line = tmp.format("QIP_FILE", f.rel_path())
+            elif isinstance(f, QSYSFile):
+                line = tmp.format("QSYS_FILE", f.rel_path())
             elif isinstance(f, DPFFile):
                 line = tmp.format("MISC_FILE", f.rel_path())
             elif isinstance(f, QSFFile):
@@ -219,7 +221,7 @@ mrproper:
 
 
     def supported_files(self, fileset):
-        from hdlmake.srcfile import SignalTapFile, SDCFile, QIPFile, DPFFile, QSFFile 
+        from hdlmake.srcfile import SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile, QSFFile
         from hdlmake.srcfile import BSFFile, BDFFile, TDFFile, GDFFile, SourceFileSet
         sup_files = SourceFileSet()
         for f in fileset:
@@ -227,6 +229,7 @@ mrproper:
                    (isinstance(f, SignalTapFile)) or 
                    (isinstance(f, SDCFile)) or 
                    (isinstance(f, QIPFile)) or 
+                   (isinstance(f, QSYSFile)) or
                    (isinstance(f, DPFFile)) or 
                    (isinstance(f, QSFFile)) or 
                    (isinstance(f, BSFFile)) or 
