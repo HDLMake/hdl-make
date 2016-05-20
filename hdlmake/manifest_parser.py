@@ -56,6 +56,7 @@ class ManifestParser(ConfigParser):
         self.add_option('syn_name', default=None, help="Name of the folder at remote synthesis machine", type='')
         self.add_option('syn_tool', default=None, help="Tool to be used in the synthesis", type='')
         self.add_option('syn_device', default=None, help="Target FPGA device", type='')
+        self.add_option('syn_family', default=None, help="Target FPGA family", type='')
         self.add_option('syn_grade', default=None, help="Speed grade of target FPGA", type='')
         self.add_option('syn_package', default=None, help="Package variant of target FPGA", type='')
         self.add_option('syn_top', default=None, help="Top level module for synthesis", type='')

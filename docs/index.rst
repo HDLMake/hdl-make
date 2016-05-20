@@ -566,6 +566,7 @@ We can see that the only difference is that each of the top synthesis Manifest.p
 - ``target``: specific targeted FPGA architecture
 - ``action``: indicates that this is a synthesis process
 - ``syn_device``: indicates the specific FPGA device
+- ``syn_family``: indicates the specific FPGA family
 - ``syn_grade``: indicates the specific FPGA speed grade
 - ``syn_package``: indicates the specific FPGA package
 - ``syn_top``: indicates the name of the top HDL instance/module to be synthesized.
@@ -1175,6 +1176,8 @@ Basic synthesis variables:
 | syn_tool        | str         | Tool to be used in the synthesis                                | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_device      | str         | Target FPGA device                                              | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_family      | str         | Target FPGA family                                              | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_grade       | str         | Speed grade of target FPGA                                      | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+

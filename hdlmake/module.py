@@ -85,6 +85,7 @@ class Module(object):
         self.incl_makefiles = []
         self.force_tool = None
         self.syn_device = None
+        self.syn_family = None
         self.syn_grade = None
         self.syn_package = None
         self.syn_project = None
@@ -391,6 +392,7 @@ class Module(object):
             self.syn_name = self.manifest_dict["syn_name"]
         self.syn_tool = self.manifest_dict["syn_tool"]
         self.syn_device = self.manifest_dict["syn_device"]
+        self.syn_family = self.manifest_dict["syn_family"]
         self.syn_grade = self.manifest_dict["syn_grade"]
         self.syn_package = self.manifest_dict["syn_package"]
         self.syn_project = self.manifest_dict["syn_project"]
