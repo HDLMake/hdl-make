@@ -22,6 +22,7 @@
 #
 
 import os
+import sys
 import string
 from string import Template
 import logging
@@ -151,6 +152,7 @@ mrproper:
             self.read()
         else:
             self.add_initial_properties(top_mod.syn_device,
+                                       top_mod.syn_family,
                                        top_mod.syn_grade,
                                        top_mod.syn_package,
                                        top_mod.syn_top)
@@ -310,7 +312,7 @@ mrproper:
             self.add_property(prop)
         f.close()
 
-    def add_initial_properties(self, syn_device, syn_grade, syn_package, syn_top):
+    def add_initial_properties(self, syn_device, syn_family, syn_grade, syn_package, syn_top):
         import re
         family_names = {
             "^EP2AGX.*$": "Arria II GX",
@@ -320,13 +322,19 @@ mrproper:
             "^5S.*$": "Stratix V",
         }
 
-        for key in family_names:
-            if re.match(key, syn_device.upper()):
-                family = family_names[key]
+        if syn_family == None:
+            for key in family_names:
+                if re.match(key, syn_device.upper()):
+                    syn_family = family_names[key]
+                    logging.debug("Auto-guessed syn_family to be %s (%s => %s)" % (syn_family, syn_device, key))
+
+        if syn_family == None:
+            logging.error("Could not auto-guess device family, please specify in Manifest.py using syn_family!")
+            sys.exit("\nExiting")
 
         devstring = (syn_device + syn_package + syn_grade).upper()
         QPP = _QuartusProjectProperty
-        self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='FAMILY', name='"'+family+'"'))
+        self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='FAMILY', name='"'+syn_family+'"'))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='DEVICE', name=devstring))
         self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='TOP_LEVEL_ENTITY', name=syn_top))
 
