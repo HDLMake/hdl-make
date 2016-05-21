@@ -420,8 +420,13 @@ mrproper:
 
     def _set_values_from_manifest(self):
         tm = global_mod.mod_pool.get_top_module()
+        if tm.syn_family == None:
+            tm.syn_family = FAMILY_NAMES.get(tm.syn_device[0:4].upper())
+            if tm.syn_family == None:
+                logging.error("syn_family is not definied in Manifest.py and can not be guessed!")
+                quit(-1)
         self.add_property("Device", tm.syn_device)
-        self.add_property("Device Family", FAMILY_NAMES[tm.syn_device[0:4].upper()])
+        self.add_property("Device Family", tm.syn_family)
         self.add_property("Speed Grade", tm.syn_grade)
         self.add_property("Package", tm.syn_package)
         self.add_property("Implementation Top", "Architecture|"+tm.syn_top)
