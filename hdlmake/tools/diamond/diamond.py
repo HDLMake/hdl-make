@@ -194,7 +194,7 @@ mrproper:
         from hdlmake.srcfile import EDFFile, LPFFile, SourceFileSet
         sup_files = SourceFileSet()
         for f in fileset:
-            if (isinstance(f, EDFFile)) or (isinstance(f, LPFFile))):
+            if (isinstance(f, EDFFile)) or (isinstance(f, LPFFile)):
                 sup_files.add(f)
             else:
                 continue

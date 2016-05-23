@@ -227,7 +227,7 @@ mrproper:
         from hdlmake.srcfile import SDCFile, PDCFile, SourceFileSet
         sup_files = SourceFileSet()
         for f in fileset:
-            if (isinstance(f, SDCFile)) or (isinstance(f, PDCFile))):
+            if (isinstance(f, SDCFile)) or (isinstance(f, PDCFile)):
                 sup_files.add(f)
             else:
                 continue
