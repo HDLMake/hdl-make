@@ -89,6 +89,9 @@ class VHDLParser(DepParser):
             dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2).lower()),
                                               DepRelation.USE,
                                               DepRelation.ENTITY))
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2).lower()),
+                                              DepRelation.PROVIDE,
+                                              DepRelation.ARCHITECTURE))
         re.subn(architecture_pattern, do_architecture, buf)
         
         #new package
@@ -109,18 +112,18 @@ class VHDLParser(DepParser):
                 logging.debug("-> instantiates %s.%s as %s" % (lib, s.group(2), s.group(1))  )
                 dep_file.add_relation(DepRelation("%s.%s" % (lib, s.group(2).lower()),
                                                   DepRelation.USE,
-                                                  DepRelation.ENTITY))
+                                                  DepRelation.ARCHITECTURE))
         def do_instance_from_library(s) :
             if ( s.group(2).lower() == "work" ) : #work is the current library in VHDL
                 logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, s.group(3), s.group(1))  )
                 dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(3).lower()),
                                                   DepRelation.USE,
-                                                  DepRelation.ENTITY))
+                                                  DepRelation.ARCHITECTURE))
             else :
                 logging.debug("-> instantiates %s.%s as %s" % (s.group(2), s.group(3), s.group(1))  )
                 dep_file.add_relation(DepRelation("%s.%s" % (s.group(2).lower(), s.group(3).lower()),
                                                   DepRelation.USE,
-                                                  DepRelation.ENTITY))
+                                                  DepRelation.ARCHITECTURE))
         re.subn(instance_pattern, do_instance, buf)
         re.subn(instance_from_library_pattern, do_instance_from_library, buf)
         
