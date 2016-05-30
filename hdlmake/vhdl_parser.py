@@ -36,7 +36,7 @@ class VHDLPreprocessor(object):
         pattern = re.compile( '--.*?$|".?"', re.DOTALL | re.MULTILINE )  
         return re.sub(pattern,"", s)
     
-    def _preporcess_file(self, file_content, file_name, library):
+    def _preprocess_file(self, file_content, file_name, library):
         logging.debug("preprocess file %s (of length %d) in library %s" % (file_name, len(file_content), library) )
         return self.remove_comments_and_strings(file_content)
         
@@ -44,7 +44,7 @@ class VHDLPreprocessor(object):
         self.vhdl_file = vhdl_file
         file_path = vhdl_file.file_path
         buf = open(file_path, "r").read()
-        return self._preporcess_file(file_content = buf, file_name = file_path, library = vhdl_file.library)
+        return self._preprocess_file(file_content = buf, file_name = file_path, library = vhdl_file.library)
         
 
 class VHDLParser(DepParser):
