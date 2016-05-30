@@ -67,10 +67,10 @@ class VHDLParser(DepParser):
         def do_use(s) :
             if ( s.group(1).lower() == "work" ) : #work is the current library in VHDL
                 logging.debug("use package %s.%s" % (dep_file.library, s.group(2) ) )
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2).lower() ) , DepRelation.USE, DepRelation.PACKAGE)) 
+                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2) ) , DepRelation.USE, DepRelation.PACKAGE)) 
             else :
                 logging.debug("use package %s.%s" % (s.group(1), s.group(2)) )
-                dep_file.add_relation(DepRelation("%s.%s" % (s.group(1).lower(), s.group(2).lower()), DepRelation.USE, DepRelation.PACKAGE))
+                dep_file.add_relation(DepRelation("%s.%s" % (s.group(1), s.group(2)), DepRelation.USE, DepRelation.PACKAGE))
             return "<hdlmake use_pattern %s.%s>" % (s.group(1), s.group(2))
         buf = re.sub(use_pattern, do_use, buf)
 
@@ -78,7 +78,7 @@ class VHDLParser(DepParser):
         entity_pattern = re.compile("^\s*entity\s+(?P<name>\w+)\s+is\s+(?:port|generic|end).*?(?P=name)\s*;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_entity(s) :
             logging.debug("found entity %s.%s" % ( dep_file.library, s.group(1) ) )
-            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1).lower()),
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1)),
                                               DepRelation.PROVIDE,
                                               DepRelation.ENTITY))
             return "<hdlmake entity_pattern %s.%s>" % (dep_file.library, s.group(1))
@@ -88,10 +88,10 @@ class VHDLParser(DepParser):
         architecture_pattern = re.compile("^\s*architecture\s+(\w+)\s+of\s+(\w+)\s+is", re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_architecture(s) :
             logging.debug("found architecture %s of entity %s.%s" % ( s.group(1), dep_file.library, s.group(2) ) )
-            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2).lower()),
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2)),
                                               DepRelation.PROVIDE,
                                               DepRelation.ARCHITECTURE))
-            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2).lower()),
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2)),
                                               DepRelation.USE,
                                               DepRelation.ENTITY))
             return "<hdlmake architecture %s.%s>" % (dep_file.library, s.group(2))
@@ -101,7 +101,7 @@ class VHDLParser(DepParser):
         package_pattern = re.compile("^\s*package\s+(\w+)\s+is",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_package(s) :
             logging.debug("found package %s.%s" % (dep_file.library, s.group(1) ))
-            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1).lower()),
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1)),
                                               DepRelation.PROVIDE,
                                               DepRelation.PACKAGE))
             return "<hdlmake package %s.%s>" % (dep_file.library, s.group(1))
@@ -135,19 +135,19 @@ class VHDLParser(DepParser):
         def do_instance(s) :
             for lib in libraries :
                 logging.debug("-> instantiates %s.%s as %s" % (lib, s.group(2), s.group(1))  )
-                dep_file.add_relation(DepRelation("%s.%s" % (lib, s.group(2).lower()),
+                dep_file.add_relation(DepRelation("%s.%s" % (lib, s.group(2)),
                                                   DepRelation.USE,
                                                   DepRelation.ARCHITECTURE))
             return "<hdlmake instance %s|%s>" % (s.group(1), s.group(2))
         def do_instance_from_library(s) :
             if ( s.group(2).lower() == "work" ) : #work is the current library in VHDL
                 logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, s.group(3), s.group(1))  )
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(3).lower()),
+                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(3)),
                                                   DepRelation.USE,
                                                   DepRelation.ARCHITECTURE))
             else :
                 logging.debug("-> instantiates %s.%s as %s" % (s.group(2), s.group(3), s.group(1))  )
-                dep_file.add_relation(DepRelation("%s.%s" % (s.group(2).lower(), s.group(3).lower()),
+                dep_file.add_relation(DepRelation("%s.%s" % (s.group(2), s.group(3)),
                                                   DepRelation.USE,
                                                   DepRelation.ARCHITECTURE))
                 
@@ -159,7 +159,7 @@ class VHDLParser(DepParser):
         library_pattern = re.compile("^\s*library\s*(\w+)\s*;",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_library(s) :
             logging.debug("use library %s" % s.group(1))
-            libraries.add(s.group(1).lower())
+            libraries.add(s.group(1))
             return "<hdlmake library %s>" % s.group(1)
         
         buf = re.sub(library_pattern, do_library, buf)

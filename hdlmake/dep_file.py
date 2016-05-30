@@ -41,7 +41,7 @@ class DepRelation(object):
         assert rel_type in [DepRelation.ENTITY, DepRelation.PACKAGE, DepRelation.INCLUDE, DepRelation.ARCHITECTURE]
         self.direction = direction
         self.rel_type = rel_type
-        self.obj_name = obj_name
+        self.obj_name = obj_name.lower()
 
     def satisfies(self, rel_b):
         if rel_b.direction == DepRelation.PROVIDE or self.direction == DepRelation.USE:
@@ -205,5 +205,5 @@ class DepFile(File):
                 # recurse, to find the largest number of levels below.
                 self.dep_level = 1 + max([dep.get_dep_level() for dep in self.depends_on]);
         elif self.dep_level < 0:
-                raise Exception("Probably run into a circular reference of file dependencies.")
+                raise Exception("Probably run into a circular reference of file dependencies. It appears %d depends on itself, indirectly via atleast one other file." % self.filename())
         return self.dep_level
