@@ -35,10 +35,11 @@ class DepRelation(object):
     PACKAGE = 2
     INCLUDE = 3
     ARCHITECTURE = 4
+    MODULE = ARCHITECTURE
 
     def __init__(self, obj_name, direction, rel_type):
         assert direction in [DepRelation.PROVIDE, DepRelation.USE]
-        assert rel_type in [DepRelation.ENTITY, DepRelation.PACKAGE, DepRelation.INCLUDE, DepRelation.ARCHITECTURE]
+        assert rel_type in [DepRelation.ENTITY, DepRelation.PACKAGE, DepRelation.INCLUDE, DepRelation.ARCHITECTURE, DepRelation.MODULE]
         self.direction = direction
         self.rel_type = rel_type
         self.obj_name = obj_name.lower()
@@ -63,7 +64,7 @@ class DepRelation(object):
 
     def __repr__(self):
         dstr = {self.USE: "Use", self.PROVIDE: "Provide"}
-        ostr = {self.ENTITY: "entity/module", self.PACKAGE: "package", self.INCLUDE: "include/header", self.ARCHITECTURE: "architecture"}
+        ostr = {self.ENTITY: "entity", self.PACKAGE: "package", self.INCLUDE: "include/header", self.ARCHITECTURE: "architecture", self.MODULE: "module"}
         return "%s %s '%s'" % (dstr[self.direction], ostr[self.rel_type], self.obj_name)
 
     def __hash__(self):

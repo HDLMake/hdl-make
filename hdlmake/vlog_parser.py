@@ -579,14 +579,14 @@ class VerilogParser(DepParser):
 
         def do_module(s):
             logging.debug("found module %s.%s" % (dep_file.library, s.group(1) ))
-            dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.ENTITY))
+            dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.MODULE))
 
             def do_inst(s):
                 mod_name = s.group(1)
                 if(mod_name in self.reserved_words):
                     return
                 logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, s.group(1), s.group(2) ))
-                dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.ENTITY))
+                dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.MODULE))
             re.subn(m_instantiation, do_inst, s.group(2))
         re.subn(m_inside_module, do_module,  buf)
 
