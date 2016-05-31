@@ -596,6 +596,15 @@ So, once ``hdlmake`` has already generated the project and the Makefile, issuing
 
 Note that ``hdlmake`` and the examples included in the ``counter`` test have been designed in order to be regular across the different toolchains. In this way, every top Manifest.py for synthesis in the ``syn`` folder can be executed to build a valid bitstream by using the same command sequence we have seen in this section.
 
+.. note:: If you are using Xilinx ISE for synthesis, you are now able to make extra more fine-grainde targets for each
+   of the synthesis stages that ISE supports (remember, ISE will execute by its own the dependent synthesis stages if the associated
+   targets has not been previously executed):
+   
+   - ``synthesize``: Synthesize the design.
+   - ``translate``: Translate to Xilinx format.
+   - ``map``: Map the translated design into FPGA building blocks.
+   - ``par``: Execute Place & Route for the selected FPGA device.
+   - ``bitstream``: Generate the bitstream for FPGA programming.
 
 Handling remote modules
 -----------------------
@@ -687,10 +696,37 @@ In order to add external commands to a synthesis top makefile, the following par
 +----------------+--------------+-----------------------------------------------------------------+-----------+
 | Name           | Type         | Description                                                     | Default   |
 +================+==============+=================================================================+===========+
-| syn_pre_cmd    | str          | Command to be executed before synthesis                         | None      |
+| syn_pre_cmd    | str          | Command to be executed before synthesis                         | ''        |
 +----------------+--------------+-----------------------------------------------------------------+-----------+
-| syn_post_cmd   | str          | Command to be executed after synthesis                          | None      |
+| syn_post_cmd   | str          | Command to be executed after synthesis                          | ''        |
 +----------------+--------------+-----------------------------------------------------------------+-----------+
+
+If you are using Xilinx ISE synthesis, now you are able to run specific pre/post commands for all the new fine grained synthesis targets: ``{synthesize, translate, map, par, bitstream}``
+
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| Name                     | Type         | Description                                                     | Default   |
++==========================+==============+=================================================================+===========+
+| syn_pre_synthesize_cmd   | str          | Command to be executed before synthesis: synthesize             | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_synthesize_cmd  | str          | Command to be executed after synthesis: synthesize              | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_translate_cmd    | str          | Command to be executed before synthesis: translate              | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_translate_cmd   | str          | Command to be executed after synthesis: translate               | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_map_cmd          | str          | Command to be executed before synthesis: map                    | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_map_cmd         | str          | Command to be executed after synthesis: map                     | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_par_cmd          | str          | Command to be executed before synthesis: par                    | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_par_cmd         | str          | Command to be executed after synthesis: par                     | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_bitstream_cmd    | str          | Command to be executed before synthesis: bitstream              | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_bitstream_cmd   | str          | Command to be executed after synthesis: bitstream               | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+
 
 As a very simple example, we can introduce both extra commands in the top synthesis makefile we have previously seen:
 
@@ -1195,14 +1231,34 @@ Basic synthesis variables:
 
 Xilinx ISE specific variables:
 
-+-----------------+-------------+-----------------------------------------------------------------+-----------+
-| Name            | Type        | Description                                                     | Default   |
-+=================+=============+=================================================================+===========+
-| syn_ise_version | str         | Force particular ISE version                                    | None      |
-+-----------------+-------------+-----------------------------------------------------------------+-----------+
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| Name                     | Type         | Description                                                     | Default   |
++==========================+==============+=================================================================+===========+
+| syn_ise_version          | str          | Force particular ISE version                                    | None      |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_synthesize_cmd   | str          | Command to be executed before synthesis: synthesize             | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_synthesize_cmd  | str          | Command to be executed after synthesis: synthesize              | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_translate_cmd    | str          | Command to be executed before synthesis: translate              | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_translate_cmd   | str          | Command to be executed after synthesis: translate               | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_map_cmd          | str          | Command to be executed before synthesis: map                    | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_map_cmd         | str          | Command to be executed after synthesis: map                     | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_par_cmd          | str          | Command to be executed before synthesis: par                    | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_par_cmd         | str          | Command to be executed after synthesis: par                     | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_pre_bitstream_cmd    | str          | Command to be executed before synthesis: bitstream              | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_bitstream_cmd   | str          | Command to be executed after synthesis: bitstream               | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
 
 
-Altera QuartusII specific variables:
+Altera Quartus II / Prime specific variables:
 
 +--------------------+----------+-----------------------------------------------------------------+-----------+
 | Name               | Type     | Description                                                     | Default   |
