@@ -339,7 +339,18 @@ class Module(object):
             self.sim_only_files = self._create_file_list_from_paths(paths=paths)
 
         self.syn_pre_cmd = self.manifest_dict["syn_pre_cmd"]
+        self.syn_pre_synthesize_cmd = self.manifest_dict["syn_pre_synthesize_cmd"]
+        self.syn_post_synthesize_cmd = self.manifest_dict["syn_post_synthesize_cmd"]
+        self.syn_pre_translate_cmd = self.manifest_dict["syn_pre_translate_cmd"]
+        self.syn_post_translate_cmd = self.manifest_dict["syn_post_translate_cmd"]
+        self.syn_pre_map_cmd = self.manifest_dict["syn_pre_map_cmd"]
+        self.syn_post_map_cmd = self.manifest_dict["syn_post_map_cmd"]
+        self.syn_pre_par_cmd = self.manifest_dict["syn_pre_par_cmd"]
+        self.syn_post_par_cmd = self.manifest_dict["syn_post_par_cmd"]
+        self.syn_pre_bitstream_cmd = self.manifest_dict["syn_pre_bitstream_cmd"]
+        self.syn_post_bitstream_cmd = self.manifest_dict["syn_post_bitstream_cmd"]
         self.syn_post_cmd = self.manifest_dict["syn_post_cmd"]
+
         self.sim_pre_cmd = self.manifest_dict["sim_pre_cmd"]
         self.sim_post_cmd = self.manifest_dict["sim_post_cmd"]
 

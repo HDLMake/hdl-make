@@ -243,7 +243,7 @@ run_par.tcl \
 run_bitstream.tcl
 
 #target for performing local synthesis
-local: bitstream
+local: __syn_pre_cmd __gen_tcl_bitstream __run_tcl_bitstream __syn_post_cmd
 
 
 __gen_tcl_synthesize:
@@ -266,31 +266,66 @@ __gen_tcl_bitstream:
 \t\techo "project open $$(PROJECT)" > run_bitstream.tcl
 \t\techo "process run {Generate Programming File}" >> run_bitstream.tcl
 
-
-synthesize: __gen_tcl_synthesize
+__run_tcl_synthesize:
 \t\t${xtclsh_path} run_synthesize.tcl
 
-translate: __gen_tcl_translate
+__run_tcl_translate:
 \t\t${xtclsh_path} run_translate.tcl
 
-map: __gen_tcl_map
+__run_tcl_map:
 \t\t${xtclsh_path} run_map.tcl
 
-par: __gen_tcl_par
+__run_tcl_par:
 \t\t${xtclsh_path} run_par.tcl
 
-bitstream: __gen_tcl_bitstream
+__run_tcl_bitstream:
 \t\t${xtclsh_path} run_bitstream.tcl
+
+__syn_pre_cmd:
+\t\t${syn_pre_cmd}
+
+__syn_pre_synthesize_cmd:
+\t\t${syn_pre_synthesize_cmd}
+__syn_post_synthesize_cmd:
+\t\t${syn_post_synthesize_cmd}
+
+__syn_pre_translate_cmd:
+\t\t${syn_pre_translate_cmd}
+__syn_post_translate_cmd:
+\t\t${syn_post_translate_cmd}
+
+__syn_pre_map_cmd:
+\t\t${syn_pre_map_cmd}
+__syn_post_map_cmd:
+\t\t${syn_post_map_cmd}
+
+__syn_pre_par_cmd:
+\t\t${syn_pre_par_cmd}
+__syn_post_par_cmd:
+\t\t${syn_post_par_cmd}
+
+__syn_pre_bitstream_cmd:
+\t\t${syn_pre_bitstream_cmd}
+__syn_post_bitstream_cmd:
+\t\t${syn_post_bitstream_cmd}
+
+__syn_post_cmd:
+\t\t${syn_post_cmd}
+
+
+synthesize: __syn_pre_synthesize_cmd __gen_tcl_synthesize __run_tcl_synthesize __syn_post_synthesize_cmd
+
+translate: __syn_pre_translate_cmd __gen_tcl_translate __run_tcl_translate __syn_post_translate_cmd
+
+map: __syn_pre_map_cmd __gen_tcl_map __run_tcl_map __syn_post_map_cmd
+
+par: __syn_pre_par_cmd __gen_tcl_par __run_tcl_par __syn_post_par_cmd
+
+bitstream: __syn_pre_bitstream_cmd __gen_tcl_bitstream __run_tcl_bitstream __syn_post_bitstream_cmd
 
 
 check_tool:
 \t\t${check_tool}
-
-syn_post_cmd:
-\t\t${syn_post_cmd}
-
-syn_pre_cmd:
-\t\t${syn_pre_cmd}
 
 #target for cleaning all intermediate stuff
 clean:
@@ -301,18 +336,9 @@ clean:
 mrproper:
 \t\trm -f *.bit *.bin *.mcs
 
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd local check_tool
+.PHONY: mrproper clean local check_tool
 
 """)
-        if top_mod.syn_pre_cmd:
-            syn_pre_cmd = top_mod.syn_pre_cmd
-        else:
-            syn_pre_cmd = ''
-
-        if top_mod.syn_post_cmd:
-            syn_post_cmd = top_mod.syn_post_cmd
-        else:
-            syn_post_cmd = ''
 
         if top_mod.force_tool:
             ft = top_mod.force_tool
@@ -328,8 +354,18 @@ mrproper:
                                   project_name=top_mod.syn_project,
                                   ise_path=tool_path,
                                   check_tool=check_tool,
-                                  syn_pre_cmd=syn_pre_cmd,
-                                  syn_post_cmd=syn_post_cmd,
+                                  syn_pre_cmd=top_mod.syn_pre_cmd,
+                                  syn_pre_synthesize_cmd=top_mod.syn_pre_synthesize_cmd,
+                                  syn_post_synthesize_cmd=top_mod.syn_post_synthesize_cmd,
+                                  syn_pre_translate_cmd=top_mod.syn_pre_translate_cmd,
+                                  syn_post_translate_cmd=top_mod.syn_post_translate_cmd,
+                                  syn_pre_map_cmd=top_mod.syn_pre_map_cmd,
+                                  syn_post_map_cmd=top_mod.syn_post_map_cmd,
+                                  syn_pre_par_cmd=top_mod.syn_pre_par_cmd,
+                                  syn_post_par_cmd=top_mod.syn_post_par_cmd,
+                                  syn_pre_bitstream_cmd=top_mod.syn_pre_bitstream_cmd,
+                                  syn_post_bitstream_cmd=top_mod.syn_post_bitstream_cmd,
+                                  syn_post_cmd=top_mod.syn_post_cmd,
                                   xtclsh_path=os.path.join(tool_path, "xtclsh"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
