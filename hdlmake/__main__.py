@@ -165,7 +165,7 @@ def main():
                 quit()
             action = [ 
                 GenerateSimulationMakefile, 
-                GenerateFetchMakefile
+                #GenerateFetchMakefile
             ]
         elif top_mod.action == "synthesis":
             if not top_mod.syn_tool:
