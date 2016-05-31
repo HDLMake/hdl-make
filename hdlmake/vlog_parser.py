@@ -141,7 +141,9 @@ class VerilogPreprocessor(object):
         exps = {"include": re.compile("^\s*`include\s+\"(.+)\""),
                 "define": re.compile("^\s*`define\s+(\w+)(?:\(([\w\s,]*)\))?(.*)"),
                 "ifdef_elsif": re.compile("^\s*`(ifdef|ifndef|elsif)\s+(\w+)\s*$"),
-                "endif_else": re.compile("^\s*`(endif|else)\s*$")}
+                "endif_else": re.compile("^\s*`(endif|else)\s*$"),
+                "begin_protected": re.compile("^\s*`pragma\s*protect\s*begin_protected\s*$"),
+                "end_protected": re.compile("^\s*`pragma\s*protect\s*end_protected\s*$")}
 
         vl_macro_expand = re.compile("`(\w+)(?:\(([\w\s,]*)\))?")
         # init dependencies
@@ -152,6 +154,7 @@ class VerilogPreprocessor(object):
         logging.debug("preprocess file %s (of length %d) in library %s" % (file_name, len(file_content), library))
 #        print("BUF '%s'" %buf)
         buf = self._remove_comment(file_content)
+        protected_region = False
         while True:
             new_buf = ""
             n_expansions = 0
@@ -165,6 +168,15 @@ class VerilogPreprocessor(object):
                     matches[statement] = re.match(stmt_regex, line)
                     if(matches[statement]):
                         last = matches[statement]
+
+                if matches["begin_protected"]:
+                    protected_region = True
+                    continue
+                if matches["end_protected"]:
+                    protected_region = False
+                    continue
+                if protected_region:
+                    continue
 
                 if matches["ifdef_elsif"]:
                     cond_true = self._find_macro(last.group(2)) is not None
@@ -211,7 +223,7 @@ class VerilogPreprocessor(object):
                     if m:
                         return m.expansion
                     else:
-                        logging.error("No expansion for macro '`%s'" % what.group(1))
+                        logging.error("No expansion for macro '`%s' (%s) (%s)" % (what.group(1), line[:50] if len(line)>50 else line, file_name))
 
                 repl_line = re.sub(vl_macro_expand, do_expand, line)
                 new_buf += repl_line + '\n'
