@@ -26,6 +26,17 @@ from hdlmake.makefile_writer import MakefileWriter
 from .action import Action
 
 class GenerateFetchMakefile(Action):
+
+    def _check_manifest(self):
+        if not self.top_module.action == "synthesis":
+            logging.error("action must be equal to \"synthesis\"")
+            sys.exit("Exiting")
+
+        if not self.top_module.syn_project:
+            logging.error("syn_project must be set in the manifest.")
+            sys.exit("Exiting")
+
+
     def run(self):
         pool = self.modules_pool
         logging.info("Generating makefile for fetching modules.")
@@ -35,6 +46,8 @@ class GenerateFetchMakefile(Action):
             quit()
 
         self._check_all_fetched_or_quit()
+        self._check_manifest()
         makefile_writer = MakefileWriter()
         makefile_writer.generate_fetch_makefile(pool)
+        del makefile_writer
         logging.info("Makefile for fetching modules generated.")

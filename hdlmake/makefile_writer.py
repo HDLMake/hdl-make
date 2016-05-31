@@ -81,10 +81,16 @@ class MakefileWriter(object):
 
     def generate_fetch_makefile(self, modules_pool):
         rp = os.path.relpath
+        top_module = modules_pool.get_top_module()
         self.write("#target for fetching all modules stored in repositories\n")
-        self.write("fetch: ")
+        self.write("fetch: __fetch_pre_cmd __run_fetch __fetch_post_cmd\n\n")
+        self.write("__run_fetch:\\\n")
         self.write(' \\\n'.join(["__"+m.basename+"_fetch" for m in modules_pool if m.source in (fetch.SVN, fetch.GIT)]))
         self.write("\n\n")
+        self.write("__fetch_pre_cmd:\n")
+        self.write("\t\t%s\n\n" % top_module.fetch_pre_cmd)
+        self.write("__fetch_post_cmd:\n")
+        self.write("\t\t%s\n\n" % top_module.fetch_post_cmd)
 
         for module in modules_pool:
             basename = module.basename

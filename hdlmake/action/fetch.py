@@ -21,6 +21,7 @@
 
 import logging
 import sys
+import os
 
 from .action import Action
 
@@ -33,7 +34,10 @@ class FetchModules(Action):
             sys.exit("\nExiting")
 
     def run(self):
+        top_module = self.modules_pool.get_top_module()
         logging.info("Fetching needed modules.")
+        os.system(top_module.fetch_pre_cmd)
         self.modules_pool.fetch_all(unfetched_only=not self.options.update, flatten=self.options.flatten)
         logging.debug(str(self.modules_pool))
+        os.system(top_module.fetch_post_cmd)
         logging.info("All modules fetched.")

@@ -238,11 +238,14 @@ class Module(object):
         if self.manifest_dict["syn_ise_version"] is not None:
             version = self.manifest_dict["syn_ise_version"]
             self.syn_ise_version = str(version)
+
         if self.manifest_dict["fetchto"] is not None:
             fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"], self.path)
             self.fetchto = fetchto
         else:
             fetchto = self.fetchto
+        self.fetch_pre_cmd = self.manifest_dict["fetch_pre_cmd"]
+        self.fetch_post_cmd = self.manifest_dict["fetch_post_cmd"]
 
         if "local" in self.manifest_dict["modules"]:
             local_paths = self._flatten_list(self.manifest_dict["modules"]["local"])

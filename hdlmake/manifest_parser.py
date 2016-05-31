@@ -50,7 +50,8 @@ class ManifestParser(ConfigParser):
     def __init__(self):
         ConfigParser.__init__(self, description="Configuration options description")
         self.add_option('fetchto', default=None, help="Destination for fetched modules", type='')
-        #self.add_option('root_module', default=None, help="Path to root module for currently parsed", type='')
+        self.add_option('fetch_pre_cmd', default='', help="Command to be executed before fetch", type='')
+        self.add_option('fetch_post_cmd', default='', help="Command to be executed after fetch", type='')
 
         self.add_delimiter()
         self.add_option('syn_name', default=None, help="Name of the folder at remote synthesis machine", type='')

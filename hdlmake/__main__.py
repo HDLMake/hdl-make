@@ -163,7 +163,10 @@ def main():
                 logging.error("`sim_tool' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know how to simulate the project.")
                 quit()
-            action = [ GenerateSimulationMakefile ]
+            action = [ 
+                GenerateSimulationMakefile, 
+                GenerateFetchMakefile
+            ]
         elif top_mod.action == "synthesis":
             if not top_mod.syn_tool:
                 logging.error("`syn_tool' manifest variable has to be specified. "
@@ -171,6 +174,7 @@ def main():
                 quit()
             action = [
                 GenerateSynthesisProject,
+                #GenerateFetchMakefile,
                 GenerateSynthesisMakefile,
                 GenerateRemoteSynthesisMakefile
             ]
