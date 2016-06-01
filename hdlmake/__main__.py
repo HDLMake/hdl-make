@@ -40,13 +40,6 @@ from .action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMa
                     QsysHwTclUpdate,)
 from ._version import __version__
 
-#from argument_parser import get_argument_parser
-
-#try:
-#    from build_hash import BUILD_ID
-#except:
-#    BUILD_ID = "unrecognized"
-
 
 def main():
     """This is the main function, where HDLMake starts.
@@ -92,7 +85,7 @@ def main():
     # 1- Hdlmake create a new Module() object
     # 2- There is not a top_module yet in modules_pool, so only this time...:
     #    - this becomes the top_module (for both modules_pool and global_mod)
-    #    - the manifest is parsed
+    #    - the manifest is parsed & processed
     modules_pool.new_module(parent=None,
                             url=global_mod.current_path,
                             source=fetch_mod.LOCAL,
@@ -112,15 +105,6 @@ def main():
     global_mod.mod_pool = modules_pool
     global_mod.top_module = top_mod
 
-
-    # Now, process the top module manifest: this is a specific functions for module_pool!
-    #    -- try to guess the origin url
-    #    -- process manifest for top module
-    modules_pool.process_top_module_manifest()
-    #url = modules_pool._guess_origin(global_mod.top_module.path)
-    #if url:
-    #    global_mod.top_module.url = url
-    #global_mod.top_module.process_manifest()
 
     #
     # Load global tool object (global_mod.py)
@@ -150,16 +134,9 @@ def main():
     global_mod.tool_module = tool_module
 
 
-    #env.top_module = modules_pool.get_top_module()
-    #env.check_env(verbose=False)
-    #env.check_env_wrt_manifest(verbose=False)
-
-
     #                                   #
-    # EXECUTE THE COMMANDS/ACTIONS HERE #
+    # DECODE THE COMMANDS/ACTIONS HERE  #
     #                                   #
-
-
     if options.command == "check-env":
         env.check_env(verbose=True)
         quit()
@@ -226,6 +203,9 @@ def main():
     elif options.command == "tree":
         action = [ Tree ]
 
+    #                                   #
+    # EXECUTE THE COMMAND SEQUENCE      #
+    #                                   #
     try:
         for command in action:
             action_instance = command(modules_pool=modules_pool,

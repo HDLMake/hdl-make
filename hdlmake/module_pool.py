@@ -101,14 +101,12 @@ class ModulePool(list):
                 global_mod.top_module = new_module
                 self.top_module = new_module
                 new_module.parse_manifest()
-            return new_module
+                new_module.process_manifest()
+                url = self._guess_origin(global_mod.top_module.path)
+                if url:
+                    global_mod.top_module.url = url
 
-    def process_top_module_manifest(self):
-        """Process the top module without descending to children modules"""
-        url = self._guess_origin(global_mod.top_module.path)
-        if url:
-            global_mod.top_module.url = url
-        global_mod.top_module.process_manifest()
+            return new_module
 
     def _guess_origin(self, path):
         """Guess origin (git, svn, local) of a module at given path"""
