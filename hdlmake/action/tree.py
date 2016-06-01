@@ -39,25 +39,29 @@ class Tree(Action):
         #hierarchy = pgv.AGraph(directed=True, overlap=False, strict=False, rotate=1)
         #hierarchy.node_attr['shape'] = 'box'
         color_index = 0
-        for m in self.modules_pool:
-            if not m.isfetched:
-                unfetched_modules = True
-            else:
-                if m.parent: 
-                    hierarchy.add_node(path.relpath(m.path))
-                    #hierarchy.add_node(m)
-                    hierarchy.add_edge(path.relpath(m.parent.path), path.relpath(m.path))
-                    #hierarchy.add_edge(m, m.parent)
+
+        if self.options.solved:
+            logging.warning("This is the solved tree")
+        else:
+            for m in self.modules_pool:
+                if not m.isfetched:
+                    unfetched_modules = True
                 else:
-                    hierarchy.add_node(path.relpath(m.path))
-                    top_id = path.relpath(m.path)
-                    #hierarchy.add_node(m)
-                if self.options.withfiles:
-                    if len(m.files):
-                        for f in m.files:
-                            hierarchy.add_edge(path.relpath(m.path), path.relpath(f.path))
-                            #hierarchy.add_edge(f, m)
-            color_index += 1
+                    if m.parent: 
+                        hierarchy.add_node(path.relpath(m.path))
+                        #hierarchy.add_node(m)
+                        hierarchy.add_edge(path.relpath(m.parent.path), path.relpath(m.path))
+                        #hierarchy.add_edge(m, m.parent)
+                    else:
+                        hierarchy.add_node(path.relpath(m.path))
+                        top_id = path.relpath(m.path)
+                        #hierarchy.add_node(m)
+                    if self.options.withfiles:
+                        if len(m.files):
+                            for f in m.files:
+                                hierarchy.add_edge(path.relpath(m.path), path.relpath(f.path))
+                                #hierarchy.add_edge(f, m)
+                color_index += 1
 
         if unfetched_modules: logging.warning("Some of the modules have not been fetched!")
         #hierarchy.layout(prog='dot')

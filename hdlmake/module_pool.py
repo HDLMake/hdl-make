@@ -60,7 +60,7 @@ class ModulePool(list):
         return False
 
 
-    def new_module(self, parent, url, source, fetchto, process_manifest=True):
+    def new_module(self, parent, url, source, fetchto):
         """Add new module to the pool.
 
         This is the only way to add new modules to the pool. Thanks to it the pool can easily
@@ -101,8 +101,6 @@ class ModulePool(list):
                 global_mod.top_module = new_module
                 self.top_module = new_module
                 new_module.parse_manifest()
-                if process_manifest is True:
-                    new_module.process_manifest()
             return new_module
 
     def process_top_module_manifest(self):

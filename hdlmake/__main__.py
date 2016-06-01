@@ -75,7 +75,7 @@ def main():
     env = Env(options)
     global_mod.env = env
 
-
+    # Here we set the log level (A.K.A.) debug verbosity)
     numeric_level = getattr(logging, options.log.upper(), None)
     if not isinstance(numeric_level, int):
         sys.exit('Invalid log level: %s' % options.log)
@@ -83,27 +83,44 @@ def main():
     logging.basicConfig(format=colored("%(levelname)s", "yellow") + colored("\t%(filename)s:%(lineno)d: %(funcName)s()\t", "blue") + "%(message)s", level=numeric_level)
     logging.debug(str(options))
 
+    # Create a ModulePool object, this will become our workspace
     modules_pool = ModulePool()
+
+    # Now, we add the first module, the one from which we are launching the program:
+    # Note that we are asking for not processing the manifest and specifying
+    # that there is not a parent module.
+    # 1- Hdlmake create a new Module() object
+    # 2- There is not a top_module yet in modules_pool, so only this time...:
+    #    - this becomes the top_module (for both modules_pool and global_mod)
+    #    - the manifest is parsed
     modules_pool.new_module(parent=None,
                             url=global_mod.current_path,
                             source=fetch_mod.LOCAL,
-                            fetchto=".",
-                            process_manifest=False)
+                            fetchto=".")
 
-    # Setting top_module as top module of design (ModulePool class)
+    # Check if our top_module has been successfully assigned and 
+    # contains a Manifest.py (ModulePool class)
     if modules_pool.get_top_module().manifest is None:
         logging.info("No manifest found. At least an empty one is needed")
         logging.info("To see some help, type hdlmake --help")
         sys.exit("Exiting")
 
-    # Setting global variable (global_mod.py)
+
+    # Setting global variables for top_module and mod_pool:
+    #    -- Note that this is redundant, we can get top_mod from mod_pool!
     top_mod = modules_pool.get_top_module()
+    global_mod.mod_pool = modules_pool
     global_mod.top_module = top_mod
 
-    #global_mod.global_target = global_mod.top_module.target
-    global_mod.mod_pool = modules_pool
 
+    # Now, process the top module manifest: this is a specific functions for module_pool!
+    #    -- try to guess the origin url
+    #    -- process manifest for top module
     modules_pool.process_top_module_manifest()
+    #url = modules_pool._guess_origin(global_mod.top_module.path)
+    #if url:
+    #    global_mod.top_module.url = url
+    #global_mod.top_module.process_manifest()
 
     #
     # Load global tool object (global_mod.py)
@@ -271,6 +288,7 @@ def _get_parser():
     tree.add_argument("--with-files", help="Add files to the module hierarchy tree", default=False, action="store_true", dest="withfiles")
     tree.add_argument("--graphviz", dest="graphviz", default=None, help="Activate graphviz and specify the program to be used to plot the graph (twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, circo, neato, acyclic, nop, gvpr, dot, sfdp)")
     tree.add_argument("--web", help="Edit the tree hierarchy in a web browser", default=False, action="store_true", dest="web")
+    tree.add_argument("--solved", help="Enable the parser", default=False, action="store_true", dest="solved")
     condition_check = argparse.ArgumentParser()
     condition_check.add_argument("--tool", dest="tool", required=True)
     condition_check.add_argument("--reference", dest="reference", required=True)
