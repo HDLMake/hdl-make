@@ -20,6 +20,7 @@
 #
 
 import os
+import logging
 
 from .util import path as path_mod
 
@@ -147,6 +148,8 @@ class DepFile(File):
         File.__init__(self, path=file_path, module=module)
         self.file_path = file_path
         self._rels = set()
+        self._inputs = set()
+        self._outputs = set()
         self.depends_on = set()  # set of files that the file depends on, items of type DepFile
         self.dep_level = None
         
@@ -158,15 +161,17 @@ class DepFile(File):
         self.file_path = file_path
         self.include_paths = include_paths
 
-    def _parse_if_needed(self):
+    def parse_if_needed(self):
+        logging.debug("Parse %s if needed!!!" % self.file_path)
         from .new_dep_solver import ParserFactory
         if not self.is_parsed:
+            logging.debug("Not parsed yet, let's go!")
             parser = ParserFactory().create(self)
             parser.parse(self)
 
     #use proxy template here
     def __get_rels(self):
-        self._parse_if_needed()
+        #self._parse_if_needed()
         return self._rels
 
     def __set_rels(self, what):
@@ -179,11 +184,11 @@ class DepFile(File):
 
     def satisfies(self, rel_b):
         assert isinstance(rel_b, DepRelation)
-        self._parse_if_needed()
+        #self._parse_if_needed()
         return any(map(lambda x: x.satisfies(rel_b), self.rels))
 
     def show_relations(self):
-        self._parse_if_needed()
+        #self._parse_if_needed()
         for r in self.rels:
             print(str(r))
 

@@ -188,13 +188,6 @@ class ModulePool(list):
                 else:
                     logging.debug("NOT appended to fetch queue: " + str(mod.url))
 
-    def solve_dependencies(self):
-        """Set dependencies for all project files"""
-        if not self._deps_solved:
-            dep_solver.solve(self.build_complete_file_set())
-            self._deps_solved = True
-
-
     def build_file_set(self):
         from srcfile import SourceFileSet
         build_files = SourceFileSet()
@@ -203,16 +196,23 @@ class ModulePool(list):
 
     def build_complete_file_set(self):
         """Build set of all files listed in the manifests"""
+        logging.debug("Begin build complete file set")
         from .srcfile import SourceFileSet
         all_manifested_files = SourceFileSet()
         for module in self:
             all_manifested_files.add(module.files)
+        logging.debug("End build complete file set")
         return all_manifested_files
 
     def build_limited_file_set(self):
         top_entity = self.top_module.top_module
-        self.solve_dependencies()
+        #self.solve_dependencies()
         all_files = self.build_complete_file_set()
+        if not self._deps_solved:
+            logging.debug("- begin solve")
+            dep_solver.solve(all_files)
+            logging.debug("- end solve")
+            self._deps_solved = True
         from srcfile import SourceFileSet
         source_files = SourceFileSet()
         source_files.add(dep_solver.make_dependency_set(all_files, top_entity))

@@ -86,6 +86,7 @@ def main():
                             source=fetch_mod.LOCAL,
                             fetchto=".")
 
+
     # Check if our top_module has been successfully assigned and 
     # contains a Manifest.py (ModulePool class)
     if modules_pool.get_top_module().manifest is None:

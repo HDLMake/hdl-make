@@ -57,31 +57,45 @@ def solve(fileset):
     from .dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
-
+    #print(fileset)
+    #print(fset)
     not_satisfied = 0
+    logging.debug("PARSE BEGIN: Here, we will parse all the files in the fileset: no parsing should be done beyond this point")
     for investigated_file in fset:
-        logging.debug("Dependency solver investigates %s (%d relations)" % (investigated_file, len(investigated_file.rels)))
+        logging.debug("INVESTIGATED FILE: %s" % investigated_file)
+        investigated_file.parse_if_needed()
+    logging.debug("PARSE END: now the parsing is done")
+
+    
+    logging.debug("SOLVE BEGIN")
+    for investigated_file in fset:
+        #logging.info("INVESTIGATED FILE: %s" % investigated_file)
+        #print(investigated_file.rels)
         for rel in investigated_file.rels:
-            satisfied_by = set()
-            for dep_file in fset:
-                if dep_file.satisfies(rel):
-                    if dep_file is not investigated_file:
-                        investigated_file.depends_on.add(dep_file)
-                    satisfied_by.add(dep_file)
-            if len(satisfied_by) > 1:
-                logging.warning("Relation %s satisfied by multpiple (%d) files: %s",
-                                str(rel),
-                                len(satisfied_by),
-                                '\n'.join([file.path for file in list(satisfied_by)]))
-            elif len(satisfied_by) == 0:
-                logging.warning("Relation %s in %s not satisfied by any source file" % (str(rel), investigated_file.name))
-                not_satisfied += 1
+            #logging.info("- relation: %s" % rel)
+            #logging.info("- direction: %s" % rel.direction)
+            # Only analyze USE relations, we are looking for dependencies
+            if rel.direction == DepRelation.USE:
+                satisfied_by = set()
+                for dep_file in fset:
+                    if dep_file.satisfies(rel):
+                        if dep_file is not investigated_file:
+                            investigated_file.depends_on.add(dep_file)
+                        satisfied_by.add(dep_file)
+                if len(satisfied_by) > 1:
+                    logging.warning("Relation %s satisfied by multpiple (%d) files: %s",
+                                    str(rel),
+                                    len(satisfied_by),
+                                    '\n'.join([file.path for file in list(satisfied_by)]))
+                elif len(satisfied_by) == 0:
+                    logging.warning("Relation %s in %s not satisfied by any source file" % (str(rel), investigated_file.name))
+                    not_satisfied += 1
+    logging.debug("SOLVE END")
+
     if not_satisfied != 0:
-        logging.info("Dependencies solved, but %d relations were not satisfied.\n"
-                     "It doesn't necessarily mean that there is some file missing, as it might be defined\n"
-                     "internally in the compiler." % not_satisfied)
+        logging.warning("Dependencies solved, but %d relations were not satisfied"  % not_satisfied)
     else:
-        logging.info("Dependencies solved")
+        logging.info("Dependencies solved, all of the relations weres satisfied!")
 
 
 def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):
@@ -98,7 +112,7 @@ def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):
     return sorted_list
     
 def make_dependency_set(fileset, top_level_entity):
-    """Create a set of all files required to build the named top_level_entity."""
+    logging.info("Create a set of all files required to build the named top_level_entity.")
     from srcfile import SourceFileSet
     from dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
