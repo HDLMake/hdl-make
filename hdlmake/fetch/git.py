@@ -32,7 +32,7 @@ class GitSubmodule(Fetcher):
     def fetch(self, module):
         if module.source != GITSUBMODULE:
             raise ValueError("This backend should get git modules only.")
-        cur_dir = module.pool.top_module.url
+        cur_dir = module.pool.top_module.path
         os.chdir(module.fetchto)
         os.system("git submodule init")
         os.system("git submodule update")
@@ -45,7 +45,7 @@ class Git(Fetcher):
 
     @staticmethod
     def get_git_toplevel(module):
-        cur_dir = module.pool.top_module.url
+        cur_dir = module.pool.top_module.path
         try:
             os.chdir(path.rel2abs(module.path))
             if not os.path.exists(".gitmodules"):
@@ -63,7 +63,7 @@ class Git(Fetcher):
     def get_git_submodules(module):
         submodule_dir = path.rel2abs(module.path)
         logging.debug("Checking git submodules in %s" % submodule_dir)
-        cur_dir = module.pool.top_module.url
+        cur_dir = module.pool.top_module.path
         try:
             os.chdir(submodule_dir)
 
@@ -117,7 +117,7 @@ submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
         if not os.path.exists(module.fetchto):
             os.mkdir(module.fetchto)
 
-        cur_dir = module.pool.top_module.url
+        cur_dir = module.pool.top_module.path
         if module.branch is None:
             module.branch = "master"
 

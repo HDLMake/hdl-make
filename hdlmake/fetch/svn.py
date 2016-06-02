@@ -35,7 +35,7 @@ class Svn(Fetcher):
         if not os.path.exists(module.fetchto):
             os.mkdir(module.fetchto)
 
-        cur_dir = module.pool.top_module.url
+        cur_dir = module.pool.top_module.path
         os.chdir(module.fetchto)
 
         basename = path.url_basename(module.url)

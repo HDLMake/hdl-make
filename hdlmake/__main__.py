@@ -33,7 +33,7 @@ from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
 from .env import Env
 from . import fetch as fetch_mod
-from .action import (CheckCondition, CleanModules, FetchModules, GenerateFetchMakefile, ListFiles,
+from .action import (CheckCondition, CleanModules, FetchModules, ListFiles,
                     ListModules, MergeCores, Tree, GenerateSimulationMakefile,
                     GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
                     QsysHwTclUpdate,)
@@ -81,9 +81,8 @@ def main():
     # 2- There is not a top_module yet in modules_pool, so only this time...:
     #    - this becomes the top_module
     #    - the manifest is parsed & processed
-    current_path = os.getcwd()
     modules_pool.new_module(parent=None,
-                            url=current_path,
+                            url=os.getcwd(),
                             source=fetch_mod.LOCAL,
                             fetchto=".")
 
@@ -124,7 +123,6 @@ def main():
                 quit()
             action = [ 
                 GenerateSimulationMakefile, 
-                #GenerateFetchMakefile
             ]
         elif top_mod.action == "synthesis":
             if not top_mod.syn_tool:
@@ -133,7 +131,6 @@ def main():
                 quit()
             action = [
                 GenerateSynthesisProject,
-                #GenerateFetchMakefile,
                 GenerateSynthesisMakefile,
                 GenerateRemoteSynthesisMakefile
             ]
@@ -149,8 +146,6 @@ def main():
         action = [ GenerateSimulationMakefile ]
     elif options.command == "make-synthesis":
         action = [ GenerateSynthesisMakefile ]
-    elif options.command == "make-fetch":
-        action = [ GenerateFetchMakefile ]
     elif options.command == "make-remote":
         action = [ GenerateRemoteSynthesisMakefile ]
     elif options.command == "fetch":
@@ -211,7 +206,6 @@ def _get_parser():
     check_manifest.add_argument("--top", help="indicate path to the top manifest", default=None)
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
     make_simulation = subparsers.add_parser("make-simulation", help="generate simulation makefile")
-    make_fetch = subparsers.add_parser("make-fetch", help="generate fetch makefile")
     make_synthesis = subparsers.add_parser("make-synthesis", help="generate synthesis makefile")
     make_remote = subparsers.add_parser("make-remote", help="generate remote synthesis makefile")
 
