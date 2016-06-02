@@ -37,7 +37,7 @@ class VHDLPreprocessor(object):
         return re.sub(pattern,"", s)
 
     def _preprocess_file(self, file_content, file_name, library):
-        logging.debug("preprocess file %s (of length %d) in library %s" % (file_name, len(file_content), library) )
+        logging.debug("preprocess file %s (of length %d) in library %s" % (file_name, len(file_content), library))
         return self.remove_comments_and_strings(file_content)
 
     def preprocess(self, vhdl_file):
@@ -65,10 +65,10 @@ class VHDLParser(DepParser):
         use_pattern = re.compile("^\s*use\s+(\w+)\s*\.\s*(\w+)", re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_use(s) :
             if ( s.group(1).lower() == "work" ) : #work is the current library in VHDL
-                logging.debug("use package %s.%s" % (dep_file.library, s.group(2) ) )
-                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2) ) , DepRelation.USE, DepRelation.PACKAGE)) 
+                logging.debug("use package %s.%s" % (dep_file.library, s.group(2)))
+                dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(2)) , DepRelation.USE, DepRelation.PACKAGE)) 
             else :
-                logging.debug("use package %s.%s" % (s.group(1), s.group(2)) )
+                logging.debug("use package %s.%s" % (s.group(1), s.group(2)))
                 dep_file.add_relation(DepRelation("%s.%s" % (s.group(1), s.group(2)), DepRelation.USE, DepRelation.PACKAGE))
             return "<hdlmake use_pattern %s.%s>" % (s.group(1), s.group(2))
         buf = re.sub(use_pattern, do_use, buf)
@@ -76,7 +76,7 @@ class VHDLParser(DepParser):
         #new entity
         entity_pattern = re.compile("^\s*entity\s+(?P<name>\w+)\s+is\s+(?:port|generic|end).*?(?P=name)\s*;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_entity(s) :
-            logging.debug("found entity %s.%s" % ( dep_file.library, s.group(1) ) )
+            logging.debug("found entity %s.%s" % ( dep_file.library, s.group(1)))
             dep_file.add_relation(DepRelation("%s" % (s.group(1)),
                                               DepRelation.PROVIDE,
                                               DepRelation.ENTITY))
@@ -89,7 +89,7 @@ class VHDLParser(DepParser):
         #new architecture
         architecture_pattern = re.compile("^\s*architecture\s+(\w+)\s+of\s+(\w+)\s+is", re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_architecture(s) :
-            logging.debug("found architecture %s of entity %s.%s" % ( s.group(1), dep_file.library, s.group(2) ) )
+            logging.debug("found architecture %s of entity %s.%s" % ( s.group(1), dep_file.library, s.group(2)))
             dep_file.add_relation(DepRelation("%s" % (s.group(2)),
                                               DepRelation.PROVIDE,
                                               DepRelation.ARCHITECTURE))
@@ -104,8 +104,9 @@ class VHDLParser(DepParser):
 
         #new package
         package_pattern = re.compile("^\s*package\s+(\w+)\s+is",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
+        package_body_pattern = re.compile("^\s*package\s+body\s+(\w+)\s+is",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
         def do_package(s) :
-            logging.debug("found package %s.%s" % (dep_file.library, s.group(1) ))
+            logging.debug("found package %s.%s" % (dep_file.library, s.group(1)))
             dep_file.add_relation(DepRelation("%s" % (s.group(1)),
                                               DepRelation.PROVIDE,
                                               DepRelation.PACKAGE))
@@ -113,7 +114,14 @@ class VHDLParser(DepParser):
                                               DepRelation.PROVIDE,
                                               DepRelation.PACKAGE))
             return "<hdlmake package %s.%s>" % (dep_file.library, s.group(1))
+        def do_package_body(s) :
+            logging.debug("found package body %s.%s" % (dep_file.library, s.group(1)))
+            dep_file.add_relation(DepRelation("%s.%s" % (dep_file.library, s.group(1)),
+                                              DepRelation.USE,
+                                              DepRelation.PACKAGE))
+            return "<hdlmake package body %s.%s>" % (dep_file.library, s.group(1))
         buf = re.sub(package_pattern, do_package, buf)
+        buf = re.sub(package_body_pattern, do_package_body, buf)
 
         #component declaration
         component_pattern = re.compile("^\s*component\s+(\w+).*?end\s+component.*?;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
