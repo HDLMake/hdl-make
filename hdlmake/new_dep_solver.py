@@ -75,6 +75,33 @@ def solve(fileset):
             #logging.info("- relation: %s" % rel)
             #logging.info("- direction: %s" % rel.direction)
             # Only analyze USE relations, we are looking for dependencies
+
+            if isinstance(investigated_file, VHDLFile) :
+                print("These are the dependency parameters for a VHDL file")
+                print("Dump provided architectures from solver!")
+                for architecture_test in investigated_file.provided_architectures:
+                    print("--------------------------")
+                    print("architecture_test.model")
+                    print(architecture_test.model)
+                    print("architecture_test.components")
+                    print(architecture_test.components)
+                    print("architecture_test.entities")
+                    print(architecture_test.entities)
+                    print("--------------------------")
+
+                print("Dump provided entities from solver!")
+                for entity_test in investigated_file.provided_entities:
+                    print("--------------------------")
+                    print(entity_test)
+                    print("--------------------------")
+
+                print("Dump used packages from solver!")
+                for package_test in investigated_file.used_packages:
+                    print("--------------------------")
+                    print(package_test)
+                    print("--------------------------")
+
+
             if rel.direction == DepRelation.USE:
                 satisfied_by = set()
                 for dep_file in fset:
@@ -121,9 +148,11 @@ def make_dependency_set(fileset, top_level_entity):
     top_rel_vhdl = DepRelation("%s.%s" % ("work", top_level_entity), DepRelation.PROVIDE, DepRelation.ENTITY)
     top_rel_vlog = DepRelation("%s.%s" % ("work", top_level_entity), DepRelation.PROVIDE, DepRelation.MODULE)
     top_file = None
+    logging.debug("Look for top level unit: %s." % top_level_entity)
     for chk_file in fset:
         for rel in chk_file.rels:
             if ((rel == top_rel_vhdl) or (rel == top_rel_vlog)):
+                logging.debug("Found the top level file providing top level unit: %s." % chk_file)
                 top_file = chk_file
                 break;
         if top_file:

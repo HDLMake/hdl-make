@@ -138,7 +138,6 @@ class File(object):
         ext = tmp[len(tmp)-1]
         return ext
 
-
 class DepFile(File):
     def __init__(self, file_path, module, include_paths=None):
         from .module import Module
@@ -152,6 +151,10 @@ class DepFile(File):
         self._outputs = set()
         self.depends_on = set()  # set of files that the file depends on, items of type DepFile
         self.dep_level = None
+
+        self.provided_architectures = []
+        self.provided_entities = []
+        self.used_packages = []
         
         self.is_parsed = False
         if include_paths is None:
