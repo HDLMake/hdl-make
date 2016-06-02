@@ -29,7 +29,6 @@ import os.path
 
 from .util import path
 from .util.termcolor import colored
-from . import global_mod
 
 
 _plain_print = print
@@ -71,9 +70,6 @@ class Env(dict):
         print.set_verbose(verbose)
         # Check and determine general environment
         self.check_general()
-        #tool_object = global_mod.tool_module.ToolControls()      
-        #self._check_tool(tool_object)
-        #self._check_remote_tool(tool_object)
 
 
     def _get(self, name):

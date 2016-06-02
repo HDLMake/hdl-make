@@ -21,7 +21,6 @@
 
 import os
 
-from . import global_mod
 from .util import path as path_mod
 
 
@@ -81,11 +80,8 @@ class DepRelation(object):
 class File(object):
     def __init__(self, path, module=None):
         self.path = path
-        if module is None:
-            self.module = global_mod.top_module
-        else:
-            assert not isinstance(module, basestring)
-            self.module = module
+        assert not isinstance(module, basestring)
+        self.module = module
 
     @property
     def name(self):
@@ -101,7 +97,7 @@ class File(object):
 
     def rel_path(self, dir=None):
         if dir is None:
-            dir = global_mod.current_path
+            dir = os.getcwd()
         return path_mod.relpath(self.path, dir)
 
     def __str__(self):

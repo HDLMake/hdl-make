@@ -31,8 +31,6 @@ from hdlmake.vlog_parser import VerilogPreprocessor
 
 from .action import Action
 
-from hdlmake import global_mod
-
 
 class MergeCores(Action):
     def _check_manifest(self):
@@ -99,9 +97,10 @@ class MergeCores(Action):
             f_out.write(vpp.preprocess(vlog.rel_path()))
         f_out.close()
 
+        current_path = os.getcwd()
         for ngc in flist.filter(NGCFile):
             import shutil
             logging.info("copying NGC file: %s" % ngc.rel_path())
-            shutil.copy(ngc.rel_path(), global_mod.current_path)
+            shutil.copy(ngc.rel_path(), current_path)
 
         logging.info("Cores merged.")

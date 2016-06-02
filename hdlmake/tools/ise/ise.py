@@ -30,7 +30,6 @@ import os
 import string
 from subprocess import Popen, PIPE
 
-from hdlmake import global_mod
 import hdlmake.new_dep_solver as dep_solver
 from hdlmake.makefile_writer import MakefileWriter
 
@@ -455,7 +454,7 @@ mrproper:
         self.add_property("Create Binary Configuration File", "true")
 
     def _set_values_from_manifest(self):
-        tm = global_mod.mod_pool.get_top_module()
+        tm = self.top_mod
         if tm.syn_family == None:
             tm.syn_family = FAMILY_NAMES.get(tm.syn_device[0:4].upper())
             if tm.syn_family == None:

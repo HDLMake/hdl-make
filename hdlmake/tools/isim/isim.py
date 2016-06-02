@@ -30,7 +30,6 @@ import logging
 import sys
 import string
 
-from hdlmake import global_mod
 from hdlmake.makefile_writer import MakefileWriter
 
 
@@ -76,13 +75,12 @@ class ToolControls(MakefileWriter):
 
     def generate_simulation_makefile(self, fileset, top_module):
         from hdlmake.srcfile import VerilogFile, VHDLFile
-        #from ..ise import XilinxsiminiReader
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
 TOP_MODULE := """ + top_module.top_module + """
 FUSE_OUTPUT ?= isim_proj
 
-XILINX_INI_PATH := """ + XilinxsiminiReader.xilinxsim_ini_dir() + """
+XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) + """
 
 VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
@@ -250,54 +248,9 @@ isim.wdb isim_proj isim_proj.*
         return ' '.join(ret)
 
 
-
-
-class XilinxsiminiReader(object):
-    def __init__(self, path=None):
-        if path is None:
-            path = self.xilinxsim_ini_dir() + "/xilinxsim.ini"
-        self.path = path
-
-    # Parse the xilinxsim.ini file to get the referenced libraries
-    def get_libraries(self):
-        libs = []
-
-        try:
-            ini = open(self.path, "r")
-        except Exception:
-            raise RuntimeError("Can't open existing xilinxsim.ini file")
-
-        #p.info("Reading 'xilinxsim.ini' located in: '"+ str(self.path))
-
-        # Read loggical libraries name, skipping comments and other
-        #possible sections
-        for line in ini:
-            # Read line by line, skipping comments and striping newline
-            line = line.split('--')[0].strip()
-            # Still in comments section
-            if line == "":
-                continue
-
-            # Not in comments section. Library section:
-            #<logical_library> = <phisical_path>
-            line = line.split('=')
-            lib = line[0].strip()
-            libs.append(lib.lower())
-        return libs
-
-    @staticmethod
-    def xilinxsim_ini_dir():
-        # Does not really need this
-        # try:
-        #     host_platform = os.environ["HOST_PLATFORM"]
-        # except KeyError:
-        #     logging.error("Please set the environment variable HOST_PLATFORM")
-        #     quit()
-        
-        #if global_mod.env["xilinx"]:
-        #    xilinx_dir = global_mod.env["xilinx"]
-        if global_mod.env["isim_path"]:
-            xilinx_dir = str(os.path.join(global_mod.env["isim_path"],"..",".."))
+    def __get_xilinxsim_ini_dir(self, env):
+        if env["isim_path"]:
+            xilinx_dir = str(os.path.join(env["isim_path"],"..",".."))
         else:
             logging.error("Cannot calculate xilinx tools base directory")
             quit()
@@ -309,7 +262,7 @@ class XilinxsiminiReader(object):
         else:
             os_prefix = 'lin'
 
-        if global_mod.env["architecture"] == 32:
+        if env["architecture"] == 32:
             arch_sufix = ''
         else:
             arch_sufix = '64'

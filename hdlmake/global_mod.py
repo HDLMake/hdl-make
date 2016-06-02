@@ -23,10 +23,5 @@
 #
 
 
-options = None
 top_module = None
-mod_pool = None
-sim_tool = None
 env = None
-makefile_writer = None
-current_path = None

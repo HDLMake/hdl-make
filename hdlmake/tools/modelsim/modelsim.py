@@ -25,7 +25,6 @@ from __future__ import print_function
 import xml.dom.minidom
 import os
 
-from hdlmake import global_mod
 from ..common.sim_makefile_support import VsimMakefileWriter
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
@@ -61,8 +60,8 @@ class ToolControls(VsimMakefileWriter):
         self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])
         self.vlog_flags.extend(["-modelsimini", "modelsim.ini"])
         self.vmap_flags.extend(["-modelsimini", "modelsim.ini"])
-        if global_mod.env["modelsim_path"]:
-            modelsim_ini_path = os.path.join(global_mod.env["modelsim_path"], "..")
+        if top_module.pool.env["modelsim_path"]:
+            modelsim_ini_path = os.path.join(top_module.pool.env["modelsim_path"], "..")
         else:
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path

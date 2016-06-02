@@ -34,9 +34,3 @@ class CheckManifest(Action):
         ### THIS IS JUST A STUB
         ###
         pass
-        #manifest_parser = ManifestParser()
-
-        #manifest_parser.add_arbitrary_code("__manifest=\""+self.path+"\"")
-        #manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
-
-        #opt_map = manifest_parser.parse()

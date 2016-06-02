@@ -26,7 +26,6 @@ import logging
 
 from .dep_file import DepFile
 from .srcfile import VHDLFile, VerilogFile, SVFile
-from . import global_mod
 
 class DepParser(object):
     def __init__(self, dep_file):
@@ -52,24 +51,6 @@ class ParserFactory(object):
         else :
             raise ValueError("Unrecognized file format : %s" % dep_file.file_path)
 
-# class DepSolver(object):
-#     def solve(self, vhdl_files):
-#         for f in vhdl_files:
-#             logging.debug("solving deps for " + f.path)
-#             if f.dep_requires:
-#                 for req in f.dep_requires:
-#                     pf = self._find_provider_file(req=req, vhdl_file=f, fset=vhdl_files)
-#                     assert isinstance(pf, SourceFile)
-#                     if not pf:
-#                         logging.error("Missing dependency in file "+str(f)+": " + req[0]+'.'+req[1])
-#                     else:
-#                         logging.debug("%s depends on %s" % (f.path, pf.path))
-#                         if pf.path != f.path:
-#                             f.dep_depends_on.append(pf)
-#             #get rid of duplicates by making a set from the list and vice versa
-#             f.dep_depends_on = list(set(f.dep_depends_on))
-#             f.dep_resolved = True
-
 
 def solve(fileset):
     from .srcfile import SourceFileSet
@@ -77,24 +58,12 @@ def solve(fileset):
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
 
-    # for fle in fset:
-    #     print(fle.path)
-    #     for rel in fle.rels:
-    #         print('\t' + str(rel))
     not_satisfied = 0
     for investigated_file in fset:
         logging.debug("Dependency solver investigates %s (%d relations)" % (investigated_file, len(investigated_file.rels)))
         for rel in investigated_file.rels:
-            if rel.direction is DepRelation.PROVIDE:  # PROVIDE relations dont have to be satisfied
-                continue
-            if rel.rel_type is DepRelation.INCLUDE:  # INCLUDE are already solved by preprocessor
-                continue
-            if rel.library() in global_mod.tool_module.ToolControls().get_standard_libraries():  # dont care about standard libs
-                continue
             satisfied_by = set()
             for dep_file in fset:
-               # if dep_file is investigated_file:
-               #     continue
                 if dep_file.satisfies(rel):
                     if dep_file is not investigated_file:
                         investigated_file.depends_on.add(dep_file)
@@ -115,7 +84,7 @@ def solve(fileset):
         logging.info("Dependencies solved")
 
 
-def make_dependency_sorted_list(fileset, purge_unused=True):
+def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):
     """Sort files in order of dependency. 
     Files with no dependencies first. 
     All files that another depends on will be earlier in the list."""
@@ -124,8 +93,8 @@ def make_dependency_sorted_list(fileset, purge_unused=True):
     dependable.sort(key=lambda f: f.file_path.lower()) # Not necessary, but will tend to group files more nicely in the output.
     dependable.sort(key=DepFile.get_dep_level)
     sorted_list = non_dependable + dependable
-    #if global_mod.options.reverse == True:
-    #    sorted_list = list(reversed(sorted_list))
+    if reverse:
+        sorted_list = list(reversed(sorted_list))
     return sorted_list
     
 def make_dependency_set(fileset, top_level_entity):

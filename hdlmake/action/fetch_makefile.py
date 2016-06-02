@@ -21,7 +21,6 @@
 
 import logging
 
-from hdlmake import global_mod
 from hdlmake.makefile_writer import MakefileWriter
 from .action import Action
 

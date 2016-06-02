@@ -26,7 +26,6 @@ import logging
 from subprocess import PIPE, Popen
 import sys
 
-from . import global_mod
 from . import new_dep_solver as dep_solver
 from .util import path as path_mod
 from . import fetch
@@ -38,6 +37,10 @@ class ModulePool(list):
         self.top_module = None
         self.global_fetch = os.getenv("HDLMAKE_COREDIR")
         self._deps_solved = False
+        self.env = None
+
+    def set_environment(self, env):
+        self.env = env
 
     def get_module_by_path(self, path):
         """Get instance of Module being stored at a given location"""
@@ -98,19 +101,18 @@ class ModulePool(list):
                                 pool=self)
             self._add(new_module)
             if not self.top_module:
-                global_mod.top_module = new_module
                 self.top_module = new_module
                 new_module.parse_manifest()
                 new_module.process_manifest()
-                url = self._guess_origin(global_mod.top_module.path)
+                url = self._guess_origin(self.top_module.path)
                 if url:
-                    global_mod.top_module.url = url
+                    self.top_module.url = url
 
             return new_module
 
     def _guess_origin(self, path):
         """Guess origin (git, svn, local) of a module at given path"""
-        cwd = global_mod.current_path
+        cwd = self.top_module.url
         try:
             os.chdir(path)
             git_out = Popen("git config --get remote.origin.url", stdout=PIPE, shell=True, close_fds=True)
@@ -169,7 +171,7 @@ class ModulePool(list):
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
             if flatten is True:
-                cur_mod.fetchto = global_mod.top_module.fetchto
+                cur_mod.fetchto = self.top_module.fetchto
             new_modules = []
             if unfetched_only:
                 if cur_mod.isfetched:
@@ -196,10 +198,7 @@ class ModulePool(list):
     def build_file_set(self):
         from srcfile import SourceFileSet
         build_files = SourceFileSet()
-        if global_mod.options.no_parse == False:
-            build_files.add(self.build_limited_file_set())
-        else:
-            build_files.add(self.build_complete_file_set())
+        build_files.add(self.build_limited_file_set())
         return build_files
 
     def build_complete_file_set(self):
@@ -212,13 +211,11 @@ class ModulePool(list):
 
     def build_limited_file_set(self):
         top_entity = self.top_module.top_module
-        tool_object = global_mod.tool_module.ToolControls()
         self.solve_dependencies()
         all_files = self.build_complete_file_set()
         from srcfile import SourceFileSet
         source_files = SourceFileSet()
         source_files.add(dep_solver.make_dependency_set(all_files, top_entity))
-        source_files.add(tool_object.supported_files(all_files))
         return source_files
 
     def get_top_module(self):

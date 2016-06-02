@@ -25,7 +25,6 @@ import os
 import sys
 import importlib
 
-from hdlmake import global_mod
 from hdlmake.srcfile import SourceFileFactory
 
 from .action import Action
@@ -68,10 +67,10 @@ class GenerateRemoteSynthesisMakefile(Action):
         files = self.modules_pool.build_file_set()
 
         sff = SourceFileFactory()
-        files.add(sff.new(top_mod.syn_project, module=None))
+        files.add(sff.new(top_mod.syn_project, module=self.top_module))
 
         tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
-                                                            cwd=global_mod.current_path, user=self.env["rsynth_user"],
+                                                            cwd=top_mod.url, user=self.env["rsynth_user"],
                                                             server=self.env["rsynth_server"])
         logging.info("Remote synthesis makefile generated.")
 

@@ -27,7 +27,6 @@ import logging
 
 from .manifest_parser import Manifest, ManifestParser
 from .util import path as path_mod
-from . import global_mod
 from . import fetch
 
 
@@ -97,7 +96,7 @@ class Module(object):
         self.sim_only_files = None
         self.sim_pre_script = None
         self.sim_post_script = None
-        self.top_module = None
+        self.top_module = pool.get_top_module()
         self.commit_id = None
         self.hw_tcl_filename = None
         
@@ -198,7 +197,7 @@ class Module(object):
 
         manifest_parser = ManifestParser()
 
-        manifest_parser.add_arbitrary_code(global_mod.options.arbitrary_code)
+        #manifest_parser.add_arbitrary_code(self.pool.top_module.options.arbitrary_code)
 
         if self.manifest is None:
             logging.debug("No manifest found in module "+str(self))
@@ -209,7 +208,7 @@ class Module(object):
         if self.parent is None:
             extra_context = {}
         else:
-            extra_context = dict(global_mod.top_module.manifest_dict)  # copy the dictionary
+            extra_context = dict(self.top_module.manifest_dict)  # copy the dictionary
             del extra_context["modules"]
             del extra_context["files"]
             del extra_context["include_dirs"]
@@ -288,15 +287,6 @@ class Module(object):
 
         makefiles_paths = self._make_list_of_paths(mkFileList)
         self.incl_makefiles.extend(makefiles_paths)
-
-        #if self.vlog_opt == "":
-        #    self.vlog_opt = global_mod.top_module.vlog_opt
-        #if self.vcom_opt == "":
-        #    self.vcom_opt = global_mod.top_module.vcom_opt
-        #if self.vsim_opt == "":
-        #    self.vsim_opt = global_mod.top_module.vsim_opt
-       # if self.vmap_opt == "":
-        #    self.vmap_opt = global_mod.top_module.vmap_opt
 
         self.library = self.manifest_dict["library"]
         self.include_dirs = []
@@ -446,7 +436,7 @@ class Module(object):
             m.parse_manifest()
             m.process_manifest()
 
-        if self == global_mod.top_module:
+        if self == self.top_module:
             revision = fetch.Svn.check_revision_number(self.path)
             if revision is None:
                 commit = fetch.Git.check_commit_id(self.path)

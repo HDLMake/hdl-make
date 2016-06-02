@@ -26,14 +26,13 @@ from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
 from .constants import (GIT, GITSUBMODULE)
 from .fetcher import Fetcher
-from hdlmake import global_mod
 
 
 class GitSubmodule(Fetcher):
     def fetch(self, module):
         if module.source != GITSUBMODULE:
             raise ValueError("This backend should get git modules only.")
-        cur_dir = global_mod.current_path
+        cur_dir = module.pool.top_module.url
         os.chdir(module.fetchto)
         os.system("git submodule init")
         os.system("git submodule update")
@@ -46,7 +45,7 @@ class Git(Fetcher):
 
     @staticmethod
     def get_git_toplevel(module):
-        cur_dir = global_mod.current_path
+        cur_dir = module.pool.top_module.url
         try:
             os.chdir(path.rel2abs(module.path))
             if not os.path.exists(".gitmodules"):
@@ -64,7 +63,7 @@ class Git(Fetcher):
     def get_git_submodules(module):
         submodule_dir = path.rel2abs(module.path)
         logging.debug("Checking git submodules in %s" % submodule_dir)
-        cur_dir = global_mod.current_path
+        cur_dir = module.pool.top_module.url
         try:
             os.chdir(submodule_dir)
 
@@ -118,7 +117,7 @@ submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
         if not os.path.exists(module.fetchto):
             os.mkdir(module.fetchto)
 
-        cur_dir = global_mod.current_path
+        cur_dir = module.pool.top_module.url
         if module.branch is None:
             module.branch = "master"
 
@@ -165,7 +164,7 @@ submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
 
     @staticmethod
     def check_commit_id(path):
-        cur_dir = global_mod.current_path
+        cur_dir = os.getcwd()
         commit = None
         stderr = TemporaryFile()
         try:

@@ -25,8 +25,6 @@ import logging
 import sys
 import importlib
 
-from hdlmake import global_mod
-
 from .action import Action
 
 
@@ -70,8 +68,8 @@ class GenerateSynthesisMakefile(Action):
         env.check_general()
         env.check_tool(tool_object)
 
-        if global_mod.env[path_key]:
-            tool_path = global_mod.env[path_key]
+        if env[path_key]:
+            tool_path = env[path_key]
         else:
             tool_path = ""
         

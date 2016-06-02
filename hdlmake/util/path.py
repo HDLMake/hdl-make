@@ -23,7 +23,6 @@
 from __future__ import print_function
 import os
 import logging
-from hdlmake import global_mod
 
 
 def url_parse(url):
@@ -115,7 +114,7 @@ def is_abs_path(path):
 
 def relpath(p1, p2=None):
     if p2 is None:
-        p2 = global_mod.current_path
+        p2 = os.getcwd()
     if p1 == p2:
         return '.'
     p1, p2 = p2, p1
@@ -143,7 +142,7 @@ def rel2abs(path, base=None):
     @return the relative path of path from base
     """
     if base is None:
-        base = global_mod.current_path
+        base = os.getcwd()
     if os.path.isabs(path):
         return path
     retval = os.path.join(base, path)

@@ -26,7 +26,6 @@ import string
 import os
 import logging
 
-from hdlmake import global_mod
 from hdlmake.makefile_writer import MakefileWriter
 
 
@@ -152,7 +151,7 @@ mrproper: clean
         print('javi checkpoint 0')
         from hdlmake.srcfile import VerilogFile
 
-        for f in global_mod.top_module.incl_makefiles:
+        for f in top_module.incl_makefiles:
             self.writeln("include " + f)
         target_list = []
         for vl in fileset.filter(VerilogFile):
@@ -175,14 +174,14 @@ mrproper: clean
         print('javi target_list', target_list)
 
         sim_only_files = []
-        for m in global_mod.mod_pool:
+        for m in modules_pool:
             for f in m.sim_only_files:
                 sim_only_files.append(f.name)
         print('javi sim_only_files', sim_only_files)
 
         # bit file targets are those that are only used in simulation
         bit_targets = []
-        for m in global_mod.mod_pool:
+        for m in modules_pool:
             bit_targets = bit_targets + list(m.bit_file_targets)
         print('javi bit_targets', bit_targets)
 
@@ -199,9 +198,9 @@ mrproper: clean
             if not os.path.exists("%s.ucf" % bt):
                 logging.warning("The file %s.ucf doesn't exist!" % bt)
             self.writeln(bt+".bit:\t"+bt+".v $("+bt+"syn_deps) "+bt+".ucf")
-            part=(global_mod.top_module.syn_device+'-'+
-                  global_mod.top_module.syn_package+
-                  global_mod.top_module.syn_grade)
+            part=(top_module.syn_device+'-'+
+                  top_module.syn_package+
+                  top_module.syn_grade)
             self.writeln("\tPART="+part+" $(SYNTH) "+bt+" $^")
             self.writeln("\tmv _xilinx/"+bt+".bit $@")
 

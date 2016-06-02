@@ -27,7 +27,6 @@ import importlib
 
 from hdlmake.dep_file import DepFile
 import hdlmake.new_dep_solver as dep_solver
-from hdlmake import global_mod
 
 from .action import Action
 

@@ -28,7 +28,6 @@ import argparse
 import logging
 import sys
 
-from . import global_mod
 from .util.termcolor import colored
 from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
@@ -49,9 +48,6 @@ def main():
         -- prepare the global module containing the heavy common stuff
     """
 
-    # Remember current path
-    global_mod.current_path = os.getcwd()
-
     #
     # SET & GET PARSER
     #
@@ -61,12 +57,7 @@ def main():
     # PARSE & GET OPTIONS
     #
     options = _get_options(sys, parser)
-    global_mod.options = options
 
-
-    # global_mod_assigned!!!
-    env = Env(options)
-    global_mod.env = env
 
     # Here we set the log level (A.K.A.) debug verbosity)
     numeric_level = getattr(logging, options.log.upper(), None)
@@ -79,15 +70,20 @@ def main():
     # Create a ModulePool object, this will become our workspace
     modules_pool = ModulePool()
 
+    # Set the environment
+    env = Env(options)
+    modules_pool.set_environment(env)
+
     # Now, we add the first module, the one from which we are launching the program:
     # Note that we are asking for not processing the manifest and specifying
     # that there is not a parent module.
     # 1- Hdlmake create a new Module() object
     # 2- There is not a top_module yet in modules_pool, so only this time...:
-    #    - this becomes the top_module (for both modules_pool and global_mod)
+    #    - this becomes the top_module
     #    - the manifest is parsed & processed
+    current_path = os.getcwd()
     modules_pool.new_module(parent=None,
-                            url=global_mod.current_path,
+                            url=current_path,
                             source=fetch_mod.LOCAL,
                             fetchto=".")
 
@@ -102,37 +98,6 @@ def main():
     # Setting global variables for top_module and mod_pool:
     #    -- Note that this is redundant, we can get top_mod from mod_pool!
     top_mod = modules_pool.get_top_module()
-    global_mod.mod_pool = modules_pool
-    global_mod.top_module = top_mod
-
-
-    #
-    # Load global tool object (global_mod.py)
-    #
-    if top_mod.action == "synthesis":
-        if not top_mod.syn_tool:
-            logging.error("`syn_tool' manifest variable has to be specified. "
-                          "Otherwise hdlmake doesn't know how to synthesize the project")
-            quit()
-        tool_name = top_mod.syn_tool
-    elif top_mod.action == "simulation":
-        if not top_mod.sim_tool:
-            logging.error("`sim_tool' manifest variable has to be specified. "
-                          "Otherwise hdlmake doesn't know how to simulate the project")
-            quit()
-        tool_name = top_mod.sim_tool
-    else:
-        tool_name = "notool"
-        
-    logging.info('import tool module: ' + tool_name)
-    try:
-        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-    except Exception as e:
-        logging.error(e)
-        quit()
-
-    global_mod.tool_module = tool_module
-
 
     #                                   #
     # DECODE THE COMMANDS/ACTIONS HERE  #
@@ -287,9 +252,6 @@ def _get_parser():
     parser.add_argument("--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
                           dest="generate_project_vhd", default=False, action="store_true")
     parser.add_argument("--force", help="force hdlmake to generate the makefile, even if the specified tool is missing", default=False, action="store_true")
-    parser.add_argument("--no-parse", dest="no_parse",
-                        default=False, help="disable smart parser engine", action="store_true")
-
 
     return parser
 
