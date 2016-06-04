@@ -86,34 +86,25 @@ class VHDLParser(DepParser):
                 dep_file.add_relation(DepRelation("%s.%s" % (s.group(1), s.group(2)), DepRelation.USE, DepRelation.PACKAGE))
             return "<hdlmake use_pattern %s.%s>" % (s.group(1), s.group(2))
         use_packages = use_pattern.findall(buf)
-        print('use package:\n %s' % use_packages)
         dep_file.used_packages = use_packages
         buf = re.sub(use_pattern, do_use, buf)
 
         # Provide entity
         entity_pattern = re.compile("^\s*entity\s+(?P<name>\w+)\s+is\s+(?:port|generic|end).*?(?P=name)\s*;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
         provided_entities = entity_pattern.findall(buf)
-        print('provide entities:\n %s' % provided_entities)
         dep_file.provided_entities = provided_entities
 
         # Provide architecture
         architecture_pattern = re.compile("^\s*architecture\s+(\w+)\s+of\s+(\w+)\s+is", re.DOTALL | re.MULTILINE | re.IGNORECASE )
         provided_architectures = architecture_pattern.findall(buf)
-        print('provide architectures:\n %s' % provided_architectures)
         for architecture in provided_architectures:
             architecture_aux = Architecture();
             architecture_aux.model = architecture
-            print('- architecture: %s(%s)' % (architecture[1], architecture[0])) 
             # Note: architecture closes with "end architecture" (we were missing this), 
             # "end <arch_name>" or "end architecture <arch_name>
             architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s+(%s|architecture\s%s|architecture).*?;" % (architecture[0], architecture[1], architecture[0], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
             architecture_inner_content = architecture_inner_pattern.findall(buf)
-            print("********************** INNER CONTENT *********************************************")
-            print(architecture_inner_content)
-            print("**********************************************************************************")
             component_pattern = re.compile("^\s*component\s+(\w+).*?end\s+component.*?;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
-            print("Architecture dependencies:")
-            print("content length: %s" % len(architecture_inner_content))
             # if the inner content is none but the architecture exists, we will temporarly parse
             # the full file -- a very wild guess
             if len(architecture_inner_content) > 0:
@@ -127,9 +118,6 @@ class VHDLParser(DepParser):
             architecture_aux.instances = instance_from_library_pattern.findall(architecture_string)
             dep_file.provided_architectures.append(architecture_aux)
             instance_from_library_pattern = re.compile("^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
-            print("**********************************************************************************")
-            print(instance_from_library_pattern.findall(buf))
-            print("**********************************************************************************")
 
         #new package
         package_pattern = re.compile("^\s*package\s+(\w+)\s+is",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
@@ -141,8 +129,6 @@ class VHDLParser(DepParser):
         #    return "<hdlmake package %s.%s>" % (dep_file.library, s.group(1))
         #buf = re.sub(package_pattern, do_package, buf)
         provided_packages = package_pattern.findall(buf)
-        print("Provided packages dependencies:")
-        print(provided_packages)
         for package in provided_packages:
             package_aux = Package();
             package_aux.model = package
@@ -153,8 +139,6 @@ class VHDLParser(DepParser):
             component_pattern = re.compile("^\s*component\s+(\w+).*?end\s+component.*?;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
             if len(package_inner_content) > 0:
                 package_aux.components = component_pattern.findall(package_inner_content[0])
-                print("package_aux.components")
-                print(package_aux.components)
             dep_file.provided_packages.append(package_aux)
 
 

@@ -69,8 +69,6 @@ def solve(fileset, top_entity):
     from .dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
-    #print(fileset)
-    #print(fset)
     not_satisfied = 0
     logging.debug("PARSE BEGIN: Here, we will parse all the files in the fileset: no parsing should be done beyond this point")
     for investigated_file in fset:
@@ -79,23 +77,15 @@ def solve(fileset, top_entity):
     logging.debug("PARSE END: now the parsing is done")
 
     
-    logging.debug("SOLVE BEGIN")
-    print("Search for the file providing top_entity and their architectures: %s" % top_entity)
+    logging.info("Solve the file hierarchy from top module: %s" % top_entity)
 
     # Create a directed graph with all of the relations
-    # 1- Search top entity
-    # 2- Search architectures for top entity
-    # 3- Search for components/entities
-
-    #hierarchy.add_node(path.relpath(m.path))
-    #hierarchy.add_node(m)
-    #hierarchy.add_edge(path.relpath(m.parent.path), path.relpath(m.path))
 
     hierarchy_dict = {}
 
     for investigated_file in fset:
 
-        print("investigated_file: %s" % investigated_file.path)
+        logging.debug("investigated_file: %s" % investigated_file.path)
 
         if isinstance(investigated_file, VHDLFile) :
 
@@ -112,33 +102,23 @@ def solve(fileset, top_entity):
             for architecture_test in investigated_file.provided_architectures:
                 hierarchy.add_node(architecture_test.model)
                 hierarchy_dict[architecture_test.model] = investigated_file
-                #hierarchy.add_edge(architecture_test.model, architecture_test.model[1])
                 hierarchy.add_edge(architecture_test.model[1], architecture_test.model)
                 if architecture_test.entities:
                     for used_entity in architecture_test.entities:
-                        #hierarchy.add_edge(used_entity[1], architecture_test.model)
                         hierarchy.add_edge(architecture_test.model, used_entity[1])
                 if architecture_test.components:
                     for used_component in architecture_test.components:
-                        #hierarchy.add_edge(used_entity[1], architecture_test.model)
                         hierarchy.add_edge(architecture_test.model, used_component)
                 if architecture_test.instances:
                     for used_instance in architecture_test.instances:
-                        #hierarchy.add_edge(used_entity[1], architecture_test.model)
                         hierarchy.add_edge(architecture_test.model, used_instance)
                 for used_package in investigated_file.used_packages:
-                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-                    print(used_package[1])
-                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                     hierarchy.add_edge(architecture_test.model, used_package[1])
 
 
             for package_test in investigated_file.provided_packages:
                 hierarchy.add_node(package_test.model)
                 hierarchy_dict[package_test.model] = investigated_file
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-                print(package_test.model)
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                 #if package_test.components:
                 #    for used_component in package_test.components:
                 #        #hierarchy.add_edge(used_entity[1], architecture_test.model)
@@ -146,86 +126,28 @@ def solve(fileset, top_entity):
                 #        print(used_component)
 
 
-            print("These are the dependency parameters for a VHDL file")
-            print("Dump provided architectures from solver!")
-            for architecture_test in investigated_file.provided_architectures:
-                print("--------------------------")
-                print("architecture_test.model")
-                print(architecture_test.model)
-                print("architecture_test.components")
-                print(architecture_test.components)
-                print("architecture_test.entities")
-                print(architecture_test.entities)
-                print("architecture_test.instances")
-                print(architecture_test.instances)
-                print("--------------------------")
-
-            print("Dump provided entities from solver!")
-            for entity_test in investigated_file.provided_entities:
-                print("--------------------------")
-                print(entity_test)
-                if entity_test == top_entity: 
-                    print("************* Hit!!!! **************")
-                    print(investigated_file)
-                print("--------------------------")
-
-            print("Dump provided packages from solver!")
-            for provided_package_test in investigated_file.provided_packages:
-                print("--------------------------")
-                print(provided_package_test)
-                print("--------------------------")
-
-            print("Dump used packages from solver!")
-            for used_package_test in investigated_file.used_packages:
-                print("--------------------------")
-                print(used_package_test)
-                print("--------------------------")
-
-
         if isinstance(investigated_file, VerilogFile) :
             # In verilog world, packages are related with SystemVerilog
-
             for module_test in investigated_file.provided_modules:
                 hierarchy.add_node(module_test.model)
                 hierarchy_dict[module_test.model] = investigated_file
                 if module_test.instances:
                     for used_instance in module_test.instances:
-                        #hierarchy.add_edge(used_entity[1], architecture_test.model)
                         hierarchy.add_edge(module_test.model, used_instance[0])
 
-
-    #filelists = [nx.topological_sort(H) for H in nx.weakly_connected_component_subgraphs(hierarchy)]
-    print("These are the filelists:")
-    print("************************************")
-    #for H in nx.weakly_connected_component_subgraphs(hierarchy):
-    #for H in nx.strongly_connected_component_subgraphs(hierarchy):
-    #    if top_entity in H:
-    #        # This is our subgraph!
-    #        top_hierarchy = H
-    #        sorted_components= nx.topological_sort(H)
-    #        print(sorted_components)
-    #print("************************************")
-    #print(hierarchy_dict)
 
     tree = nx.bfs_tree(hierarchy, top_entity)
 
     top_hierarchy = tree
     sorted_components= nx.topological_sort(top_hierarchy)
-    print(sorted_components)
 
-
-    print("FILES:")
     solved_files = []
     for component in sorted_components:
         if component in hierarchy_dict:
             if not (hierarchy_dict[component] in solved_files):
                 solved_files.append(hierarchy_dict[component])
-    #print(solved_files)
-    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    print("total files: %s" % len(solved_files))
-    for file_test in solved_files:
-        print(file_test.path)
-    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+    logging.info("Dependencies solved: %s files added to the hierarchy" % len(solved_files))
 
         # Define the program used to write the graphviz:
         # Program should be one of: 
@@ -249,33 +171,6 @@ def solve(fileset, top_entity):
             alpha=0.5,
             node_size=100)
         plt.savefig("hierarchy.png")
-        plt.show()
-
-
-    if False:
-        import matplotlib.pyplot as plt
-        pos=nx.graphviz_layout(hierarchy, prog='neato', root=top_entity)
-        nx.draw(hierarchy, pos,
-            with_labels=True,
-            alpha=0.5,
-            node_size=100)
-        plt.savefig("hierarchy.png")
-        plt.show()
-
-    if False:
-        import matplotlib.pyplot as plt
-        hierarchy_u = hierarchy.to_undirected()
-        #hierarchy_u = hierarchy
-        pos=nx.graphviz_layout(hierarchy_u,prog="neato")
-        for h in nx.connected_component_subgraphs(hierarchy_u):
-            if top_entity in h:
-                sortedfiles = nx.topological_sort(h)
-                print("***********************")
-                print(sortedfiles)
-                print("***********************")
-                nx.draw(h,pos,node_color='red')
-            #else:
-            #    nx.draw(h,pos,node_color='white')
         plt.show()
 
 

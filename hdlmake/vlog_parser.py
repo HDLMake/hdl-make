@@ -585,7 +585,6 @@ class VerilogParser(DepParser):
         re.subn(import_pattern, do_imports, buf)
         #----------------------------------------------
         use_packages = import_pattern.findall(buf)
-        print('use package:\n %s' % use_packages)
         dep_file.used_packages = use_packages
 
  
@@ -597,7 +596,6 @@ class VerilogParser(DepParser):
         re.subn(m_inside_package, do_package, buf)
         #----------------------------------------------
         provide_packages = m_inside_package.findall(buf)
-        print('provide package:\n %s' % provide_packages)
         dep_file.provided_packages = provide_packages
 
 
@@ -606,15 +604,12 @@ class VerilogParser(DepParser):
         m_inside_module = re.compile("(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)(?:endmodule|endinterface)", re.DOTALL | re.MULTILINE)
         #----------------------------------------------
         provide_modules = m_inside_module.findall(buf)
-        print('provide module:\n %s' % provide_modules)
         for module in provide_modules:
             module_aux = VlogModule();
             module_aux.model = module[0]
             m_instantiation = re.compile("(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*", re.DOTALL | re.MULTILINE)
             used_instances = m_instantiation.findall(module[1])
-            print("used instances:")
             module_aux.instances = used_instances
-            print(used_instances)
             dep_file.provided_modules.append(module_aux)
 
         dep_file.is_parsed = True
