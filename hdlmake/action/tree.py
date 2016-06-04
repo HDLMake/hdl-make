@@ -36,6 +36,7 @@ class Tree(Action):
 
         self.modules_pool.build_file_set()
         hierarchy = self.modules_pool.hierarchy_tree
+        #hierarchy = self.modules_pool.hierarchy_dag
         top_id = self.modules_pool.top_module.top_module
         # Define the program used to write the graphviz:
         # Program should be one of: 

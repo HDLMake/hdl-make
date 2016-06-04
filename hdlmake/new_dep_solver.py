@@ -100,20 +100,21 @@ def solve(fileset, top_entity):
                     hierarchy.add_edge(entity_test, used_package[1])
 
             for architecture_test in investigated_file.provided_architectures:
-                hierarchy.add_node(architecture_test.model)
-                hierarchy_dict[architecture_test.model] = investigated_file
-                hierarchy.add_edge(architecture_test.model[1], architecture_test.model)
+                architecture_id = "%s(%s)" % (architecture_test.model[1], architecture_test.model[0])
+                hierarchy.add_node(architecture_id)
+                hierarchy_dict[architecture_id] = investigated_file
+                hierarchy.add_edge(architecture_test.model[1], architecture_id)
                 if architecture_test.entities:
                     for used_entity in architecture_test.entities:
-                        hierarchy.add_edge(architecture_test.model, used_entity[1])
+                        hierarchy.add_edge(architecture_id, used_entity[1])
                 if architecture_test.components:
                     for used_component in architecture_test.components:
-                        hierarchy.add_edge(architecture_test.model, used_component)
+                        hierarchy.add_edge(architecture_id, used_component)
                 if architecture_test.instances:
                     for used_instance in architecture_test.instances:
-                        hierarchy.add_edge(architecture_test.model, used_instance)
+                        hierarchy.add_edge(architecture_id, used_instance)
                 for used_package in investigated_file.used_packages:
-                    hierarchy.add_edge(architecture_test.model, used_package[1])
+                    hierarchy.add_edge(architecture_id, used_package[1])
 
 
             for package_test in investigated_file.provided_packages:
