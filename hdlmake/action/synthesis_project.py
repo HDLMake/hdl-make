@@ -26,7 +26,7 @@ import sys
 import os
 import importlib
 
-from hdlmake.srcfile import SourceFileFactory
+from hdlmake.srcfile import SourceFileFactory, SourceFileSet
 from hdlmake.dependable_file import DependableFile
 from hdlmake.util import path
 
@@ -171,7 +171,9 @@ end sdb_meta_pkg;""")
             update=False
 
         top_mod = self.modules_pool.get_top_module()
-        fileset = self.modules_pool.build_file_set()
+        self.modules_pool.build_file_set()
+        fileset = SourceFileSet()
+        fileset.add(self.modules_pool.hierarchy_solved)
         non_dependable = fileset.inversed_filter(DependableFile)
         fileset.add(non_dependable)
         privative_files = tool_object.supported_files(self.modules_pool.build_complete_file_set())

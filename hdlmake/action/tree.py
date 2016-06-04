@@ -33,41 +33,10 @@ class Tree(Action):
         except Exception as e:
             logging.error(e)
             quit()
-        unfetched_modules = False
-        files_str = []
-        hierarchy = nx.DiGraph()
-        #hierarchy = pgv.AGraph(directed=True, overlap=False, strict=False, rotate=1)
-        #hierarchy.node_attr['shape'] = 'box'
-        color_index = 0
 
-        if self.options.solved:
-            logging.warning("This is the solved tree")
-        else:
-            for m in self.modules_pool:
-                if not m.isfetched:
-                    unfetched_modules = True
-                else:
-                    if m.parent: 
-                        hierarchy.add_node(path.relpath(m.path))
-                        #hierarchy.add_node(m)
-                        hierarchy.add_edge(path.relpath(m.parent.path), path.relpath(m.path))
-                        #hierarchy.add_edge(m, m.parent)
-                    else:
-                        hierarchy.add_node(path.relpath(m.path))
-                        top_id = path.relpath(m.path)
-                        #hierarchy.add_node(m)
-                    if self.options.withfiles:
-                        if len(m.files):
-                            for f in m.files:
-                                hierarchy.add_edge(path.relpath(m.path), path.relpath(f.path))
-                                #hierarchy.add_edge(f, m)
-                color_index += 1
-
-        if unfetched_modules: logging.warning("Some of the modules have not been fetched!")
-        #hierarchy.layout(prog='dot')
-        #hierarchy.layout(prog='sfdp')
-        #hierarchy.layout()
-
+        self.modules_pool.build_file_set()
+        hierarchy = self.modules_pool.hierarchy_tree
+        top_id = self.modules_pool.top_module.top_module
         # Define the program used to write the graphviz:
         # Program should be one of: 
         #     twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, 

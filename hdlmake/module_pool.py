@@ -38,6 +38,11 @@ class ModulePool(list):
         self.global_fetch = os.getenv("HDLMAKE_COREDIR")
         self._deps_solved = False
         self.env = None
+        # Directed Acyclic Graph
+        self.hierarchy_dag = None
+        self.hierarchy_dict = None
+        self.hierarchy_tree =None
+        self.hierarchy_solved =None
 
     def set_environment(self, env):
         self.env = env
@@ -188,12 +193,6 @@ class ModulePool(list):
                 else:
                     logging.debug("NOT appended to fetch queue: " + str(mod.url))
 
-    def build_file_set(self):
-        from srcfile import SourceFileSet
-        build_files = SourceFileSet()
-        solved_files = self.build_limited_file_set()
-        return solved_files
-
     def build_complete_file_set(self):
         """Build set of all files listed in the manifests"""
         logging.debug("Begin build complete file set")
@@ -204,14 +203,13 @@ class ModulePool(list):
         logging.debug("End build complete file set")
         return all_manifested_files
 
-    def build_limited_file_set(self):
+    def build_file_set(self):
         top_entity = self.top_module.top_module
         #self.solve_dependencies()
         all_files = self.build_complete_file_set()
         from srcfile import SourceFileSet
         source_files = SourceFileSet()
-        source_files.add(dep_solver.solve(all_files, top_entity))
-        return source_files
+        (self.hierarchy_dag, self.hierarchy_dict, self.hierarchy_tree, self.hierarchy_solved) = dep_solver.solve(all_files, top_entity)
 
     def get_top_module(self):
         return self.top_module

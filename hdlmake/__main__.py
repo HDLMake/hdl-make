@@ -133,7 +133,7 @@ def main():
             action = [
                 GenerateSynthesisProject,
                 GenerateSynthesisMakefile,
-                GenerateRemoteSynthesisMakefile
+                #GenerateRemoteSynthesisMakefile
             ]
         elif top_mod.action == "qsys_hw_tcl_update":
             if not top_mod.hw_tcl_filename:

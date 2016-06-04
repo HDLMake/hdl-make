@@ -135,7 +135,6 @@ def solve(fileset, top_entity):
                     for used_instance in module_test.instances:
                         hierarchy.add_edge(module_test.model, used_instance[0])
 
-
     tree = nx.bfs_tree(hierarchy, top_entity)
 
     top_hierarchy = tree
@@ -152,47 +151,9 @@ def solve(fileset, top_entity):
 
     logging.info("Dependencies solved: %s files added to the hierarchy" % len(solved_files))
 
-        # Define the program used to write the graphviz:
-        # Program should be one of: 
-        #     twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, 
-        #     circo, neato, acyclic, nop, gvpr, dot, sfdp.
-    if False:
-        import matplotlib.pyplot as plt
-        pos=nx.graphviz_layout(top_hierarchy, prog='neato', root=top_entity)
-        nx.draw(top_hierarchy, pos,
-            with_labels=True,
-            alpha=0.5,
-            node_size=100)
-        plt.savefig("hierarchy.png")
-        plt.show()
-
-    if False:
-        import matplotlib.pyplot as plt
-        pos=nx.graphviz_layout(hierarchy, prog='neato', root=top_entity)
-        nx.draw(hierarchy, pos,
-            with_labels=True,
-            alpha=0.5,
-            node_size=100)
-        plt.savefig("hierarchy.png")
-        plt.show()
-
-
-    if True:
-        import json
-        from networkx.readwrite import json_graph
-        data = json_graph.tree_data(top_hierarchy, root=top_entity)
-        #data = json_graph.tree_data(hierarchy, root='../../ip_cores/gn4124-core')
-        #print(data)
-        s = json.dumps(data)
-        #print(s)
-        json_file = open("hierarchy.json", "w")
-        json_file.write(s)
-        json_file.close()
-
-
 
     logging.debug("SOLVE END")
-    return solved_files
+    return (hierarchy, hierarchy_dict, top_hierarchy, solved_files)
 
 
 def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):

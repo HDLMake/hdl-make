@@ -28,7 +28,8 @@ class ListFiles(Action):
         unfetched_modules = [m for m in self.modules_pool if not m.isfetched]
         for m in unfetched_modules:
             logging.warning("List incomplete, module %s has not been fetched!", m)
-        solved_files = self.modules_pool.build_file_set()
+        self.modules_pool.build_file_set()
+        solved_files = self.modules_pool.hierarchy_solved
         if self.options.delimiter == None:
             delimiter = "\n"
         else:
