@@ -154,6 +154,7 @@ class DepFile(File):
 
         self.provided_architectures = []
         self.provided_entities = []
+        self.provided_packages = []
         self.used_packages = []
         
         self.is_parsed = False

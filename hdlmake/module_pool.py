@@ -208,14 +208,9 @@ class ModulePool(list):
         top_entity = self.top_module.top_module
         #self.solve_dependencies()
         all_files = self.build_complete_file_set()
-        if not self._deps_solved:
-            logging.debug("- begin solve")
-            dep_solver.solve(all_files)
-            logging.debug("- end solve")
-            self._deps_solved = True
         from srcfile import SourceFileSet
         source_files = SourceFileSet()
-        source_files.add(dep_solver.make_dependency_set(all_files, top_entity))
+        source_files.add(dep_solver.solve(all_files, top_entity))
         return source_files
 
     def get_top_module(self):

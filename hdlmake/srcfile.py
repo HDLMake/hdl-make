@@ -78,7 +78,7 @@ class VerilogFile(SourceFile):
         if include_dirs:
             self.include_dirs.extend(include_dirs)
         self.include_dirs.append(path_mod.relpath(self.dirname))
-
+        self.provided_modules = []
 
 class SVFile(VerilogFile):
     pass

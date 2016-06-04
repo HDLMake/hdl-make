@@ -264,6 +264,12 @@ class VerilogPreprocessor(object):
         return list(set(deps))
 
 
+class VlogModule():
+    def __init__(self):
+        self.model = None;
+        self.instances = None;
+
+
 class VerilogParser(DepParser):
 
     reserved_words = ["accept_on",
@@ -577,30 +583,38 @@ class VerilogParser(DepParser):
             logging.debug("file %s imports/uses %s.%s package" %( dep_file.path , dep_file.library, s.group(1) ) )
             dep_file.add_relation( DepRelation( "%s.%s" % (dep_file.library, s.group(1)) , DepRelation.USE, DepRelation.PACKAGE))
         re.subn(import_pattern, do_imports, buf)
-        
+        #----------------------------------------------
+        use_packages = import_pattern.findall(buf)
+        print('use package:\n %s' % use_packages)
+        dep_file.used_packages = use_packages
+
+ 
         #packages
         m_inside_package = re.compile("package\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)endpackage", re.DOTALL | re.MULTILINE)
         def do_package(s):
             logging.debug("found pacakge %s.%s" %(dep_file.library, s.group(1)) )
             dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.PACKAGE))
         re.subn(m_inside_package, do_package, buf)
+        #----------------------------------------------
+        provide_packages = m_inside_package.findall(buf)
+        print('provide package:\n %s' % provide_packages)
+        dep_file.provided_packages = provide_packages
+
+
 
         #modules and instatniations
         m_inside_module = re.compile("(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)(?:endmodule|endinterface)", re.DOTALL | re.MULTILINE)
-        m_instantiation = re.compile("(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*", re.DOTALL | re.MULTILINE)
+        #----------------------------------------------
+        provide_modules = m_inside_module.findall(buf)
+        print('provide module:\n %s' % provide_modules)
+        for module in provide_modules:
+            module_aux = VlogModule();
+            module_aux.model = module[0]
+            m_instantiation = re.compile("(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*", re.DOTALL | re.MULTILINE)
+            used_instances = m_instantiation.findall(module[1])
+            print("used instances:")
+            module_aux.instances = used_instances
+            print(used_instances)
+            dep_file.provided_modules.append(module_aux)
 
-        def do_module(s):
-            logging.debug("found module %s.%s" % (dep_file.library, s.group(1) ))
-            dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.MODULE))
-
-            def do_inst(s):
-                mod_name = s.group(1)
-                if(mod_name in self.reserved_words):
-                    return
-                logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, s.group(1), s.group(2) ))
-                dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.MODULE))
-            re.subn(m_instantiation, do_inst, s.group(2))
-        re.subn(m_inside_module, do_module,  buf)
-
-        dep_file.add_relation(DepRelation(dep_file.path, DepRelation.PROVIDE, DepRelation.INCLUDE))
         dep_file.is_parsed = True
