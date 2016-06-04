@@ -213,6 +213,7 @@ def solve(fileset, top_entity):
     sorted_components= nx.topological_sort(top_hierarchy)
     print(sorted_components)
 
+
     print("FILES:")
     solved_files = []
     for component in sorted_components:

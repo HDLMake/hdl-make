@@ -106,10 +106,7 @@ class VHDLParser(DepParser):
             print('- architecture: %s(%s)' % (architecture[1], architecture[0])) 
             # Note: architecture closes with "end architecture" (we were missing this), 
             # "end <arch_name>" or "end architecture <arch_name>
-            #architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s.*?%s.*?;" % (architecture[0], architecture[1], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
             architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s+(%s|architecture\s%s|architecture).*?;" % (architecture[0], architecture[1], architecture[0], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
-            #architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s.*?^(%s|architecture\s).*?;" % (architecture[0], architecture[1], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
-            #architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s^(%s|architecture).*?;" % (architecture[0], architecture[1], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
             architecture_inner_content = architecture_inner_pattern.findall(buf)
             print("********************** INNER CONTENT *********************************************")
             print(architecture_inner_content)
@@ -117,12 +114,17 @@ class VHDLParser(DepParser):
             component_pattern = re.compile("^\s*component\s+(\w+).*?end\s+component.*?;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
             print("Architecture dependencies:")
             print("content length: %s" % len(architecture_inner_content))
+            # if the inner content is none but the architecture exists, we will temporarly parse
+            # the full file -- a very wild guess
             if len(architecture_inner_content) > 0:
-                architecture_aux.components = component_pattern.findall(architecture_inner_content[0][0])
-                instances_pattern = re.compile("^\s*(\w+)\s*\:\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)", re.DOTALL | re.MULTILINE | re.IGNORECASE )
-                instance_from_library_pattern = re.compile("^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
-                architecture_aux.entities = instances_pattern.findall(architecture_inner_content[0][0])
-                architecture_aux.instances = instance_from_library_pattern.findall(architecture_inner_content[0][0])
+                architecture_string = architecture_inner_content[0][0]
+            else:
+                architecture_string = buf
+            architecture_aux.components = component_pattern.findall(architecture_string)
+            instances_pattern = re.compile("^\s*(\w+)\s*\:\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)", re.DOTALL | re.MULTILINE | re.IGNORECASE )
+            instance_from_library_pattern = re.compile("^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
+            architecture_aux.entities = instances_pattern.findall(architecture_string)
+            architecture_aux.instances = instance_from_library_pattern.findall(architecture_string)
             dep_file.provided_architectures.append(architecture_aux)
             instance_from_library_pattern = re.compile("^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
             print("**********************************************************************************")
