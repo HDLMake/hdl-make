@@ -104,18 +104,25 @@ class VHDLParser(DepParser):
             architecture_aux = Architecture();
             architecture_aux.model = architecture
             print('- architecture: %s(%s)' % (architecture[1], architecture[0])) 
-            architecture_inner_pattern = re.compile("architecture\s+%s\s+of\s+%s\s+is(.*)end\s+%s" % (architecture[0], architecture[1], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
+            # Note: architecture closes with "end architecture" (we were missing this), 
+            # "end <arch_name>" or "end architecture <arch_name>
+            #architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s.*?%s.*?;" % (architecture[0], architecture[1], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
+            architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s+(%s|architecture\s%s|architecture).*?;" % (architecture[0], architecture[1], architecture[0], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
+            #architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s.*?^(%s|architecture\s).*?;" % (architecture[0], architecture[1], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
+            #architecture_inner_pattern = re.compile("^\s*architecture\s%s\s+of\s%s\s+is(.*)end\s^(%s|architecture).*?;" % (architecture[0], architecture[1], architecture[0]), re.DOTALL | re.MULTILINE | re.IGNORECASE )
             architecture_inner_content = architecture_inner_pattern.findall(buf)
-            #print(architecture_inner_content)
+            print("********************** INNER CONTENT *********************************************")
+            print(architecture_inner_content)
+            print("**********************************************************************************")
             component_pattern = re.compile("^\s*component\s+(\w+).*?end\s+component.*?;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
             print("Architecture dependencies:")
             print("content length: %s" % len(architecture_inner_content))
-            if len(architecture_inner_content) == 1:
-                architecture_aux.components = component_pattern.findall(architecture_inner_content[0])
+            if len(architecture_inner_content) > 0:
+                architecture_aux.components = component_pattern.findall(architecture_inner_content[0][0])
                 instances_pattern = re.compile("^\s*(\w+)\s*\:\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)", re.DOTALL | re.MULTILINE | re.IGNORECASE )
                 instance_from_library_pattern = re.compile("^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
-                architecture_aux.entities = instances_pattern.findall(architecture_inner_content[0])
-                architecture_aux.instances = instance_from_library_pattern.findall(architecture_inner_content[0])
+                architecture_aux.entities = instances_pattern.findall(architecture_inner_content[0][0])
+                architecture_aux.instances = instance_from_library_pattern.findall(architecture_inner_content[0][0])
             dep_file.provided_architectures.append(architecture_aux)
             instance_from_library_pattern = re.compile("^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port\s+map.*?;|generic\s+map.*?;|\s*;)",  re.DOTALL | re.MULTILINE | re.IGNORECASE )
             print("**********************************************************************************")
@@ -139,11 +146,12 @@ class VHDLParser(DepParser):
             package_aux.model = package
             package_inner_pattern = re.compile("package\s+%s\s+is(.*)end\s+%s.*?;" % (package, package), re.DOTALL | re.MULTILINE | re.IGNORECASE )
             package_inner_content = package_inner_pattern.findall(buf)
-            print("******************* Package inner content ********************************")
-            print(package_inner_content)
+            #print("******************* Package inner content ********************************")
+            #print(package_inner_content)
             component_pattern = re.compile("^\s*component\s+(\w+).*?end\s+component.*?;", re.DOTALL | re.MULTILINE | re.IGNORECASE )
-            if len(package_inner_content) == 1:
+            if len(package_inner_content) > 0:
                 package_aux.components = component_pattern.findall(package_inner_content[0])
+                print("package_aux.components")
                 print(package_aux.components)
             dep_file.provided_packages.append(package_aux)
 

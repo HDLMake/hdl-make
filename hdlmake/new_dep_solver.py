@@ -127,17 +127,23 @@ def solve(fileset, top_entity):
                         #hierarchy.add_edge(used_entity[1], architecture_test.model)
                         hierarchy.add_edge(architecture_test.model, used_instance)
                 for used_package in investigated_file.used_packages:
+                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                    print(used_package[1])
+                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                     hierarchy.add_edge(architecture_test.model, used_package[1])
 
 
             for package_test in investigated_file.provided_packages:
                 hierarchy.add_node(package_test.model)
-                hierarchy_dict[package_test] = investigated_file
-                if package_test.components:
-                    for used_component in package_test.components:
-                        #hierarchy.add_edge(used_entity[1], architecture_test.model)
-                        hierarchy.add_edge(package_test.model, used_component)
-                        print(used_component)
+                hierarchy_dict[package_test.model] = investigated_file
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                print(package_test.model)
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                #if package_test.components:
+                #    for used_component in package_test.components:
+                #        #hierarchy.add_edge(used_entity[1], architecture_test.model)
+                #        hierarchy.add_edge(package_test.model, used_component)
+                #        print(used_component)
 
 
             print("These are the dependency parameters for a VHDL file")
@@ -224,7 +230,7 @@ def solve(fileset, top_entity):
         # Program should be one of: 
         #     twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, 
         #     circo, neato, acyclic, nop, gvpr, dot, sfdp.
-    if True:
+    if False:
         import matplotlib.pyplot as plt
         pos=nx.graphviz_layout(top_hierarchy, prog='neato', root=top_entity)
         nx.draw(top_hierarchy, pos,
@@ -233,6 +239,17 @@ def solve(fileset, top_entity):
             node_size=100)
         plt.savefig("hierarchy.png")
         plt.show()
+
+    if False:
+        import matplotlib.pyplot as plt
+        pos=nx.graphviz_layout(hierarchy, prog='neato', root=top_entity)
+        nx.draw(hierarchy, pos,
+            with_labels=True,
+            alpha=0.5,
+            node_size=100)
+        plt.savefig("hierarchy.png")
+        plt.show()
+
 
     if False:
         import matplotlib.pyplot as plt
