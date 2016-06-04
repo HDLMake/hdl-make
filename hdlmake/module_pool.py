@@ -191,8 +191,8 @@ class ModulePool(list):
     def build_file_set(self):
         from srcfile import SourceFileSet
         build_files = SourceFileSet()
-        build_files.add(self.build_limited_file_set())
-        return build_files
+        solved_files = self.build_limited_file_set()
+        return solved_files
 
     def build_complete_file_set(self):
         """Build set of all files listed in the manifests"""

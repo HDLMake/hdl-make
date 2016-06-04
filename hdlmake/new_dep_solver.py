@@ -141,6 +141,9 @@ def solve(fileset, top_entity):
     top_hierarchy = tree
     sorted_components= nx.topological_sort(top_hierarchy)
 
+    # This should be reviewed: which is the order for the repeated files?
+    # - Option A: If file exists, keep the old one and don't add the new file
+    # - Option B: If file exists, delete the old position and add it to the end.
     solved_files = []
     for component in sorted_components:
         if component in hierarchy_dict:
@@ -204,41 +207,4 @@ def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):
     if reverse:
         sorted_list = list(reversed(sorted_list))
     return sorted_list
-    
-def make_dependency_set(fileset, top_level_entity):
-    logging.info("Create a set of all files required to build the named top_level_entity.")
-    from srcfile import SourceFileSet
-    from dep_file import DepRelation
-    assert isinstance(fileset, SourceFileSet)
-    fset = fileset.filter(DepFile)
-    # Find the file that provides the named top level entity
-    top_rel_vhdl = DepRelation("%s.%s" % ("work", top_level_entity), DepRelation.PROVIDE, DepRelation.ENTITY)
-    top_rel_vlog = DepRelation("%s.%s" % ("work", top_level_entity), DepRelation.PROVIDE, DepRelation.MODULE)
-    top_file = None
-    logging.debug("Look for top level unit: %s." % top_level_entity)
-    for chk_file in fset:
-        for rel in chk_file.rels:
-            if ((rel == top_rel_vhdl) or (rel == top_rel_vlog)):
-                logging.debug("Found the top level file providing top level unit: %s." % chk_file)
-                top_file = chk_file
-                break;
-        if top_file:
-            break
-    if top_file == None:
-        logging.critical('Could not find a top level file that provides the top_module="%s". Continuing with the full file set.' % top_level_entity)
-        return fileset
-    # Collect only the files that the top level entity is dependant on, by walking the dependancy tree.
-    try:
-        dep_file_set = set()
-        file_set = set([top_file])
-        while True:
-            chk_file = file_set.pop()
-            dep_file_set.add(chk_file)
-            file_set.update(chk_file.depends_on - dep_file_set)
-    except KeyError:
-        # no files left
-        pass
-    logging.info("Found %d files as dependancies of %s." % (len(dep_file_set), top_level_entity))
-    #for dep_file in dep_file_set:
-    #    logging.info("\t" + str(dep_file))
-    return dep_file_set
+ 
