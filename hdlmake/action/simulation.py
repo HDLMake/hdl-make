@@ -27,6 +27,8 @@ import importlib
 
 from hdlmake.dep_file import DepFile
 import hdlmake.new_dep_solver as dep_solver
+from hdlmake.srcfile import SourceFileFactory, SourceFileSet
+from hdlmake.dependable_file import DependableFile
 
 from .action import Action
 
@@ -69,19 +71,15 @@ class GenerateSimulationMakefile(Action):
         self.env.check_tool(tool_object)
         self.env.check_general()
 
-        
         if self.env[path_key] is None and self.options.force is not True:
             logging.error("Can't generate a " + name + " makefile. " + bin_name + " not found.")
             sys.exit("Exiting")
             
         logging.info("Generating " + name + " makefile for simulation.")
 
-        pool = self.modules_pool
-        top_module = pool.get_top_module()
-        
-        fset = pool.build_file_set()
-        dep_files = fset.filter(DepFile)
-        #dep_solver.solve(dep_files)
-        
-        tool_object.generate_simulation_makefile(dep_files, top_module)
+        self.modules_pool.build_file_set()
+        tool_object.generate_simulation_makefile(
+            self.modules_pool.hierarchy_solved, 
+            self.modules_pool.get_top_module()
+        )
 

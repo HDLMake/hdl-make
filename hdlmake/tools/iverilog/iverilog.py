@@ -92,14 +92,10 @@ simulation:
         for inc in top_module.include_dirs:
             self.writeln("\t\techo \"+incdir+" + inc + "\" >> run.command")
 
-        for vl in fileset.filter(VerilogFile):
-            self.writeln("\t\techo \"" + vl.rel_path() + "\" >> run.command")
-
-        for vhdl in fileset.filter(VHDLFile):
-            self.writeln("\t\techo \"" + vhdl.rel_path() + "\" >> run.command")
-
-        for sv in fileset.filter(SVFile):
-            self.writeln("\t\techo \"" + sv.rel_path() + "\" >> run.command")
+        # The list starts from top_module: reverse!
+        fileset.reverse()
+        for f in fileset:
+            self.writeln("\t\techo \"" + f.rel_path() + "\" >> run.command")
 
 
         makefile_tmplt_2 = string.Template("""
