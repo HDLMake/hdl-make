@@ -84,32 +84,38 @@ PWD := $(shell pwd)
         self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
+
+
         self.write("VERILOG_SRC := ")
-        for vl in fileset.filter(VerilogFile):
-            self.write(vl.rel_path() + " \\\n")
+        for vl in fileset:
+            if isinstance(vl, VerilogFile):
+                self.write(vl.rel_path() + " \\\n")
         self.write("\n")
 
         self.write("VERILOG_OBJ := ")
-        for vl in fileset.filter(VerilogFile):
-            # make a file compilation indicator (these .dat files are made even if
-            # the compilation process fails) and add an ending according to file's
-            # extension (.sv and .vhd files may have the same corename and this
-            # causes a mess
-            self.write(os.path.join(vl.library, vl.purename, "." + vl.purename + "_" + vl.extension()) + " \\\n")
+        for vl in fileset:
+            if isinstance(vl, VerilogFile):
+                # make a file compilation indicator (these .dat files are made even if
+                # the compilation process fails) and add an ending according to file's
+                # extension (.sv and .vhd files may have the same corename and this
+                # causes a mess
+                self.write(os.path.join(vl.library, vl.purename, "." + vl.purename + "_" + vl.extension()) + " \\\n")
         self.write('\n')
 
         libs = set(f.library for f in fileset)
 
         self.write("VHDL_SRC := ")
-        for vhdl in fileset.filter(VHDLFile):
-            self.write(vhdl.rel_path() + " \\\n")
+        for vhdl in fileset:
+            if isinstance(vhdl, VHDLFile):
+                self.write(vhdl.rel_path() + " \\\n")
         self.writeln()
 
         # list vhdl objects (_primary.dat files)
         self.write("VHDL_OBJ := ")
-        for vhdl in fileset.filter(VHDLFile):
-            # file compilation indicator (important: add _vhd ending)
-            self.write(os.path.join(vhdl.library, vhdl.purename, "." + vhdl.purename + "_" + vhdl.extension()) + " \\\n")
+        for vhdl in fileset:
+            if isinstance(vhdl, VHDLFile):
+                # file compilation indicator (important: add _vhd ending)
+                self.write(os.path.join(vhdl.library, vhdl.purename, "." + vhdl.purename + "_" + vhdl.extension()) + " \\\n")
         self.write('\n')
 
         self.write('LIBS := ')
@@ -168,64 +174,47 @@ sim_post_cmd:
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
             self.write('\n\n')
 
-        # rules for all _primary.dat files for sv
-        for vl in fileset.filter(VerilogFile):
-            self.write("%s: %s" % (os.path.join(vl.library, vl.purename, ".%s_%s" % (vl.purename, vl.extension())),
-                                          vl.rel_path())
+        solved_vhdl = []
+        solved_includes = []
+        previous_target = None
+        fileset.reverse()
+        for f in fileset:
+            if isinstance(f, VerilogFile):
+                self.write("%s: %s" % (os.path.join(f.library, f.purename, ".%s_%s" % (f.purename, f.extension())),
+                                          f.rel_path())
                          )
-            # list dependencies, do not include the target file
-            for dep_file in [dfile for dfile in vl.depends_on if dfile is not vl]:
-                if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
-                    name = dep_file.purename
-                    extension = dep_file.extension()
-                    self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
-                else: #the file is included -> we depend directly on the file
-                    self.write(" \\\n" + dep_file.rel_path())
+                # list dependencies, do not include the target file
+                if previous_target: # the dep_file is compiled -> we depend on marker file
+                    name = previous_target.purename
+                    extension = previous_target.extension()
+                    self.write(" \\\n" + os.path.join(previous_target.library, name, ".%s_%s" % (name, extension)))
+                self.writeln()
+                compile_template = string.Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} +incdir+${include_dirs} ${vlog_opt} $$<")
+                compile_line = compile_template.substitute(library=f.library,
+                                                 sv_option="-sv" if isinstance(f, SVFile) else "",
+                                                 include_dirs='+'.join(f.includes),
+                                                 vlog_opt=f.vlog_opt)
+                self.writeln(compile_line)
+                self.write("\t\t@mkdir -p $(dir $@)")
+                self.writeln(" && touch $@ \n")
+                self.write("\n")
 
-            self.writeln()
-
-            # ##
-            # self.write("\t\tvlog -work "+vl.library)
-            # self.write(" $(VLOG_FLAGS) ")
-            # if isinstance(vl, SVFile):
-            #      self.write(" -sv ")
-            # incdir = "+incdir+"
-            # incdir += '+'.join(vl.include_dirs)
-            # incdir += " "
-            # self.write(incdir)
-            # self.writeln(vl.vlog_opt+" $<")
-            ####
-            compile_template = string.Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} +incdir+${include_dirs} ${vlog_opt} $$<")
-            compile_line = compile_template.substitute(library=vl.library,
-                                                 sv_option="-sv" if isinstance(vl, SVFile) else "",
-                                                 include_dirs='+'.join(vl.include_dirs),
-                                                 vlog_opt=vl.vlog_opt)
-            self.writeln(compile_line)
-            self.write("\t\t@mkdir -p $(dir $@)")
-            self.writeln(" && touch $@ \n\n")
-            self.write("\n")
-
-        # list rules for all _primary.dat files for vhdl
-        for vhdl in fileset.filter(VHDLFile):
-            lib = vhdl.library
-            purename = vhdl.purename
-            # each .dat depends on corresponding .vhd file
-            self.write("%s: %s" % (os.path.join(lib, purename, "." + purename + "_" + vhdl.extension()),
-                                          vhdl.rel_path())
+            if isinstance(f, VHDLFile):
+                lib = f.library
+                purename = f.purename
+                # each .dat depends on corresponding .vhd file
+                self.write("%s: %s" % (os.path.join(lib, purename, "." + purename + "_" + f.extension()),
+                                          f.rel_path())
                           )
-            # list dependencies, do not include the target file
-            for dep_file in [dfile for dfile in vhdl.depends_on if dfile is not vhdl]:
-                if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
-                    name = dep_file.purename
-                    extension = dep_file.extension()
-                    self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
-                else: #the file is included -> we depend directly on the file
-                    self.write(" \\\n" + dep_file.rel_path())
-
-            self.writeln()
-            self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
-            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@ \n")
-            self.writeln()
+                if previous_target: # the dep_file is compiled -> we depend on marker file
+                    name = previous_target.purename
+                    extension = previous_target.extension()
+                    self.write(" \\\n" + os.path.join(previous_target.library, name, ".%s_%s" % (name, extension)))
+                self.writeln()
+                self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", f.vcom_opt, "-work", lib, "$< "]))
+                self.writeln("\t\t@mkdir -p $(dir $@) && touch $@ \n")
+                self.writeln()
+            previous_target = f
 
     def __create_copy_rule(self, name, src):
         """Get a Makefile rule named name, which depends on src, copying it to
