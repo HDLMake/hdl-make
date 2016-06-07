@@ -1,5 +1,6 @@
 action = "simulation"
 sim_tool = "iverilog"
+iverilog_opt = "-g2012"
 top_module = "counter_tb"
 
 sim_pre_cmd ="echo IMPORTANT, IVerilog always needs a Verilog testbench, no matter if the DUT is written in VHDL!"

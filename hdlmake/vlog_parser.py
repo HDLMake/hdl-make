@@ -200,6 +200,7 @@ class VerilogPreprocessor(object):
 
                 if matches["include"]:
                     included_file_path = self._search_include(last.group(1), os.path.dirname(file_name))
+                    self.vlog_file.includes.append(included_file_path)
                     logging.debug("File being parsed %s (library %s) includes %s" % (file_name, library, included_file_path))
                     line = self._preprocess_file(file_content=open(included_file_path, "r").read(),
                                                  file_name=included_file_path, library=library)
@@ -569,20 +570,13 @@ class VerilogParser(DepParser):
             logging.debug( "%s has %d includes." % (str(dep_file), len(includes)))
         except KeyError:
             logging.debug(str(dep_file) + " has no includes.")
-         
-        #look for packages used inside in file
-        #it may generate false dependencies as package in SV can be used by:
-        #    import my_package::*;
-        #or directly
-        #    logic var = my_package::MY_CONST;
-        #The same way constants and others can be imported directly from other modules:
-        #    logic var = my_other_module::MY_CONST;
-        #and HdlMake will anyway create dependency marking my_other_module as requested package
+
+
         import_pattern = re.compile("(\w+) *::(\w+|\\*)")
-        def do_imports(s):
-            logging.debug("file %s imports/uses %s.%s package" %( dep_file.path , dep_file.library, s.group(1) ) )
-            dep_file.add_relation( DepRelation( "%s.%s" % (dep_file.library, s.group(1)) , DepRelation.USE, DepRelation.PACKAGE))
-        re.subn(import_pattern, do_imports, buf)
+        #def do_imports(s):
+        #    logging.debug("file %s imports/uses %s.%s package" %( dep_file.path , dep_file.library, s.group(1) ) )
+        #    dep_file.add_relation( DepRelation( "%s.%s" % (dep_file.library, s.group(1)) , DepRelation.USE, DepRelation.PACKAGE))
+        #re.subn(import_pattern, do_imports, buf)
         #----------------------------------------------
         use_packages = import_pattern.findall(buf)
         dep_file.used_packages = use_packages

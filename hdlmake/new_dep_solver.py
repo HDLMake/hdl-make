@@ -129,6 +129,7 @@ def solve(fileset, top_entity):
 
         if isinstance(investigated_file, VerilogFile) :
             # In verilog world, packages are related with SystemVerilog
+            # In verilog world, packages are related with SystemVerilog
             for module_test in investigated_file.provided_modules:
                 hierarchy.add_node(module_test.model)
                 hierarchy_dict[module_test.model] = investigated_file
@@ -150,11 +151,22 @@ def solve(fileset, top_entity):
             if not (hierarchy_dict[component] in solved_files):
                 solved_files.append(hierarchy_dict[component])
 
-    logging.info("Dependencies solved: %s files added to the hierarchy" % len(solved_files))
+    solved_includes = []
+    for f in solved_files:
+        if isinstance(f, VerilogFile):
+            if f.includes:
+                if not (f in solved_includes):
+                    solved_includes.append(f)
+
+    logging.info("Dependencies solved:\n"
+              +  " - %s total files have been analyzed\n" % len(fset)
+              +  " - %s files added to the hierarchy\n" % len(solved_files)
+              +  " - %s includes added to the hierarchy" % len(solved_includes)
+    )
 
 
     logging.debug("SOLVE END")
-    return (hierarchy, hierarchy_dict, top_hierarchy, solved_files)
+    return (hierarchy, hierarchy_dict, top_hierarchy, solved_files, solved_includes)
 
 
 def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):

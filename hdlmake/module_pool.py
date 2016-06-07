@@ -43,6 +43,7 @@ class ModulePool(list):
         self.hierarchy_dict = None
         self.hierarchy_tree =None
         self.hierarchy_solved =None
+        self.hierarchy_includes =None
 
     def set_environment(self, env):
         self.env = env
@@ -209,7 +210,7 @@ class ModulePool(list):
         all_files = self.build_complete_file_set()
         from srcfile import SourceFileSet
         source_files = SourceFileSet()
-        (self.hierarchy_dag, self.hierarchy_dict, self.hierarchy_tree, self.hierarchy_solved) = dep_solver.solve(all_files, top_entity)
+        (self.hierarchy_dag, self.hierarchy_dict, self.hierarchy_tree, self.hierarchy_solved, self.hierarchy_includes) = dep_solver.solve(all_files, top_entity)
 
     def get_top_module(self):
         return self.top_module
