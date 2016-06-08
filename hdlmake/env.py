@@ -24,6 +24,7 @@
 from __future__ import print_function
 import os
 import sys
+import platform
 from subprocess import Popen, PIPE
 import os.path
 
@@ -148,6 +149,9 @@ class Env(dict):
 
     def check_remote_tool(self, info_class):
 
+        if platform.system() == 'Windows': is_windows = True
+        else: is_windows = False
+
         tool_info = info_class.get_keys()
         remote_path_key = 'rsynth_' + tool_info['id'] + '_path'
         remote_version_key = 'rsynth_' + tool_info['id'] + '_version'
@@ -160,7 +164,7 @@ class Env(dict):
         if self["rsynth_user"] is not None and self["rsynth_server"] is not None:
             ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s echo ok 2>&1'
             ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"])
-            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=not is_windows)
             ssh_response = ssh_out.stdout.readlines()[0].strip()
             if ssh_response == "ok":
                 print("Can connect to the remote machine: %s@%s." % (self["rsynth_user"], self["rsynth_server"]))
@@ -173,7 +177,7 @@ class Env(dict):
         if can_connect and self[remote_path_key] is not None:
             ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s test -e %s 2>&1'
             ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"], self[remote_path_key])
-            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=not is_windows)
             ssh_response = ssh_out.returncode
             if ssh_response == 0:
                 print("%s found on remote machine under %s." % (name, self[remote_path_key]))

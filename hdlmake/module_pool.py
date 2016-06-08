@@ -23,6 +23,7 @@
 from __future__ import print_function
 import os
 import logging
+import platform
 from subprocess import PIPE, Popen
 import sys
 
@@ -114,14 +115,16 @@ class ModulePool(list):
         """Guess origin (git, svn, local) of a module at given path"""
         cwd = self.top_module.path
         try:
+            if platform.system() == 'Windows': is_windows = True
+            else: is_windows = False
             os.chdir(path)
-            git_out = Popen("git config --get remote.origin.url", stdout=PIPE, shell=True, close_fds=True)
+            git_out = Popen("git config --get remote.origin.url", stdout=PIPE, shell=True, close_fds=not is_windows)
             lines = git_out.stdout.readlines()
             if len(lines) == 0:
                 return None
             url = lines[0].strip()
             if not url:  # try svn
-                svn_out = Popen("svn info | grep 'Repository Root' | awk '{print $NF}'", stdout=PIPE, shell=True, close_fds=True)
+                svn_out = Popen("svn info | grep 'Repository Root' | awk '{print $NF}'", stdout=PIPE, shell=True, close_fds=not is_windows)
                 url = svn_out.stdout.readlines()[0].strip()
                 if url:
                     return url

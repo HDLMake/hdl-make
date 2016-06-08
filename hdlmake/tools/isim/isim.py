@@ -29,6 +29,7 @@ from subprocess import Popen, PIPE
 import logging
 import sys
 import string
+import platform
 
 from hdlmake.makefile_writer import MakefileWriter
 
@@ -54,9 +55,11 @@ class ToolControls(MakefileWriter):
         return ISIM_STANDARD_LIBS
 
     def detect_version(self, path):
+        if platform.system() == 'Windows': is_windows = True
+        else: is_windows = False
         isim = Popen("%s --version | awk '{print $2}'" % os.path.join(path, "vlogcomp"),
                      shell=True,
-                     close_fds=True,
+                     close_fds=not is_windows,
                      stdin=PIPE,
                      stdout=PIPE)
         print os.path.join(path, "vlogcomp")

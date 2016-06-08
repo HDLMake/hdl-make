@@ -22,6 +22,7 @@
 import os
 from hdlmake.util import path
 import logging
+import platform
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
 from .constants import (GIT, GITSUBMODULE)
@@ -168,6 +169,8 @@ submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
         commit = None
         stderr = TemporaryFile()
         try:
+            if platform.system() == 'Windows': is_windows = True
+            else: is_windows = False
             os.chdir(path)
             git_cmd = 'git log -1 --format="%H" | cut -c1-32'
             git_out = Popen(git_cmd,
@@ -175,7 +178,7 @@ submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
                             stdin=PIPE,
                             stdout=PIPE,
                             stderr=stderr,
-                            close_fds=True)
+                            close_fds=not is_windows)
             errmsg = stderr.readlines()
             if errmsg:
                 logging.debug("git error message (in %s): %s" % (path, '\n'.join(errmsg)))

@@ -27,6 +27,7 @@ import xml.parsers.expat
 import logging
 import re
 import os
+import platform
 import string
 from subprocess import Popen, PIPE
 
@@ -66,15 +67,9 @@ class ToolControls(MakefileWriter):
         return ISE_STANDARD_LIBS
 
     def detect_version(self, path):
-        
-        #xst = Popen('which xst', shell=True, stdin=PIPE,
-        #            stdout=PIPE, close_fds=True)
-        #lines = xst.stdout.readlines()
-        #if not lines:
-        #    return None
-
-        #xst = str(lines[0].strip())
-        
+        if platform.system() == 'Windows': is_windows = True
+        else: is_windows = False
+ 
         version_pattern = re.compile('.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
         # First check if we have version in path
 
@@ -83,7 +78,7 @@ class ToolControls(MakefileWriter):
             ise_version = "%s.%s" % (match.group('major'), match.group('minor'))
         else:  # If it is not the case call the "xst -h" to get version
             xst_output = Popen('xst -h', shell=True, stdin=PIPE,
-                               stdout=PIPE, close_fds=True)
+                               stdout=PIPE, close_fds=not is_windows)
             xst_output = xst_output.stdout.readlines()[0]
             xst_output = xst_output.strip()
             version_pattern = re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
@@ -99,10 +94,12 @@ class ToolControls(MakefileWriter):
 
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
+        if platform.system() == 'Windows': is_windows = True
+        else: is_windows = False
         if name is None:
             import random
             name = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))
-        whoami = Popen('whoami', shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+        whoami = Popen('whoami', shell=True, stdin=PIPE, stdout=PIPE, close_fds=not is_windows)
         name = whoami.stdout.readlines()[0].strip() + '/' + name
         user_tmpl = "USER:={0}"
         server_tmpl = "SERVER:={0}"

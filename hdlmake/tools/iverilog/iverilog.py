@@ -24,6 +24,7 @@
 from subprocess import Popen, PIPE
 import string
 import os
+import platform
 import logging
 
 from hdlmake.makefile_writer import MakefileWriter
@@ -51,11 +52,13 @@ class ToolControls(MakefileWriter):
         return IVERILOG_STANDARD_LIBS
 
     def detect_version(self, path):
+        if platform.system() == 'Windows': is_windows = True
+        else: is_windows = False
         iverilog = Popen("iverilog -v 2>/dev/null| awk '{if(NR==1) print $4}'",
                          shell=True,
                          stdin=PIPE,
                          stdout=PIPE,
-                         close_fds=True)
+                         close_fds=not is_windows)
         version = iverilog.stdout.readlines()[0].strip()
         return version
 
