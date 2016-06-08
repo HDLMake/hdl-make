@@ -97,19 +97,11 @@ def commonpath(l1, l2, common=None):
 
 
 def is_rel_path(path):
-    path = str(path)
-    s = path[0]
-    if s == '/' or s == '~':
-        return False
-    return True
+    return not os.path.isabs(path)
 
 
 def is_abs_path(path):
-    path = str(path)
-    s = path[0]
-    if s == '/':
-        return True
-    return False
+    return os.path.isabs(path)
 
 
 def relpath(p1, p2=None):
