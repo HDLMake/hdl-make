@@ -28,16 +28,12 @@ class Tree(Action):
     def run(self):
         try:
             import networkx as nx
-            import numpy as np
-            import colorsys
         except Exception as e:
             logging.error(e)
             quit()
         unfetched_modules = False
         files_str = []
         hierarchy = nx.DiGraph()
-        #hierarchy = pgv.AGraph(directed=True, overlap=False, strict=False, rotate=1)
-        #hierarchy.node_attr['shape'] = 'box'
         color_index = 0
 
         if self.options.solved:
@@ -49,31 +45,28 @@ class Tree(Action):
                 else:
                     if m.parent: 
                         hierarchy.add_node(path.relpath(m.path))
-                        #hierarchy.add_node(m)
                         hierarchy.add_edge(path.relpath(m.parent.path), path.relpath(m.path))
-                        #hierarchy.add_edge(m, m.parent)
                     else:
                         hierarchy.add_node(path.relpath(m.path))
                         top_id = path.relpath(m.path)
-                        #hierarchy.add_node(m)
                     if self.options.withfiles:
                         if len(m.files):
                             for f in m.files:
                                 hierarchy.add_edge(path.relpath(m.path), path.relpath(f.path))
-                                #hierarchy.add_edge(f, m)
                 color_index += 1
 
         if unfetched_modules: logging.warning("Some of the modules have not been fetched!")
-        #hierarchy.layout(prog='dot')
-        #hierarchy.layout(prog='sfdp')
-        #hierarchy.layout()
 
         # Define the program used to write the graphviz:
         # Program should be one of: 
         #     twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, 
         #     circo, neato, acyclic, nop, gvpr, dot, sfdp.
         if self.options.graphviz:
-            import matplotlib.pyplot as plt
+            try:
+                import matplotlib.pyplot as plt
+            except Exception as e:
+                logging.error(e)
+                quit()
             pos=nx.graphviz_layout(hierarchy, prog=self.options.graphviz, root=top_id)
             nx.draw(hierarchy, pos,
                 with_labels=True,
@@ -83,20 +76,15 @@ class Tree(Action):
             plt.show()
 
 
-        #pos=nx.spring_layout(hierarchy)
-        #colors=range(len(self.modules_pool))
-        #nx.draw(hierarchy,pos,node_color=colors,width=4,edge_cmap=plt.cm.Blues)
-        #print(hierarchy)
-        #print(top_id)
         if self.options.web:
-            import json
-            from networkx.readwrite import json_graph
+            try:
+                import json
+                from networkx.readwrite import json_graph
+            except Exception as e:
+                logging.error(e)
+                quit()
             data = json_graph.tree_data(hierarchy, root=top_id)
-            #data = json_graph.tree_data(hierarchy, root='../../ip_cores/gn4124-core')
-            #print(data)
             s = json.dumps(data)
-            #print(s)
-
             json_file = open("hierarchy.json", "w")
             json_file.write(s)
             json_file.close()
