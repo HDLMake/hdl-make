@@ -68,11 +68,11 @@ class VsimMakefileWriter(MakefileWriter):
         
         if platform.system() == 'Windows': 
             del_command = "rm -rf"
-            mkdir_r_command = "mkdir"
+            mkdir_command = "mkdir"
             slash_char = "\\"
         else: 
             del_command = "rm -rf"
-            mkdir_r_command = "mkdir -r"
+            mkdir_command = "mkdir -p"
             slash_char = "/"
         
         self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.vlog_opt))
@@ -211,7 +211,7 @@ sim_post_cmd:
             compile_line = compile_template.substitute(library=vl.library,
                                                  sv_option="-sv" if isinstance(vl, SVFile) else "")
             self.writeln(compile_line)
-            self.write("\t\t@" + mkdir_r_command + " $(dir $@)")
+            self.write("\t\t@" + mkdir_command + " $(dir $@)")
             self.writeln(" && touch $@ \n\n")
             self.write("\n")
 
@@ -234,7 +234,7 @@ sim_post_cmd:
 
             self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
-            self.writeln("\t\t@" + mkdir_r_command + " $(dir $@) && touch $@ \n")
+            self.writeln("\t\t@" + mkdir_command + " $(dir $@) && touch $@ \n")
             self.writeln()
 
     def __create_copy_rule(self, name, src):
