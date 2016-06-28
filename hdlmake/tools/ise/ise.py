@@ -243,24 +243,24 @@ local: __syn_pre_cmd __gen_tcl_bitstream __run_tcl_bitstream __syn_post_cmd
 
 
 __gen_tcl_synthesize:
-\t\techo "project open $$(PROJECT)" > run_synthesize.tcl
-\t\techo "process run {Synthesize - XST}" >> run_synthesize.tcl
+\t\techo project open $$(PROJECT) > run_synthesize.tcl
+\t\techo process run {Synthesize - XST} >> run_synthesize.tcl
 
 __gen_tcl_translate:
-\t\techo "project open $$(PROJECT)" > run_translate.tcl
-\t\techo "process run {Translate}" >> run_translate.tcl
+\t\techo project open $$(PROJECT) > run_translate.tcl
+\t\techo process run {Translate} >> run_translate.tcl
 
 __gen_tcl_map:
-\t\techo "project open $$(PROJECT)" > run_map.tcl
-\t\techo "process run {Map}" >> run_map.tcl
+\t\techo project open $$(PROJECT) > run_map.tcl
+\t\techo process run {Map} >> run_map.tcl
 
 __gen_tcl_par:
-\t\techo "project open $$(PROJECT)" > run_par.tcl
-\t\techo "process run {Place & Route}" >> run_par.tcl
+\t\techo project open $$(PROJECT) > run_par.tcl
+\t\techo process run {Place & Route} >> run_par.tcl
 
 __gen_tcl_bitstream:
-\t\techo "project open $$(PROJECT)" > run_bitstream.tcl
-\t\techo "process run {Generate Programming File}" >> run_bitstream.tcl
+\t\techo project open $$(PROJECT) > run_bitstream.tcl
+\t\techo process run {Generate Programming File} >> run_bitstream.tcl
 
 __run_tcl_synthesize:
 \t\t${xtclsh_path} run_synthesize.tcl
