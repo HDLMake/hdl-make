@@ -382,6 +382,7 @@ class Module(object):
             url = git_submodule_dict[submodule_key]["url"]
             path = git_submodule_dict[submodule_key]["path"]
             path = os.path.join(git_toplevel, path)
+            path = os.path.normpath(path)
             fetchto = os.path.sep.join(path.split(os.path.sep)[:-1])
             self.git_submodules.append(self.pool.new_module(parent=self,
                                                             url=url,
