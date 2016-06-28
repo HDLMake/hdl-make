@@ -27,6 +27,7 @@ import sys
 import platform
 from subprocess import Popen, PIPE
 import os.path
+import logging
 
 from .util import path
 from .util.termcolor import colored
@@ -81,7 +82,10 @@ class Env(dict):
 
 
     def _get_path(self, name):
-        location = os.popen("which %s" % name).read().strip()
+        if platform.system() == 'Windows': which_cmd = "where"
+        else: which_cmd = "which"
+        location = os.popen(which_cmd + " %s" % name).read().split('\n', 1)[0].strip()
+        logging.debug("location for %s: %s" % (name, location))
         return os.path.dirname(location)
 
 
