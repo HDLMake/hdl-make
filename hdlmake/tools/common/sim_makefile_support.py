@@ -69,9 +69,11 @@ class VsimMakefileWriter(MakefileWriter):
         if platform.system() == 'Windows': 
             del_command = "rm -rf"
             mkdir_r_command = "mkdir"
+            slash_char = "\\"
         else: 
             del_command = "rm -rf"
             mkdir_r_command = "mkdir -r"
+            slash_char = "/"
         
         self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.vlog_opt))
         self.vcom_flags.append(top_module.vcom_opt)
@@ -127,7 +129,7 @@ PWD := $(shell pwd)
         self.write('\n')
         # tell how to make libraries
         self.write('LIB_IND := ')
-        self.write(' '.join([lib + "/." + lib for lib in libs]))
+        self.write(' '.join([lib + slash_char + "." + lib for lib in libs]))
         self.write('\n')
 
         self.writeln("## rules #################################")
@@ -171,10 +173,10 @@ sim_post_cmd:
         self.writeln()
 
         for lib in libs:
-            self.write(lib + "/." + lib + ":\n")
+            self.write(lib + slash_char + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command,
-                                         lib, "&&", "touch", lib + "/." + lib, ")"]))
+                                         lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
             self.write(' '.join(["||", del_command, lib, "\n"]))
             self.write('\n\n')
 
