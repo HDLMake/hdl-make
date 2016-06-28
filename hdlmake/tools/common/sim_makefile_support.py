@@ -22,6 +22,7 @@
 #
 
 import os
+import platform
 import string
 
 from hdlmake.makefile_writer import MakefileWriter
@@ -64,6 +65,13 @@ class VsimMakefileWriter(MakefileWriter):
         etc are defined by the specific tool.
         """
         from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
+        
+        if platform.system() == 'Windows': 
+            del_command = "rm -rf"
+            mkdir_r_command = "mkdir"
+        else: 
+            del_command = "rm -rf"
+            mkdir_r_command = "mkdir -r"
         
         self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.vlog_opt))
         self.vcom_flags.append(top_module.vcom_opt)
@@ -154,7 +162,7 @@ sim_post_cmd:
             self.write(self.__create_copy_rule(filename, filesource))
 
         self.writeln("clean:")
-        tmp = "\t\trm -rf $(LIBS) " + ' '.join(self.additional_clean)
+        tmp = "\t\t" + del_command + " $(LIBS) " + ' '.join(self.additional_clean)
         self.writeln(tmp)
 
         self.writeln(".PHONY: clean sim_pre_cmd sim_post_cmd simulation")
@@ -165,7 +173,7 @@ sim_post_cmd:
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command,
                                          lib, "&&", "touch", lib + "/." + lib, ")"]))
-            self.write(' '.join(["||", "rm -rf", lib, "\n"]))
+            self.write(' '.join(["||", del_command, lib, "\n"]))
             self.write('\n\n')
 
         # rules for all _primary.dat files for sv
@@ -201,7 +209,7 @@ sim_post_cmd:
                                                  include_dirs='+'.join(vl.include_dirs),
                                                  vlog_opt=vl.vlog_opt)
             self.writeln(compile_line)
-            self.write("\t\t@mkdir -p $(dir $@)")
+            self.write("\t\t@" + mkdir_r_command + " $(dir $@)")
             self.writeln(" && touch $@ \n\n")
             self.write("\n")
 
@@ -224,15 +232,17 @@ sim_post_cmd:
 
             self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
-            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@ \n")
+            self.writeln("\t\t@" + mkdir_r_command + " $(dir $@) && touch $@ \n")
             self.writeln()
 
     def __create_copy_rule(self, name, src):
         """Get a Makefile rule named name, which depends on src, copying it to
         the local directory."""
+        if platform.system() == 'Windows': copy_command = "copy"
+        else: copy_command = "cp"
         rule = """%s: %s
-\t\tcp $< . 2>&1
-""" % (name, src)
+\t\t%s $< . 2>&1
+""" % (name, src, copy_command)
         return rule
 
     def __get_rid_of_vsim_incdirs(self, vlog_opt=""):
@@ -244,3 +254,4 @@ sim_post_cmd:
             if not v.startswith("+incdir+"):
                 ret.append(v)
         return ' '.join(ret)
+
