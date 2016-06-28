@@ -206,8 +206,8 @@ sim_post_cmd:
             compile_template = string.Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} +incdir+${include_dirs} ${vlog_opt} $$<")
             compile_line = compile_template.substitute(library=vl.library,
                                                  sv_option="-sv" if isinstance(vl, SVFile) else "",
-                                                 include_dirs='+'.join(vl.include_dirs),
-                                                 vlog_opt=vl.vlog_opt)
+                                                 include_dirs='+'.join(top_module.include_dirs),
+                                                 vlog_opt=top_module.vlog_opt)
             self.writeln(compile_line)
             self.write("\t\t@" + mkdir_r_command + " $(dir $@)")
             self.writeln(" && touch $@ \n\n")
