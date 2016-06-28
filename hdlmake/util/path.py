@@ -109,18 +109,7 @@ def relpath(p1, p2=None):
         p2 = os.getcwd()
     if p1 == p2:
         return '.'
-    p1, p2 = p2, p1
-    if p1[-1] == '/':
-        p1 = p1[:-1]
-    if p2[-1] == '/':
-        p2 = p2[:-1]
-
-    (_, l1, l2) = commonpath(pathsplit(p1), pathsplit(p2))
-    p = []
-    if len(l1) > 0:
-        p = ['../' * len(l1)]
-    p = p + l2
-    return os.path.join(*p)
+    return os.path.relpath(p1, p2)
 
 
 def rel2abs(path, base=None):
