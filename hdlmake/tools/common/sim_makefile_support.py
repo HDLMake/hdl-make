@@ -92,6 +92,8 @@ PWD := $(shell pwd)
         self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
+        self.writeln("INCLUDE_DIRS := +incdir+%s" % ('+'.join(top_module.include_dirs)))
+
         self.write("VERILOG_SRC := ")
         for vl in fileset.filter(VerilogFile):
             self.write(vl.rel_path() + " \\\n")
@@ -203,11 +205,9 @@ sim_post_cmd:
             # self.write(incdir)
             # self.writeln(vl.vlog_opt+" $<")
             ####
-            compile_template = string.Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} +incdir+${include_dirs} ${vlog_opt} $$<")
+            compile_template = string.Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
             compile_line = compile_template.substitute(library=vl.library,
-                                                 sv_option="-sv" if isinstance(vl, SVFile) else "",
-                                                 include_dirs='+'.join(top_module.include_dirs),
-                                                 vlog_opt=top_module.vlog_opt)
+                                                 sv_option="-sv" if isinstance(vl, SVFile) else "")
             self.writeln(compile_line)
             self.write("\t\t@" + mkdir_r_command + " $(dir $@)")
             self.writeln(" && touch $@ \n\n")
