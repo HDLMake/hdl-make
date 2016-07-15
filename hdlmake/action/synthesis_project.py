@@ -27,7 +27,6 @@ import os
 import importlib
 
 from hdlmake.srcfile import SourceFileFactory
-from hdlmake.dependable_file import DependableFile
 from hdlmake.util import path
 
 from .action import Action
@@ -172,8 +171,6 @@ end sdb_meta_pkg;""")
 
         top_mod = self.modules_pool.get_top_module()
         fileset = self.modules_pool.build_file_set()
-        non_dependable = fileset.inversed_filter(DependableFile)
-        fileset.add(non_dependable)
         privative_files = tool_object.supported_files(self.modules_pool.build_complete_file_set())
 
         if privative_files:
