@@ -31,7 +31,6 @@ import sys
 from .util.termcolor import colored
 from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
-from .env import Env
 from . import fetch as fetch_mod
 from ._version import __version__
 
@@ -66,9 +65,8 @@ def main():
     # Create a ModulePool object, this will become our workspace
     modules_pool = ModulePool()
 
-    # Set the environment
-    env = Env(options)
-    modules_pool.set_environment(env)
+    # Set the module_pool environment by providing the options: this is a must!
+    modules_pool.set_environment(options)
 
     # Now, we add the first module, the one from which we are launching the program:
     # Note that we are asking for not processing the manifest and specifying
@@ -77,6 +75,10 @@ def main():
     # 2- There is not a top_module yet in modules_pool, so only this time...:
     #    - this becomes the top_module
     #    - the manifest is parsed & processed
+    # And dependent modules are added to the modules pool, but... 
+    # .. How should we handle recursive fetching? 
+    # Note: CERN BE-CO-HT advocates for defaulting to non-recursive.
+
     modules_pool.new_module(parent=None,
                             url=os.getcwd(),
                             source=fetch_mod.LOCAL,
@@ -175,7 +177,7 @@ def _action_runner(modules_pool):
     #                                   #
     try:
         for command in action:
-            action_instance = command(modules_pool=modules_pool)
+            action_instance = command(modules_pool)
             action_instance.run()
     except Exception as e:
         import traceback

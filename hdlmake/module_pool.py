@@ -30,6 +30,8 @@ import sys
 from . import new_dep_solver as dep_solver
 from .util import path as path_mod
 from . import fetch
+from .env import Env
+
 
 
 class ModulePool(list):
@@ -40,7 +42,8 @@ class ModulePool(list):
         self._deps_solved = False
         self.env = None
 
-    def set_environment(self, env):
+    def set_environment(self, options):
+        env = Env(options)
         self.env = env
 
     def get_module_by_path(self, path):
