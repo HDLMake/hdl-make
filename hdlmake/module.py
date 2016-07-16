@@ -231,7 +231,7 @@ class Module(object):
         if self.isprocessed is True:
             return
         if self.manifest_dict is None:
-            logging.debug("There is no manifest to be processed in: %s" % self.url)
+            logging.warning("There is no manifest to be processed in: %s" % self.url)
             return
         logging.debug("Process manifest in: %s" % self.path)
         if self.manifest_dict["syn_ise_version"] is not None:

@@ -33,10 +33,6 @@ from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
 from .env import Env
 from . import fetch as fetch_mod
-from .action import (CheckCondition, CleanModules, FetchModules, ListFiles,
-                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
-                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
-                    QsysHwTclUpdate,)
 from ._version import __version__
 
 
@@ -95,18 +91,27 @@ def main():
         sys.exit("Exiting")
 
 
-    # Setting global variables for top_module and mod_pool:
-    #    -- Note that this is redundant, we can get top_mod from mod_pool!
-    top_mod = modules_pool.get_top_module()
+    _action_runner(options, modules_pool, env)
+
+
+def _action_runner(options, modules_pool, env):
+
+    from .action import (CheckCondition, CleanModules, FetchModules, ListFiles,
+                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
+                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
+                    QsysHwTclUpdate,)
+
 
     #                                   #
     # DECODE THE COMMANDS/ACTIONS HERE  #
     #                                   #
+    top_mod = modules_pool.get_top_module()
+
     if options.command == "check-env":
         env.check_env(verbose=True)
         quit()
     elif options.command == "check-manifest":
-        env.check_manifest(modules_pool.get_top_module().manifest, verbose=True)
+        env.check_manifest(top_mod.manifest, verbose=True)
         quit()
     elif options.command == "manifest-help":
         ManifestParser().print_help()
