@@ -91,10 +91,10 @@ def main():
         sys.exit("Exiting")
 
 
-    _action_runner(options, modules_pool, env)
+    _action_runner(modules_pool)
 
 
-def _action_runner(options, modules_pool, env):
+def _action_runner(modules_pool):
 
     from .action import (CheckCondition, CleanModules, FetchModules, ListFiles,
                     ListModules, MergeCores, Tree, GenerateSimulationMakefile,
@@ -106,12 +106,13 @@ def _action_runner(options, modules_pool, env):
     # DECODE THE COMMANDS/ACTIONS HERE  #
     #                                   #
     top_mod = modules_pool.get_top_module()
+    options = modules_pool.env.options
 
     if options.command == "check-env":
-        env.check_env(verbose=True)
+        modules_pool.env.check_env(verbose=True)
         quit()
     elif options.command == "check-manifest":
-        env.check_manifest(top_mod.manifest, verbose=True)
+        modules_pool.env.check_manifest(top_mod.manifest, verbose=True)
         quit()
     elif options.command == "manifest-help":
         ManifestParser().print_help()
@@ -174,9 +175,7 @@ def _action_runner(options, modules_pool, env):
     #                                   #
     try:
         for command in action:
-            action_instance = command(modules_pool=modules_pool,
-                                    options=options,
-                                    env=env)
+            action_instance = command(modules_pool=modules_pool)
             action_instance.run()
     except Exception as e:
         import traceback

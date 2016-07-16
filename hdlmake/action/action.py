@@ -24,10 +24,10 @@ import logging
 
 
 class Action(object):
-    def __init__(self, modules_pool, options, env):
+    def __init__(self, modules_pool):
         self.modules_pool = modules_pool
-        self.options = options
-        self.env = env
+        self.options = modules_pool.env.options
+        self.env = modules_pool.env
 
         self._check_manifest()
         self._check_env()
