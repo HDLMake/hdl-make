@@ -207,5 +207,5 @@ class DepFile(File):
                 # recurse, to find the largest number of levels below.
                 self.dep_level = 1 + max([dep.get_dep_level() for dep in self.depends_on]);
         elif self.dep_level < 0:
-                raise Exception("Probably run into a circular reference of file dependencies. It appears %d depends on itself, indirectly via atleast one other file." % self.filename())
+                logging.warning("Probably run into a circular reference of file dependencies. It appears %s depends on itself, indirectly via atleast one other file." % self.file_path)
         return self.dep_level
