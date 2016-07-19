@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013, 2014 CERN
+# Copyright (c) 2013-2016 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
 #
@@ -186,6 +186,18 @@ class Module(object):
                 break
 
     def parse_manifest(self):
+        """
+        Create a dictionary from the module Manifest.py and assign it to the manifest_dict property.
+        In order to do this, it creates a ManifestParser object and feed it with:
+        - the arbitrary code from pool's top_module options (it assumes a top_module exists before any parsing!)
+        - the Manifest.py (if exists)
+        - the extra_context:
+          - If this is the root module (has not parent), use an empty extra_context in the parser
+          - If this is a submodule (has a parent), inherit the extra_context as:
+            - the full manifest_dict from the top_module...
+            - ...but deleting some key fields that needs to be respected (files, modules...).
+        """
+
         if self.manifest_dict:
             return
         if self.isparsed is True or self.isfetched is False:
@@ -218,6 +230,7 @@ class Module(object):
             del extra_context["library"]
         extra_context["__manifest"] = self.path
 
+        # In the ManifestParser.parse method is where the most of the parser action takes place!
         opt_map = None
         try:
             opt_map = manifest_parser.parse(extra_context=extra_context)

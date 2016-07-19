@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2013 CERN
+# Copyright (c) 2013-2016 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
+#         Garcia-Lasheras (javier@garcialasheras.com)
 #
 # This file is part of Hdlmake.
 #
@@ -72,6 +73,8 @@ class ModulePool(list):
 
         This is the only way to add new modules to the pool. Thanks to it the pool can easily
         control its content
+
+        NOTE: the first module added to the pool will become the top_module! Should be improved.
         """
         from .module import Module
         self._deps_solved = False
