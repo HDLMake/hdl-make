@@ -389,18 +389,20 @@ class Module(object):
         else:
             self.git = []
 
-        git_submodule_dict = fetch.Git.get_git_submodules(self)
-        git_toplevel = fetch.Git.get_git_toplevel(self)
-        for submodule_key in git_submodule_dict.keys():
-            url = git_submodule_dict[submodule_key]["url"]
-            path = git_submodule_dict[submodule_key]["path"]
-            path = os.path.join(git_toplevel, path)
-            path = os.path.normpath(path)
-            fetchto = os.path.sep.join(path.split(os.path.sep)[:-1])
-            self.git_submodules.append(self.pool.new_module(parent=self,
-                                                            url=url,
-                                                            fetchto=fetchto,
-                                                            source=fetch.GITSUBMODULE))
+        # TODO: Git submodules are temporarly disabled until the expected behavior is depicted
+        # git_submodule_dict = fetch.Git.get_git_submodules(self)
+        # git_toplevel = fetch.Git.get_git_toplevel(self)
+        # for submodule_key in git_submodule_dict.keys():
+        #    url = git_submodule_dict[submodule_key]["url"]
+        #    path = git_submodule_dict[submodule_key]["path"]
+        #    path = os.path.join(git_toplevel, path)
+        #    path = os.path.normpath(path)
+        #    fetchto = os.path.sep.join(path.split(os.path.sep)[:-1])
+        #    self.git_submodules.append(self.pool.new_module(parent=self,
+        #                                                    url=url,
+        #                                                    fetchto=fetchto,
+        #                                                    source=fetch.GITSUBMODULE))
+
         self.target = self.manifest_dict["target"].lower()
         self.action = self.manifest_dict["action"].lower()
 
