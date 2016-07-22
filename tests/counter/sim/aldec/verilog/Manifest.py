@@ -1,6 +1,6 @@
 action = "simulation"
 sim_tool = "aldec"
-top_module = "counter_tb"
+sim_top = "counter_tb"
 
 sim_post_cmd = "vsimsa -do ../play_sim.do; avhdl wave.asdb"
 

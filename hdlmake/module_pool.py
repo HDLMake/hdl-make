@@ -214,7 +214,7 @@ class ModulePool(list):
         return all_manifested_files
 
     def build_limited_file_set(self):
-        top_entity = self.top_module.top_module
+        top_entity = self.top_module.top_entity
         #self.solve_dependencies()
         all_files = self.build_complete_file_set()
         if not self._deps_solved:

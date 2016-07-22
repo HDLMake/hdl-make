@@ -130,6 +130,7 @@ def _action_runner(modules_pool):
                 logging.error("`sim_tool' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know how to simulate the project.")
                 quit()
+            top_mod.top_entity = top_mod.sim_top
             action = [ 
                 GenerateSimulationMakefile, 
             ]
@@ -138,6 +139,7 @@ def _action_runner(modules_pool):
                 logging.error("`syn_tool' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know how to synthesize the project.")
                 quit()
+            top_mod.top_entity = top_mod.syn_top
             action = [
                 GenerateSynthesisProject,
                 GenerateSynthesisMakefile,

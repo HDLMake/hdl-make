@@ -80,7 +80,7 @@ class ToolControls(MakefileWriter):
         from hdlmake.srcfile import VerilogFile, VHDLFile
         make_preambule_p1 = """## variables #############################
 PWD := $(shell pwd)
-TOP_MODULE := """ + top_module.top_module + """
+TOP_MODULE := """ + top_module.top_entity + """
 FUSE_OUTPUT ?= isim_proj
 
 XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) + """

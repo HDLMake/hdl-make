@@ -1,6 +1,6 @@
 action = "simulation"
 sim_tool = "riviera"
-top_module = "counter_tb"
+sim_top = "counter_tb"
 
 sim_post_cmd = "vsim -do ../vsim.do"
 

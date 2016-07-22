@@ -68,7 +68,7 @@ simulation:
 """)
 
         makefile_text_1 = makefile_tmplt_1.substitute(
-            top_module=top_module.top_module
+            top_module=top_module.top_entity
         )
         self.write(makefile_text_1)
 

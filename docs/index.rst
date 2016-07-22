@@ -392,7 +392,7 @@ In the VHDL case, the top Manifest.py for Modelsim simulation is:
 
    action = "simulation"
    sim_tool = "modelsim"
-   top_module = "counter_tb"
+   sim_top = "counter_tb"
 
    sim_post_cmd = "vsim -do ../vsim.do -i counter_tb"
 
@@ -406,7 +406,7 @@ And in the Verilog case, the associated Manifest.py is:
 
    action = "simulation"
    sim_tool = "modelsim"
-   top_module = "counter_tb"
+   sim_top = "counter_tb"
 
    sim_post_cmd = "vsim -do ../vsim.do -i counter_tb"
 
@@ -420,7 +420,7 @@ The following common top specific Manifest variables describes the simulation:
 
 - ``action``: indicates that we are going to perform a simulation.
 - ``sim_tool``: indicates that modelsim is going to be the simulation we are going to use.
-- ``top_module``: indicates the name of the top HDL entity/instance that is going to be simulated.
+- ``sim_top``: indicates the name of the top HDL entity/instance that is going to be simulated.
 - ``sim_post_cmd``: indicates a command that must be issued after the simulation process has finnished.
 
 Now, if we want to launch the simulation, we must follow the next steps. First, get into the folder containing the top Manifest.py we want to execute and run ``hdlmake`` without arguments. e.g. for VHDL:
@@ -768,7 +768,7 @@ As a very simple example, we can introduce both extra commands in the top simula
 
    action = "simulation"
    sim_tool = "modelsim"
-   top_module = "counter_tb"
+   sim_top = "counter_tb"
 
    sim_pre_cmd = "echo This is executed just before the simulation"
    sim_post_cmd = "echo This is executed just after the simulation"
@@ -849,7 +849,7 @@ The first one is to include this as a new variable in the top Manifest.py, i.e.:
 
    action = "simulation"
    sim_tool = "modelsim"
-   top_module = "counter_tb"
+   sim_top = "counter_tb"
 
    simulate_vhdl = False
 
@@ -1122,8 +1122,6 @@ Top Manifest variables
 +================+==============+=================================================================+===========+ 
 | action         | str          | What is the action that should be taken (simulation/synthesis)  | ""        | 
 +----------------+--------------+-----------------------------------------------------------------+-----------+
-| top_module     | str          | Top level entity for synthesis and simulation                   | None      |
-+----------------+--------------+-----------------------------------------------------------------+-----------+
 | incl_makefiles | list, str    | List of .mk files appended to toplevel makefile                 | []        |
 +----------------+--------------+-----------------------------------------------------------------+-----------+
  
@@ -1155,6 +1153,8 @@ Basic simulation variables:
 +----------------+--------------+-----------------------------------------------------------------+-----------+
 | Name           | Type         | Description                                                     | Default   |
 +================+==============+=================================================================+===========+
+| sim_top        | str          | Top level module for simulation                                 | None      |
++----------------+--------------+-----------------------------------------------------------------+-----------+
 | sim_tool       | str          | Simulation tool to be used (e.g. isim, vsim, iverilog)          | None      |
 +----------------+--------------+-----------------------------------------------------------------+-----------+
 | sim_pre_cmd    | str          | Command to be executed before simulation                        | None      |
@@ -1209,6 +1209,8 @@ Basic synthesis variables:
 +=================+=============+=================================================================+===========+
 | target          | str         | What is the target architecture                                 | ""        |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
+| syn_top         | str         | Top level module for synthesis                                  | None      |
++-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_tool        | str         | Tool to be used in the synthesis                                | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_device      | str         | Target FPGA device                                              | None      |
@@ -1218,8 +1220,6 @@ Basic synthesis variables:
 | syn_grade       | str         | Speed grade of target FPGA                                      | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_package     | str         | Package variant of target FPGA                                  | None      |
-+-----------------+-------------+-----------------------------------------------------------------+-----------+
-| syn_top         | str         | Top level module for synthesis                                  | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_project     | str         | Project file name                                               | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
@@ -1329,23 +1329,6 @@ Generate ``project.vhd`` file with a meta package describing the project.
 
 This option is targeted to VHDL designs in which the SDB (Self Describing Bus) standard is going to be used. You can get more information about SDB in the following link: 
 http://www.ohwr.org/projects/fpga-config-space/wiki 
-
-
-``--no-parse``
---------------------------
-
-HDLMake includes both a VHDL and a Verilog parser, allowing for building optimal 
-dependency-driven filesets by performing a recursive relation search with the
-selected ``top_module`` as the root.
-
-By default, the parser is enabled and only the strictly neccessary files will
-be added to the file set, this is:
-
-- All those files containing entities that our ``top_module`` requires.
-- All those tool-specific files that cannot be parsed but are mandatory.
-
-When the ``--no-parse`` argument is provided, the parser is disabled and all the files included in the module
-hierarchy will be used when building a design file set.
 
 
 ``--force``

@@ -95,6 +95,7 @@ class ManifestParser(ConfigParser):
 
         self.add_delimiter()
 
+        self.add_option('sim_top', default=None, help="Top level module for simulation", type='')
         self.add_option('sim_tool', default=None, help="Simulation tool to be used (e.g. isim, vsim, iverilog)", type='')
         self.add_option('sim_pre_cmd', default=None, help="Command to be executed before simulation", type='')
         self.add_option('sim_post_cmd', default=None, help="Command to be executed after simulation", type='')

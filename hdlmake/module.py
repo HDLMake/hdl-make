@@ -72,6 +72,7 @@ class Module(object):
         self.svn = []
         self.target = None
         self.action = None
+        self.top_entity = None
         self.vmap_opt = None
         self.vlog_opt = None
         self.vcom_opt = None
@@ -93,6 +94,7 @@ class Module(object):
         self.syn_ise_version = None
         self.syn_pre_script = None
         self.syn_post_script = None
+        self.sim_top = None
         self.sim_only_files = None
         self.sim_pre_script = None
         self.sim_post_script = None
@@ -282,6 +284,7 @@ class Module(object):
         self.vlog_opt = self.manifest_dict["vlog_opt"]
         self.iverilog_opt = self.manifest_dict["iverilog_opt"]
         self.sim_tool = self.manifest_dict["sim_tool"]
+        self.sim_top = self.manifest_dict["sim_top"]
         if self.manifest_dict["force_tool"]:
             ft = self.manifest_dict["force_tool"]
             self.force_tool = ft.split(' ')

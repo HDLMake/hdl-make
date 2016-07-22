@@ -33,8 +33,8 @@ from .action import Action
 class GenerateSimulationMakefile(Action):
 
     def _check_manifest(self):
-        if not self.modules_pool.get_top_module().top_module:
-            logging.error("top_module variable must be set in the top manifest.")
+        if not self.modules_pool.get_top_module().sim_top:
+            logging.error("sim_top variable must be set in the top manifest.")
             sys.exit("Exiting")
         if not self.modules_pool.get_top_module().sim_tool:
             logging.error("sim_tool variable must be set in the top manifest.")
