@@ -173,14 +173,12 @@ class ModulePool(list):
         new_modules.extend(module.git_submodules)
         return new_modules
 
-    def fetch_all(self, unfetched_only=False, flatten=False):
+    def fetch_all(self, unfetched_only=False):
         """Fetch recursively all modules"""
         fetch_queue = [m for m in self]
 
         while len(fetch_queue) > 0:
             cur_mod = fetch_queue.pop()
-            if flatten is True:
-                cur_mod.fetchto = self.top_module.fetchto
             new_modules = []
             if unfetched_only:
                 if cur_mod.isfetched:

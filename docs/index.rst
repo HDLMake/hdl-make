@@ -674,7 +674,7 @@ If we run the ``hdlmake fetch`` command from inside the folder where the top Man
 
 .. code-block:: python
 
-   fetchto = ".."
+   fetchto = "../../ip_cores"
 
 
 

@@ -27,17 +27,12 @@ from .action import Action
 
 
 class FetchModules(Action):
-    def _check_options(self):
-        if self.options.flatten is True and self.env["coredir"] is not None:
-            logging.error("Options clash: --flatten and HDLMAKE_COREDIR set at a time\n"
-                          "Take one out of the two")
-            sys.exit("\nExiting")
 
     def run(self):
         top_module = self.modules_pool.get_top_module()
         logging.info("Fetching needed modules.")
         os.system(top_module.fetch_pre_cmd)
-        self.modules_pool.fetch_all(unfetched_only=not self.options.update, flatten=self.options.flatten)
+        self.modules_pool.fetch_all(unfetched_only=not self.options.update)
         logging.debug(str(self.modules_pool))
         os.system(top_module.fetch_post_cmd)
         logging.info("All modules fetched.")

@@ -219,8 +219,6 @@ def _get_parser():
     make_remote = subparsers.add_parser("make-remote", help="generate remote synthesis makefile")
 
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
-    fetch.add_argument("--flatten", help="`flatten' modules' hierarchy by storing everything in top module's fetchto direactoru",
-                       default=False, action="store_true")
     fetch.add_argument("--update", help="force updating of the fetched modules", default=False, action="store_true")
     clean = subparsers.add_parser("clean", help="remove all modules fetched for direct and indirect children of this module")
     listmod = subparsers.add_parser("list-mods", help="List all modules together with their files")
