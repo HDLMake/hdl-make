@@ -154,6 +154,10 @@ class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, Modul
             except OSError:  # a catologue is not empty - we are done
                 break
 
+    def process_manifest(self):
+        super(Module, self).process_manifest()
+        logging.debug("Process manifest at: " + os.path.dirname(self.path))
+
     def parse_manifest(self):
         """
         Create a dictionary from the module Manifest.py and assign it to the manifest_dict property.
@@ -213,15 +217,7 @@ class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, Modul
         self.manifest_dict = opt_map
 
         # Process the parsed manifest_dict to assign the module properties
-        self._process_manifest_universal()
-        self._process_manifest_synthesis()
-        self._process_manifest_simulation()
-        self._process_manifest_includes()
-        self._process_manifest_files()
-        self._process_manifest_modules()
-        self._process_manifest_altera()
-        self._process_manifest_force_tool()
-        self._process_manifest_included_makefiles()
+        self.process_manifest()
 
         # Tag the module as parsed
         self.isparsed = True

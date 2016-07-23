@@ -1,8 +1,8 @@
+from .module_plugin import ModulePlugin
 
 class ModuleSimulation(object):
 
     def __init__(self):
-        super(ModuleSimulation, self).__init__()
         # Manifest Simulation Properties
         self.sim_top = None
         self.sim_tool = None
@@ -16,7 +16,12 @@ class ModuleSimulation(object):
         self.iverilog_opt = None
         # Includes Manifest Properties
         self.include_dirs = None
+        super(ModuleSimulation, self).__init__()
 
+    def process_manifest(self):
+        self._process_manifest_simulation()
+        self._process_manifest_includes()
+        super(ModuleSimulation, self).process_manifest()
 
     def _process_manifest_simulation(self):
         from .srcfile import SourceFileSet

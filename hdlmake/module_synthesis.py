@@ -1,7 +1,7 @@
+from .module_plugin import ModulePlugin
 
-class ModuleSynthesis(object):
+class ModuleSynthesis(ModulePlugin):
     def __init__(self):
-        super(ModuleSynthesis, self).__init__()
         # Manifest Synthesis Properties
         self.syn_device = None
         self.syn_family = None
@@ -15,6 +15,12 @@ class ModuleSynthesis(object):
         self.syn_post_script = None
         # Manifest Included Makefiles
         self.incl_makefiles = []
+        super(ModuleSynthesis, self).__init__()
+
+    def process_manifest(self):
+        self._process_manifest_synthesis()
+        self._process_manifest_included_makefiles()
+        super(ModuleSynthesis, self).process_manifest()
 
     def _process_manifest_synthesis(self):
         # Synthesis properties

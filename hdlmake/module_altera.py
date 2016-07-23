@@ -1,14 +1,19 @@
 import os
+from .module_plugin import ModulePlugin
 from .util import path as path_mod
 
-class ModuleAltera(object):
+class ModuleAltera(ModulePlugin):
     def __init__(self):
-        super(ModuleAltera, self).__init__()
         # Manifest Altera Properties
         self.quartus_preflow = None
         self.quartus_postmodule = None
         self.quartus_postflow = None
         self.hw_tcl_filename = None
+        super(ModuleAltera, self).__init__()
+
+    def process_manifest(self):
+        self._process_manifest_altera()
+        super(ModuleAltera, self).process_manifest()
 
     def _process_manifest_altera(self):
         from .srcfile import TCLFile

@@ -1,14 +1,20 @@
+from .module_plugin import ModulePlugin
 
-class ModuleCore(object):
+class ModuleCore(ModulePlugin):
     def __init__(self):
-        super(ModuleCore, self).__init__()
         # Universal Manifest Properties
         self.library = "work"
         self.target = None
         self.action = None
+        super(ModuleCore, self).__init__()
 
         # Manifest Force tool Property
         self.force_tool = None
+
+    def process_manifest(self):
+        self._process_manifest_force_tool()
+        self._process_manifest_universal()
+        super(ModuleCore, self).process_manifest()
 
     def _process_manifest_force_tool(self):
         if self.manifest_dict["force_tool"]:

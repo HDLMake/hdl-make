@@ -1,10 +1,10 @@
 import logging
 from . import fetch
+from .module_plugin import ModulePlugin
 from .util import path as path_mod
 
-class ModuleContent(object):
+class ModuleContent(ModulePlugin):
     def __init__(self):
-        super(ModuleContent, self).__init__()
         # Manifest Files Properties
         self.files = None
         # Manifest Modules Properties
@@ -12,6 +12,12 @@ class ModuleContent(object):
         self.git = []
         self.svn = []
         self.git_submodules = []
+        super(ModuleContent, self).__init__()
+
+    def process_manifest(self):
+        self._process_manifest_files()
+        self._process_manifest_modules()
+        super(ModuleContent, self).process_manifest()
 
     def _process_manifest_files(self):
         from .srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
