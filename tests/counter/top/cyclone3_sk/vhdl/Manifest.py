@@ -3,5 +3,5 @@ files = [
 ]
 
 modules = {
-  "local" : [  ],
+  "local" : [ "../../../modules/counter/vhdl" ],
 }
