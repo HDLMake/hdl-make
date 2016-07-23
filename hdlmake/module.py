@@ -28,13 +28,14 @@ import logging
 from .manifest_parser import Manifest, ManifestParser
 from .util import path as path_mod
 from . import fetch
+from .module_core import ModuleCore
 from .module_synthesis import ModuleSynthesis
 from .module_simulation import ModuleSimulation
 from .module_content import ModuleContent
 from .module_altera import ModuleAltera
 
 
-class Module(ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
+class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
     @property
     def source(self):
         return self._source
@@ -67,38 +68,16 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
         self.manifest = None
         self.manifest_dict = None
         self.pool = pool
+        self.top_module = pool.get_top_module()
         self.source = source
         self.parent = parent
         self.isparsed = False
         self.top_entity = None
-        self.revision = None
         self.fetchto = fetchto
 
-        # Universal Manifest Properties
-        self.top_module = pool.get_top_module()
-        self.library = "work"
-        self.target = None
-        self.action = None
-
-        # Manifest Force tool Property
-        self.force_tool = None
-
-        
         self.raw_url = url
         if source != fetch.LOCAL:
             self.url, self.branch, self.revision = path_mod.url_parse(url)
-        else:
-            self.url, self.branch, self.revision = url, None, None
-
-        if source == fetch.LOCAL and not os.path.exists(url):
-            logging.error("Path to the local module doesn't exist:\n" + url
-                          + "\nThis module was instantiated in: " + str(parent))
-            quit()
-
-        if source == fetch.LOCAL:
-            self.path = url
-            self.isfetched = True
-        else:
             if os.path.exists(os.path.abspath(os.path.join(fetchto, self.basename))) and os.listdir(os.path.abspath(os.path.join(fetchto, self.basename))):
                 self.path = os.path.abspath(os.path.join(fetchto, self.basename))
                 self.isfetched = True
@@ -107,7 +86,15 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
                 self.path = None
                 self.isfetched = False
                 logging.debug("Module %s (parent: %s) is NOT fetched." % (url, parent.path))
+        else:
+            self.url, self.branch, self.revision = url, None, None
 
+            if not os.path.exists(url):
+                logging.error("Path to the local module doesn't exist:\n" + url
+                              + "\nThis module was instantiated in: " + str(parent))
+                quit()
+            self.path = url
+            self.isfetched = True
 
 
     def __str__(self):
@@ -242,25 +229,6 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
         # Parse every detected submodule
         for m in self.submodules():
             m.parse_manifest()
-
-
-    def _process_manifest_force_tool(self):
-        if self.manifest_dict["force_tool"]:
-            ft = self.manifest_dict["force_tool"]
-            self.force_tool = ft.split(' ')
-            if len(self.force_tool) != 3:
-                logging.warning("Incorrect force_tool format %s. Ignoring" % self.force_tool)
-                self.force_tool = None
-
-
-    def _process_manifest_universal(self):
-        if "top_module" in self.manifest_dict:
-            self.top_module = self.manifest_dict["top_module"]
-        # Libraries
-        self.library = self.manifest_dict["library"]
-
-        self.target = self.manifest_dict["target"].lower()
-        self.action = self.manifest_dict["action"].lower()
 
 
     def _make_list_of_paths(self, list_of_paths):
