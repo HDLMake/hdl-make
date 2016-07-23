@@ -88,9 +88,6 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
         self.svn = []
         self.git_submodules = []
 
-        # Manifest Included Makefiles
-        self.incl_makefiles = []
-
         # Manifest Force tool Property
         self.force_tool = None
 
@@ -361,18 +358,6 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
 
         self.target = self.manifest_dict["target"].lower()
         self.action = self.manifest_dict["action"].lower()
-
-
-    def _process_manifest_included_makefiles(self):
-        # Included Makefiles
-        mkFileList = []
-        if isinstance(self.manifest_dict["incl_makefiles"], basestring):
-            mkFileList.append(self.manifest_dict["incl_makefiles"])
-        else:  # list
-            mkFileList = self.manifest_dict["incl_makefiles"][:]
-
-        makefiles_paths = self._make_list_of_paths(mkFileList)
-        self.incl_makefiles.extend(makefiles_paths)
 
 
     def _make_list_of_paths(self, list_of_paths):

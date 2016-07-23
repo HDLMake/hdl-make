@@ -13,7 +13,8 @@ class ModuleSynthesis(object):
         self.syn_ise_version = None
         self.syn_pre_script = None
         self.syn_post_script = None
-
+        # Manifest Included Makefiles
+        self.incl_makefiles = []
 
     def _process_manifest_synthesis(self):
         # Synthesis properties
@@ -43,4 +44,15 @@ class ModuleSynthesis(object):
         if self.manifest_dict["syn_ise_version"] is not None:
             version = self.manifest_dict["syn_ise_version"]
             self.syn_ise_version = str(version)
+
+    def _process_manifest_included_makefiles(self):
+        # Included Makefiles
+        mkFileList = []
+        if isinstance(self.manifest_dict["incl_makefiles"], basestring):
+            mkFileList.append(self.manifest_dict["incl_makefiles"])
+        else:  # list
+            mkFileList = self.manifest_dict["incl_makefiles"][:]
+
+        makefiles_paths = self._make_list_of_paths(mkFileList)
+        self.incl_makefiles.extend(makefiles_paths)
 
