@@ -110,7 +110,6 @@ class ModulePool(list):
             if not self.top_module:
                 self.top_module = new_module
                 new_module.parse_manifest()
-                new_module.process_manifest()
                 url = self._guess_origin(self.top_module.path)
                 if url:
                     self.top_module.url = url
@@ -165,7 +164,6 @@ class ModulePool(list):
             sys.exit("Exiting")
 
         module.parse_manifest()
-        module.process_manifest()
 
         new_modules.extend(module.local)
         new_modules.extend(module.svn)

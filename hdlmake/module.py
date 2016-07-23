@@ -99,7 +99,6 @@ class Module(object):
         self.sim_pre_script = None
         self.sim_post_script = None
         self.top_module = pool.get_top_module()
-        self.commit_id = None
         self.hw_tcl_filename = None
         
         self.raw_url = url
@@ -241,88 +240,82 @@ class Module(object):
             quit()
         self.manifest_dict = opt_map
 
-    def process_manifest(self):
-        from .srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
-        if self.isprocessed is True:
-            return
-        if self.manifest_dict is None:
-            logging.warning("There is no manifest to be processed in: %s" % self.url)
-            return
-        logging.debug("Process manifest in: %s" % self.path)
+        # Process the parsed manifest_dict to assign the module properties
+        self._process_manifest_universal()
+        self._process_manifest_synthesis()
+        self._process_manifest_simulation()
+        self._process_manifest_includes()
+        self._process_manifest_files()
+        self._process_manifest_modules()
+        self._process_manifest_altera()
+        self._process_manifest_revision()
+        self._process_manifest_bitfile_targets()
+        self._process_manifest_force_tool()
+
+        # Tag the module as parsed
+        self.isparsed = True
+
+        # Parse every detected submodule
+        for m in self.submodules():
+            m.parse_manifest()
+
+
+
+    def _process_manifest_synthesis(self):
+        # Synthesis properties
+        self.syn_pre_cmd = self.manifest_dict["syn_pre_cmd"]
+        self.syn_pre_synthesize_cmd = self.manifest_dict["syn_pre_synthesize_cmd"]
+        self.syn_post_synthesize_cmd = self.manifest_dict["syn_post_synthesize_cmd"]
+        self.syn_pre_translate_cmd = self.manifest_dict["syn_pre_translate_cmd"]
+        self.syn_post_translate_cmd = self.manifest_dict["syn_post_translate_cmd"]
+        self.syn_pre_map_cmd = self.manifest_dict["syn_pre_map_cmd"]
+        self.syn_post_map_cmd = self.manifest_dict["syn_post_map_cmd"]
+        self.syn_pre_par_cmd = self.manifest_dict["syn_pre_par_cmd"]
+        self.syn_post_par_cmd = self.manifest_dict["syn_post_par_cmd"]
+        self.syn_pre_bitstream_cmd = self.manifest_dict["syn_pre_bitstream_cmd"]
+        self.syn_post_bitstream_cmd = self.manifest_dict["syn_post_bitstream_cmd"]
+        self.syn_post_cmd = self.manifest_dict["syn_post_cmd"]
+        if self.manifest_dict["syn_name"] is None and self.manifest_dict["syn_project"] is not None:
+            self.syn_name = self.manifest_dict["syn_project"][:-5]  # cut out .xise from the end
+        else:
+            self.syn_name = self.manifest_dict["syn_name"]
+        self.syn_tool = self.manifest_dict["syn_tool"]
+        self.syn_device = self.manifest_dict["syn_device"]
+        self.syn_family = self.manifest_dict["syn_family"]
+        self.syn_grade = self.manifest_dict["syn_grade"]
+        self.syn_package = self.manifest_dict["syn_package"]
+        self.syn_project = self.manifest_dict["syn_project"]
+        self.syn_top = self.manifest_dict["syn_top"]
         if self.manifest_dict["syn_ise_version"] is not None:
             version = self.manifest_dict["syn_ise_version"]
             self.syn_ise_version = str(version)
 
-        if self.manifest_dict["fetchto"] is not None:
-            fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"], self.path)
-            self.fetchto = fetchto
-        else:
-            fetchto = self.fetchto
-        self.fetch_pre_cmd = self.manifest_dict["fetch_pre_cmd"]
-        self.fetch_post_cmd = self.manifest_dict["fetch_post_cmd"]
 
-        if "local" in self.manifest_dict["modules"]:
-            local_paths = self._flatten_list(self.manifest_dict["modules"]["local"])
-            local_mods = []
-            for path in local_paths:
-                if path_mod.is_abs_path(path):
-                    logging.error("Found an absolute path (" + path + ") in a manifest"
-                                  "(" + self.path + ")")
-                    quit()
-                path = path_mod.rel2abs(path, self.path)
-                local_mods.append(self.pool.new_module(parent=self,
-                                                       url=path,
-                                                       source=fetch.LOCAL,
-                                                       fetchto=fetchto))
-            self.local = local_mods
-        else:
-            self.local = []
+    def _process_manifest_simulation(self):
+        from .srcfile import SourceFileSet
+        # Simulation properties
+        self.sim_tool = self.manifest_dict["sim_tool"]
+        self.sim_top = self.manifest_dict["sim_top"]
+        self.sim_pre_cmd = self.manifest_dict["sim_pre_cmd"]
+        self.sim_post_cmd = self.manifest_dict["sim_post_cmd"]
 
         self.vmap_opt = self.manifest_dict["vmap_opt"]
         self.vcom_opt = self.manifest_dict["vcom_opt"]
         self.vsim_opt = self.manifest_dict["vsim_opt"]
         self.vlog_opt = self.manifest_dict["vlog_opt"]
         self.iverilog_opt = self.manifest_dict["iverilog_opt"]
-        self.sim_tool = self.manifest_dict["sim_tool"]
-        self.sim_top = self.manifest_dict["sim_top"]
-        if self.manifest_dict["force_tool"]:
-            ft = self.manifest_dict["force_tool"]
-            self.force_tool = ft.split(' ')
-            if len(self.force_tool) != 3:
-                logging.warning("Incorrect force_tool format %s. Ignoring" % self.force_tool)
-                self.force_tool = None
 
-        if "top_module" in self.manifest_dict:
-            self.top_module = self.manifest_dict["top_module"]
+        if len(self.manifest_dict["sim_only_files"]) == 0:
+            self.sim_only_files = SourceFileSet()
+        else:
+            self.manifest_dict["sim_only_files"] = self._flatten_list(self.manifest_dict["sim_only_files"])
+            paths = self._make_list_of_paths(self.manifest_dict["sim_only_files"])
+            self.sim_only_files = self._create_file_list_from_paths(paths=paths)
 
-        mkFileList = []
-        if isinstance(self.manifest_dict["incl_makefiles"], basestring):
-            mkFileList.append(self.manifest_dict["incl_makefiles"])
-        else:  # list
-            mkFileList = self.manifest_dict["incl_makefiles"][:]
 
-        makefiles_paths = self._make_list_of_paths(mkFileList)
-        self.incl_makefiles.extend(makefiles_paths)
-
-        self.library = self.manifest_dict["library"]
-        self.include_dirs = []
-        if self.manifest_dict["include_dirs"] is not None:
-            if isinstance(self.manifest_dict["include_dirs"], basestring):
-#                self.include_dirs.append(self.manifest_dict["include_dirs"])
-                ll = os.path.relpath(os.path.abspath(os.path.join(self.path, self.manifest_dict["include_dirs"])))
-                self.include_dirs.append(ll)
-            else:
-#                self.include_dirs.extend(self.manifest_dict["include_dirs"])
-                ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path, x))),
-                         self.manifest_dict["include_dirs"])
-                self.include_dirs.extend(ll)
-
-        for dir_ in self.include_dirs:
-            if path_mod.is_abs_path(dir_):
-                logging.warning("%s contains absolute path to an include directory: %s" % (self.path, dir_))
-            if not os.path.exists(dir_):
-                logging.warning(self.path + " has an unexisting include directory: " + dir_)
-
+    def _process_manifest_files(self):
+        from .srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
+        # HDL files provided by the module
         if self.manifest_dict["files"] == []:
             self.files = SourceFileSet()
             try:
@@ -340,33 +333,56 @@ class Module(object):
                 elif isinstance(f, VHDLFile):
                     f.vcom_opt = self.vcom_opt
 
-        if len(self.manifest_dict["sim_only_files"]) == 0:
-            self.sim_only_files = SourceFileSet()
+
+    def _process_manifest_includes(self):
+        # Include dirs
+        self.include_dirs = []
+        if self.manifest_dict["include_dirs"] is not None:
+            if isinstance(self.manifest_dict["include_dirs"], basestring):
+#                self.include_dirs.append(self.manifest_dict["include_dirs"])
+                ll = os.path.relpath(os.path.abspath(os.path.join(self.path, self.manifest_dict["include_dirs"])))
+                self.include_dirs.append(ll)
+            else:
+#                self.include_dirs.extend(self.manifest_dict["include_dirs"])
+                ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path, x))),
+                         self.manifest_dict["include_dirs"])
+                self.include_dirs.extend(ll)
+        # Analyze included dirs and report if any issue is found
+        for dir_ in self.include_dirs:
+            if path_mod.is_abs_path(dir_):
+                logging.warning("%s contains absolute path to an include directory: %s" % (self.path, dir_))
+            if not os.path.exists(dir_):
+                logging.warning(self.path + " has an unexisting include directory: " + dir_)
+
+
+    def _process_manifest_modules(self):
+        # Fetch configuration
+        if self.manifest_dict["fetchto"] is not None:
+            fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"], self.path)
+            self.fetchto = fetchto
         else:
-            self.manifest_dict["sim_only_files"] = self._flatten_list(self.manifest_dict["sim_only_files"])
-            paths = self._make_list_of_paths(self.manifest_dict["sim_only_files"])
-            self.sim_only_files = self._create_file_list_from_paths(paths=paths)
+            fetchto = self.fetchto
 
-        self.syn_pre_cmd = self.manifest_dict["syn_pre_cmd"]
-        self.syn_pre_synthesize_cmd = self.manifest_dict["syn_pre_synthesize_cmd"]
-        self.syn_post_synthesize_cmd = self.manifest_dict["syn_post_synthesize_cmd"]
-        self.syn_pre_translate_cmd = self.manifest_dict["syn_pre_translate_cmd"]
-        self.syn_post_translate_cmd = self.manifest_dict["syn_post_translate_cmd"]
-        self.syn_pre_map_cmd = self.manifest_dict["syn_pre_map_cmd"]
-        self.syn_post_map_cmd = self.manifest_dict["syn_post_map_cmd"]
-        self.syn_pre_par_cmd = self.manifest_dict["syn_pre_par_cmd"]
-        self.syn_post_par_cmd = self.manifest_dict["syn_post_par_cmd"]
-        self.syn_pre_bitstream_cmd = self.manifest_dict["syn_pre_bitstream_cmd"]
-        self.syn_post_bitstream_cmd = self.manifest_dict["syn_post_bitstream_cmd"]
-        self.syn_post_cmd = self.manifest_dict["syn_post_cmd"]
+        self.fetch_pre_cmd = self.manifest_dict["fetch_pre_cmd"]
+        self.fetch_post_cmd = self.manifest_dict["fetch_post_cmd"]
 
-        self.sim_pre_cmd = self.manifest_dict["sim_pre_cmd"]
-        self.sim_post_cmd = self.manifest_dict["sim_post_cmd"]
-
-        self.bit_file_targets = SourceFileSet()
-        if len(self.manifest_dict["bit_file_targets"]) != 0:
-            paths = self._make_list_of_paths(self.manifest_dict["bit_file_targets"])
-            self.bit_file_targets = self._create_file_list_from_paths(paths=paths)
+        # Process required modules
+        if "local" in self.manifest_dict["modules"]:
+            local_paths = self._flatten_list(self.manifest_dict["modules"]["local"])
+            local_mods = []
+            for path in local_paths:
+                if path_mod.is_abs_path(path):
+                    logging.error("Found an absolute path (" + path + ") in a manifest"
+                                  "(" + self.path + ")")
+                    quit()
+                path = path_mod.rel2abs(path, self.path)
+                local_mods.append(self.pool.new_module(parent=self,
+                                                       url=path,
+                                                       source=fetch.LOCAL,
+                                                       fetchto=fetchto))
+            self.local = local_mods
+        else:
+            self.local = []
 
         if "svn" in self.manifest_dict["modules"]:
             self.manifest_dict["modules"]["svn"] = self._flatten_list(self.manifest_dict["modules"]["svn"])
@@ -406,21 +422,8 @@ class Module(object):
         #                                                    fetchto=fetchto,
         #                                                    source=fetch.GITSUBMODULE))
 
-        self.target = self.manifest_dict["target"].lower()
-        self.action = self.manifest_dict["action"].lower()
 
-        if self.manifest_dict["syn_name"] is None and self.manifest_dict["syn_project"] is not None:
-            self.syn_name = self.manifest_dict["syn_project"][:-5]  # cut out .xise from the end
-        else:
-            self.syn_name = self.manifest_dict["syn_name"]
-        self.syn_tool = self.manifest_dict["syn_tool"]
-        self.syn_device = self.manifest_dict["syn_device"]
-        self.syn_family = self.manifest_dict["syn_family"]
-        self.syn_grade = self.manifest_dict["syn_grade"]
-        self.syn_package = self.manifest_dict["syn_package"]
-        self.syn_project = self.manifest_dict["syn_project"]
-        self.syn_top = self.manifest_dict["syn_top"]
-
+    def _process_manifest_altera(self):
         if self.manifest_dict["quartus_preflow"] != None:
             path = path_mod.rel2abs(self.manifest_dict["quartus_preflow"], self.path);
             if not os.path.exists(path):
@@ -447,14 +450,9 @@ class Module(object):
 
         if "hw_tcl_filename" in self.manifest_dict:
             self.hw_tcl_filename = self.manifest_dict["hw_tcl_filename"]
-            
-        self.isparsed = True
-        self.isprocessed = True
 
-        for m in self.submodules():
-            m.parse_manifest()
-            m.process_manifest()
 
+    def _process_manifest_revision(self):
         if self == self.top_module:
             revision = fetch.Svn.check_revision_number(self.path)
             if revision is None:
@@ -467,6 +465,47 @@ class Module(object):
                 self.revision = fetch.Svn.check_revision_number(self.path)
             elif self.source == fetch.GIT:
                 self.revision = fetch.Git.check_commit_id(self.path)
+
+
+    def _process_manifest_bitfile_targets(self):
+        from .srcfile import SourceFileSet
+        # Bit file targets
+        self.bit_file_targets = SourceFileSet()
+        if len(self.manifest_dict["bit_file_targets"]) != 0:
+            paths = self._make_list_of_paths(self.manifest_dict["bit_file_targets"])
+            self.bit_file_targets = self._create_file_list_from_paths(paths=paths)
+
+
+    def _process_manifest_force_tool(self):
+        if self.manifest_dict["force_tool"]:
+            ft = self.manifest_dict["force_tool"]
+            self.force_tool = ft.split(' ')
+            if len(self.force_tool) != 3:
+                logging.warning("Incorrect force_tool format %s. Ignoring" % self.force_tool)
+                self.force_tool = None
+
+
+    def _process_manifest_universal(self):
+        if "top_module" in self.manifest_dict:
+            self.top_module = self.manifest_dict["top_module"]
+        # Libraries
+        self.library = self.manifest_dict["library"]
+
+        self.target = self.manifest_dict["target"].lower()
+        self.action = self.manifest_dict["action"].lower()
+
+
+    def _process_manifest_revision(self):
+        # Included Makefiles
+        mkFileList = []
+        if isinstance(self.manifest_dict["incl_makefiles"], basestring):
+            mkFileList.append(self.manifest_dict["incl_makefiles"])
+        else:  # list
+            mkFileList = self.manifest_dict["incl_makefiles"][:]
+
+        makefiles_paths = self._make_list_of_paths(mkFileList)
+        self.incl_makefiles.extend(makefiles_paths)
+
 
     def _make_list_of_paths(self, list_of_paths):
         paths = []
