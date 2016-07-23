@@ -27,7 +27,6 @@ import importlib
 
 from .action import Action
 
-
 class GenerateSynthesisMakefile(Action):
 
     def _check_manifest(self):
