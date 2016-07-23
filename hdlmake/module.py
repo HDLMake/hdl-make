@@ -232,7 +232,6 @@ class Module(ModuleSynthesis, ModuleSimulation):
             del extra_context["include_dirs"]
             del extra_context["sim_only_files"]
             del extra_context["incl_makefiles"]
-            del extra_context["bit_file_targets"]
             del extra_context["library"]
         extra_context["__manifest"] = self.path
 
@@ -253,7 +252,6 @@ class Module(ModuleSynthesis, ModuleSimulation):
         self._process_manifest_files()
         self._process_manifest_modules()
         self._process_manifest_altera()
-        self._process_manifest_bitfile_targets()
         self._process_manifest_force_tool()
         self._process_manifest_included_makefiles()
 
@@ -400,15 +398,6 @@ class Module(ModuleSynthesis, ModuleSimulation):
 
         if "hw_tcl_filename" in self.manifest_dict:
             self.hw_tcl_filename = self.manifest_dict["hw_tcl_filename"]
-
-
-    def _process_manifest_bitfile_targets(self):
-        from .srcfile import SourceFileSet
-        # Bit file targets
-        self.bit_file_targets = SourceFileSet()
-        if len(self.manifest_dict["bit_file_targets"]) != 0:
-            paths = self._make_list_of_paths(self.manifest_dict["bit_file_targets"])
-            self.bit_file_targets = self._create_file_list_from_paths(paths=paths)
 
 
     def _process_manifest_force_tool(self):

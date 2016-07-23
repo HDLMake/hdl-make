@@ -130,10 +130,6 @@ class ManifestParser(ConfigParser):
         # Disallow certain files in Xilinx Synthesis flow but use in simulation
         self.add_option('sim_only_files', default=[], help="List of files that are used only in simulation", type=[])
         self.add_type('sim_only_files', type='')
-        # Adding .bit targets, sort of like having multiple syn_top for LBNL
-        # xil_syn workflow
-        self.add_option('bit_file_targets', default=[], help="List of files that are used only in simulation", type=[])
-        self.add_type('bit_file_targets', type='')
 
     def add_manifest(self, manifest):
         return self.add_config_file(manifest.path)
