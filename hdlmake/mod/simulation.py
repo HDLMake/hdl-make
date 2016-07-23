@@ -1,6 +1,6 @@
-from .module_plugin import ModulePlugin
+from .plugin import ModulePlugin
 
-class ModuleSimulation(object):
+class ModuleSimulation(ModulePlugin):
 
     def __init__(self):
         # Manifest Simulation Properties
@@ -24,7 +24,7 @@ class ModuleSimulation(object):
         super(ModuleSimulation, self).process_manifest()
 
     def _process_manifest_simulation(self):
-        from .srcfile import SourceFileSet
+        from hdlmake.srcfile import SourceFileSet
         # Simulation properties
         self.sim_tool = self.manifest_dict["sim_tool"]
         self.sim_top = self.manifest_dict["sim_top"]

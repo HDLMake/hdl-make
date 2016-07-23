@@ -1,4 +1,4 @@
-from .module_plugin import ModulePlugin
+from .plugin import ModulePlugin
 
 class ModuleCore(ModulePlugin):
     def __init__(self):

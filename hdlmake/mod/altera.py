@@ -1,6 +1,6 @@
 import os
-from .module_plugin import ModulePlugin
-from .util import path as path_mod
+from .plugin import ModulePlugin
+from hdlmake.util import path as path_mod
 
 class ModuleAltera(ModulePlugin):
     def __init__(self):
@@ -16,7 +16,7 @@ class ModuleAltera(ModulePlugin):
         super(ModuleAltera, self).process_manifest()
 
     def _process_manifest_altera(self):
-        from .srcfile import TCLFile
+        from hdlmake.srcfile import TCLFile
         if self.manifest_dict["quartus_preflow"] != None:
             path = path_mod.rel2abs(self.manifest_dict["quartus_preflow"], self.path);
             if not os.path.exists(path):

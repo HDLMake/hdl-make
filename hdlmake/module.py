@@ -28,11 +28,11 @@ import logging
 from .manifest_parser import Manifest, ManifestParser
 from .util import path as path_mod
 from . import fetch
-from .module_core import ModuleCore
-from .module_synthesis import ModuleSynthesis
-from .module_simulation import ModuleSimulation
-from .module_content import ModuleContent
-from .module_altera import ModuleAltera
+from .mod.core import ModuleCore
+from .mod.synthesis import ModuleSynthesis
+from .mod.simulation import ModuleSimulation
+from .mod.content import ModuleContent
+from .mod.altera import ModuleAltera
 
 
 class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
@@ -155,8 +155,9 @@ class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, Modul
                 break
 
     def process_manifest(self):
-        super(Module, self).process_manifest()
         logging.debug("Process manifest at: " + os.path.dirname(self.path))
+        super(Module, self).process_manifest()
+
 
     def parse_manifest(self):
         """

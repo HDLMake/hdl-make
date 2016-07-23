@@ -1,7 +1,7 @@
 import logging
-from . import fetch
-from .module_plugin import ModulePlugin
-from .util import path as path_mod
+from hdlmake import fetch
+from .plugin import ModulePlugin
+from hdlmake.util import path as path_mod
 
 class ModuleContent(ModulePlugin):
     def __init__(self):
@@ -20,7 +20,7 @@ class ModuleContent(ModulePlugin):
         super(ModuleContent, self).process_manifest()
 
     def _process_manifest_files(self):
-        from .srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
+        from hdlmake.srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
         # HDL files provided by the module
         if self.manifest_dict["files"] == []:
             self.files = SourceFileSet()
