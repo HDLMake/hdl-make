@@ -30,9 +30,10 @@ from .util import path as path_mod
 from . import fetch
 from .module_synthesis import ModuleSynthesis
 from .module_simulation import ModuleSimulation
+from .module_altera import ModuleAltera
 
 
-class Module(ModuleSynthesis, ModuleSimulation):
+class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
     @property
     def source(self):
         return self._source
@@ -89,12 +90,6 @@ class Module(ModuleSynthesis, ModuleSimulation):
         self.git = []
         self.svn = []
         self.git_submodules = []
-
-        # Manifest Altera Properties
-        self.quartus_preflow = None
-        self.quartus_postmodule = None
-        self.quartus_postflow = None
-        self.hw_tcl_filename = None
 
         # Manifest Included Makefiles
         self.incl_makefiles = []
@@ -369,35 +364,6 @@ class Module(ModuleSynthesis, ModuleSimulation):
         #                                                    url=url,
         #                                                    fetchto=fetchto,
         #                                                    source=fetch.GITSUBMODULE))
-
-
-    def _process_manifest_altera(self):
-        if self.manifest_dict["quartus_preflow"] != None:
-            path = path_mod.rel2abs(self.manifest_dict["quartus_preflow"], self.path);
-            if not os.path.exists(path):
-                p.error("quartus_preflow file listed in " + self.manifest.path + " doesn't exist: "
-                        + path + ".\nExiting.")
-                quit()
-            self.quartus_preflow = TCLFile(path)
-
-        if self.manifest_dict["quartus_postmodule"] != None:
-            path = path_mod.rel2abs(self.manifest_dict["quartus_postmodule"], self.path);
-            if not os.path.exists(path):
-                p.error("quartus_postmodule file listed in " + self.manifest.path + " doesn't exist: "
-                        + path + ".\nExiting.")
-                quit()
-            self.quartus_postmodule = TCLFile(path)
-
-        if self.manifest_dict["quartus_postflow"] != None:
-            path = path_mod.rel2abs(self.manifest_dict["quartus_postflow"], self.path);
-            if not os.path.exists(path):
-                p.error("quartus_postflow file listed in " + self.manifest.path + " doesn't exist: "
-                        + path + ".\nExiting.")
-                quit()
-            self.quartus_postflow = TCLFile(path)
-
-        if "hw_tcl_filename" in self.manifest_dict:
-            self.hw_tcl_filename = self.manifest_dict["hw_tcl_filename"]
 
 
     def _process_manifest_force_tool(self):
