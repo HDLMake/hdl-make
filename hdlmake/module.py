@@ -58,32 +58,47 @@ class Module(object):
         assert url is not None
         assert source is not None
 
+        self.manifest = None
         self.manifest_dict = None
-        self.fetchto = fetchto
         self.pool = pool
         self.source = source
         self.parent = parent
         self.isparsed = False
-        self.isprocessed = False
+        self.top_entity = None
+        self.revision = None
+
+        # Includes Manifest Properties
         self.include_dirs = None
+
+        # Universal Manifest Properties
+        self.top_module = pool.get_top_module()
         self.library = "work"
+        self.target = None
+        self.action = None
+
+        # Manifest Files Properties
+        self.files = None
+
+        # Manifest Modules Properties
+        self.fetchto = fetchto
         self.local = []
         self.git = []
         self.svn = []
-        self.target = None
-        self.action = None
-        self.top_entity = None
-        self.vmap_opt = None
-        self.vlog_opt = None
-        self.vcom_opt = None
-        self.revision = None
+        self.git_submodules = []
+
+        # Manifest Altera Properties
         self.quartus_preflow = None
         self.quartus_postmodule = None
         self.quartus_postflow = None
-        self._files = None
-        self.manifest = None
+        self.hw_tcl_filename = None
+
+        # Manifest Included Makefiles
         self.incl_makefiles = []
+
+        # Manifest Force tool Property
         self.force_tool = None
+
+        # Manifest Synthesis Properties
         self.syn_device = None
         self.syn_family = None
         self.syn_grade = None
@@ -94,12 +109,20 @@ class Module(object):
         self.syn_ise_version = None
         self.syn_pre_script = None
         self.syn_post_script = None
+
+        # Manifest Simulation Properties
         self.sim_top = None
-        self.sim_only_files = None
+        self.sim_tool = None
         self.sim_pre_script = None
         self.sim_post_script = None
-        self.top_module = pool.get_top_module()
-        self.hw_tcl_filename = None
+        self.sim_only_files = None
+        self.vsim_opt = None
+        self.vmap_opt = None
+        self.vlog_opt = None
+        self.vcom_opt = None
+        self.iverilog_opt = None
+
+
         
         self.raw_url = url
         if source != fetch.LOCAL:
@@ -125,9 +148,7 @@ class Module(object):
                 self.isfetched = False
                 logging.debug("Module %s (parent: %s) is NOT fetched." % (url, parent.path))
 
-        self.manifest = None
 
-        self.git_submodules = []
 
     def __str__(self):
         return self.raw_url
@@ -208,6 +229,11 @@ class Module(object):
         if self.path is None:
             raise RuntimeError()
 
+        if self.source == fetch.SVN:
+            self.revision = fetch.Svn.check_revision_number(self.path)
+        elif self.source == fetch.GIT:
+            self.revision = fetch.Git.check_commit_id(self.path)
+
         manifest_parser = ManifestParser()
 
         #manifest_parser.add_arbitrary_code(self.pool.top_module.options.arbitrary_code)
@@ -248,9 +274,9 @@ class Module(object):
         self._process_manifest_files()
         self._process_manifest_modules()
         self._process_manifest_altera()
-        self._process_manifest_revision()
         self._process_manifest_bitfile_targets()
         self._process_manifest_force_tool()
+        self._process_manifest_included_makefiles()
 
         # Tag the module as parsed
         self.isparsed = True
@@ -339,11 +365,9 @@ class Module(object):
         self.include_dirs = []
         if self.manifest_dict["include_dirs"] is not None:
             if isinstance(self.manifest_dict["include_dirs"], basestring):
-#                self.include_dirs.append(self.manifest_dict["include_dirs"])
                 ll = os.path.relpath(os.path.abspath(os.path.join(self.path, self.manifest_dict["include_dirs"])))
                 self.include_dirs.append(ll)
             else:
-#                self.include_dirs.extend(self.manifest_dict["include_dirs"])
                 ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path, x))),
                          self.manifest_dict["include_dirs"])
                 self.include_dirs.extend(ll)
@@ -452,21 +476,6 @@ class Module(object):
             self.hw_tcl_filename = self.manifest_dict["hw_tcl_filename"]
 
 
-    def _process_manifest_revision(self):
-        if self == self.top_module:
-            revision = fetch.Svn.check_revision_number(self.path)
-            if revision is None:
-                commit = fetch.Git.check_commit_id(self.path)
-                self.revision = commit
-            else:
-                self.revision = revision
-        else:
-            if self.source == fetch.SVN:
-                self.revision = fetch.Svn.check_revision_number(self.path)
-            elif self.source == fetch.GIT:
-                self.revision = fetch.Git.check_commit_id(self.path)
-
-
     def _process_manifest_bitfile_targets(self):
         from .srcfile import SourceFileSet
         # Bit file targets
@@ -495,7 +504,7 @@ class Module(object):
         self.action = self.manifest_dict["action"].lower()
 
 
-    def _process_manifest_revision(self):
+    def _process_manifest_included_makefiles(self):
         # Included Makefiles
         mkFileList = []
         if isinstance(self.manifest_dict["incl_makefiles"], basestring):
