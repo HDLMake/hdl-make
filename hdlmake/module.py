@@ -30,10 +30,11 @@ from .util import path as path_mod
 from . import fetch
 from .module_synthesis import ModuleSynthesis
 from .module_simulation import ModuleSimulation
+from .module_content import ModuleContent
 from .module_altera import ModuleAltera
 
 
-class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
+class Module(ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
     @property
     def source(self):
         return self._source
@@ -71,22 +72,13 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
         self.isparsed = False
         self.top_entity = None
         self.revision = None
+        self.fetchto = fetchto
 
         # Universal Manifest Properties
         self.top_module = pool.get_top_module()
         self.library = "work"
         self.target = None
         self.action = None
-
-        # Manifest Files Properties
-        self.files = None
-
-        # Manifest Modules Properties
-        self.fetchto = fetchto
-        self.local = []
-        self.git = []
-        self.svn = []
-        self.git_submodules = []
 
         # Manifest Force tool Property
         self.force_tool = None
@@ -250,95 +242,6 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
         # Parse every detected submodule
         for m in self.submodules():
             m.parse_manifest()
-
-
-    def _process_manifest_files(self):
-        from .srcfile import TCLFile, VerilogFile, VHDLFile, SourceFileSet
-        # HDL files provided by the module
-        if self.manifest_dict["files"] == []:
-            self.files = SourceFileSet()
-            try:
-                logging.debug("No files in the manifest %s" % self.manifest.path)
-            except AttributeError:
-                pass
-        else:
-            self.manifest_dict["files"] = self._flatten_list(self.manifest_dict["files"])
-            logging.debug("Files in %s: %s" % (self.path, str(self.manifest_dict["files"])))
-            paths = self._make_list_of_paths(self.manifest_dict["files"])
-            self.files = self._create_file_list_from_paths(paths=paths)
-            for f in self.files:
-                if isinstance(f, VerilogFile):
-                    f.vsim_opt = self.vsim_opt
-                elif isinstance(f, VHDLFile):
-                    f.vcom_opt = self.vcom_opt
-
-
-    def _process_manifest_modules(self):
-        # Fetch configuration
-        if self.manifest_dict["fetchto"] is not None:
-            fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"], self.path)
-            self.fetchto = fetchto
-        else:
-            fetchto = self.fetchto
-
-        self.fetch_pre_cmd = self.manifest_dict["fetch_pre_cmd"]
-        self.fetch_post_cmd = self.manifest_dict["fetch_post_cmd"]
-
-        # Process required modules
-        if "local" in self.manifest_dict["modules"]:
-            local_paths = self._flatten_list(self.manifest_dict["modules"]["local"])
-            local_mods = []
-            for path in local_paths:
-                if path_mod.is_abs_path(path):
-                    logging.error("Found an absolute path (" + path + ") in a manifest"
-                                  "(" + self.path + ")")
-                    quit()
-                path = path_mod.rel2abs(path, self.path)
-                local_mods.append(self.pool.new_module(parent=self,
-                                                       url=path,
-                                                       source=fetch.LOCAL,
-                                                       fetchto=fetchto))
-            self.local = local_mods
-        else:
-            self.local = []
-
-        if "svn" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["svn"] = self._flatten_list(self.manifest_dict["modules"]["svn"])
-            svn_mods = []
-            for url in self.manifest_dict["modules"]["svn"]:
-                svn_mods.append(self.pool.new_module(parent=self,
-                                                     url=url,
-                                                     source=fetch.SVN,
-                                                     fetchto=fetchto))
-            self.svn = svn_mods
-        else:
-            self.svn = []
-
-        if "git" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["git"] = self._flatten_list(self.manifest_dict["modules"]["git"])
-            git_mods = []
-            for url in self.manifest_dict["modules"]["git"]:
-                git_mods.append(self.pool.new_module(parent=self,
-                                                     url=url,
-                                                     source=fetch.GIT,
-                                                     fetchto=fetchto))
-            self.git = git_mods
-        else:
-            self.git = []
-
-        # TODO: Git submodules are temporarly disabled until the expected behavior is depicted
-        # git_submodule_dict = fetch.Git.get_git_submodules(self)
-        # git_toplevel = fetch.Git.get_git_toplevel(self)
-        # for submodule_key in git_submodule_dict.keys():
-        #    url = git_submodule_dict[submodule_key]["url"]
-        #    path = git_submodule_dict[submodule_key]["path"]
-        #    path = os.path.join(git_toplevel, path)
-        #    path = os.path.normpath(path)
-        #    fetchto = os.path.sep.join(path.split(os.path.sep)[:-1])
-        #    self.git_submodules.append(self.pool.new_module(parent=self,
-        #                                                    url=url,
-        #                                                    fetchto=fetchto,
-        #                                                    source=fetch.GITSUBMODULE))
 
 
     def _process_manifest_force_tool(self):
