@@ -259,36 +259,6 @@ class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, Modul
                 return False
         return True
 
-    def make_list_of_modules(self):
-        logging.debug("Making list of modules for " + str(self))
-        new_modules = [self]
-        modules = [self]
-        while len(new_modules) > 0:
-            cur_module = new_modules.pop()
-
-            if not cur_module.isfetched:
-                logging.error("Unfetched module in modules list: " + str(cur_module))
-                quit()
-            if cur_module.manifest is None:
-                logging.debug("No manifest in " + str(cur_module))
-                continue
-            cur_module.parse_manifest()
-
-            for module in cur_module.local:
-                modules.append(module)
-                new_modules.append(module)
-
-            for module in cur_module.git:
-                modules.append(module)
-                new_modules.append(module)
-
-            for module in cur_module.svn:
-                modules.append(module)
-                new_modules.append(module)
-
-        if len(modules) == 0:
-            logging.debug("No modules were found in " + self.fetchto)
-        return modules
 
     def _create_file_list_from_paths(self, paths):
         from .srcfile import SourceFileFactory, SourceFileSet
