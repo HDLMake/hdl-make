@@ -72,9 +72,6 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
         self.top_entity = None
         self.revision = None
 
-        # Includes Manifest Properties
-        self.include_dirs = None
-
         # Universal Manifest Properties
         self.top_module = pool.get_top_module()
         self.library = "work"
@@ -277,25 +274,6 @@ class Module(ModuleSynthesis, ModuleSimulation, ModuleAltera):
                     f.vsim_opt = self.vsim_opt
                 elif isinstance(f, VHDLFile):
                     f.vcom_opt = self.vcom_opt
-
-
-    def _process_manifest_includes(self):
-        # Include dirs
-        self.include_dirs = []
-        if self.manifest_dict["include_dirs"] is not None:
-            if isinstance(self.manifest_dict["include_dirs"], basestring):
-                ll = os.path.relpath(os.path.abspath(os.path.join(self.path, self.manifest_dict["include_dirs"])))
-                self.include_dirs.append(ll)
-            else:
-                ll = map(lambda x: os.path.relpath(os.path.abspath(os.path.join(self.path, x))),
-                         self.manifest_dict["include_dirs"])
-                self.include_dirs.extend(ll)
-        # Analyze included dirs and report if any issue is found
-        for dir_ in self.include_dirs:
-            if path_mod.is_abs_path(dir_):
-                logging.warning("%s contains absolute path to an include directory: %s" % (self.path, dir_))
-            if not os.path.exists(dir_):
-                logging.warning(self.path + " has an unexisting include directory: " + dir_)
 
 
     def _process_manifest_modules(self):
