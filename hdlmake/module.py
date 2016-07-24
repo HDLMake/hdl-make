@@ -241,19 +241,10 @@ class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, Modul
                 logging.error("Path specified in manifest in %s doesn't exist: %s" % (self.path, filepath))
                 sys.exit("Exiting")
 
-
             filepath = path_mod.rel2abs(filepath, self.path)
 
             if os.path.isdir(filepath):
                 logging.warning("Path specified in manifest %s is a directory: %s" % (self.path, filepath))
-        return True
-
-    def is_fetched_recursively(self):
-        if not self.isfetched:
-            return False
-        for mod in self.submodules():
-            if mod.is_fetched_recursively() is False:
-                return False
         return True
 
 
