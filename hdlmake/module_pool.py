@@ -21,6 +21,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""This is the Python module providing the container for the HDL Modules"""
+
 from __future__ import print_function
 import os
 import logging
@@ -34,8 +36,11 @@ from . import fetch
 from .env import Env
 
 
-
 class ModulePool(list):
+    """
+    The ModulePool class acts as the container for the HDLMake modules that
+    are progressively being added to the design hierarchy.
+    """
     def __init__(self, *args):
         list.__init__(self, *args)
         self.top_module = None
@@ -44,6 +49,7 @@ class ModulePool(list):
         self.env = None
 
     def set_environment(self, options):
+        """Initialize the module pool environment from the provided options"""
         env = Env(options)
         self.env = env
 
@@ -56,12 +62,15 @@ class ModulePool(list):
         return None
 
     def get_fetchable_modules(self):
+        """Get list with the remote modules, i.e. those that can be fetched"""
         return [m for m in self if m.source != fetch.LOCAL]
 
     def __str__(self):
+        """Cast the module list as a list of strings"""
         return str([str(m) for m in self])
 
     def __contains(self, module):
+        """Check if the pool contains the given module by checking the URL"""
         for mod in self:
             if mod.url == module.url:
                 return True
@@ -71,36 +80,20 @@ class ModulePool(list):
     def new_module(self, parent, url, source, fetchto):
         """Add new module to the pool.
 
-        This is the only way to add new modules to the pool. Thanks to it the pool can easily
-        control its content
+        This is the only way to add new modules to the pool
+        Thanks to it the pool can easily control its content
 
-        NOTE: the first module added to the pool will become the top_module! Should be improved.
+        NOTE: the first module added to the pool will become the top_module!.
         """
         from .module import Module
         self._deps_solved = False
-        if source != fetch.LOCAL:
-            clean_url, branch, revision = path_mod.url_parse(url)
-        else:
-            clean_url, branch, revision = url, None, None
-        if url in [m.raw_url for m in self]:  # check if module is not already in the pool
-            # same_url_mod = [m for m in self if m.raw_url == url][0]
-            # if branch != same_url_mod.branch:
-            #     logging.error("Requested the same module, but different branches."
-            #                   "URL: %s\n" % clean_url +
-            #                   "branches: %s and %s\n" % (branch, same_url_mod.branch))
-            #     sys.exit("\nExiting")
-            # if revision != same_url_mod.revision:
-            #     logging.error("Requested the same module, but different revisions."
-            #                   "URL: %s\n" % clean_url +
-            #                   "revisions: %s (from %s)\n and \n%s (from %s)\n" % (revision,
-            #                                                                       parent.path,
-            #                                                                       same_url_mod.revision,
-            #                                                                       same_url_mod.parent.path))
-            #     sys.exit("\nExiting")
+        if url in [m.raw_url for m in self]:
             return [m for m in self if m.raw_url == url][0]
         else:
-            if self.global_fetch:            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
-                fetchto = self.global_fetch  # screw module's particular fetchto
+            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
+            # screw module's particular fetchto
+            if self.global_fetch:
+                fetchto = self.global_fetch
 
             new_module = Module(parent=parent,
                                 url=url, source=source,
@@ -120,16 +113,21 @@ class ModulePool(list):
         """Guess origin (git, svn, local) of a module at given path"""
         cwd = self.top_module.path
         try:
-            if platform.system() == 'Windows': is_windows = True
-            else: is_windows = False
+            if platform.system() == 'Windows':
+                is_windows = True
+            else:
+                is_windows = False
             os.chdir(path)
-            git_out = Popen("git config --get remote.origin.url", stdout=PIPE, shell=True, close_fds=not is_windows)
+            git_out = Popen("git config --get remote.origin.url",
+                            stdout=PIPE, shell=True, close_fds=not is_windows)
             lines = git_out.stdout.readlines()
             if len(lines) == 0:
                 return None
             url = lines[0].strip()
             if not url:  # try svn
-                svn_out = Popen("svn info | grep 'Repository Root' | awk '{print $NF}'", stdout=PIPE, shell=True, close_fds=not is_windows)
+                svn_out = Popen(
+                    "svn info | grep 'Repository Root' | awk '{print $NF}'",
+                    stdout=PIPE, shell=True, close_fds=not is_windows)
                 url = svn_out.stdout.readlines()[0].strip()
                 if url:
                     return url
@@ -141,6 +139,7 @@ class ModulePool(list):
             os.chdir(cwd)
 
     def _add(self, new_module):
+        """Add the given new module if this is not already in the pool"""
         from .module import Module
         if not isinstance(new_module, Module):
             raise RuntimeError("Expecting a Module instance")
@@ -152,27 +151,27 @@ class ModulePool(list):
         self.append(new_module)
         return True
 
-    def _fetch(self, module):
-        new_modules = []
-        logging.debug("Fetching module: " + str(module))
-
-        backend = fetch.fetch_type_lookup.get_backend(module)
-        fetcher = backend()
-        result = fetcher.fetch(module)
-        if result is False:
-            logging.error("Unable to fetch module %s" % module.url)
-            sys.exit("Exiting")
-
-        module.parse_manifest()
-
-        new_modules.extend(module.local)
-        new_modules.extend(module.svn)
-        new_modules.extend(module.git)
-        new_modules.extend(module.git_submodules)
-        return new_modules
 
     def fetch_all(self):
-        """Fetch recursively all modules"""
+        """Fetch all the modules declared in the design"""
+
+        def fetch_module(module):
+            """Fetch the given module from the remote origin"""
+            new_modules = []
+            logging.debug("Fetching module: %s", str(module))
+            backend = fetch.fetch_type_lookup.get_backend(module)
+            fetcher = backend()
+            result = fetcher.fetch(module)
+            if result is False:
+                logging.error("Unable to fetch module %s", str(module.url))
+                sys.exit("Exiting")
+            module.parse_manifest()
+            new_modules.extend(module.local)
+            new_modules.extend(module.svn)
+            new_modules.extend(module.git)
+            new_modules.extend(module.git_submodules)
+            return new_modules
+
         fetch_queue = [m for m in self]
 
         while len(fetch_queue) > 0:
@@ -181,23 +180,19 @@ class ModulePool(list):
             if cur_mod.isfetched:
                 new_modules = cur_mod.submodules()
             else:
-                new_modules = self._fetch(cur_mod)
+                new_modules = fetch_module(cur_mod)
             for mod in new_modules:
                 if not mod.isfetched:
-                    logging.debug("Appended to fetch queue: " + str(mod.url))
+                    logging.debug("Appended to fetch queue: "
+                        + str(mod.url))
                     self._add(mod)
                     fetch_queue.append(mod)
                 else:
-                    logging.debug("NOT appended to fetch queue: " + str(mod.url))
-
-    def build_file_set(self):
-        from srcfile import SourceFileSet
-        build_files = SourceFileSet()
-        build_files.add(self.build_limited_file_set())
-        return build_files
+                    logging.debug("NOT appended to fetch queue: "
+                        + str(mod.url))
 
     def build_complete_file_set(self):
-        """Build set of all files listed in the manifests"""
+        """Build file set with all the files listed in the complete pool"""
         logging.debug("Begin build complete file set")
         from .srcfile import SourceFileSet
         all_manifested_files = SourceFileSet()
@@ -206,21 +201,22 @@ class ModulePool(list):
         logging.debug("End build complete file set")
         return all_manifested_files
 
-    def build_limited_file_set(self):
+    def build_file_set(self):
+        """Build file set with only those files required by the top entity"""
         top_entity = self.top_module.top_entity
-        #self.solve_dependencies()
+        logging.debug("Begin build file set for %s", top_entity)
         all_files = self.build_complete_file_set()
         if not self._deps_solved:
-            logging.debug("- begin solve")
             dep_solver.solve(all_files)
-            logging.debug("- end solve")
             self._deps_solved = True
-        from srcfile import SourceFileSet
+        from hdlmake.srcfile import SourceFileSet
         source_files = SourceFileSet()
         source_files.add(dep_solver.make_dependency_set(all_files, top_entity))
+        logging.debug("End build file set")
         return source_files
 
     def get_top_module(self):
+        """Get the Top module from the pool"""
         return self.top_module
 
     def is_everything_fetched(self):
