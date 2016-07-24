@@ -28,11 +28,7 @@ import logging
 from .manifest_parser import Manifest, ManifestParser
 from .util import path as path_mod
 from . import fetch
-from .mod.core import ModuleCore
-from .mod.synthesis import ModuleSynthesis
-from .mod.simulation import ModuleSimulation
-from .mod.content import ModuleContent
-from .mod.altera import ModuleAltera
+from .mod import ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera
 
 
 class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
