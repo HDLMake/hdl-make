@@ -25,10 +25,10 @@ import os
 import sys
 import logging
 
-from .manifest_parser import Manifest, ManifestParser
-from .util import path as path_mod
-from . import fetch
-from .mod import ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera
+from hdlmake.manifest_parser import Manifest, ManifestParser
+from hdlmake.util import path as path_mod
+from hdlmake import fetch
+from hdlmake.module import ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera
 
 
 class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, ModuleAltera):
@@ -48,7 +48,7 @@ class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, Modul
 
     @property
     def basename(self):
-        from .util import path
+        from hdlmake.util import path
         if self.source == fetch.SVN:
             return path.svn_basename(self.url)
         else:
@@ -249,7 +249,7 @@ class Module(ModuleCore, ModuleSynthesis, ModuleSimulation, ModuleContent, Modul
 
 
     def _create_file_list_from_paths(self, paths):
-        from .srcfile import SourceFileFactory, SourceFileSet
+        from hdlmake.srcfile import SourceFileFactory, SourceFileSet
         sff = SourceFileFactory()
         srcs = SourceFileSet()
         for p in paths:
