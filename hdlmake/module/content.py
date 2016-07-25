@@ -29,7 +29,7 @@ class ModuleContent(ModulePlugin):
             except AttributeError:
                 pass
         else:
-            self.manifest_dict["files"] = self._flatten_list(self.manifest_dict["files"])
+            self.manifest_dict["files"] = ModulePlugin.flatten_list(self.manifest_dict["files"])
             logging.debug("Files in %s: %s" % (self.path, str(self.manifest_dict["files"])))
             paths = self._make_list_of_paths(self.manifest_dict["files"])
             self.files = self._create_file_list_from_paths(paths=paths)
@@ -52,7 +52,7 @@ class ModuleContent(ModulePlugin):
 
         # Process required modules
         if "local" in self.manifest_dict["modules"]:
-            local_paths = self._flatten_list(self.manifest_dict["modules"]["local"])
+            local_paths = ModulePlugin.flatten_list(self.manifest_dict["modules"]["local"])
             local_mods = []
             for path in local_paths:
                 if path_mod.is_abs_path(path):
@@ -69,7 +69,7 @@ class ModuleContent(ModulePlugin):
             self.local = []
 
         if "svn" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["svn"] = self._flatten_list(self.manifest_dict["modules"]["svn"])
+            self.manifest_dict["modules"]["svn"] = ModulePlugin.flatten_list(self.manifest_dict["modules"]["svn"])
             svn_mods = []
             for url in self.manifest_dict["modules"]["svn"]:
                 svn_mods.append(self.pool.new_module(parent=self,
@@ -81,7 +81,7 @@ class ModuleContent(ModulePlugin):
             self.svn = []
 
         if "git" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["git"] = self._flatten_list(self.manifest_dict["modules"]["git"])
+            self.manifest_dict["modules"]["git"] = ModulePlugin.flatten_list(self.manifest_dict["modules"]["git"])
             git_mods = []
             for url in self.manifest_dict["modules"]["git"]:
                 git_mods.append(self.pool.new_module(parent=self,

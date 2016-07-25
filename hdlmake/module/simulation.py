@@ -40,7 +40,7 @@ class ModuleSimulation(ModulePlugin):
         if len(self.manifest_dict["sim_only_files"]) == 0:
             self.sim_only_files = SourceFileSet()
         else:
-            self.manifest_dict["sim_only_files"] = self._flatten_list(self.manifest_dict["sim_only_files"])
+            self.manifest_dict["sim_only_files"] = ModulePlugin.flatten_list(self.manifest_dict["sim_only_files"])
             paths = self._make_list_of_paths(self.manifest_dict["sim_only_files"])
             self.sim_only_files = self._create_file_list_from_paths(paths=paths)
 

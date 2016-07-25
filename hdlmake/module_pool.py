@@ -97,8 +97,8 @@ class ModulePool(list):
 
             new_module = Module(parent=parent,
                                 url=url, source=source,
-                                fetchto=fetchto,
-                                pool=self)
+                                fetchto=fetchto)
+            new_module.set_pool(self)
             self._add(new_module)
             if not self.top_module:
                 self.top_module = new_module
