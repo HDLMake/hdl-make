@@ -34,7 +34,6 @@ import logging
 
 from hdlmake.manifest_parser import Manifest, ManifestParser
 from hdlmake.util import path as path_mod
-from hdlmake import fetch
 from hdlmake.module import (ModuleCore, ModuleSynthesis,
     ModuleSimulation, ModuleContent, ModuleAltera)
 
@@ -45,14 +44,6 @@ class Module(ModuleCore, ModuleSynthesis,
     This is the class providing the HDLMake module, the basic element
     providing the modular behavior allowing for structured designs.
     """
-
-    @property
-    def basename(self):
-        """Get the basename for a module instance"""
-        if self.source == fetch.SVN:
-            return path_mod.svn_basename(self.url)
-        else:
-            return path_mod.url_basename(self.url)
 
     def set_pool(self, pool):
         """Set the associated pool for the module instance"""
@@ -66,9 +57,6 @@ class Module(ModuleCore, ModuleSynthesis,
 
         super(Module, self).__init__()
 
-        self.manifest = None
-        self.manifest_dict = None
-
         self.pool = None
         self.top_module = None
 
@@ -77,10 +65,6 @@ class Module(ModuleCore, ModuleSynthesis,
 
         self._set_origin(parent, url, source, fetchto)
 
-
-
-    def __str__(self):
-        return self.raw_url
 
     @property
     def is_fetched_to(self):

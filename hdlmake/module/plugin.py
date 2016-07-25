@@ -1,5 +1,9 @@
 class ModulePlugin(object):
 
+    def __init__(self):
+        self.manifest = None
+        self.manifest_dict = None
+
     def process_manifest(self):
         pass
 
