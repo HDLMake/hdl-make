@@ -34,6 +34,7 @@ import logging
 
 from hdlmake.manifest_parser import Manifest, ManifestParser
 from hdlmake.util import path as path_mod
+from hdlmake import fetch
 from hdlmake.module import (ModuleCore, ModuleSynthesis,
     ModuleSimulation, ModuleContent, ModuleAltera)
 
@@ -63,13 +64,63 @@ class Module(ModuleCore, ModuleSynthesis,
         self.isparsed = False
         self.top_entity = None
 
-        self._set_origin(parent, url, source, fetchto)
+        """Calculate and initialize the origin attributes: path, source..."""
+        self.source = source
+        self.parent = parent
+        self.fetchto = fetchto
+        self.raw_url = url
+        if source != fetch.LOCAL:
+            self.url, self.branch, self.revision = path_mod.url_parse(url)
+            if (
+                    os.path.exists(
+                        os.path.abspath(
+                            os.path.join(fetchto, self.basename)
+                        )
+                    ) and
+                    os.listdir(
+                        os.path.abspath(os.path.join(fetchto, self.basename))
+                    )
+               ):
+                self.path = os.path.abspath(
+                    os.path.join(fetchto, self.basename))
+                self.isfetched = True
+                logging.debug("Module %s (parent: %s) is fetched.",
+                    url, parent.path)
+            else:
+                self.path = None
+                self.isfetched = False
+                logging.debug("Module %s (parent: %s) is NOT fetched.",
+                    url, parent.path)
+        else:
+            self.url, self.branch, self.revision = url, None, None
+
+            if not os.path.exists(url):
+                logging.error(
+                    "Path to the local module doesn't exist:\n" + url
+                    + "\nThis module was instantiated in: " + str(parent))
+                quit()
+            self.path = url
+            self.isfetched = True
+
+
+    def __str__(self):
+        return self.raw_url
 
 
     @property
     def is_fetched_to(self):
         """Get the path where the module instance resides"""
         return os.path.dirname(self.path)
+
+
+    @property
+    def basename(self):
+        """Get the basename for a module instance"""
+        if self.source == fetch.SVN:
+            return path_mod.svn_basename(self.url)
+        else:
+            return path_mod.url_basename(self.url)
+
 
     def submodules(self):
         """Get a list with all the submodules this module instance requires"""
@@ -81,28 +132,6 @@ class Module(ModuleCore, ModuleSynthesis,
                 return submodule_list
         return __nonull(self.local) + __nonull(self.git) \
             + __nonull(self.svn) + __nonull(self.git_submodules)
-
-    def _search_for_manifest(self):
-        """
-        Look for manifest in the given folder
-        """
-        logging.debug("Looking for manifest in " + self.path)
-        dir_files = os.listdir(self.path)
-        if "manifest.py" in dir_files and "Manifest.py" in dir_files:
-            logging.error(
-                "Both manifest.py and Manifest.py" +
-                "found in the module directory: %s",
-                self.path)
-            sys.exit("\nExiting")
-        for filename in dir_files:
-            if filename == "manifest.py" or filename == "Manifest.py":
-                if not os.path.isdir(filename):
-                    logging.debug("Found manifest for module %s: %s",
-                        self.path, filename)
-                    path_aux = os.path.join(self.path, filename)
-                    manifest = Manifest(path=os.path.abspath(path_aux))
-                    return manifest
-        return None
 
 
     def remove_dir_from_disk(self):
@@ -151,8 +180,8 @@ class Module(ModuleCore, ModuleSynthesis,
             return
         if self.isparsed is True or self.isfetched is False:
             return
-        if self.manifest is None:
-            self.manifest = self._search_for_manifest()
+        #if self.manifest is None:
+        #    self.manifest = manifest_parser.search_for_manifest()
         if self.path is None:
             raise RuntimeError()
 
@@ -162,22 +191,17 @@ class Module(ModuleCore, ModuleSynthesis,
         #manifest_parser.add_arbitrary_code(
         #    self.pool.top_module.options.arbitrary_code)
 
-        if self.manifest is None:
-            logging.debug("No manifest found in module "+str(self))
-        else:
-            logging.debug("Parse manifest in: %s", self.path)
-            manifest_parser.add_manifest(self.manifest)
+        #if self.manifest is Non:
+        #    logging.debug("No manifest found in module "+str(self))
+        #else:
+        #    logging.debug("Parse manifest in: %s", self.path)
+
+        manifest_parser.add_manifest(self.path)
 
         if self.parent is None:
             extra_context = {}
         else:
             extra_context = dict(self.top_module.manifest_dict)
-            del extra_context["modules"]
-            del extra_context["files"]
-            del extra_context["include_dirs"]
-            del extra_context["sim_only_files"]
-            del extra_context["incl_makefiles"]
-            del extra_context["library"]
         extra_context["__manifest"] = self.path
 
         # The parse method is where the most of the parser action takes place!
@@ -262,3 +286,6 @@ class Module(ModuleCore, ModuleSynthesis,
                                  vlog_opt=self.vlog_opt,
                                  include_dirs=self.include_dirs))
         return srcs
+
+
+

@@ -234,7 +234,15 @@ class ConfigParser(object):
         return [o.name for o in self.options if o is not None]
 
     def parse(self, verbose=False, extra_context=None):
+
         assert isinstance(extra_context, dict) or extra_context is None
+
+        # These hdlmake keys wont be inherited
+        key_purge_list = ["modules", "files", "include_dirs", "sim_only_files",
+            "inc_makefiles", "library"]
+        for key_to_be_deleted in key_purge_list:
+            extra_context.pop(key_to_be_deleted, None)
+
         options = {}
         ret = {}
 

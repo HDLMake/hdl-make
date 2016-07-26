@@ -44,7 +44,6 @@ class ModulePool(list):
     def __init__(self, *args):
         list.__init__(self, *args)
         self.top_module = None
-        self.global_fetch = os.getenv("HDLMAKE_COREDIR")
         self._deps_solved = False
         self.env = None
 
@@ -90,11 +89,6 @@ class ModulePool(list):
         if url in [m.raw_url for m in self]:
             return [m for m in self if m.raw_url == url][0]
         else:
-            # if there is global fetch parameter (HDLMAKE_COREDIR env variable)
-            # screw module's particular fetchto
-            if self.global_fetch:
-                fetchto = self.global_fetch
-
             new_module = Module(parent=parent,
                                 url=url, source=source,
                                 fetchto=fetchto)

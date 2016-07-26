@@ -21,6 +21,7 @@
 #
 
 import os
+import logging
 
 from .util import path as path_mod
 from .util.configparser import ConfigParser
@@ -131,8 +132,14 @@ class ManifestParser(ConfigParser):
         self.add_option('sim_only_files', default=[], help="List of files that are used only in simulation", type=[])
         self.add_type('sim_only_files', type='')
 
-    def add_manifest(self, manifest):
-        return self.add_config_file(manifest.path)
+    def add_manifest(self, path):
+        manifest = self._search_for_manifest(path)
+        if manifest is None:
+            logging.error("No manifest found in path: %s", path)
+            quit()
+        else:
+            logging.debug("Parse manifest in: %s", manifest.path)
+            return self.add_config_file(manifest.path)
 
     def print_help(self):
         self.help()
@@ -159,3 +166,27 @@ class ManifestParser(ConfigParser):
 
         f.close()
         self.package = ret
+
+
+    def _search_for_manifest(self, path):
+        """
+        Look for manifest in the given folder
+        """
+        logging.debug("Looking for manifest in " + path)
+        dir_files = os.listdir(path)
+        if "manifest.py" in dir_files and "Manifest.py" in dir_files:
+            logging.error(
+                "Both manifest.py and Manifest.py" +
+                "found in the module directory: %s",
+                self.path)
+            sys.exit("\nExiting")
+        for filename in dir_files:
+            if filename == "manifest.py" or filename == "Manifest.py":
+                if not os.path.isdir(filename):
+                    logging.debug("Found manifest for module %s: %s",
+                        path, filename)
+                    path_aux = os.path.join(path, filename)
+                    manifest = Manifest(path=os.path.abspath(path_aux))
+                    return manifest
+        return None
+

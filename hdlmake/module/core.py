@@ -4,7 +4,6 @@ import os
 import logging
 
 from .plugin import ModulePlugin
-from hdlmake.util import path as path_mod
 from hdlmake import fetch
 
 class ModuleCore(ModulePlugin):
@@ -18,31 +17,6 @@ class ModuleCore(ModulePlugin):
 
         # Manifest Force tool Property
         self.force_tool = None
-
-        # Origin attributes
-        self.isfetched = False
-        # raw_url is the full url, including: branch, revision, commit, tag
-        self.raw_url = None
-        # url is stripped down web url, not including any other parameter
-        self.url = None
-        self.parent = None
-        self.source = None
-        self.branch = None
-        self.path = None
-        self.fetchto = None
-        self.revision = None
-
-
-    def __str__(self):
-        return self.raw_url
-
-    @property
-    def basename(self):
-        """Get the basename for a module instance"""
-        if self.source == fetch.SVN:
-            return path_mod.svn_basename(self.url)
-        else:
-            return path_mod.url_basename(self.url)
 
 
     def process_manifest(self):
@@ -72,43 +46,4 @@ class ModuleCore(ModulePlugin):
         self.target = self.manifest_dict["target"].lower()
         self.action = self.manifest_dict["action"].lower()
 
-
-    def _set_origin(self, parent, url, source, fetchto):
-        """Calculate and initialize the origin attributes: path, source..."""
-        self.source = source
-        self.parent = parent
-        self.fetchto = fetchto
-        self.raw_url = url
-        if source != fetch.LOCAL:
-            self.url, self.branch, self.revision = path_mod.url_parse(url)
-            if (
-                    os.path.exists(
-                        os.path.abspath(
-                            os.path.join(fetchto, self.basename)
-                        )
-                    ) and
-                    os.listdir(
-                        os.path.abspath(os.path.join(fetchto, self.basename))
-                    )
-               ):
-                self.path = os.path.abspath(
-                    os.path.join(fetchto, self.basename))
-                self.isfetched = True
-                logging.debug("Module %s (parent: %s) is fetched.",
-                    url, parent.path)
-            else:
-                self.path = None
-                self.isfetched = False
-                logging.debug("Module %s (parent: %s) is NOT fetched.",
-                    url, parent.path)
-        else:
-            self.url, self.branch, self.revision = url, None, None
-
-            if not os.path.exists(url):
-                logging.error(
-                    "Path to the local module doesn't exist:\n" + url
-                    + "\nThis module was instantiated in: " + str(parent))
-                quit()
-            self.path = url
-            self.isfetched = True
 
