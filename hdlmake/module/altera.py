@@ -1,8 +1,7 @@
 import os
-from .plugin import ModulePlugin
 from hdlmake.util import path as path_mod
 
-class ModuleAltera(ModulePlugin):
+class ModuleAltera(object):
     def __init__(self):
         # Manifest Altera Properties
         self.quartus_preflow = None
@@ -13,7 +12,7 @@ class ModuleAltera(ModulePlugin):
 
     def process_manifest(self):
         self._process_manifest_altera()
-        super(ModuleAltera, self).process_manifest()
+        #super(ModuleAltera, self).process_manifest()
 
     def _process_manifest_altera(self):
         from hdlmake.srcfile import TCLFile

@@ -3,16 +3,16 @@
 import os
 import logging
 
-from .plugin import ModulePlugin
 from hdlmake import fetch
 
-class ModuleCore(ModulePlugin):
+class ModuleCore(object):
     """This is the class providing the module core functionality"""
     def __init__(self):
         # Universal Manifest Properties
         self.library = "work"
         self.target = None
         self.action = None
+        self.top_entity = None
         super(ModuleCore, self).__init__()
 
         # Manifest Force tool Property
@@ -23,7 +23,7 @@ class ModuleCore(ModulePlugin):
         """Method that process the core manifest section"""
         self._process_manifest_force_tool()
         self._process_manifest_universal()
-        super(ModuleCore, self).process_manifest()
+        #super(ModuleCore, self).process_manifest()
 
 
     def _process_manifest_force_tool(self):

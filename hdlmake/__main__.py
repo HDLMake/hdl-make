@@ -87,10 +87,10 @@ def main():
 
     # Check if our top_module has been successfully assigned and 
     # contains a Manifest.py (ModulePool class)
-    if not modules_pool.get_top_module().isparsed:
-        logging.info("No manifest found. At least an empty one is needed")
-        logging.info("To see some help, type hdlmake --help")
-        sys.exit("Exiting")
+    #if not modules_pool.get_top_module().manifest_dict:
+    #    logging.info("No manifest found. At least an empty one is needed")
+    #    logging.info("To see some help, type hdlmake --help")
+    #    sys.exit("Exiting")
 
 
     _action_runner(modules_pool)

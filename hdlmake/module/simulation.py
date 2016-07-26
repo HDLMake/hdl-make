@@ -1,6 +1,6 @@
-from .plugin import ModulePlugin
+from hdlmake.util import path as path_mod
 
-class ModuleSimulation(ModulePlugin):
+class ModuleSimulation(object):
 
     def __init__(self):
         # Manifest Simulation Properties
@@ -21,7 +21,7 @@ class ModuleSimulation(ModulePlugin):
     def process_manifest(self):
         self._process_manifest_simulation()
         self._process_manifest_includes()
-        super(ModuleSimulation, self).process_manifest()
+        #super(ModuleSimulation, self).process_manifest()
 
     def _process_manifest_simulation(self):
         from hdlmake.srcfile import SourceFileSet
@@ -40,7 +40,7 @@ class ModuleSimulation(ModulePlugin):
         if len(self.manifest_dict["sim_only_files"]) == 0:
             self.sim_only_files = SourceFileSet()
         else:
-            self.manifest_dict["sim_only_files"] = ModulePlugin.flatten_list(self.manifest_dict["sim_only_files"])
+            self.manifest_dict["sim_only_files"] = path_mod.flatten_list(self.manifest_dict["sim_only_files"])
             paths = self._make_list_of_paths(self.manifest_dict["sim_only_files"])
             self.sim_only_files = self._create_file_list_from_paths(paths=paths)
 

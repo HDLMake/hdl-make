@@ -1,9 +1,8 @@
 import logging
 from hdlmake import fetch
-from .plugin import ModulePlugin
 from hdlmake.util import path as path_mod
 
-class ModuleContent(ModulePlugin):
+class ModuleContent(object):
     def __init__(self):
         # Manifest Files Properties
         self.files = None
@@ -18,7 +17,7 @@ class ModuleContent(ModulePlugin):
         self._process_manifest_fetch()
         self._process_manifest_files()
         self._process_manifest_modules()
-        super(ModuleContent, self).process_manifest()
+        #super(ModuleContent, self).process_manifest()
 
     def _process_manifest_files(self):
         from hdlmake.srcfile import (TCLFile, VerilogFile, VHDLFile,
@@ -32,7 +31,7 @@ class ModuleContent(ModulePlugin):
             except AttributeError:
                 pass
         else:
-            self.manifest_dict["files"] = ModulePlugin.flatten_list(
+            self.manifest_dict["files"] = path_mod.flatten_list(
                 self.manifest_dict["files"])
             logging.debug("Files in %s: %s",
                 self.path, str(self.manifest_dict["files"]))
@@ -60,7 +59,7 @@ class ModuleContent(ModulePlugin):
         fetchto = self.fetchto
         # Process required modules
         if "local" in self.manifest_dict["modules"]:
-            local_paths = ModulePlugin.flatten_list(
+            local_paths = path_mod.flatten_list(
                 self.manifest_dict["modules"]["local"])
             local_mods = []
             for path in local_paths:
@@ -78,7 +77,7 @@ class ModuleContent(ModulePlugin):
             self.local = []
 
         if "svn" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["svn"] = ModulePlugin.flatten_list(
+            self.manifest_dict["modules"]["svn"] = path_mod.flatten_list(
                 self.manifest_dict["modules"]["svn"])
             svn_mods = []
             for url in self.manifest_dict["modules"]["svn"]:
@@ -91,7 +90,7 @@ class ModuleContent(ModulePlugin):
             self.svn = []
 
         if "git" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["git"] = ModulePlugin.flatten_list(
+            self.manifest_dict["modules"]["git"] = path_mod.flatten_list(
                 self.manifest_dict["modules"]["git"])
             git_mods = []
             for url in self.manifest_dict["modules"]["git"]:

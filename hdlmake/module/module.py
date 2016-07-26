@@ -32,14 +32,14 @@ import os
 import sys
 import logging
 
-from hdlmake.manifest_parser import Manifest, ManifestParser
+from hdlmake.manifest_parser import ManifestParser
 from hdlmake.util import path as path_mod
 from hdlmake import fetch
-from hdlmake.module import (ModuleCore, ModuleSynthesis,
+from hdlmake.module import (ModuleCore, ModuleSynthesis, ModuleOrigin,
     ModuleSimulation, ModuleContent, ModuleAltera)
 
 
-class Module(ModuleCore, ModuleSynthesis,
+class Module(ModuleCore, ModuleSynthesis, ModuleOrigin,
     ModuleSimulation, ModuleContent, ModuleAltera):
     """
     This is the class providing the HDLMake module, the basic element
@@ -53,54 +53,17 @@ class Module(ModuleCore, ModuleSynthesis,
 
 
     def __init__(self, parent, url, source, fetchto):
+        """Calculate and initialize the origin attributes: path, source..."""
         assert url is not None
         assert source is not None
-
-        super(Module, self).__init__()
-
         self.pool = None
         self.top_module = None
-
-        self.isparsed = False
-        self.top_entity = None
-
-        """Calculate and initialize the origin attributes: path, source..."""
         self.source = source
         self.parent = parent
-        self.fetchto = fetchto
-        self.raw_url = url
-        if source != fetch.LOCAL:
-            self.url, self.branch, self.revision = path_mod.url_parse(url)
-            if (
-                    os.path.exists(
-                        os.path.abspath(
-                            os.path.join(fetchto, self.basename)
-                        )
-                    ) and
-                    os.listdir(
-                        os.path.abspath(os.path.join(fetchto, self.basename))
-                    )
-               ):
-                self.path = os.path.abspath(
-                    os.path.join(fetchto, self.basename))
-                self.isfetched = True
-                logging.debug("Module %s (parent: %s) is fetched.",
-                    url, parent.path)
-            else:
-                self.path = None
-                self.isfetched = False
-                logging.debug("Module %s (parent: %s) is NOT fetched.",
-                    url, parent.path)
-        else:
-            self.url, self.branch, self.revision = url, None, None
+        self.manifest_dict = None
+        self.set_origin(parent, url, source, fetchto)
+        super(Module, self).__init__()
 
-            if not os.path.exists(url):
-                logging.error(
-                    "Path to the local module doesn't exist:\n" + url
-                    + "\nThis module was instantiated in: " + str(parent))
-                quit()
-            self.path = url
-            self.isfetched = True
 
 
     def __str__(self):
@@ -155,7 +118,11 @@ class Module(ModuleCore, ModuleSynthesis,
         contained in the action specific inherited Python modules.
         """
         logging.debug("Process manifest at: " + os.path.dirname(self.path))
-        super(Module, self).process_manifest()
+        #super(Module, self).process_manifest()
+        module_list = [ModuleCore, ModuleSynthesis, ModuleSimulation,
+            ModuleContent, ModuleAltera]
+        for module_plugin in module_list:
+            module_plugin.process_manifest(self)
 
 
     def parse_manifest(self):
@@ -176,12 +143,8 @@ class Module(ModuleCore, ModuleSynthesis,
             - ...but deleting some key fields that needs to be respected.
         """
 
-        if self.manifest_dict:
+        if self.manifest_dict or self.isfetched is False:
             return
-        if self.isparsed is True or self.isfetched is False:
-            return
-        #if self.manifest is None:
-        #    self.manifest = manifest_parser.search_for_manifest()
         if self.path is None:
             raise RuntimeError()
 
@@ -190,11 +153,6 @@ class Module(ModuleCore, ModuleSynthesis,
 
         #manifest_parser.add_arbitrary_code(
         #    self.pool.top_module.options.arbitrary_code)
-
-        #if self.manifest is Non:
-        #    logging.debug("No manifest found in module "+str(self))
-        #else:
-        #    logging.debug("Parse manifest in: %s", self.path)
 
         manifest_parser.add_manifest(self.path)
 
@@ -211,15 +169,12 @@ class Module(ModuleCore, ModuleSynthesis,
         except NameError as name_error:
             logging.error(
                 "Error while parsing {0}:\n{1}: {2}.".format(
-                    self.manifest, type(name_error), name_error))
+                    self.path, type(name_error), name_error))
             quit()
         self.manifest_dict = opt_map
 
         # Process the parsed manifest_dict to assign the module properties
         self.process_manifest()
-
-        # Tag the module as parsed
-        self.isparsed = True
 
         # Parse every detected submodule
         for module_aux in self.submodules():

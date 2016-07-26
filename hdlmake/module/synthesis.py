@@ -1,6 +1,5 @@
-from .plugin import ModulePlugin
 
-class ModuleSynthesis(ModulePlugin):
+class ModuleSynthesis(object):
     def __init__(self):
         # Manifest Synthesis Properties
         self.syn_device = None
@@ -20,7 +19,7 @@ class ModuleSynthesis(ModulePlugin):
     def process_manifest(self):
         self._process_manifest_synthesis()
         self._process_manifest_included_makefiles()
-        super(ModuleSynthesis, self).process_manifest()
+        #super(ModuleSynthesis, self).process_manifest()
 
     def _process_manifest_synthesis(self):
         # Synthesis properties
