@@ -1,10 +1,11 @@
 import os
 import logging
 
+from .core import ModuleCore
 from hdlmake import fetch
 from hdlmake.util import path as path_mod
 
-class ModuleOrigin(object):
+class ModuleOrigin(ModuleCore):
     def set_origin(self, parent, url, source, fetchto):
         # Manifest Module Origin Properties
         self.fetchto = fetchto

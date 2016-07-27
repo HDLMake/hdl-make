@@ -1,8 +1,9 @@
 import logging
+from .core import ModuleCore
 from hdlmake import fetch
 from hdlmake.util import path as path_mod
 
-class ModuleContent(object):
+class ModuleContent(ModuleCore):
     def __init__(self):
         # Manifest Files Properties
         self.files = None
@@ -17,7 +18,7 @@ class ModuleContent(object):
         self._process_manifest_fetch()
         self._process_manifest_files()
         self._process_manifest_modules()
-        #super(ModuleContent, self).process_manifest()
+        super(ModuleContent, self).process_manifest()
 
     def _process_manifest_files(self):
         from hdlmake.srcfile import (TCLFile, VerilogFile, VHDLFile,

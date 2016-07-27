@@ -1,6 +1,7 @@
+from .core import ModuleCore
 from hdlmake.util import path as path_mod
 
-class ModuleSimulation(object):
+class ModuleSimulation(ModuleCore):
 
     def __init__(self):
         # Manifest Simulation Properties
@@ -21,7 +22,7 @@ class ModuleSimulation(object):
     def process_manifest(self):
         self._process_manifest_simulation()
         self._process_manifest_includes()
-        #super(ModuleSimulation, self).process_manifest()
+        super(ModuleSimulation, self).process_manifest()
 
     def _process_manifest_simulation(self):
         from hdlmake.srcfile import SourceFileSet

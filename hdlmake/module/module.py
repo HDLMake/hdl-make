@@ -35,32 +35,24 @@ import logging
 from hdlmake.manifest_parser import ManifestParser
 from hdlmake.util import path as path_mod
 from hdlmake import fetch
-from hdlmake.module import (ModuleCore, ModuleSynthesis, ModuleOrigin,
+from hdlmake.module import (ModuleSynthesis, ModuleOrigin,
     ModuleSimulation, ModuleContent, ModuleAltera)
 
 
-class Module(ModuleCore, ModuleSynthesis, ModuleOrigin,
+class Module(ModuleSynthesis, ModuleOrigin,
     ModuleSimulation, ModuleContent, ModuleAltera):
     """
     This is the class providing the HDLMake module, the basic element
     providing the modular behavior allowing for structured designs.
     """
 
-    def set_pool(self, pool):
-        """Set the associated pool for the module instance"""
-        self.pool = pool
-        self.top_module = pool.get_top_module()
-
-
     def __init__(self, parent, url, source, fetchto):
         """Calculate and initialize the origin attributes: path, source..."""
         assert url is not None
         assert source is not None
-        self.pool = None
-        self.top_module = None
+        self.top_entity = None
         self.source = source
         self.parent = parent
-        self.manifest_dict = None
         self.set_origin(parent, url, source, fetchto)
         super(Module, self).__init__()
 
@@ -118,11 +110,11 @@ class Module(ModuleCore, ModuleSynthesis, ModuleOrigin,
         contained in the action specific inherited Python modules.
         """
         logging.debug("Process manifest at: " + os.path.dirname(self.path))
-        #super(Module, self).process_manifest()
-        module_list = [ModuleCore, ModuleSynthesis, ModuleSimulation,
-            ModuleContent, ModuleAltera]
-        for module_plugin in module_list:
-            module_plugin.process_manifest(self)
+        super(Module, self).process_manifest()
+        #module_list = [ModuleSynthesis, ModuleSimulation,
+        #    ModuleContent, ModuleAltera]
+        #for module_plugin in module_list:
+        #    module_plugin.process_manifest(self)
 
 
     def parse_manifest(self):

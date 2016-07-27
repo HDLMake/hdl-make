@@ -1,9 +1,7 @@
 """Provides the core functionality for the HDLMake module"""
 
-import os
 import logging
 
-from hdlmake import fetch
 
 class ModuleCore(object):
     """This is the class providing the module core functionality"""
@@ -12,11 +10,16 @@ class ModuleCore(object):
         self.library = "work"
         self.target = None
         self.action = None
-        self.top_entity = None
-        super(ModuleCore, self).__init__()
-
-        # Manifest Force tool Property
         self.force_tool = None
+        self.pool = None
+        self.top_module = None
+        self.manifest_dict = None
+        #super(ModuleCore, self).__init__()
+
+    def set_pool(self, pool):
+        """Set the associated pool for the module instance"""
+        self.pool = pool
+        self.top_module = pool.get_top_module()
 
 
     def process_manifest(self):
