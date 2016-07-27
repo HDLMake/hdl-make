@@ -1,10 +1,13 @@
-import os
+"""This provides the stuff related with the HDLMake module,
+from files to required submodules"""
+
 import logging
 from .core import ModuleCore
 from hdlmake import fetch
 from hdlmake.util import path as path_mod
 
 class ModuleContent(ModuleCore):
+    """Class providing the HDLMake module content"""
     def __init__(self):
         self.top_entity = None
         # Manifest Files Properties
@@ -13,22 +16,25 @@ class ModuleContent(ModuleCore):
         self.local = []
         self.git = []
         self.svn = []
+        self.fetch_pre_cmd = None
+        self.fetch_post_cmd = None
         super(ModuleContent, self).__init__()
 
     def process_manifest(self):
+        """Process the content section of the manifest_dic"""
         self._process_manifest_files()
         self._process_manifest_modules()
         super(ModuleContent, self).process_manifest()
 
     def _process_manifest_files(self):
-        from hdlmake.srcfile import (TCLFile, VerilogFile, VHDLFile,
-            SourceFileSet)
+        """Process the files instantiated by the HDLMake module"""
+        from hdlmake.srcfile import SourceFileSet
         # HDL files provided by the module
         if self.manifest_dict["files"] == []:
             self.files = SourceFileSet()
             try:
-                logging.debug("No files in the manifest %s",
-                    self.manifest.path)
+                logging.debug("No files in the manifest at %s",
+                    self.path)
             except AttributeError:
                 pass
         else:
@@ -38,14 +44,10 @@ class ModuleContent(ModuleCore):
                 self.path, str(self.manifest_dict["files"]))
             paths = self._make_list_of_paths(self.manifest_dict["files"])
             self.files = self._create_file_list_from_paths(paths=paths)
-            for f in self.files:
-                if isinstance(f, VerilogFile):
-                    f.vsim_opt = self.vsim_opt
-                elif isinstance(f, VHDLFile):
-                    f.vcom_opt = self.vcom_opt
 
 
     def _process_manifest_modules(self):
+        """Process the submodules required by the HDLMake module"""
         if self.manifest_dict["fetchto"] is not None:
             fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"],
                 self.path)

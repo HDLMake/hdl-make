@@ -29,11 +29,9 @@ specific parent modules providing specific methods and attributes.
 
 from __future__ import print_function
 import os
-import sys
 import logging
 
 from hdlmake.manifest_parser import ManifestParser
-from hdlmake.util import path as path_mod
 from hdlmake.module import (ModuleSynthesis,
     ModuleSimulation, ModuleContent, ModuleAltera)
 
@@ -98,6 +96,19 @@ class Module(ModuleSynthesis,
         """
         logging.debug("Process manifest at: " + os.path.dirname(self.path))
         super(Module, self).process_manifest()
+        self._set_simulation_options()
+
+
+    def _set_simulation_options(self):
+        """This set the simulation option for all the files in the Module"""
+        from hdlmake.srcfile import VerilogFile, VHDLFile
+        for file_aux in self.files:
+            if isinstance(file_aux, VerilogFile):
+                file_aux.vsim_opt = self.vsim_opt
+                file_aux.include_dirs = self.include_dirs
+            elif isinstance(file_aux, VHDLFile):
+                file_aux.vcom_opt = self.vcom_opt
+                file_aux.include_dirs = self.include_dirs
 
 
     def parse_manifest(self):
@@ -154,68 +165,5 @@ class Module(ModuleSynthesis,
         # Parse every detected submodule
         for module_aux in self.submodules():
             module_aux.parse_manifest()
-
-
-    def _make_list_of_paths(self, list_of_paths):
-        """Get a list with only the valid absolute paths from the provided"""
-        paths = []
-        for filepath in list_of_paths:
-            if self._check_filepath(filepath):
-                paths.append(path_mod.rel2abs(filepath, self.path))
-        return paths
-
-
-    def _check_filepath(self, filepath):
-        """Check the provided filepath against several conditions"""
-        if filepath:
-            if path_mod.is_abs_path(filepath):
-                logging.warning(
-                    "Specified path seems to be an absolute path: " +
-                    filepath + "\nOmitting.")
-                return False
-            filepath = os.path.join(self.path, filepath)
-            if not os.path.exists(filepath):
-                logging.error(
-                    "Path specified in manifest in %s doesn't exist: %s",
-                    self.path, filepath)
-                sys.exit("Exiting")
-
-            filepath = path_mod.rel2abs(filepath, self.path)
-            if os.path.isdir(filepath):
-                logging.warning(
-                    "Path specified in manifest %s is a directory: %s",
-                    self.path, filepath)
-        return True
-
-
-    def _create_file_list_from_paths(self, paths):
-        """
-        Build a Source File Set containing the files indicated by the
-        provided list of paths
-        """
-        from hdlmake.srcfile import SourceFileFactory, SourceFileSet
-        sff = SourceFileFactory()
-        srcs = SourceFileSet()
-        for path_aux in paths:
-            if os.path.isdir(path_aux):
-                dir_ = os.listdir(path_aux)
-                for f_dir in dir_:
-                    f_dir = os.path.join(self.path, path_aux, f_dir)
-                    if not os.path.isdir(f_dir):
-                        srcs.add(sff.new(path=f_dir,
-                                         module=self,
-                                         library=self.library,
-                                         vcom_opt=self.vcom_opt,
-                                         vlog_opt=self.vlog_opt,
-                                         include_dirs=self.include_dirs))
-            else:
-                srcs.add(sff.new(path=path_aux,
-                                 module=self,
-                                 library=self.library,
-                                 vcom_opt=self.vcom_opt,
-                                 vlog_opt=self.vlog_opt,
-                                 include_dirs=self.include_dirs))
-        return srcs
-
 
 

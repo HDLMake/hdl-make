@@ -1,6 +1,7 @@
 """Provides the core functionality for the HDLMake module"""
 
 import os
+import sys
 import logging
 
 from hdlmake import fetch
@@ -68,6 +69,38 @@ class ModuleConfig(object):
             self.isfetched = True
 
 
+    def _check_filepath(self, filepath):
+        """Check the provided filepath against several conditions"""
+        if filepath:
+            if path_mod.is_abs_path(filepath):
+                logging.warning(
+                    "Specified path seems to be an absolute path: " +
+                    filepath + "\nOmitting.")
+                return False
+            filepath = os.path.join(self.path, filepath)
+            if not os.path.exists(filepath):
+                logging.error(
+                    "Path specified in manifest in %s doesn't exist: %s",
+                    self.path, filepath)
+                sys.exit("Exiting")
+
+            filepath = path_mod.rel2abs(filepath, self.path)
+            if os.path.isdir(filepath):
+                logging.warning(
+                    "Path specified in manifest %s is a directory: %s",
+                    self.path, filepath)
+        return True
+
+
+    def _make_list_of_paths(self, list_of_paths):
+        """Get a list with only the valid absolute paths from the provided"""
+        paths = []
+        for filepath in list_of_paths:
+            if self._check_filepath(filepath):
+                paths.append(path_mod.rel2abs(filepath, self.path))
+        return paths
+
+
 
 class ModuleCore(ModuleConfig):
     """This is the class providing the module core functionality"""
@@ -115,4 +148,27 @@ class ModuleCore(ModuleConfig):
         self.library = self.manifest_dict["library"]
         self.action = self.manifest_dict["action"].lower()
 
+
+    def _create_file_list_from_paths(self, paths):
+        """
+        Build a Source File Set containing the files indicated by the
+        provided list of paths
+        """
+        from hdlmake.srcfile import SourceFileFactory, SourceFileSet
+        sff = SourceFileFactory()
+        srcs = SourceFileSet()
+        for path_aux in paths:
+            if os.path.isdir(path_aux):
+                dir_ = os.listdir(path_aux)
+                for f_dir in dir_:
+                    f_dir = os.path.join(self.path, path_aux, f_dir)
+                    if not os.path.isdir(f_dir):
+                        srcs.add(sff.new(path=f_dir,
+                                         module=self,
+                                         library=self.library))
+            else:
+                srcs.add(sff.new(path=path_aux,
+                                 module=self,
+                                 library=self.library))
+        return srcs
 
