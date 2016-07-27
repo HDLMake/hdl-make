@@ -1,3 +1,4 @@
+import os
 import logging
 from .core import ModuleCore
 from hdlmake import fetch
@@ -5,17 +6,16 @@ from hdlmake.util import path as path_mod
 
 class ModuleContent(ModuleCore):
     def __init__(self):
+        self.top_entity = None
         # Manifest Files Properties
         self.files = None
         # Manifest Modules Properties
         self.local = []
         self.git = []
         self.svn = []
-        self.git_submodules = []
         super(ModuleContent, self).__init__()
 
     def process_manifest(self):
-        self._process_manifest_fetch()
         self._process_manifest_files()
         self._process_manifest_modules()
         super(ModuleContent, self).process_manifest()
@@ -44,20 +44,17 @@ class ModuleContent(ModuleCore):
                 elif isinstance(f, VHDLFile):
                     f.vcom_opt = self.vcom_opt
 
-    def _process_manifest_fetch(self):
-        # Fetch configuration
+
+    def _process_manifest_modules(self):
         if self.manifest_dict["fetchto"] is not None:
             fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"],
                 self.path)
-            self.fetchto = fetchto
         else:
-            fetchto = self.fetchto
+            fetchto = self.fetchto()
 
         self.fetch_pre_cmd = self.manifest_dict["fetch_pre_cmd"]
         self.fetch_post_cmd = self.manifest_dict["fetch_post_cmd"]
 
-    def _process_manifest_modules(self):
-        fetchto = self.fetchto
         # Process required modules
         if "local" in self.manifest_dict["modules"]:
             local_paths = path_mod.flatten_list(
@@ -102,21 +99,4 @@ class ModuleContent(ModuleCore):
             self.git = git_mods
         else:
             self.git = []
-
-        # Git submodules are temporarly disabled!
-        # -- we need to clearly define the expected behavior
-        # git_submodule_dict = fetch.Git.get_git_submodules(self)
-        # git_toplevel = fetch.Git.get_git_toplevel(self)
-        # for submodule_key in git_submodule_dict.keys():
-        #    url = git_submodule_dict[submodule_key]["url"]
-        #    path = git_submodule_dict[submodule_key]["path"]
-        #    path = os.path.join(git_toplevel, path)
-        #    path = os.path.normpath(path)
-        #    fetchto = os.path.sep.join(path.split(os.path.sep)[:-1])
-        #    self.git_submodules.append(self.pool.new_module(parent=self,
-        #        url=url,
-        #        fetchto=fetchto,
-        #        source=fetch.GITSUBMODULE))
-
-
 

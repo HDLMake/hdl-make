@@ -19,6 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from .constants import (GIT, GITSUBMODULE, SVN, LOCAL, fetch_type_lookup)
+from .constants import (GIT, SVN, LOCAL, fetch_type_lookup)
 from .git import Git
 from .svn import Svn

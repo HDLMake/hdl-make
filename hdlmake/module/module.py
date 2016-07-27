@@ -34,12 +34,11 @@ import logging
 
 from hdlmake.manifest_parser import ManifestParser
 from hdlmake.util import path as path_mod
-from hdlmake import fetch
-from hdlmake.module import (ModuleSynthesis, ModuleOrigin,
+from hdlmake.module import (ModuleSynthesis,
     ModuleSimulation, ModuleContent, ModuleAltera)
 
 
-class Module(ModuleSynthesis, ModuleOrigin,
+class Module(ModuleSynthesis,
     ModuleSimulation, ModuleContent, ModuleAltera):
     """
     This is the class providing the HDLMake module, the basic element
@@ -50,31 +49,19 @@ class Module(ModuleSynthesis, ModuleOrigin,
         """Calculate and initialize the origin attributes: path, source..."""
         assert url is not None
         assert source is not None
-        self.top_entity = None
-        self.source = source
-        self.parent = parent
-        self.set_origin(parent, url, source, fetchto)
         super(Module, self).__init__()
+        self.init_config(parent, url, source, fetchto)
 
 
 
     def __str__(self):
-        return self.raw_url
+        return self.url
 
 
     @property
     def is_fetched_to(self):
         """Get the path where the module instance resides"""
         return os.path.dirname(self.path)
-
-
-    @property
-    def basename(self):
-        """Get the basename for a module instance"""
-        if self.source == fetch.SVN:
-            return path_mod.svn_basename(self.url)
-        else:
-            return path_mod.url_basename(self.url)
 
 
     def submodules(self):
@@ -86,7 +73,7 @@ class Module(ModuleSynthesis, ModuleOrigin,
             else:
                 return submodule_list
         return __nonull(self.local) + __nonull(self.git) \
-            + __nonull(self.svn) + __nonull(self.git_submodules)
+            + __nonull(self.svn)
 
 
     def remove_dir_from_disk(self):
@@ -111,10 +98,6 @@ class Module(ModuleSynthesis, ModuleOrigin,
         """
         logging.debug("Process manifest at: " + os.path.dirname(self.path))
         super(Module, self).process_manifest()
-        #module_list = [ModuleSynthesis, ModuleSimulation,
-        #    ModuleContent, ModuleAltera]
-        #for module_plugin in module_list:
-        #    module_plugin.process_manifest(self)
 
 
     def parse_manifest(self):

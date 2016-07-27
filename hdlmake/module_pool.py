@@ -86,12 +86,12 @@ class ModulePool(list):
         """
         from .module import Module
         self._deps_solved = False
-        if url in [m.raw_url for m in self]:
-            return [m for m in self if m.raw_url == url][0]
-        else:
-            new_module = Module(parent=parent,
-                                url=url, source=source,
-                                fetchto=fetchto)
+
+        new_module = Module(parent=parent,
+                            url=url, source=source,
+                            fetchto=fetchto)
+ 
+        if not self.__contains(new_module):
             new_module.set_pool(self)
             self._add(new_module)
             if not self.top_module:
@@ -101,7 +101,8 @@ class ModulePool(list):
                 if url:
                     self.top_module.url = url
 
-            return new_module
+        return new_module
+
 
     def _guess_origin(self, path):
         """Guess origin (git, svn, local) of a module at given path"""
@@ -163,7 +164,6 @@ class ModulePool(list):
             new_modules.extend(module.local)
             new_modules.extend(module.svn)
             new_modules.extend(module.git)
-            new_modules.extend(module.git_submodules)
             return new_modules
 
         fetch_queue = [m for m in self]

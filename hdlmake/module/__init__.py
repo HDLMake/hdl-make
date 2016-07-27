@@ -1,4 +1,3 @@
-from .origin import ModuleOrigin
 from .core import ModuleCore
 from .synthesis import ModuleSynthesis
 from .simulation import ModuleSimulation

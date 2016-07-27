@@ -547,7 +547,6 @@ And for the Verilog synthesis top Manifest.py:
 
 .. code-block:: python
 
-   target = "xilinx"
    action = "synthesis"
 
    syn_device = "xc6slx45t"
@@ -563,7 +562,6 @@ And for the Verilog synthesis top Manifest.py:
 
 We can see that the only difference is that each of the top synthesis Manifest.py points to its specific Verilog/VHDL top module describing the interface for the constrained FPGA design. The other Manifest.py variables are common for both languages and they means:
 
-- ``target``: specific targeted FPGA architecture
 - ``action``: indicates that this is a synthesis process
 - ``syn_device``: indicates the specific FPGA device
 - ``syn_family``: indicates the specific FPGA family
@@ -749,6 +747,8 @@ As a very simple example, we can introduce both extra commands in the top synthe
        "local" : [ "../../../top/spec_v4/verilog" ],
    }
 
+
+.. note:: the ``target`` parameter is used as a condition code variable in this specific example
 
 **Simulation:**
 
@@ -1207,8 +1207,6 @@ Basic synthesis variables:
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
 | Name            | Type        | Description                                                     | Default   |
 +=================+=============+=================================================================+===========+
-| target          | str         | What is the target architecture                                 | ""        |
-+-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_top         | str         | Top level module for synthesis                                  | None      |
 +-----------------+-------------+-----------------------------------------------------------------+-----------+
 | syn_tool        | str         | Tool to be used in the synthesis                                | None      |

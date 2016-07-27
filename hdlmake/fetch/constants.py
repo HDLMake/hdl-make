@@ -25,11 +25,10 @@
 GIT = 1
 SVN = 2
 LOCAL = 3
-GITSUBMODULE = 4
 
 
 from .svn import Svn
-from .git import (Git, GitSubmodule)
+from .git import Git
 from .local import Local
 from .backend_factory import BackendFactory
 
@@ -39,4 +38,3 @@ fetch_type_lookup = BackendFactory()
 fetch_type_lookup.register_backend(GIT, Git)
 fetch_type_lookup.register_backend(SVN, Svn)
 fetch_type_lookup.register_backend(LOCAL, Local)
-fetch_type_lookup.register_backend(GITSUBMODULE, GitSubmodule)

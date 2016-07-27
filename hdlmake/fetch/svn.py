@@ -33,14 +33,16 @@ class Svn(Fetcher):
         pass
 
     def fetch(self, module):
-        if not os.path.exists(module.fetchto):
-            os.mkdir(module.fetchto)
+
+        fetchto = module.fetchto()
+        if not os.path.exists(fetchto):
+            os.mkdir(fetchto)
 
         cur_dir = module.pool.top_module.path
-        os.chdir(module.fetchto)
+        os.chdir(fetchto)
 
-        basename = path.url_basename(module.url)
-        mod_path = os.path.join(module.fetchto, basename)
+        basename = path.svn_basename(module.url)
+        mod_path = os.path.join(fetchto, basename)
 
         cmd = "svn checkout {0} " + module.basename
         if module.revision:
@@ -57,7 +59,7 @@ class Svn(Fetcher):
         os.chdir(cur_dir)
 
         module.isfetched = True
-        module.path = os.path.join(module.fetchto, module.basename)
+        module.path = os.path.join(fetchto, module.basename)
         return success
 
     @staticmethod

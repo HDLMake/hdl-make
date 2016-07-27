@@ -25,19 +25,8 @@ import logging
 import platform
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
-from .constants import (GIT, GITSUBMODULE)
+from .constants import GIT
 from .fetcher import Fetcher
-
-
-class GitSubmodule(Fetcher):
-    def fetch(self, module):
-        if module.source != GITSUBMODULE:
-            raise ValueError("This backend should get git modules only.")
-        cur_dir = module.pool.top_module.path
-        os.chdir(module.fetchto)
-        os.system("git submodule init")
-        os.system("git submodule update")
-        os.chdir(cur_dir)
 
 
 class Git(Fetcher):
@@ -60,70 +49,20 @@ class Git(Fetcher):
         finally:
             os.chdir(cur_dir)
 
-    @staticmethod
-    def get_git_submodules(module):
-        submodule_dir = path.rel2abs(module.path)
-        logging.debug("Checking git submodules in %s" % submodule_dir)
-        cur_dir = module.pool.top_module.path
-        try:
-            os.chdir(submodule_dir)
-
-            if not os.path.exists(".gitmodules"):
-                return {}
-            #"git config --list" | grep submodule | sed 's/.*=//')" % submodule_dir
-            config_submodules = {}
-            config_content = Popen("git config -f .gitmodules --list",
-                                      stdout=PIPE,
-                                      stdin=PIPE,
-                                      shell=True)
-            config_lines = [line.strip() for line in config_content.stdout.readlines()]
-            """try to parse sth like this:
-paszoste@oplarra1:~/beco/hdlmake-tests/wr-switch-hdl$ git config -f .gitmodules --list
-submodule.ip_cores/general-cores.path=ip_cores/general-cores
-submodule.ip_cores/general-cores.url=git://ohwr.org/hdl-core-lib/general-cores.git
-submodule.ip_cores/wr-cores.path=ip_cores/wr-cores
-submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
-"""
-            config_submodule_lines = [line for line in config_lines if line.startswith("submodule")]
-            for line in config_submodule_lines:
-                line_split = line.split("=")
-                lhs = line_split[0]
-                rhs = line_split[1]
-                lhs_split = lhs.split(".")
-                module_name = '.'.join(lhs_split[1:-1])
-                if module_name not in config_submodules:
-                    config_submodules[module_name] = {}
-                config_submodules[module_name][lhs_split[-1]] = rhs
-
-
-            #"(cd %s && cat ./.gitmodules 2>/dev/null | grep url | sed 's/url = //')" % submodule_dir
-            #try:
-            ##    dotgitmodules_file = open(".gitmodules", 'r')
-             #   dotgitmodules_lines = dotgitmodules_file.readlines()
-             #   url_lines = [line for line in dotgitmodules_lines if 'url' in line]
-             #   dotgitmodules_submodules = [line.split(" = ")[-1].strip() for line in url_lines]
-
-             #  set(config_submodules).update(set(dotgitmodules_submodules))
-            #except IOError:
-             #   pass  # no .gitmodules file
-            if len(list(config_submodules)) > 0:
-                logging.info("Found git submodules in %s: %s" % (module.path, str(config_submodules)))
-        finally:
-            os.chdir(cur_dir)
-        return config_submodules
 
     def fetch(self, module):
+        fetchto = module.fetchto()
         if module.source != GIT:
             raise ValueError("This backend should get git modules only.")
-        if not os.path.exists(module.fetchto):
-            os.mkdir(module.fetchto)
+        if not os.path.exists(fetchto):
+            os.mkdir(fetchto)
 
         cur_dir = module.pool.top_module.path
         if module.branch is None:
             module.branch = "master"
 
         basename = path.url_basename(module.url)
-        mod_path = os.path.join(module.fetchto, basename)
+        mod_path = os.path.join(fetchto, basename)
 
         logging.info("Fetching git module: %s" % mod_path)
 
@@ -142,7 +81,7 @@ submodule.ip_cores/wr-cores.url=git://ohwr.org/hdl-core-lib/wr-cores.git
         else:
             logging.info("Cloning module %s" % mod_path)
             cmd = "(cd {0} && git clone -b {2} {1})"
-            cmd = cmd.format(module.fetchto, module.url, module.branch)
+            cmd = cmd.format(fetchto, module.url, module.branch)
 
         success = True
 
