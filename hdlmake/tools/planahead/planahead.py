@@ -99,13 +99,14 @@ mrproper:
 .PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local check_tool
 
 """)
-        if top_mod.syn_pre_cmd:
-            syn_pre_cmd = top_mod.syn_pre_cmd
+
+        if top_mod.manifest_dict["syn_pre_cmd"]:
+            syn_pre_cmd = top_mod.manifest_dict["syn_pre_cmd"]
         else:
             syn_pre_cmd = ''
 
-        if top_mod.syn_post_cmd:
-            syn_post_cmd = top_mod.syn_post_cmd
+        if top_mod.manifest_dict["syn_post_cmd"]:
+            syn_post_cmd = top_mod.manifest_dict["syn_post_cmd"]
         else:
             syn_post_cmd = ''
 
@@ -148,9 +149,9 @@ mrproper:
         else:
             logging.info("No previous project: creating a new one...")
             self.create_project()
-            self.add_initial_properties(top_mod.syn_device,
-                                   top_mod.syn_grade,
-                                   top_mod.syn_package,
+            self.add_initial_properties(top_mod.manifest_dict["syn_device"],
+                                   top_mod.manifest_dict["syn_grade"],
+                                   top_mod.manifest_dict["syn_package"],
                                    top_mod.syn_top)
         self.add_files(fileset)
         self.emit()

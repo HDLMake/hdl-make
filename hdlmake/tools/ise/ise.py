@@ -350,18 +350,18 @@ mrproper:
                                   project_name=top_mod.syn_project,
                                   ise_path=tool_path,
                                   check_tool=check_tool,
-                                  syn_pre_cmd=top_mod.syn_pre_cmd,
-                                  syn_pre_synthesize_cmd=top_mod.syn_pre_synthesize_cmd,
-                                  syn_post_synthesize_cmd=top_mod.syn_post_synthesize_cmd,
-                                  syn_pre_translate_cmd=top_mod.syn_pre_translate_cmd,
-                                  syn_post_translate_cmd=top_mod.syn_post_translate_cmd,
-                                  syn_pre_map_cmd=top_mod.syn_pre_map_cmd,
-                                  syn_post_map_cmd=top_mod.syn_post_map_cmd,
-                                  syn_pre_par_cmd=top_mod.syn_pre_par_cmd,
-                                  syn_post_par_cmd=top_mod.syn_post_par_cmd,
-                                  syn_pre_bitstream_cmd=top_mod.syn_pre_bitstream_cmd,
-                                  syn_post_bitstream_cmd=top_mod.syn_post_bitstream_cmd,
-                                  syn_post_cmd=top_mod.syn_post_cmd,
+                                  syn_pre_cmd=top_mod.manifest_dict["syn_pre_cmd"],
+                                  syn_post_cmd=top_mod.manifest_dict["syn_post_cmd"],
+                                  syn_pre_synthesize_cmd=top_mod.manifest_dict["syn_pre_synthesize_cmd"],
+                                  syn_post_synthesize_cmd=top_mod.manifest_dict["syn_post_synthesize_cmd"],
+                                  syn_pre_translate_cmd=top_mod.manifest_dict["syn_pre_translate_cmd"],
+                                  syn_post_translate_cmd=top_mod.manifest_dict["syn_post_translate_cmd"],
+                                  syn_pre_map_cmd=top_mod.manifest_dict["syn_pre_map_cmd"],
+                                  syn_post_map_cmd=top_mod.manifest_dict["syn_post_map_cmd"],
+                                  syn_pre_par_cmd=top_mod.manifest_dict["syn_pre_par_cmd"],
+                                  syn_post_par_cmd=top_mod.manifest_dict["syn_post_par_cmd"],
+                                  syn_pre_bitstream_cmd=top_mod.manifest_dict["syn_pre_bitstream_cmd"],
+                                  syn_post_bitstream_cmd=top_mod.manifest_dict["syn_post_bitstream_cmd"],
                                   xtclsh_path=os.path.join(tool_path, "xtclsh"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
@@ -452,15 +452,15 @@ mrproper:
 
     def _set_values_from_manifest(self):
         tm = self.top_mod
-        if tm.syn_family == None:
-            tm.syn_family = FAMILY_NAMES.get(tm.syn_device[0:4].upper())
-            if tm.syn_family == None:
+        if tm.manifest_dict["syn_family"] == None:
+            tm.manifest_dict["syn_family"] = FAMILY_NAMES.get(tm.manifest_dict["syn_device"][0:4].upper())
+            if tm.manifest_dict["syn_family"] == None:
                 logging.error("syn_family is not definied in Manifest.py and can not be guessed!")
                 quit(-1)
-        self.add_property("Device", tm.syn_device)
-        self.add_property("Device Family", tm.syn_family)
-        self.add_property("Speed Grade", tm.syn_grade)
-        self.add_property("Package", tm.syn_package)
+        self.add_property("Device", tm.manifest_dict["syn_device"])
+        self.add_property("Device Family", tm.manifest_dict["syn_family"])
+        self.add_property("Speed Grade", tm.manifest_dict["syn_grade"])
+        self.add_property("Package", tm.manifest_dict["syn_package"])
         self.add_property("Implementation Top", "Architecture|"+tm.syn_top)
         self.add_property("Implementation Top Instance Path", "/"+tm.syn_top)
 

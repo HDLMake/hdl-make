@@ -1,3 +1,5 @@
+"""Package providing the Module functionality to HDLMake"""
+
 from .core import ModuleCore
 from .synthesis import ModuleSynthesis
 from .simulation import ModuleSimulation

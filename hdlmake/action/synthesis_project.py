@@ -37,13 +37,13 @@ class GenerateSynthesisProject(Action):
         if not self.modules_pool.get_top_module().syn_tool:
             logging.error("syn_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().syn_device:
+        if not self.modules_pool.get_top_module().manifest_dict["syn_device"]:
             logging.error("syn_device variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().syn_grade:
+        if not self.modules_pool.get_top_module().manifest_dict["syn_grade"]:
             logging.error("syn_grade variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().syn_package:
+        if not self.modules_pool.get_top_module().manifest_dict["syn_package"]:
             logging.error("syn_package variable must be set in the top manifest.")
             sys.exit("Exiting")
         if not self.modules_pool.get_top_module().syn_top:

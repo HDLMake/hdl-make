@@ -88,15 +88,16 @@ mrproper:
 .PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local check_tool
 
 """)
-        if top_mod.syn_pre_cmd:
-            syn_pre_cmd = top_mod.syn_pre_cmd
+        if top_mod.manifest_dict["syn_pre_cmd"]:
+            syn_pre_cmd = top_mod.manifest_dict["syn_pre_cmd"]
         else:
             syn_pre_cmd = ''
 
-        if top_mod.syn_post_cmd:
-            syn_post_cmd = top_mod.syn_post_cmd
+        if top_mod.manifest_dict["syn_post_cmd"]:
+            syn_post_cmd = top_mod.manifest_dict["syn_post_cmd"]
         else:
             syn_post_cmd = ''
+
 
         if top_mod.force_tool:
             ft = top_mod.force_tool
@@ -137,9 +138,9 @@ mrproper:
         if update is True:
             self.update_project()
         else:
-            self.create_project(top_mod.syn_device,
-                               top_mod.syn_grade,
-                               top_mod.syn_package,
+            self.create_project(top_mod.manifest_dict["syn_device"],
+                               top_mod.manifest_dict["syn_grade"],
+                               top_mod.manifest_dict["syn_package"],
                                top_mod.syn_top)
         self.add_files(fileset)
         self.emit(update=update)

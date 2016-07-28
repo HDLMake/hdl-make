@@ -90,15 +90,17 @@ mrproper:
 .PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local check_tool
 
 """)
-        if top_mod.syn_pre_cmd:
-            syn_pre_cmd = top_mod.syn_pre_cmd
+
+        if top_mod.manifest_dict["syn_pre_cmd"]:
+            syn_pre_cmd = top_mod.manifest_dict["syn_pre_cmd"]
         else:
             syn_pre_cmd = ''
 
-        if top_mod.syn_post_cmd:
-            syn_post_cmd = top_mod.syn_post_cmd
+        if top_mod.manifest_dict["syn_post_cmd"]:
+            syn_post_cmd = top_mod.manifest_dict["syn_post_cmd"]
         else:
             syn_post_cmd = ''
+
 
         if top_mod.force_tool:
             ft = top_mod.force_tool
@@ -130,9 +132,9 @@ mrproper:
     def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
         self.files = []
         self.filename = top_mod.syn_project
-        self.syn_device = top_mod.syn_device
-        self.syn_grade = top_mod.syn_grade
-        self.syn_package = top_mod.syn_package
+        self.syn_device = top_mod.manifest_dict["syn_device"]
+        self.syn_grade = top_mod.manifest_dict["syn_grade"]
+        self.syn_package = top_mod.manifest_dict["syn_package"]
         self.syn_top = top_mod.syn_top
         self.header = None
         self.tclname = 'temporal.tcl'

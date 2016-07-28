@@ -69,7 +69,7 @@ class GenerateRemoteSynthesisMakefile(Action):
         sff = SourceFileFactory()
         files.add(sff.new(top_mod.syn_project, module=self.top_module))
 
-        tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_name,
+        tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_project[:-5],
                                                             cwd=top_mod.url, user=self.env["rsynth_user"],
                                                             server=self.env["rsynth_server"])
         logging.info("Remote synthesis makefile generated.")
