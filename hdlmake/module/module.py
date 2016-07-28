@@ -36,6 +36,26 @@ from hdlmake.module import (ModuleSynthesis,
     ModuleSimulation, ModuleContent, ModuleAltera)
 
 
+class ModuleArgs(object):
+    """This class is just a container for the main Module args"""
+    def __init__(self):
+        self.parent = None
+        self.url = None
+        self.source = None
+        self.fetchto = None
+
+    def set_args(self, parent, url, source, fetchto):
+        """Set the module arguments"""
+        self.parent = parent
+        self.url = url
+        self.source = source
+        self.fetchto = fetchto
+
+    def get_args(self):
+        """Get the module arguments"""
+        return self.parent, self.url, self.source, self.fetchto
+
+
 class Module(ModuleSynthesis,
     ModuleSimulation, ModuleContent, ModuleAltera):
     """
@@ -43,13 +63,15 @@ class Module(ModuleSynthesis,
     providing the modular behavior allowing for structured designs.
     """
 
-    def __init__(self, parent, url, source, fetchto):
+    def __init__(self, module_args, pool):
         """Calculate and initialize the origin attributes: path, source..."""
-        assert url is not None
-        assert source is not None
+        assert module_args.url is not None
+        assert module_args.source is not None
         super(Module, self).__init__()
-        self.init_config(parent, url, source, fetchto)
-
+        self.init_config(module_args)
+        self.set_pool(pool)
+        self.module_args = ModuleArgs()
+        self.module_args = module_args
 
 
     def __str__(self):
@@ -104,10 +126,10 @@ class Module(ModuleSynthesis,
         from hdlmake.srcfile import VerilogFile, VHDLFile
         for file_aux in self.files:
             if isinstance(file_aux, VerilogFile):
-                file_aux.vsim_opt = self.vsim_opt
+                file_aux.vsim_opt = self.sim_opt.vsim_opt
                 file_aux.include_dirs = self.include_dirs
             elif isinstance(file_aux, VHDLFile):
-                file_aux.vcom_opt = self.vcom_opt
+                file_aux.vcom_opt = self.sim_opt.vcom_opt
                 file_aux.include_dirs = self.include_dirs
 
 
@@ -134,6 +156,10 @@ class Module(ModuleSynthesis,
         if self.path is None:
             raise RuntimeError()
 
+        logging.debug("""
+***********************************************************
+PARSE START: %s
+***********************************************************""", self.path)
 
         manifest_parser = ManifestParser()
 
@@ -166,4 +192,10 @@ class Module(ModuleSynthesis,
         for module_aux in self.submodules():
             module_aux.parse_manifest()
 
+        logging.debug("""
+***********************************************************
+PARSE END: %s
+***********************************************************
+
+                      """, self.path)
 

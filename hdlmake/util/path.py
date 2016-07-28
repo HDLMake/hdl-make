@@ -130,6 +130,13 @@ def rel2abs(path, base=None):
     return os.path.abspath(retval)
 
 
+def compose(path, base=None):
+    """Get the relative path composition of the provided path"""
+    if base is None:
+        base = os.getcwd()
+    return os.path.relpath(os.path.abspath(os.path.join(base, path)))
+
+
 def search_for_manifest(search_path):
     """
     Look for manifest in the given folder

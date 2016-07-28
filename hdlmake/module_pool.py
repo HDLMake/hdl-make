@@ -84,15 +84,14 @@ class ModulePool(list):
 
         NOTE: the first module added to the pool will become the top_module!.
         """
-        from .module import Module
+        from .module import Module, ModuleArgs
         self._deps_solved = False
 
-        new_module = Module(parent=parent,
-                            url=url, source=source,
-                            fetchto=fetchto)
+        new_module_args = ModuleArgs()
+        new_module_args.set_args(parent, url, source, fetchto)
+        new_module = Module(new_module_args, self)
  
         if not self.__contains(new_module):
-            new_module.set_pool(self)
             self._add(new_module)
             if not self.top_module:
                 self.top_module = new_module

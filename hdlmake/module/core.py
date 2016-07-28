@@ -35,9 +35,14 @@ class ModuleConfig(object):
         """Get the fetchto folder for the module"""
         return os.path.dirname(self.path)
 
-    def init_config(self, parent, url, source, fetchto):
+    def init_config(self, module_args):
         """This initializes the module configuration.
         The function is executed by Module constructor"""
+        parent = module_args.parent
+        url = module_args.url
+        source = module_args.source
+        fetchto = module_args.fetchto
+
         self.source = source
         self.parent = parent
 

@@ -87,7 +87,7 @@ XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) + """
 
 VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
-VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_isim_incdirs(top_module.vlog_opt) + """
+VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_isim_incdirs(top_module.sim_opt.vlog_opt) + """
 """
         make_preambule_p2 = string.Template("""## rules #################################
 local: sim_pre_cmd simulation sim_post_cmd

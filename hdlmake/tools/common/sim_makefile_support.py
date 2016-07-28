@@ -75,10 +75,10 @@ class VsimMakefileWriter(MakefileWriter):
             mkdir_command = "mkdir -p"
             slash_char = "/"
         
-        self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.vlog_opt))
-        self.vcom_flags.append(top_module.vcom_opt)
-        self.vmap_flags.append(top_module.vmap_opt)
-        self.vsim_flags.append(top_module.vsim_opt)
+        self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.sim_opt.vlog_opt))
+        self.vcom_flags.append(top_module.sim_opt.vcom_opt)
+        self.vmap_flags.append(top_module.sim_opt.vmap_opt)
+        self.vsim_flags.append(top_module.sim_opt.vsim_opt)
 
         tmp = """## variables #############################
 PWD := $(shell pwd)

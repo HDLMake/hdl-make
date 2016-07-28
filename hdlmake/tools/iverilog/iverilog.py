@@ -125,8 +125,8 @@ mrproper: clean
 .PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation
 
 """)
-        if top_module.iverilog_opt:
-            iverilog_opt = top_module.iverilog_opt
+        if top_module.sim_opt.iverilog_opt:
+            iverilog_opt = top_module.sim_opt.iverilog_opt
         else:
             iverilog_opt = ''
 

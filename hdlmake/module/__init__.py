@@ -3,5 +3,5 @@ from .synthesis import ModuleSynthesis
 from .simulation import ModuleSimulation
 from .content import ModuleContent
 from .altera import ModuleAltera
-from .module import Module
+from .module import Module, ModuleArgs
 
