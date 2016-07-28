@@ -135,11 +135,11 @@ def _action_runner(modules_pool):
                 GenerateSimulationMakefile, 
             ]
         elif top_mod.action == "synthesis":
-            if not top_mod.syn_tool:
+            if not top_mod.manifest_dict["syn_tool"]:
                 logging.error("`syn_tool' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know how to synthesize the project.")
                 quit()
-            top_mod.top_entity = top_mod.syn_top
+            top_mod.top_entity = top_mod.manifest_dict["syn_top"]
             action = [
                 GenerateSynthesisProject,
                 GenerateSynthesisMakefile,

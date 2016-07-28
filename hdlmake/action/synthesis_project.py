@@ -34,7 +34,7 @@ from .action import Action
 class GenerateSynthesisProject(Action):
 
     def _check_manifest(self):
-        if not self.modules_pool.get_top_module().syn_tool:
+        if not self.modules_pool.get_top_module().manifest_dict["syn_tool"]:
             logging.error("syn_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
         if not self.modules_pool.get_top_module().manifest_dict["syn_device"]:
@@ -46,7 +46,7 @@ class GenerateSynthesisProject(Action):
         if not self.modules_pool.get_top_module().manifest_dict["syn_package"]:
             logging.error("syn_package variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().syn_top:
+        if not self.modules_pool.get_top_module().manifest_dict["syn_top"]:
             logging.error("syn_top variable must be set in the top manifest.")
             sys.exit("Exiting")
 
@@ -54,7 +54,7 @@ class GenerateSynthesisProject(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_name = self.modules_pool.get_top_module().syn_tool
+        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
         try:
             tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         except Exception as e:
@@ -121,7 +121,7 @@ end sdb_meta_pkg;""")
 	    syn_tool_std_logic_vector.append("{0:04b}".format(int(digit)))
 
         filled_template = template.substitute(repo_url=self.top_module.url,
-                                              syn_module_name=self.top_module.syn_top,
+                                              syn_module_name=self.top_module.manifest_dict["syn_top"],
                                               syn_commit_id=self.top_module.revision,
                                               syn_tool_name=tool.upper(),
                                               syn_tool_version="0000"*(8-len(syn_tool_std_logic_vector))+''.join(syn_tool_std_logic_vector),
@@ -162,7 +162,7 @@ end sdb_meta_pkg;""")
             sys.exit("Exiting")
         logging.info("Generating project for " + name + " v. %s" % env[version_key])
         
-        if os.path.exists(self.top_module.syn_project) or os.path.exists(self.top_module.syn_project + "." + ext_value):
+        if os.path.exists(self.top_module.manifest_dict["syn_project"]) or os.path.exists(self.top_module.manifest_dict["syn_project"] + "." + ext_value):
             logging.info("Existing project detected: updating...")
             update=True
         else:

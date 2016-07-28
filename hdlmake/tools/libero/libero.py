@@ -112,8 +112,8 @@ mrproper:
         else:
             check_tool = ''
 
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.syn_top,
-                                  project_name=top_mod.syn_project,
+        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
+                                  project_name=top_mod.manifest_dict["syn_project"],
                                   libero_path=tool_path,
                                   check_tool=check_tool,
                                   syn_pre_cmd=syn_pre_cmd,
@@ -131,11 +131,11 @@ mrproper:
 
     def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
         self.files = []
-        self.filename = top_mod.syn_project
+        self.filename = top_mod.manifest_dict["syn_project"]
         self.syn_device = top_mod.manifest_dict["syn_device"]
         self.syn_grade = top_mod.manifest_dict["syn_grade"]
         self.syn_package = top_mod.manifest_dict["syn_package"]
-        self.syn_top = top_mod.syn_top
+        self.syn_top = top_mod.manifest_dict["syn_top"]
         self.header = None
         self.tclname = 'temporal.tcl'
 

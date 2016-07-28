@@ -9,7 +9,6 @@ from hdlmake.util import path as path_mod
 class ModuleContent(ModuleCore):
     """Class providing the HDLMake module content"""
     def __init__(self):
-        self.top_entity = None
         # Manifest Files Properties
         self.files = None
         # Manifest Modules Properties
@@ -18,12 +17,14 @@ class ModuleContent(ModuleCore):
         self.svn = []
         self.fetch_pre_cmd = None
         self.fetch_post_cmd = None
+        self.incl_makefiles = []
         super(ModuleContent, self).__init__()
 
     def process_manifest(self):
         """Process the content section of the manifest_dic"""
         self._process_manifest_files()
         self._process_manifest_modules()
+        self._process_manifest_makefiles()
         super(ModuleContent, self).process_manifest()
 
     def _process_manifest_files(self):
@@ -101,4 +102,17 @@ class ModuleContent(ModuleCore):
             self.git = git_mods
         else:
             self.git = []
+
+
+    def _process_manifest_makefiles(self):
+        """Get the extra makefiles defined in the HDLMake module"""
+        # Included Makefiles
+        included_makefiles_aux = []
+        if isinstance(self.manifest_dict["incl_makefiles"], basestring):
+            included_makefiles_aux.append(self.manifest_dict["incl_makefiles"])
+        else:  # list
+            included_makefiles_aux = self.manifest_dict["incl_makefiles"][:]
+        makefiles_paths = self._make_list_of_paths(included_makefiles_aux)
+        self.incl_makefiles.extend(makefiles_paths)
+
 

@@ -346,8 +346,8 @@ mrproper:
         else:
             check_tool = ''
 
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.syn_top,
-                                  project_name=top_mod.syn_project,
+        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
+                                  project_name=top_mod.manifest_dict["syn_project"],
                                   ise_path=tool_path,
                                   check_tool=check_tool,
                                   syn_pre_cmd=top_mod.manifest_dict["syn_pre_cmd"],
@@ -413,7 +413,7 @@ mrproper:
         
         if update is True:
             try:
-                self.load_xml(top_mod.syn_project)
+                self.load_xml(top_mod.manifest_dict["syn_project"])
             except:
                 logging.error("Error while reading the project file.\n"
                               "Are you sure that syn_project indicates a correct ISE project file?")
@@ -422,7 +422,7 @@ mrproper:
             self.add_initial_properties()
         
         logging.info("Writing down .xise project file")
-        self.emit_xml(self.top_mod.syn_project)       
+        self.emit_xml(self.top_mod.manifest_dict["syn_project"])       
 
 
     def add_files(self, files):
@@ -461,8 +461,8 @@ mrproper:
         self.add_property("Device Family", tm.manifest_dict["syn_family"])
         self.add_property("Speed Grade", tm.manifest_dict["syn_grade"])
         self.add_property("Package", tm.manifest_dict["syn_package"])
-        self.add_property("Implementation Top", "Architecture|"+tm.syn_top)
-        self.add_property("Implementation Top Instance Path", "/"+tm.syn_top)
+        self.add_property("Implementation Top", "Architecture|"+tm.manifest_dict["syn_top"])
+        self.add_property("Implementation Top Instance Path", "/"+tm.manifest_dict["syn_top"])
 
     def _parse_props(self):
         for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
@@ -559,7 +559,7 @@ mrproper:
         from hdlmake.srcfile import CDCFile
         for b in [f for f in self.files if isinstance(f, CDCFile)]:
             bp = self.xml_doc.createElement("binding")
-            bp.setAttribute("xil_pn:location", self.top_mod.syn_top)
+            bp.setAttribute("xil_pn:location", self.top_mod.manifest_dict["syn_top"])
             bp.setAttribute("xil_pn:name", b.rel_path())
             node.appendChild(bp)
 

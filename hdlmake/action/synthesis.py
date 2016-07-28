@@ -31,10 +31,10 @@ class GenerateSynthesisMakefile(Action):
 
     def _check_manifest(self):
         # NOTE: top_module is not used in synthesis!!
-        if not self.modules_pool.get_top_module().syn_top:
+        if not self.modules_pool.get_top_module().manifest_dict["syn_top"]:
             logging.error("syn_top variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().syn_tool:
+        if not self.modules_pool.get_top_module().manifest_dict["syn_tool"]:
             logging.error("syn_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
 
@@ -42,7 +42,7 @@ class GenerateSynthesisMakefile(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_name = self.modules_pool.get_top_module().syn_tool
+        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
         try:
             tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         except Exception as e:

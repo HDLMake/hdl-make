@@ -37,7 +37,7 @@ class GenerateRemoteSynthesisMakefile(Action):
             logging.error("action must be equal to \"synthesis\"")
             sys.exit("Exiting")
 
-        if not self.top_module.syn_project:
+        if not self.top_module.manifest_dict["syn_project"]:
             logging.error("syn_project must be set in the manifest.")
             sys.exit("Exiting")
 
@@ -45,7 +45,7 @@ class GenerateRemoteSynthesisMakefile(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_name = self.modules_pool.get_top_module().syn_tool
+        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
         try:
             tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         except Exception as e:
@@ -67,9 +67,9 @@ class GenerateRemoteSynthesisMakefile(Action):
         files = self.modules_pool.build_file_set()
 
         sff = SourceFileFactory()
-        files.add(sff.new(top_mod.syn_project, module=self.top_module))
+        files.add(sff.new(top_mod.manifest_dict["syn_project"], module=self.top_module))
 
-        tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.syn_project[:-5],
+        tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.manifest_dict["syn_project"][:-5],
                                                             cwd=top_mod.url, user=self.env["rsynth_user"],
                                                             server=self.env["rsynth_server"])
         logging.info("Remote synthesis makefile generated.")

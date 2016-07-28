@@ -113,8 +113,8 @@ mrproper:
 		    bin_name = 'pnmainc'
         else:
             bin_name = 'diamondc'		
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.syn_top,
-                                  project_name=top_mod.syn_project,
+        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
+                                  project_name=top_mod.manifest_dict["syn_project"],
                                   diamond_path=tool_path,
                                   check_tool=check_tool,
                                   syn_pre_cmd=syn_pre_cmd,
@@ -132,7 +132,7 @@ mrproper:
 
     def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
         self.files = []
-        self.filename = top_mod.syn_project
+        self.filename = top_mod.manifest_dict["syn_project"]
         self.header = None
         self.tclname = 'temporal.tcl'
         if update is True:
@@ -141,7 +141,7 @@ mrproper:
             self.create_project(top_mod.manifest_dict["syn_device"],
                                top_mod.manifest_dict["syn_grade"],
                                top_mod.manifest_dict["syn_package"],
-                               top_mod.syn_top)
+                               top_mod.manifest_dict["syn_top"])
         self.add_files(fileset)
         self.emit(update=update)
         self.execute()        
