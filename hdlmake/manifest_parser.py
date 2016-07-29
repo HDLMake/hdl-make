@@ -81,10 +81,6 @@ class ManifestParser(ConfigParser):
         self.add_option('top_module', default=None, help="Top level entity for synthesis and simulation", type='')
 
         self.add_delimiter()
-        self.add_option('force_tool', default=None, help="Force certain version of a tool, e.g. 'ise < 13.2' or 'iverilog == 0.9.6",
-                        type='')
-
-        self.add_delimiter()
         self.add_option('quartus_preflow', default=None, help = "Quartus pre-flow script file", type = '')
         self.add_option('quartus_postmodule', default=None, help = "Quartus post-module script file", type = '')
         self.add_option('quartus_postflow', default=None, help = "Quartus post-flow script file", type = '')

@@ -320,9 +320,6 @@ par: __syn_pre_par_cmd __gen_tcl_par __run_tcl_par __syn_post_par_cmd
 bitstream: __syn_pre_bitstream_cmd __gen_tcl_bitstream __run_tcl_bitstream __syn_post_bitstream_cmd
 
 
-check_tool:
-\t\t${check_tool}
-
 #target for cleaning all intermediate stuff
 clean:
 \t\trm -f $$(ISE_CRAP)
@@ -332,24 +329,13 @@ clean:
 mrproper:
 \t\trm -f *.bit *.bin *.mcs
 
-.PHONY: mrproper clean local check_tool
+.PHONY: mrproper clean local
 
 """)
-
-        if top_mod.force_tool:
-            ft = top_mod.force_tool
-            check_tool = """python $(HDLMAKE_HDLMAKE_PATH)/hdlmake _conditioncheck --tool {tool} --reference {reference} --condition "{condition}"\\
-|| (echo "{tool} version does not meet condition: {condition} {reference}" && false)
-""".format(tool=ft[0],
-                condition=ft[1],
-                reference=ft[2])
-        else:
-            check_tool = ''
 
         makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
                                   project_name=top_mod.manifest_dict["syn_project"],
                                   ise_path=tool_path,
-                                  check_tool=check_tool,
                                   syn_pre_cmd=top_mod.manifest_dict["syn_pre_cmd"],
                                   syn_post_cmd=top_mod.manifest_dict["syn_post_cmd"],
                                   syn_pre_synthesize_cmd=top_mod.manifest_dict["syn_pre_synthesize_cmd"],

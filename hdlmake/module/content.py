@@ -15,8 +15,6 @@ class ModuleContent(ModuleCore):
         self.local = []
         self.git = []
         self.svn = []
-        self.fetch_pre_cmd = None
-        self.fetch_post_cmd = None
         self.incl_makefiles = []
         super(ModuleContent, self).__init__()
 
@@ -54,9 +52,6 @@ class ModuleContent(ModuleCore):
                 self.path)
         else:
             fetchto = self.fetchto()
-
-        self.fetch_pre_cmd = self.manifest_dict["fetch_pre_cmd"]
-        self.fetch_post_cmd = self.manifest_dict["fetch_post_cmd"]
 
         # Process required modules
         if "local" in self.manifest_dict["modules"]:

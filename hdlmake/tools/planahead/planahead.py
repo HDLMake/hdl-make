@@ -62,7 +62,7 @@ planAhead.* \
 run.tcl
 
 #target for performing local synthesis
-local: syn_pre_cmd check_tool synthesis syn_post_cmd
+local: syn_pre_cmd synthesis syn_post_cmd
 
 synthesis:
 \t\techo "open_project $$(PROJECT).ppr" > run.tcl
@@ -77,9 +77,6 @@ synthesis:
 \t\techo "exit" >> run.tcl
 \t\t${planahead_sh_path} -mode tcl -source run.tcl
 \t\tcp $$(PROJECT).runs/impl_1/${syn_top}.bit ${syn_top}.bit
-
-check_tool:
-\t\t${check_tool}
 
 syn_post_cmd:
 \t\t${syn_post_cmd}
@@ -96,7 +93,7 @@ clean:
 mrproper:
 \t\trm -f *.bit
 
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local check_tool
+.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local
 
 """)
 
@@ -110,20 +107,10 @@ mrproper:
         else:
             syn_post_cmd = ''
 
-        if top_mod.force_tool:
-            ft = top_mod.force_tool
-            check_tool = """python $(HDLMAKE_HDLMAKE_PATH)/hdlmake _conditioncheck --tool {tool} --reference {reference} --condition "{condition}"\\
-|| (echo "{tool} version does not meet condition: {condition} {reference}" && false)
-""".format(tool=ft[0],
-                condition=ft[1],
-                reference=ft[2])
-        else:
-            check_tool = ''
 
         makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
                                   project_name=top_mod.manifest_dict["syn_project"],
                                   planahead_path=tool_path,
-                                  check_tool=check_tool,
                                   syn_pre_cmd=syn_pre_cmd,
                                   syn_post_cmd=syn_post_cmd,
                                   planahead_sh_path=os.path.join(tool_path, "planAhead"))

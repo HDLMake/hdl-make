@@ -31,8 +31,7 @@ class FetchModules(Action):
     def run(self):
         top_module = self.modules_pool.get_top_module()
         logging.info("Fetching needed modules.")
-        os.system(top_module.fetch_pre_cmd)
+        os.system(top_module.manifest_dict["fetch_pre_cmd"])
         self.modules_pool.fetch_all()
-        logging.debug(str(self.modules_pool))
-        os.system(top_module.fetch_post_cmd)
+        os.system(top_module.manifest_dict["fetch_post_cmd"])
         logging.info("All modules fetched.")
