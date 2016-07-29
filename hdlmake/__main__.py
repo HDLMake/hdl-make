@@ -146,7 +146,7 @@ def _action_runner(modules_pool):
                 GenerateRemoteSynthesisMakefile
             ]
         elif top_mod.action == "qsys_hw_tcl_update":
-            if not top_mod.hw_tcl_filename:
+            if not top_mod.manifest_dict["hw_tcl_filename"]:
                 logging.error("'hw_tcl_filename' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know which file to update.")
                 quit()

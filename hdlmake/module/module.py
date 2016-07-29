@@ -33,7 +33,7 @@ import logging
 
 from hdlmake.util import path as path_mod
 from hdlmake.manifest_parser import ManifestParser
-from hdlmake.module import ModuleContent, ModuleAltera
+from hdlmake.module import ModuleContent
 
 
 class ModuleArgs(object):
@@ -56,7 +56,7 @@ class ModuleArgs(object):
         return self.parent, self.url, self.source, self.fetchto
 
 
-class Module(ModuleContent, ModuleAltera):
+class Module(ModuleContent):
     """
     This is the class providing the HDLMake module, the basic element
     providing the modular behavior allowing for structured designs.

@@ -141,11 +141,45 @@ mrproper:
         
 
 
+    def _set_tcl_files(self, mod):
+        """Method that checks if the TCL files declared by the module
+        manifest dictionary exists and if so create them and
+        initialize the appropriated variables in the Module instance"""
+        from hdlmake.srcfile import TCLFile
+        if mod.manifest_dict["quartus_preflow"] != None:
+            path = path_mod.compose(
+                mod.manifest_dict["quartus_preflow"], mod.path)
+            if not os.path.exists(path):
+                logging.error("quartus_preflow file listed in " + mod.path +
+                    " doesn't exist: " + path + ".\nExiting.")
+                quit()
+            self.preflow = TCLFile(path)
+
+        if mod.manifest_dict["quartus_postmodule"] != None:
+            path = path_mod.compose(
+                mod.manifest_dict["quartus_postmodule"], mod.path)
+            if not os.path.exists(path):
+                logging.error("quartus_postmodule file listed in " + mod.path +
+                    " doesn't exist: " + path + ".\nExiting.")
+                quit()
+            self.postmodule = TCLFile(path)
+
+        if mod.manifest_dict["quartus_postflow"] != None:
+            path = path_mod.compose(
+                mod.manifest_dict["quartus_postflow"], mod.path)
+            if not os.path.exists(path):
+                logging.error("quartus_postflow file listed in " + mod.path +
+                    " doesn't exist: " + path + ".\nExiting.")
+                quit()
+            self.postflow = TCLFile(path)
+
+
+
     def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
         self.properties = []
         self.files = []
         self.filename = top_mod.manifest_dict["syn_project"]
-        self.preflow = top_mod.quartus_preflow
+        self._set_tcl_files(top_mod)
         self.postmodule = top_mod.quartus_postmodule
         self.postflow = top_mod.quartus_postflow
 
