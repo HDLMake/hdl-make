@@ -24,7 +24,6 @@ from __future__ import print_function
 import logging
 import sys
 import os
-import importlib
 
 from hdlmake.srcfile import SourceFileFactory
 from hdlmake.util import path
@@ -54,14 +53,7 @@ class GenerateSynthesisProject(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
-        try:
-            tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-        except Exception as e:
-            logging.error(e)
-            quit()
-        tool_object = tool_module.ToolControls()
-        self._generate_synthesis_project(tool_object)
+        self._generate_synthesis_project()
 
 
     def _write_project_vhd(self, tool, version):
@@ -134,8 +126,8 @@ end sdb_meta_pkg;""")
 
 
 
-    def _generate_synthesis_project(self, tool_object):
-
+    def _generate_synthesis_project(self):
+        tool_object = self.tool
         tool_info = tool_object.get_keys()
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']

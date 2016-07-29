@@ -23,7 +23,6 @@
 import logging
 import os
 import sys
-import importlib
 
 from hdlmake.srcfile import SourceFileFactory
 
@@ -45,18 +44,11 @@ class GenerateRemoteSynthesisMakefile(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
-        try:
-            tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-        except Exception as e:
-            logging.error(e)
-            quit()
-        tool_object = tool_module.ToolControls()
-        self._generate_remote_synthesis_makefile(tool_object)
+        self._generate_remote_synthesis_makefile()
 
 
-    def _generate_remote_synthesis_makefile(self, tool_object):
-
+    def _generate_remote_synthesis_makefile(self):
+        tool_object = self.tool
         logging.info("Generating makefile for remote synthesis.")
 
         top_mod = self.modules_pool.get_top_module()

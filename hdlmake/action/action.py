@@ -21,7 +21,7 @@
 
 import sys
 import logging
-
+import importlib
 
 class Action(object):
     def __init__(self, modules_pool):
@@ -29,6 +29,12 @@ class Action(object):
         self.options = modules_pool.env.options
         self.env = modules_pool.env
 
+        if modules_pool.get_top_module().manifest_dict["action"] is "synthesis":
+            tool_name = modules_pool.get_top_module().manifest_dict["syn_tool"]
+        elif modules_pool.get_top_module().manifest_dict["action"] is "simulation":
+            tool_name = modules_pool.get_top_module().manifest_dict["sim_tool"]
+        tool_module = self._load_tool(tool_name)
+        self.tool = tool_module.ToolControls()
         self._check_manifest()
         self._check_env()
         self._check_options()
@@ -48,6 +54,15 @@ class Action(object):
 
     def run(self):
         raise NotImplementedError()
+
+    def _load_tool(self, tool_name):
+        try:
+            tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
+        except Exception as e:
+            logging.error(e)
+            quit()
+        return tool_module
+
 
     def _check_all_fetched_or_quit(self):
         pool = self.modules_pool
