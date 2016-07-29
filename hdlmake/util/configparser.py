@@ -238,7 +238,7 @@ class ConfigParser(object):
         assert isinstance(extra_context, dict) or extra_context is None
 
         # These hdlmake keys wont be inherited
-        key_purge_list = ["modules", "files", "include_dirs", "sim_only_files",
+        key_purge_list = ["modules", "files", "include_dirs",
             "inc_makefiles", "library"]
         for key_to_be_deleted in key_purge_list:
             extra_context.pop(key_to_be_deleted, None)

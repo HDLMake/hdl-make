@@ -87,7 +87,7 @@ XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) + """
 
 VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
-VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_isim_incdirs(top_module.sim_opt.vlog_opt) + """
+VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_isim_incdirs(top_module.manifest_dict["vlog_opt"]) + """
 """
         make_preambule_p2 = string.Template("""## rules #################################
 local: sim_pre_cmd simulation sim_post_cmd
@@ -152,13 +152,13 @@ isim.wdb isim_proj isim_proj.*
         self.write(' '.join([lib+"/."+lib for lib in libs]))
         self.write('\n')
 
-        if top_module.sim_pre_cmd:
-            sim_pre_cmd = top_module.sim_pre_cmd
+        if top_module.manifest_dict["sim_pre_cmd"]:
+            sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
         else:
             sim_pre_cmd = ''
 
-        if top_module.sim_post_cmd:
-            sim_post_cmd = top_module.sim_post_cmd
+        if top_module.manifest_dict["sim_post_cmd"]:
+            sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
         else:
             sim_post_cmd = ''
 

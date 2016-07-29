@@ -33,10 +33,10 @@ from .action import Action
 class GenerateSimulationMakefile(Action):
 
     def _check_manifest(self):
-        if not self.modules_pool.get_top_module().sim_top:
+        if not self.modules_pool.get_top_module().manifest_dict["sim_top"]:
             logging.error("sim_top variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().sim_tool:
+        if not self.modules_pool.get_top_module().manifest_dict["sim_tool"]:
             logging.error("sim_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
 
@@ -44,7 +44,7 @@ class GenerateSimulationMakefile(Action):
     def run(self):
         self._check_all_fetched_or_quit()
         self._check_manifest()
-        tool_name = self.modules_pool.get_top_module().sim_tool
+        tool_name = self.modules_pool.get_top_module().manifest_dict["sim_tool"]
         try:
             tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         except Exception as e:

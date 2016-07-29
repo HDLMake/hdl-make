@@ -100,15 +100,16 @@ mrproper: clean
 
 """)
 
-        if top_module.sim_pre_cmd:
-            sim_pre_cmd = top_module.sim_pre_cmd
+        if top_module.manifest_dict["sim_pre_cmd"]:
+            sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
         else:
             sim_pre_cmd = ''
 
-        if top_module.sim_post_cmd:
-            sim_post_cmd = top_module.sim_post_cmd
+        if top_module.manifest_dict["sim_post_cmd"]:
+            sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
         else:
             sim_post_cmd = ''
+
 
         makefile_text_2 = makefile_tmplt_2.substitute(
             sim_pre_cmd=sim_pre_cmd,

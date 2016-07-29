@@ -75,10 +75,10 @@ class VsimMakefileWriter(MakefileWriter):
             mkdir_command = "mkdir -p"
             slash_char = "/"
         
-        self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.sim_opt.vlog_opt))
-        self.vcom_flags.append(top_module.sim_opt.vcom_opt)
-        self.vmap_flags.append(top_module.sim_opt.vmap_opt)
-        self.vsim_flags.append(top_module.sim_opt.vsim_opt)
+        self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.manifest_dict["vlog_opt"]))
+        self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
+        self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
+        self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
 
         tmp = """## variables #############################
 PWD := $(shell pwd)
@@ -148,15 +148,17 @@ sim_post_cmd:
 \t\t${sim_post_cmd}
 """)
 
-        if top_module.sim_pre_cmd:
-            sim_pre_cmd = top_module.sim_pre_cmd
+        if top_module.manifest_dict["sim_pre_cmd"]:
+            sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
         else:
             sim_pre_cmd = ''
 
-        if top_module.sim_post_cmd:
-            sim_post_cmd = top_module.sim_post_cmd
+        if top_module.manifest_dict["sim_post_cmd"]:
+            sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
         else:
             sim_post_cmd = ''
+
+
         simcommands = simcommands.substitute(sim_pre_cmd=sim_pre_cmd,
                                                                          sim_post_cmd=sim_post_cmd)
         self.write(simcommands)

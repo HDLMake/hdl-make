@@ -31,9 +31,9 @@ from __future__ import print_function
 import os
 import logging
 
+from hdlmake.util import path as path_mod
 from hdlmake.manifest_parser import ManifestParser
-from hdlmake.module import (ModuleSynthesis,
-    ModuleSimulation, ModuleContent, ModuleAltera)
+from hdlmake.module import ModuleContent, ModuleAltera
 
 
 class ModuleArgs(object):
@@ -56,8 +56,7 @@ class ModuleArgs(object):
         return self.parent, self.url, self.source, self.fetchto
 
 
-class Module(ModuleSynthesis,
-    ModuleSimulation, ModuleContent, ModuleAltera):
+class Module(ModuleContent, ModuleAltera):
     """
     This is the class providing the HDLMake module, the basic element
     providing the modular behavior allowing for structured designs.
@@ -125,13 +124,40 @@ class Module(ModuleSynthesis,
     def _set_simulation_options(self):
         """This set the simulation option for all the files in the Module"""
         from hdlmake.srcfile import VerilogFile, VHDLFile
+        include_dirs_list = self.get_include_dirs_list()
         for file_aux in self.files:
             if isinstance(file_aux, VerilogFile):
-                file_aux.vsim_opt = self.sim_opt.vsim_opt
-                file_aux.include_dirs = self.include_dirs
+                file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
+                file_aux.include_dirs = include_dirs_list
             elif isinstance(file_aux, VHDLFile):
-                file_aux.vcom_opt = self.sim_opt.vcom_opt
-                file_aux.include_dirs = self.include_dirs
+                file_aux.vcom_opt = self.manifest_dict["vcom_opt"]
+
+
+    def get_include_dirs_list(self):
+        """Private method that processes the included directory list"""
+        # Include dirs
+        include_dirs = []
+        if self.manifest_dict["include_dirs"] is not None:
+            if isinstance(self.manifest_dict["include_dirs"], basestring):
+                dir_list = path_mod.compose(
+                    self.path, self.manifest_dict["include_dirs"])
+                include_dirs.append(dir_list)
+            else:
+                dir_list = [path_mod.compose(self.path, x) for
+                    x in self.manifest_dict["include_dirs"]]
+                include_dirs.extend(dir_list)
+            # Analyze included dirs and report if any issue is found
+            for dir_ in include_dirs:
+                if path_mod.is_abs_path(dir_):
+                    logging.warning(
+                        "%s contains absolute path to an include directory: %s",
+                        self.path, dir_)
+                if not os.path.exists(dir_):
+                    logging.warning(self.path +
+                        " has an unexisting include directory: " + dir_)
+        return include_dirs
+
+
 
 
     def parse_manifest(self):

@@ -32,7 +32,7 @@ from .dep_file import DepFile, File
 class SourceFile(DepFile):
     cur_index = 0
 
-    def __init__(self, path, module, library=None):
+    def __init__(self, path, module, library):
         from .dep_file import DepFile
         assert isinstance(path, basestring)
         assert isinstance(module, Module)
@@ -41,8 +41,7 @@ class SourceFile(DepFile):
             self.library = "work"
         DepFile.__init__(self,
                          file_path=path,
-                         module=module,
-                         include_paths=module.include_dirs[:])
+                         module=module)
 
     def __hash__(self):
         return hash(self.path + self.library)

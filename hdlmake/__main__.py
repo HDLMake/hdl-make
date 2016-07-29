@@ -126,11 +126,11 @@ def _action_runner(modules_pool):
                           "Otherwise hdlmake doesn't know how to handle the project.")
             quit()
         if top_mod.action == "simulation":
-            if not top_mod.sim_tool:
+            if not top_mod.manifest_dict["sim_tool"]:
                 logging.error("`sim_tool' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know how to simulate the project.")
                 quit()
-            top_mod.top_entity = top_mod.sim_top
+            top_mod.top_entity = top_mod.manifest_dict["sim_top"]
             action = [ 
                 GenerateSimulationMakefile, 
             ]

@@ -140,7 +140,7 @@ class File(object):
 
 
 class DepFile(File):
-    def __init__(self, file_path, module, include_paths=None):
+    def __init__(self, file_path, module):
         from .module import Module
         assert isinstance(file_path, basestring)
         assert isinstance(module, Module)
@@ -152,14 +152,9 @@ class DepFile(File):
         self._outputs = set()
         self.depends_on = set()  # set of files that the file depends on, items of type DepFile
         self.dep_level = None
-        
         self.is_parsed = False
-        if include_paths is None:
-            include_paths = []
-        else:
-            pass
         self.file_path = file_path
-        self.include_paths = include_paths
+        self.include_paths = []
 
     def parse_if_needed(self):
         logging.debug("Parse %s if needed!!!" % self.file_path)

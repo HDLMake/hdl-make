@@ -126,9 +126,6 @@ class ManifestParser(ConfigParser):
         #Adding option for including makefile snippets
         self.add_option('incl_makefiles', default=[], help="List of .mk files appended to toplevel makefile", type=[])
         self.add_type('incl_makefiles', type='')
-        # Disallow certain files in Xilinx Synthesis flow but use in simulation
-        self.add_option('sim_only_files', default=[], help="List of files that are used only in simulation", type=[])
-        self.add_type('sim_only_files', type='')
 
     def add_manifest(self, path):
         manifest = self._search_for_manifest(path)
