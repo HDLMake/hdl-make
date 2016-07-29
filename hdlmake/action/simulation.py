@@ -20,18 +20,22 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""This module provides the simulation wrapper for HDLMake"""
+
 from __future__ import print_function
 import logging
 import sys
 
 from hdlmake.dep_file import DepFile
-import hdlmake.new_dep_solver as dep_solver
+#import hdlmake.new_dep_solver as dep_solver
 
 from .action import Action
 
 class GenerateSimulationMakefile(Action):
+    """This class contains the simulation specific methods"""
 
     def _check_manifest(self):
+        """Check if the simulation keys are provided by the top manifest"""
         if not self.modules_pool.get_top_module().manifest_dict["sim_top"]:
             logging.error("sim_top variable must be set in the top manifest.")
             sys.exit("Exiting")
@@ -41,12 +45,14 @@ class GenerateSimulationMakefile(Action):
 
 
     def run(self):
+        """Execute the simulation action"""
         self._check_all_fetched_or_quit()
         self._check_manifest()
         self._generate_simulation_makefile()
 
 
     def _generate_simulation_makefile(self):
+        """Private method that performs the simulation stuff"""
         tool_object = self.tool
         tool_info = tool_object.get_keys()
         if sys.platform == 'cygwin':
@@ -55,25 +61,25 @@ class GenerateSimulationMakefile(Action):
             bin_name = tool_info['linux_bin']
 
         path_key = tool_info['id'] + '_path'
-        version_key = tool_info['id'] + '_version'
         name = tool_info['name']
 
         self.env.check_tool(tool_object)
         self.env.check_general()
 
-        
+
         if self.env[path_key] is None and self.options.force is not True:
-            logging.error("Can't generate a " + name + " makefile. " + bin_name + " not found.")
+            logging.error("Can't generate a " + name + " makefile. " +
+                bin_name + " not found.")
             sys.exit("Exiting")
-            
+
         logging.info("Generating " + name + " makefile for simulation.")
 
         pool = self.modules_pool
         top_module = pool.get_top_module()
-        
+
         fset = pool.build_file_set()
         dep_files = fset.filter(DepFile)
         #dep_solver.solve(dep_files)
-        
+
         tool_object.generate_simulation_makefile(dep_files, top_module)
 
