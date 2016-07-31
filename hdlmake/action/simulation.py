@@ -25,6 +25,7 @@
 from __future__ import print_function
 import logging
 import sys
+import importlib
 
 from hdlmake.dep_file import DepFile
 #import hdlmake.new_dep_solver as dep_solver
@@ -52,7 +53,9 @@ class GenerateSimulationMakefile(Action):
 
     def _generate_simulation_makefile(self):
         """Private method that performs the simulation stuff"""
-        tool_object = self.tool
+        tool_name = self.modules_pool.get_top_module().manifest_dict["sim_tool"]
+        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
+        tool_object = tool_module.ToolControls()
         tool_info = tool_object.get_keys()
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']

@@ -45,8 +45,9 @@ class GenerateSynthesisMakefile(Action):
 
 
     def _generate_synthesis_makefile(self):
-        tool_object = self.tool 
-
+        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
+        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
+        tool_object = tool_module.ToolControls()
         tool_info = tool_object.get_keys()
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
