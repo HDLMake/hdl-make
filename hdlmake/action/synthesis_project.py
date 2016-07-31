@@ -33,27 +33,28 @@ from .action import Action
 
 class GenerateSynthesisProject(Action):
 
-    def _check_manifest(self):
-        if not self.modules_pool.get_top_module().manifest_dict["syn_tool"]:
+    def _check_synthesis_project(self):
+        manifest = self.get_top_module().manifest_dict
+        if not manifest["syn_tool"]:
             logging.error("syn_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().manifest_dict["syn_device"]:
+        if not manifest["syn_device"]:
             logging.error("syn_device variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().manifest_dict["syn_grade"]:
+        if not manifest["syn_grade"]:
             logging.error("syn_grade variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().manifest_dict["syn_package"]:
+        if not manifest["syn_package"]:
             logging.error("syn_package variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().manifest_dict["syn_top"]:
+        if not manifest["syn_top"]:
             logging.error("syn_top variable must be set in the top manifest.")
             sys.exit("Exiting")
 
 
-    def run(self):
+    def synthesis_project(self):
         self._check_all_fetched_or_quit()
-        self._check_manifest()
+        self._check_synthesis_project()
         self._generate_synthesis_project()
 
 
@@ -128,7 +129,7 @@ end sdb_meta_pkg;""")
 
 
     def _generate_synthesis_project(self):
-        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
+        tool_name = self.get_top_module().manifest_dict["syn_tool"]
         tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         tool_object = tool_module.ToolControls()
         tool_info = tool_object.get_keys()
@@ -164,9 +165,9 @@ end sdb_meta_pkg;""")
             logging.info("No previous project: creating a new one...")
             update=False
 
-        top_mod = self.modules_pool.get_top_module()
-        fileset = self.modules_pool.build_file_set()
-        privative_files = tool_object.supported_files(self.modules_pool.build_complete_file_set())
+        top_mod = self.get_top_module()
+        fileset = self.build_file_set(top_mod.manifest_dict["syn_top"])
+        privative_files = tool_object.supported_files(self.build_complete_file_set())
 
         if privative_files:
             logging.info("Privative / non-parseable files detected: %s" % len(privative_files))
@@ -176,12 +177,12 @@ end sdb_meta_pkg;""")
         if self.env.options.generate_project_vhd:
           self._write_project_vhd(id_value, env[version_key])
           fileset.add([sff.new(path=path.rel2abs("project.vhd"),
-                                 module=self.modules_pool.get_module_by_path("."))])\
+                                 module=self.get_module_by_path("."))])\
 
 
         tool_object.generate_synthesis_project(update=update,
                          tool_version=self.env[version_key],
-                         top_mod=self.modules_pool.get_top_module(),
+                         top_mod=self.get_top_module(),
                          fileset = fileset)
 
         logging.info(name + " project file generated.")

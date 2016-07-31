@@ -35,25 +35,21 @@ from .action import Action
 class GenerateSimulationMakefile(Action):
     """This class contains the simulation specific methods"""
 
-    def _check_manifest(self):
+    def _check_simulation_makefile(self):
         """Check if the simulation keys are provided by the top manifest"""
-        if not self.modules_pool.get_top_module().manifest_dict["sim_top"]:
+        if not self.get_top_module().manifest_dict["sim_top"]:
             logging.error("sim_top variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().manifest_dict["sim_tool"]:
+        if not self.get_top_module().manifest_dict["sim_tool"]:
             logging.error("sim_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
 
 
-    def run(self):
+    def simulation_makefile(self):
         """Execute the simulation action"""
         self._check_all_fetched_or_quit()
-        self._generate_simulation_makefile()
-
-
-    def _generate_simulation_makefile(self):
-        """Private method that performs the simulation stuff"""
-        tool_name = self.modules_pool.get_top_module().manifest_dict["sim_tool"]
+        self._check_simulation_makefile()
+        tool_name = self.get_top_module().manifest_dict["sim_tool"]
         tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         tool_object = tool_module.ToolControls()
         tool_info = tool_object.get_keys()
@@ -76,10 +72,9 @@ class GenerateSimulationMakefile(Action):
 
         logging.info("Generating " + name + " makefile for simulation.")
 
-        pool = self.modules_pool
-        top_module = pool.get_top_module()
+        top_module = self.get_top_module()
 
-        fset = pool.build_file_set()
+        fset = self.build_file_set(self.get_top_module().manifest_dict["sim_top"])
         dep_files = fset.filter(DepFile)
         #dep_solver.solve(dep_files)
 

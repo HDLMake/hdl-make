@@ -23,36 +23,13 @@ import sys
 import logging
 
 class Action(object):
-    def __init__(self, modules_pool):
-        self.modules_pool = modules_pool
-        self.env = modules_pool.env
-        self._check_manifest()
-        self._check_env()
-        self._check_options()
-
-    @property
-    def top_module(self):
-        return self.modules_pool.get_top_module()
-
-    def _check_manifest(self):
-        pass
-
-    def _check_env(self):
-        pass
-
-    def _check_options(self):
-        pass
-
-    def run(self):
-        raise NotImplementedError()
 
     def _check_all_fetched_or_quit(self):
-        pool = self.modules_pool
-        if not pool.is_everything_fetched():
+        if not self.is_everything_fetched():
             logging.error("At least one module remains unfetched. "
                           "Fetching must be done before makefile generation.")
             print("\nUnfetched modules:")
-            print('\n'.join([str(m) for m in self.modules_pool if not m.isfetched]))
+            print('\n'.join([str(m) for m in self if not m.isfetched]))
             sys.exit("\nExiting.")
 
     def _check_manifest_variable_is_set(self, name):

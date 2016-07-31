@@ -41,9 +41,9 @@ def _convert_to_source_name(source_code):
 
 
 class ListModules(Action):
-    def run(self):
+    def list_modules(self):
         terse = self.env.options.terse
-        for m in self.modules_pool:
+        for m in self:
             if not m.isfetched:
                 logging.warning("Module not fetched: %s" % m.url)
                 if not terse: print("# MODULE UNFETCHED! -> %s" % m.url)
@@ -51,8 +51,6 @@ class ListModules(Action):
                 if not terse: print("# MODULE START -> %s" % m.url)
                 if m.source in [fetch.SVN, fetch.GIT]:
                     if not terse: print("# * URL: "+m.url)
-                elif m.source == fetch.GITSUBMODULE:
-                    if not terse: print("# * This is a submodule of: %s" % m.parent.url)
                 if m.source in [fetch.SVN, fetch.GIT, fetch.LOCAL] and m.parent:
                     if not terse: print("# * The parent for this module is: %s" % m.parent.url)
                 else:

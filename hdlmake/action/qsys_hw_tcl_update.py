@@ -27,8 +27,8 @@ import logging
 
 
 class QsysHwTclUpdate(Action):
-    def run(self):
-        file_set = self.modules_pool.build_file_set()
+    def qsys_hw_tcl_update(self):
+        file_set = self.build_file_set(self.get_top_module().manifest_dict["syn_top"])
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [os.path.relpath(f.path) for f in file_list]
         
@@ -41,7 +41,7 @@ class QsysHwTclUpdate(Action):
         file_tcl[-1] += " TOP_LEVEL_FILE"
         file_tcl.append("\n")
         
-        hw_tcl_filename = self.modules_pool.get_top_module().manifest_dict["hw_tcl_filename"]
+        hw_tcl_filename = self.get_top_module().manifest_dict["hw_tcl_filename"]
 
         infile = open(hw_tcl_filename,"r")
         inserted = True

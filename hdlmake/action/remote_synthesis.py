@@ -32,7 +32,7 @@ from .action import Action
 
 class GenerateRemoteSynthesisMakefile(Action):
 
-    def _check_manifest(self):
+    def _check_remote_synthesis(self):
         if not self.top_module.action == "synthesis":
             logging.error("action must be equal to \"synthesis\"")
             sys.exit("Exiting")
@@ -42,23 +42,24 @@ class GenerateRemoteSynthesisMakefile(Action):
             sys.exit("Exiting")
 
 
-    def run(self):
+    def remote_synthesis(self):
         self._check_all_fetched_or_quit()
+        self._check_remote_synthesis()
         self._generate_remote_synthesis_makefile()
 
 
     def _generate_remote_synthesis_makefile(self):
-        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
+        tool_name = self.get_top_module().manifest_dict["syn_tool"]
         tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         tool_object = tool_module.ToolControls()
         logging.info("Generating makefile for remote synthesis.")
 
-        top_mod = self.modules_pool.get_top_module()
+        top_mod = self.get_top_module()
 
         self.env.check_remote_tool(tool_object)
         self.env.check_general()
 
-        files = self.modules_pool.build_file_set()
+        files = self.build_file_set(self.get_top_module().manifest_dict["syn_top"])
 
         sff = SourceFileFactory()
         files.add(sff.new(top_mod.manifest_dict["syn_project"], module=self.top_module))

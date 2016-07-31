@@ -34,9 +34,16 @@ from . import new_dep_solver as dep_solver
 from .util import path as path_mod
 from . import fetch
 from .env import Env
+from .action import (CheckManifest, CheckCondition, CleanModules, FetchModules, ListFiles,
+                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
+                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
+                    QsysHwTclUpdate)
 
 
-class ModulePool(list):
+class ModulePool(list, CheckManifest, CheckCondition, CleanModules, FetchModules, ListFiles,
+                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
+                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
+                    QsysHwTclUpdate):
     """
     The ModulePool class acts as the container for the HDLMake modules that
     are progressively being added to the design hierarchy.
@@ -194,9 +201,8 @@ class ModulePool(list):
         logging.debug("End build complete file set")
         return all_manifested_files
 
-    def build_file_set(self):
+    def build_file_set(self, top_entity=None):
         """Build file set with only those files required by the top entity"""
-        top_entity = self.top_module.top_entity
         logging.debug("Begin build file set for %s", top_entity)
         all_files = self.build_complete_file_set()
         if not self._deps_solved:

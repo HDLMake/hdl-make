@@ -29,23 +29,23 @@ from .action import Action
 
 class GenerateSynthesisMakefile(Action):
 
-    def _check_manifest(self):
+    def _check_synthesis_makefile(self):
         # NOTE: top_module is not used in synthesis!!
-        if not self.modules_pool.get_top_module().manifest_dict["syn_top"]:
+        if not self.get_top_module().manifest_dict["syn_top"]:
             logging.error("syn_top variable must be set in the top manifest.")
             sys.exit("Exiting")
-        if not self.modules_pool.get_top_module().manifest_dict["syn_tool"]:
+        if not self.get_top_module().manifest_dict["syn_tool"]:
             logging.error("syn_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
 
 
-    def run(self):
+    def synthesis_makefile(self):
         self._check_all_fetched_or_quit()
         self._generate_synthesis_makefile()
 
 
     def _generate_synthesis_makefile(self):
-        tool_name = self.modules_pool.get_top_module().manifest_dict["syn_tool"]
+        tool_name = self.get_top_module().manifest_dict["syn_tool"]
         tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
         tool_object = tool_module.ToolControls()
         tool_info = tool_object.get_keys()
@@ -67,7 +67,7 @@ class GenerateSynthesisMakefile(Action):
             tool_path = ""
         
         logging.info("Generating synthesis makefile for " + name)
-        tool_object.generate_synthesis_makefile(top_mod=self.modules_pool.get_top_module(),
+        tool_object.generate_synthesis_makefile(top_mod=self.get_top_module(),
                                                          tool_path=tool_path)
         logging.info("Synthesis makefile generated.")
 

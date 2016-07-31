@@ -65,7 +65,7 @@ local: sim_pre_cmd simulation sim_post_cmd
 simulation:
 """)
         makefile_text_1 = makefile_tmplt_1.substitute(
-            top_module=top_module.top_entity
+            top_module=top_module.manifest_dict["sim_top"]
         )
         self.write(makefile_text_1)
 

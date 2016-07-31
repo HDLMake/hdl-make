@@ -24,11 +24,11 @@ import logging
 import hdlmake.new_dep_solver as dep_solver
 
 class ListFiles(Action):
-    def run(self):
-        unfetched_modules = [m for m in self.modules_pool if not m.isfetched]
+    def list_files(self):
+        unfetched_modules = [m for m in self if not m.isfetched]
         for m in unfetched_modules:
             logging.warning("List incomplete, module %s has not been fetched!", m)
-        file_set = self.modules_pool.build_file_set()
+        file_set = self.build_file_set()
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [f.path for f in file_list]
         if self.env.options.delimiter == None:

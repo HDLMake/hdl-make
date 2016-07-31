@@ -24,9 +24,9 @@ import hdlmake.fetch as fetch
 from .action import Action
 
 class CleanModules(Action):
-    def run(self):
+    def clean(self):
         logging.info("Removing fetched modules..")
-        remove_list = [m for m in self.modules_pool if m.source in [fetch.GIT, fetch.SVN] and m.isfetched]
+        remove_list = [m for m in self if m.source in [fetch.GIT, fetch.SVN] and m.isfetched]
         remove_list.reverse()  # we will remove modules in backward order
         if len(remove_list):
             for m in remove_list:

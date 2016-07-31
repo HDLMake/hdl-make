@@ -33,20 +33,18 @@ from .action import Action
 
 
 class MergeCores(Action):
-    def _check_manifest(self):
-        self._check_manifest_variable_is_equal_to("action", "synthesis")
 
-    def _check_options(self):
+    def _check_merge_cores(self):
+        self._check_manifest_variable_is_equal_to("action", "synthesis")
         if not self.env.options.dest:
             logging.error("--dest must be given for merge-cores")
             sys.exit("Exiting")
 
-    def run(self):
-        pool = self.modules_pool
+    def merge_cores(self):
         self._check_all_fetched_or_quit()
-
+        self._check_merge_cores()
         logging.info("Merging all cores into one source file per language.")
-        flist = pool.build_file_set()
+        flist = self.build_file_set()
         base = self.env.options.dest
 
         f_out = open(base+".vhd", "w")

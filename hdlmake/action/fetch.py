@@ -28,10 +28,10 @@ from .action import Action
 
 class FetchModules(Action):
 
-    def run(self):
-        top_module = self.modules_pool.get_top_module()
+    def fetch(self):
+        top_module = self.get_top_module()
         logging.info("Fetching needed modules.")
         os.system(top_module.manifest_dict["fetch_pre_cmd"])
-        self.modules_pool.fetch_all()
+        self.fetch_all()
         os.system(top_module.manifest_dict["fetch_post_cmd"])
         logging.info("All modules fetched.")

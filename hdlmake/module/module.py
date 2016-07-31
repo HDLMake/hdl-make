@@ -66,7 +66,6 @@ class Module(ModuleContent):
         """Calculate and initialize the origin attributes: path, source..."""
         assert module_args.url is not None
         assert module_args.source is not None
-        self.top_entity = None
         super(Module, self).__init__()
         self.init_config(module_args)
         self.set_pool(pool)

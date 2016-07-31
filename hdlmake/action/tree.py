@@ -25,7 +25,7 @@ from hdlmake.util import path
 import logging
 
 class Tree(Action):
-    def run(self):
+    def generate_tree(self):
         try:
             import networkx as nx
         except Exception as e:
@@ -39,7 +39,7 @@ class Tree(Action):
         if self.env.options.solved:
             logging.warning("This is the solved tree")
         else:
-            for m in self.modules_pool:
+            for m in self:
                 if not m.isfetched:
                     unfetched_modules = True
                 else:

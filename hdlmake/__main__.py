@@ -92,16 +92,10 @@ def main():
     #    logging.info("To see some help, type hdlmake --help")
     #    sys.exit("Exiting")
 
-
     _action_runner(modules_pool)
 
 
 def _action_runner(modules_pool):
-
-    from .action import (CheckCondition, CleanModules, FetchModules, ListFiles,
-                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
-                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
-                    QsysHwTclUpdate,)
 
 
     #                                   #
@@ -126,67 +120,37 @@ def _action_runner(modules_pool):
                           "Otherwise hdlmake doesn't know how to handle the project.")
             quit()
         if top_mod.action == "simulation":
-            if not top_mod.manifest_dict["sim_tool"]:
-                logging.error("`sim_tool' manifest variable has to be specified. "
-                              "Otherwise hdlmake doesn't know how to simulate the project.")
-                quit()
-            top_mod.top_entity = top_mod.manifest_dict["sim_top"]
-            action = [ 
-                GenerateSimulationMakefile, 
-            ]
+            modules_pool.simulation_makefile() 
         elif top_mod.action == "synthesis":
-            if not top_mod.manifest_dict["syn_tool"]:
-                logging.error("`syn_tool' manifest variable has to be specified. "
-                              "Otherwise hdlmake doesn't know how to synthesize the project.")
-                quit()
-            top_mod.top_entity = top_mod.manifest_dict["syn_top"]
-            action = [
-                GenerateSynthesisProject,
-                GenerateSynthesisMakefile,
-                GenerateRemoteSynthesisMakefile
-            ]
+            modules_pool.synthesis_project()
+            modules_pool.synthesis_makefile()
+            modules_pool.remote_synthesis()
         elif top_mod.action == "qsys_hw_tcl_update":
             if not top_mod.manifest_dict["hw_tcl_filename"]:
                 logging.error("'hw_tcl_filename' manifest variable has to be specified. "
                               "Otherwise hdlmake doesn't know which file to update.")
                 quit()
-            action = [
-                QsysHwTclUpdate,
-            ]
+            modules_pool.qsys_hw_tcl_update()
     elif options.command == "make-simulation":
-        action = [ GenerateSimulationMakefile ]
+        modules_pool.simulation_makefile()
     elif options.command == "make-synthesis":
-        action = [ GenerateSynthesisMakefile ]
+        modules_pool.synthesis_makefile()
     elif options.command == "make-remote":
-        action = [ GenerateRemoteSynthesisMakefile ]
+        modules_pool.remote_synthesis()
     elif options.command == "fetch":
-        action = [ FetchModules ]
+        modules_pool.fetch()
     elif options.command == "clean":
-        action = [ CleanModules ]
+        modules_pool.clean()
     elif options.command == "list-mods":
-        action = [ ListModules ]
+        modules_pool.list_modules()
     elif options.command == "list-files":
-        action = [ ListFiles ]
+        modules_pool.list_files()
     elif options.command == "merge-cores":
-        action = [ MergeCores ]
+        modules_pool.merge_cores()
     elif options.command == "project":
-        action = [ GenerateSynthesisProject ]
+        modules_pool.synthesis_project()
     elif options.command == "tree":
-        action = [ Tree ]
-
-    #                                   #
-    # EXECUTE THE COMMAND SEQUENCE      #
-    #                                   #
-    try:
-        for command in action:
-            action_instance = command(modules_pool)
-            action_instance.run()
-    except Exception as e:
-        import traceback
-        logging.error(e)
-        print("Trace:")
-        traceback.print_exc()
-        sys.exit("Exiting in failure because exception occurred.")
+        modules_pool.generate_tree()
 
 
 def _get_parser():

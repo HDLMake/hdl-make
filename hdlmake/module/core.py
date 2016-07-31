@@ -116,7 +116,6 @@ class ModuleCore(ModuleConfig):
         self.pool = None
         self.top_module = None
         self.manifest_dict = None
-        self.top_entity = None
         super(ModuleCore, self).__init__()
 
 

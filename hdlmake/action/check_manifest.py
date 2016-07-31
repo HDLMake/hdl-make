@@ -29,7 +29,7 @@ class CheckManifest(Action):
         if not self.env.options.top:
             logging.info("--top is not specified. Current manifest will be treated as the top manifest")
 
-    def run(self):
+    def check_manifest(self):
         ###
         ### THIS IS JUST A STUB
         ###

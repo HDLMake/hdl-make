@@ -42,7 +42,7 @@ class CheckCondition(Action):
         else:
             sys.exit(1)
 
-    def run(self):
+    def check_condition(self):
         tool = self.env.options.tool
         if tool == "ise":
             ver = self.env["ise_version"]
