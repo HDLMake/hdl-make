@@ -23,8 +23,8 @@
 from .check_condition import CheckCondition
 from .check_manifest import CheckManifest
 from .core import ActionCore
-from .merge_cores import MergeCores
-from .tree import Tree
+from .merge import ActionMerge
+from .tree import ActionTree
 
 from .synthesis import ActionSynthesis
 from .simulation import GenerateSimulationMakefile

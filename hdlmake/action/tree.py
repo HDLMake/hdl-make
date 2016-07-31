@@ -24,7 +24,7 @@ from hdlmake.util import path
 
 import logging
 
-class Tree(Action):
+class ActionTree(Action):
     def generate_tree(self):
         try:
             import networkx as nx
