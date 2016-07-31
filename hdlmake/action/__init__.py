@@ -20,8 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from .check_condition import CheckCondition
-from .check_manifest import CheckManifest
+from .check import ActionCheck
 from .core import ActionCore
 from .merge import ActionMerge
 from .tree import ActionTree

@@ -27,22 +27,28 @@ import re
 from .action import Action
 
 
-class CheckCondition(Action):
-    def _compare(self, local, reference, cond):
-        if cond == "==":
-            return local == reference
-        elif cond == "<":
-            return local < reference
-        elif cond == ">":
-            return local > reference
-        elif cond == "<=":
-            return local <= reference
-        elif cond == ">=":
-            return local >= reference
-        else:
-            sys.exit(1)
+class ActionCheck(Action):
+
+    def check_manifest(self):
+        logging.error("This action is not implemented yet!")
+
 
     def check_condition(self):
+
+        def _compare(local, reference, cond):
+            if cond == "==":
+                return local == reference
+            elif cond == "<":
+                return local < reference
+            elif cond == ">":
+                return local > reference
+            elif cond == "<=":
+                return local <= reference
+            elif cond == ">=":
+                return local >= reference
+            else:
+                sys.exit(1)
+
         tool = self.env.options.tool
         if tool == "ise":
             ver = self.env["ise_version"]
@@ -79,5 +85,5 @@ class CheckCondition(Action):
             logging.error("Unknown tool: %s" % tool)
             sys.exit("\nExiting")
 
-        comparison = self._compare(ver, ref, self.env.options.condition)
+        comparison = _compare(ver, ref, self.env.options.condition)
         sys.exit(int(not comparison))

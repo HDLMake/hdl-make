@@ -34,13 +34,13 @@ from . import new_dep_solver as dep_solver
 from .util import path as path_mod
 from . import fetch
 from .env import Env
-from .action import (CheckManifest, CheckCondition, ActionCore,
+from .action import (ActionCheck, ActionCore,
                     ActionMerge, ActionTree, GenerateSimulationMakefile,
                     ActionSynthesis,
                     QsysHwTclUpdate)
 
 
-class ModulePool(list, CheckManifest, CheckCondition, ActionCore,
+class ModulePool(list, ActionCheck, ActionCore,
                     ActionMerge, ActionTree, GenerateSimulationMakefile,
                     ActionSynthesis,
                     QsysHwTclUpdate):

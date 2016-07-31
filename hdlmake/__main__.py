@@ -108,7 +108,7 @@ def _action_runner(modules_pool):
         modules_pool.env.check_env(verbose=True)
         quit()
     elif options.command == "check-manifest":
-        modules_pool.env.check_manifest(top_mod.manifest, verbose=True)
+        modules_pool.check_manifest()
         quit()
     elif options.command == "manifest-help":
         ManifestParser().print_help()
