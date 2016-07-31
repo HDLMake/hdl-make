@@ -26,7 +26,6 @@ import importlib
 class Action(object):
     def __init__(self, modules_pool):
         self.modules_pool = modules_pool
-        self.options = modules_pool.env.options
         self.env = modules_pool.env
 
         if modules_pool.get_top_module().manifest_dict["action"] is "synthesis":

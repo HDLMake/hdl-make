@@ -43,41 +43,41 @@ class CheckCondition(Action):
             sys.exit(1)
 
     def run(self):
-        tool = self.options.tool
+        tool = self.env.options.tool
         if tool == "ise":
             ver = self.env["ise_version"]
             if not ver:
                 sys.exit(1)
-            ref = self.options.reference
+            ref = self.env.options.reference
             ver = float(ver)
             ref = float(ref)
         elif tool == "quartus":
             ver = self.env["quartus_version"]
             if not ver:
                 sys.exit(1)
-            ref = self.options.reference
+            ref = self.env.options.reference
         elif tool == "modelsim":
             ver = self.env["modelsim_version"]
             if not ver:
                 sys.exit(1)
-            ref = self.options.reference
+            ref = self.env.options.reference
         elif tool == "iverilog":
             ver = self.env["iverilog_version"]
             if not ver:
                 sys.exit(1)
-            ref = self.options.reference
+            ref = self.env.options.reference
             ver = int(ver.replace('.', ''))
             ref = int(ref.replace('.', ''))
         elif tool == "isim":
             ver = self.env["ise_version"]
             if not ver:
                 sys.exit(1)
-            ref = self.options.reference
+            ref = self.env.options.reference
             ver = re.sub("[a-zA-Z]", '', ver)
             ref = re.sub("[a-zA-Z]", '', ref)
         else:
             logging.error("Unknown tool: %s" % tool)
             sys.exit("\nExiting")
 
-        comparison = self._compare(ver, ref, self.options.condition)
+        comparison = self._compare(ver, ref, self.env.options.condition)
         sys.exit(int(not comparison))

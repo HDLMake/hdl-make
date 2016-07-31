@@ -143,7 +143,7 @@ end sdb_meta_pkg;""")
         env.check_general()
         env.check_tool(tool_object)
 
-        if not self.options.force:
+        if not self.env.options.force:
             if self.env[path_key] is None:
                 logging.error("Can't generate the " + name + " project. " + name + " not found.")
                 quit()
@@ -170,7 +170,7 @@ end sdb_meta_pkg;""")
             fileset.add(privative_files)
 
         sff = SourceFileFactory()
-        if self.options.generate_project_vhd:
+        if self.env.options.generate_project_vhd:
           self._write_project_vhd(id_value, env[version_key])
           fileset.add([sff.new(path=path.rel2abs("project.vhd"),
                                  module=self.modules_pool.get_module_by_path("."))])\

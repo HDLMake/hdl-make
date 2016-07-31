@@ -31,8 +31,8 @@ class ListFiles(Action):
         file_set = self.modules_pool.build_file_set()
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [f.path for f in file_list]
-        if self.options.delimiter == None:
+        if self.env.options.delimiter == None:
             delimiter = "\n"
         else:
-            delimiter = self.options.delimiter
+            delimiter = self.env.options.delimiter
         print(delimiter.join(files_str))

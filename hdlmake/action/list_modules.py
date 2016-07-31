@@ -42,27 +42,28 @@ def _convert_to_source_name(source_code):
 
 class ListModules(Action):
     def run(self):
+        terse = self.env.options.terse
         for m in self.modules_pool:
             if not m.isfetched:
                 logging.warning("Module not fetched: %s" % m.url)
-                if not self.options.terse: print("# MODULE UNFETCHED! -> %s" % m.url)
+                if not terse: print("# MODULE UNFETCHED! -> %s" % m.url)
             else:
-                if not self.options.terse: print("# MODULE START -> %s" % m.url)
+                if not terse: print("# MODULE START -> %s" % m.url)
                 if m.source in [fetch.SVN, fetch.GIT]:
-                    if not self.options.terse: print("# * URL: "+m.url)
+                    if not terse: print("# * URL: "+m.url)
                 elif m.source == fetch.GITSUBMODULE:
-                    if not self.options.terse: print("# * This is a submodule of: %s" % m.parent.url)
+                    if not terse: print("# * This is a submodule of: %s" % m.parent.url)
                 if m.source in [fetch.SVN, fetch.GIT, fetch.LOCAL] and m.parent:
-                    if not self.options.terse: print("# * The parent for this module is: %s" % m.parent.url)
+                    if not terse: print("# * The parent for this module is: %s" % m.parent.url)
                 else:
-                    if not self.options.terse: print("# * This is the root module")
+                    if not terse: print("# * This is the root module")
                 print("%s\t%s" % (path.relpath(m.path), _convert_to_source_name(m.source)))
-                if self.options.withfiles:
+                if self.env.options.withfiles:
                     if not len(m.files):
-                        if not self.options.terse: print("# * This module has no files")
+                        if not terse: print("# * This module has no files")
                     else:
                         for f in m.files:
                             print("%s\t%s" % (path.relpath(f.path), "file"))
-                if not self.options.terse: print("# MODULE END -> %s" % m.url)
-            if not self.options.terse: print("")
+                if not terse: print("# MODULE END -> %s" % m.url)
+            if not terse: print("")
 

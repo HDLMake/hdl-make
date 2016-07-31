@@ -26,7 +26,7 @@ from .action import Action
 
 class CheckManifest(Action):
     def _check_options(self):
-        if not self.options.top:
+        if not self.env.options.top:
             logging.info("--top is not specified. Current manifest will be treated as the top manifest")
 
     def run(self):

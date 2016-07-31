@@ -36,7 +36,7 @@ class Tree(Action):
         hierarchy = nx.DiGraph()
         color_index = 0
 
-        if self.options.solved:
+        if self.env.options.solved:
             logging.warning("This is the solved tree")
         else:
             for m in self.modules_pool:
@@ -49,7 +49,7 @@ class Tree(Action):
                     else:
                         hierarchy.add_node(path.relpath(m.path))
                         top_id = path.relpath(m.path)
-                    if self.options.withfiles:
+                    if self.env.options.withfiles:
                         if len(m.files):
                             for f in m.files:
                                 hierarchy.add_edge(path.relpath(m.path), path.relpath(f.path))
@@ -61,13 +61,13 @@ class Tree(Action):
         # Program should be one of: 
         #     twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, 
         #     circo, neato, acyclic, nop, gvpr, dot, sfdp.
-        if self.options.graphviz:
+        if self.env.options.graphviz:
             try:
                 import matplotlib.pyplot as plt
             except Exception as e:
                 logging.error(e)
                 quit()
-            pos=nx.graphviz_layout(hierarchy, prog=self.options.graphviz, root=top_id)
+            pos=nx.graphviz_layout(hierarchy, prog=self.env.options.graphviz, root=top_id)
             nx.draw(hierarchy, pos,
                 with_labels=True,
                 alpha=0.5,
@@ -76,7 +76,7 @@ class Tree(Action):
             plt.show()
 
 
-        if self.options.web:
+        if self.env.options.web:
             try:
                 import json
                 from networkx.readwrite import json_graph

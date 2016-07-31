@@ -37,7 +37,7 @@ class MergeCores(Action):
         self._check_manifest_variable_is_equal_to("action", "synthesis")
 
     def _check_options(self):
-        if not self.options.dest:
+        if not self.env.options.dest:
             logging.error("--dest must be given for merge-cores")
             sys.exit("Exiting")
 
@@ -47,7 +47,7 @@ class MergeCores(Action):
 
         logging.info("Merging all cores into one source file per language.")
         flist = pool.build_file_set()
-        base = self.options.dest
+        base = self.env.options.dest
 
         f_out = open(base+".vhd", "w")
         f_out.write("\n\n\n\n")

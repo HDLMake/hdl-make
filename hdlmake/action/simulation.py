@@ -66,7 +66,7 @@ class GenerateSimulationMakefile(Action):
         self.env.check_general()
 
 
-        if self.env[path_key] is None and self.options.force is not True:
+        if self.env[path_key] is None and self.env.options.force is not True:
             logging.error("Can't generate a " + name + " makefile. " +
                 bin_name + " not found.")
             sys.exit("Exiting")
