@@ -47,7 +47,6 @@ class GenerateSimulationMakefile(Action):
     def run(self):
         """Execute the simulation action"""
         self._check_all_fetched_or_quit()
-        self._check_manifest()
         self._generate_simulation_makefile()
 
 

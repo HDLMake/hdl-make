@@ -43,7 +43,6 @@ class GenerateRemoteSynthesisMakefile(Action):
 
     def run(self):
         self._check_all_fetched_or_quit()
-        self._check_manifest()
         self._generate_remote_synthesis_makefile()
 
 
