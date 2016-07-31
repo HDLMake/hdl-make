@@ -41,6 +41,7 @@ class MakefileWriter(object):
             self._filename = filename
         else:
             self._filename = "Makefile"
+        super(MakefileWriter, self).__init__()
 
     def __del__(self):
         if self._file:

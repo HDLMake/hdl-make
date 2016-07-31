@@ -4,6 +4,7 @@
 # Copyright (c) 2013 - 2015 CERN
 # Author: Pawel Szostek (pawel.szostek@cern.ch)
 # Multi-tool support by Javier D. Garcia-Lasheras (javier@garcialasheras.com)
+# Riviera tool added by Josh Smith (joshrsmith@gmail.com)
 #
 # This file is part of Hdlmake.
 #
@@ -22,52 +23,66 @@
 #
 
 from __future__ import print_function
-import xml.dom.minidom
-import os
+from .sim_makefile_support import VsimMakefileWriter
 
-from ..common.sim_makefile_support import VsimMakefileWriter
+# as of 2014.06, these are the standard libraries
+# included in an installation
+RIVIERA_STANDARD_LIBS = [
+    'ieee', 'std', 'cpld',
+    'vl', 'vital95', 'vital2000',
+    'synopsys', 'aldec', 'vtl',
+    'vtl_dbg', 'assertions', 'ieee_proposed',
+    'ovm_2_0_3', 'ovm_2_1_2', 'uvm_1_0p1',
+    'uvm_1_1d', 'uvm', 'osvvm',
+    ]
 
-XmlImpl = xml.dom.minidom.getDOMImplementation()
+# there are many vendor specific libraries available
+# a few of them are listed here
+RIVIERA_XILINX_VHDL_LIBRARIES = [
+    'cpld',
+    'secureip',
+    'simprim',
+    'unimacro',
+    'unisim',
+    'xilinxcorelib'
+]
+RIVIERA_XILINX_VLOG_LIBRARIES = [
+    'cpld_ver',
+    'secureip',
+    'simprims_ver',
+    'uni9000_ver',
+    'unimacro_ver',
+    'unisims_ver',
+    'xilinxcorelib_ver'
+]
 
-MODELSIM_STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
+RIVIERA_STANDARD_LIBS.extend(RIVIERA_XILINX_VHDL_LIBRARIES)
+RIVIERA_STANDARD_LIBS.extend(RIVIERA_XILINX_VLOG_LIBRARIES)
 
 
-class ToolControls(VsimMakefileWriter):
+class ToolRiviera(VsimMakefileWriter):
     def __init__(self):
-        super(ToolControls, self).__init__()
+        super(ToolRiviera, self).__init__()
+        self.vcom_flags.append("-2008")
+        self.additional_clean.extend(["*.asdb", "*.vcd", ])
 
     def detect_version(self, path):
         pass
 
     def get_keys(self):
         tool_info = {
-            'name': 'Modelsim',
-            'id': 'modelsim',
+            'name': 'Riviera',
+            'id': 'riviera',
             'windows_bin': 'vsim',
             'linux_bin': 'vsim'
         }
         return tool_info
 
     def get_standard_libraries(self):
-        return MODELSIM_STANDARD_LIBS
+        return RIVIERA_STANDARD_LIBS
 
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet
         sup_files = SourceFileSet()
         return sup_files
-
-    def generate_simulation_makefile(self, fileset, top_module):
-        self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])
-        self.vlog_flags.extend(["-modelsimini", "modelsim.ini"])
-        self.vmap_flags.extend(["-modelsimini", "modelsim.ini"])
-        if top_module.pool.env["modelsim_path"]:
-            modelsim_ini_path = os.path.join(top_module.pool.env["modelsim_path"], "..")
-        else:
-            modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
-        self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
-        self.additional_deps.append("modelsim.ini")
-        self.additional_clean.extend(["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
-
-        self.copy_rules["modelsim.ini"] = os.path.join("$(MODELSIM_INI_PATH)", "modelsim.ini")
-        super(ToolControls, self).generate_simulation_makefile(fileset, top_module)
 

@@ -94,7 +94,7 @@ PWD := $(shell pwd)
         self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
-        self.writeln("INCLUDE_DIRS := +incdir+%s" % ('+'.join(top_module.include_dirs)))
+        #self.writeln("INCLUDE_DIRS := +incdir+%s" % ('+'.join(top_module.include_dirs)))
 
         self.write("VERILOG_SRC := ")
         for vl in fileset.filter(VerilogFile):

@@ -26,7 +26,10 @@ import string
 from hdlmake.makefile_writer import MakefileWriter
 
 
-class ToolControls(MakefileWriter):
+class ToolActiveHDL(MakefileWriter):
+
+    def __init__(self):
+        super(ToolActiveHDL, self).__init__()
 
     def detect_version(self, path):
         pass

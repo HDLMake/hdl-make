@@ -40,7 +40,10 @@ ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                       'simprims_ver', 'unisims_ver', 'uni9000_ver',
                       'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
-class ToolControls(MakefileWriter):
+class ToolISim(MakefileWriter):
+
+    def __init__(self):
+        super(ToolISim, self).__init__()
 
     def get_keys(self):
         tool_info = {
@@ -196,8 +199,9 @@ isim.wdb isim_proj isim_proj.*
             #incdir = "-i "
             #incdir += " -i ".join(vl.include_dirs)
             #incdir += " "
-            self.write(' -i ')
-            self.write(' '.join(vl.include_dirs) + ' ')
+            if vl.include_dirs:
+                self.write(' -i ')
+                self.write(' '.join(vl.include_dirs) + ' ')
             self.writeln(vl.vlog_opt+" $<")
             self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")

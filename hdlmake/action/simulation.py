@@ -31,8 +31,13 @@ from hdlmake.dep_file import DepFile
 #import hdlmake.new_dep_solver as dep_solver
 
 from .action import Action
+from hdlmake.tools import (
+    ToolIVerilog, ToolISim, ToolModelsim,
+    ToolActiveHDL, ToolRiviera, ToolGHDL)
 
-class GenerateSimulationMakefile(Action):
+class GenerateSimulationMakefile(Action,
+    ToolIVerilog, ToolISim, ToolModelsim,
+    ToolActiveHDL, ToolRiviera, ToolGHDL):
     """This class contains the simulation specific methods"""
 
     def _check_simulation_makefile(self):
@@ -50,8 +55,20 @@ class GenerateSimulationMakefile(Action):
         self._check_all_fetched_or_quit()
         self._check_simulation_makefile()
         tool_name = self.get_top_module().manifest_dict["sim_tool"]
-        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-        tool_object = tool_module.ToolControls()
+
+        if tool_name is "iverilog":
+            tool_object = ToolIVerilog()
+        elif tool_name is "isim":
+            tool_object = ToolISim()
+        elif tool_name is "modelsim":
+            tool_object = ToolModelsim()
+        elif tool_name is "active-hdl":
+            tool_object = ToolActiveHDL()
+        elif tool_name is "riviera":
+            tool_object = ToolRiviera()
+        elif tool_name is "ghdl":
+            tool_object = ToolGHDL()
+
         tool_info = tool_object.get_keys()
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
