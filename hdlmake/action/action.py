@@ -22,7 +22,15 @@
 import sys
 import logging
 
-class Action(object):
+from hdlmake.action import (ActionCheck, ActionCore,
+                    ActionTree, ActionSimulation,
+                    ActionSynthesis,
+                    QsysHwTclUpdate)
+
+class Action(ActionCheck, ActionCore,
+             ActionTree, ActionSimulation,
+             ActionSynthesis,
+             QsysHwTclUpdate):
 
     def _check_all_fetched_or_quit(self):
         if not self.is_everything_fetched():

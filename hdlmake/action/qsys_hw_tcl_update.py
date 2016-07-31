@@ -19,14 +19,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from .action import Action
 import hdlmake.new_dep_solver as dep_solver
 import os
 import shutil
 import logging
 
 
-class QsysHwTclUpdate(Action):
+class QsysHwTclUpdate(object):
     def qsys_hw_tcl_update(self):
         file_set = self.build_file_set(self.get_top_module().manifest_dict["syn_top"])
         file_list = dep_solver.make_dependency_sorted_list(file_set)

@@ -25,14 +25,13 @@ import os
 import os.path
 import time
 
-from .action import Action
 import hdlmake.fetch as fetch
 import hdlmake.new_dep_solver as dep_solver
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile, NGCFile
 from hdlmake.vlog_parser import VerilogPreprocessor
 
-class ActionCore(Action):
+class ActionCore(object):
 
     def fetch(self):
         top_module = self.get_top_module()

@@ -20,10 +20,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from .check import ActionCheck
 from .core import ActionCore
 from .tree import ActionTree
 
 from .synthesis import ActionSynthesis
-from .simulation import GenerateSimulationMakefile
+from .simulation import ActionSimulation
 from .qsys_hw_tcl_update import QsysHwTclUpdate
+
+from .action import Action

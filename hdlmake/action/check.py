@@ -24,10 +24,8 @@ import logging
 import sys
 import re
 
-from .action import Action
 
-
-class ActionCheck(Action):
+class ActionCheck(object):
 
     def check_manifest(self):
         logging.error("This action is not implemented yet!")

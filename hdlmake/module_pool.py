@@ -34,16 +34,10 @@ from . import new_dep_solver as dep_solver
 from .util import path as path_mod
 from . import fetch
 from .env import Env
-from .action import (ActionCheck, ActionCore,
-                    ActionTree, GenerateSimulationMakefile,
-                    ActionSynthesis,
-                    QsysHwTclUpdate)
+from .action import Action
 
 
-class ModulePool(list, ActionCheck, ActionCore,
-                    ActionTree, GenerateSimulationMakefile,
-                    ActionSynthesis,
-                    QsysHwTclUpdate):
+class ModulePool(list, Action):
     """
     The ModulePool class acts as the container for the HDLMake modules that
     are progressively being added to the design hierarchy.

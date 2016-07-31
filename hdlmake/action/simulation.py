@@ -30,12 +30,11 @@ import importlib
 from hdlmake.dep_file import DepFile
 #import hdlmake.new_dep_solver as dep_solver
 
-from .action import Action
 from hdlmake.tools import (
     ToolIVerilog, ToolISim, ToolModelsim,
     ToolActiveHDL, ToolRiviera, ToolGHDL)
 
-class GenerateSimulationMakefile(Action,
+class ActionSimulation(
     ToolIVerilog, ToolISim, ToolModelsim,
     ToolActiveHDL, ToolRiviera, ToolGHDL):
     """This class contains the simulation specific methods"""

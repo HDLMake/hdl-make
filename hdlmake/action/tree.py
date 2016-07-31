@@ -19,12 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from .action import Action
 from hdlmake.util import path
 
 import logging
 
-class ActionTree(Action):
+class ActionTree(object):
     def generate_tree(self):
         try:
             import networkx as nx

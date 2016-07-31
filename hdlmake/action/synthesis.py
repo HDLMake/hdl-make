@@ -29,13 +29,11 @@ import importlib
 from hdlmake.srcfile import SourceFileFactory
 from hdlmake.util import path
 
-from .action import Action
-
 from hdlmake.tools import (
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero)
 
-class ActionSynthesis(Action,
+class ActionSynthesis(
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero):
 
