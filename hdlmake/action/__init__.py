@@ -22,7 +22,6 @@
 
 from .check import ActionCheck
 from .core import ActionCore
-from .merge import ActionMerge
 from .tree import ActionTree
 
 from .synthesis import ActionSynthesis

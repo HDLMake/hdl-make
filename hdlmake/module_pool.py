@@ -35,13 +35,13 @@ from .util import path as path_mod
 from . import fetch
 from .env import Env
 from .action import (ActionCheck, ActionCore,
-                    ActionMerge, ActionTree, GenerateSimulationMakefile,
+                    ActionTree, GenerateSimulationMakefile,
                     ActionSynthesis,
                     QsysHwTclUpdate)
 
 
 class ModulePool(list, ActionCheck, ActionCore,
-                    ActionMerge, ActionTree, GenerateSimulationMakefile,
+                    ActionTree, GenerateSimulationMakefile,
                     ActionSynthesis,
                     QsysHwTclUpdate):
     """
