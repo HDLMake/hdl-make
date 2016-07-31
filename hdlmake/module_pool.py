@@ -34,14 +34,14 @@ from . import new_dep_solver as dep_solver
 from .util import path as path_mod
 from . import fetch
 from .env import Env
-from .action import (CheckManifest, CheckCondition, FetchModules, ListFiles,
-                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
+from .action import (CheckManifest, CheckCondition, ActionCore,
+                    MergeCores, Tree, GenerateSimulationMakefile,
                     ActionSynthesis,
                     QsysHwTclUpdate)
 
 
-class ModulePool(list, CheckManifest, CheckCondition, FetchModules, ListFiles,
-                    ListModules, MergeCores, Tree, GenerateSimulationMakefile,
+class ModulePool(list, CheckManifest, CheckCondition, ActionCore,
+                    MergeCores, Tree, GenerateSimulationMakefile,
                     ActionSynthesis,
                     QsysHwTclUpdate):
     """
