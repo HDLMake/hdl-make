@@ -22,7 +22,6 @@
 
 from .check_condition import CheckCondition
 from .check_manifest import CheckManifest
-from .clean import CleanModules
 from .fetch import FetchModules
 from .list_files import ListFiles
 from .list_modules import ListModules

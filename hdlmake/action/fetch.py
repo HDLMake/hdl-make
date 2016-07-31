@@ -24,6 +24,7 @@ import sys
 import os
 
 from .action import Action
+import hdlmake.fetch as fetch
 
 
 class FetchModules(Action):
@@ -35,3 +36,17 @@ class FetchModules(Action):
         self.fetch_all()
         os.system(top_module.manifest_dict["fetch_post_cmd"])
         logging.info("All modules fetched.")
+
+
+    def clean(self):
+        logging.info("Removing fetched modules..")
+        remove_list = [m for m in self if m.source in [fetch.GIT, fetch.SVN] and m.isfetched]
+        remove_list.reverse()  # we will remove modules in backward order
+        if len(remove_list):
+            for m in remove_list:
+                logging.info("... clean: " + m.url + " [from: " + m.path + "]")
+                m.remove_dir_from_disk()
+        else:
+            logging.info("There are no modules to be removed")
+        logging.info("Modules cleaned.")
+
