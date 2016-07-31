@@ -32,7 +32,10 @@ from hdlmake.makefile_writer import MakefileWriter
 DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolControls(MakefileWriter):
+class ToolDiamond(MakefileWriter):
+
+    def __init__(self):
+        super(ToolDiamond, self).__init__()
 
     def detect_version(self, path):
         return 'unknown'

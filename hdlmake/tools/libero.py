@@ -33,8 +33,10 @@ from hdlmake.makefile_writer import MakefileWriter
 LIBERO_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolControls(MakefileWriter):
+class ToolLibero(MakefileWriter):
 
+    def __init__(self):
+        super(ToolLibero, self).__init__()
 
     def detect_version(self, path):
         return 'unknown'

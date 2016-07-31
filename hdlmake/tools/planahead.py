@@ -25,16 +25,19 @@ import subprocess
 import sys
 import os
 import string
+from string import Template
 import logging
 
 from hdlmake.makefile_writer import MakefileWriter
 
 
-VIVADO_STANDARD_LIBS = ['ieee', 'std']
+PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolControls(MakefileWriter):
+class ToolPlanAhead(MakefileWriter):
 
+    def __init__(self):
+        super(ToolPlanAhead, self).__init__()
     
     def detect_version(self, path):
         return 'unknown'
@@ -42,37 +45,39 @@ class ToolControls(MakefileWriter):
     
     def get_keys(self):
         tool_info = {
-            'name': 'vivado',
-            'id': 'vivado',
-            'windows_bin': 'vivado',
-            'linux_bin': 'vivado',
-            'project_ext': 'xpr'
+            'name': 'PlanAhead',
+            'id': 'planahead',
+            'windows_bin': 'planAhead',
+            'linux_bin': 'planAhead',
+            'project_ext': 'ppr'
         }
         return tool_info
 
     def get_standard_libraries(self):
-        return VIVADO_STANDARD_LIBS
+        return PLANAHEAD_STANDARD_LIBS
 
     def generate_synthesis_makefile(self, top_mod, tool_path):
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
-VIVADO_CRAP := \
+PLANAHEAD_CRAP := \
+planAhead_* \
+planAhead.* \
 run.tcl
 
 #target for performing local synthesis
 local: syn_pre_cmd synthesis syn_post_cmd
 
 synthesis:
-\t\techo "open_project $$(PROJECT).xpr" > run.tcl
+\t\techo "open_project $$(PROJECT).ppr" > run.tcl
 \t\techo "reset_run synth_1" >> run.tcl
 \t\techo "reset_run impl_1" >> run.tcl
 \t\techo "launch_runs synth_1" >> run.tcl
 \t\techo "wait_on_run synth_1" >> run.tcl
 \t\techo "launch_runs impl_1" >> run.tcl
 \t\techo "wait_on_run impl_1" >> run.tcl
-\t\techo "launch_runs impl_1 -to_step write_bitstream" >> run.tcl
+\t\techo "launch_runs impl_1 -to_step Bitgen" >> run.tcl
 \t\techo "wait_on_run impl_1" >> run.tcl
 \t\techo "exit" >> run.tcl
-\t\t${vivado_sh_path} -mode tcl -source run.tcl
+\t\t${planahead_sh_path} -mode tcl -source run.tcl
 \t\tcp $$(PROJECT).runs/impl_1/${syn_top}.bit ${syn_top}.bit
 
 syn_post_cmd:
@@ -84,7 +89,7 @@ syn_pre_cmd:
 #target for cleaning all intermediate stuff
 clean:
 \t\trm -f $$(PLANAHEAD_CRAP)
-\t\trm -rf .Xil $$(PROJECT).cache $$(PROJECT).data $$(PROJECT).runs $$(PROJECT).xpr
+\t\trm -rf .Xil $$(PROJECT).cache $$(PROJECT).data $$(PROJECT).runs $$(PROJECT).ppr
 
 #target for cleaning final files
 mrproper:
@@ -110,7 +115,7 @@ mrproper:
                                   planahead_path=tool_path,
                                   syn_pre_cmd=syn_pre_cmd,
                                   syn_post_cmd=syn_post_cmd,
-                                  vivado_sh_path=os.path.join(tool_path, "vivado"))
+                                  planahead_sh_path=os.path.join(tool_path, "planAhead"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
@@ -118,7 +123,7 @@ mrproper:
 
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
-        logging.info("Remote Vivado wrapper")
+        logging.info("Remote PlanAhead wrapper")
 
 
     def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
@@ -141,7 +146,7 @@ mrproper:
         self.emit()
         self.execute()
 
-        logging.info("Vivado project file generated.")
+        logging.info("PlanAhead project file generated.")
 
 
     def emit(self):
@@ -156,10 +161,10 @@ mrproper:
         f.close()
 
     def execute(self):
-        tmp = 'vivado -mode tcl -source {0}'
+        tmp = 'planAhead -mode tcl -source {0}'
         cmd = tmp.format(self.tclname)
         p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
-        ## But do not wait till Vivado finish, start displaying output immediately ##
+        ## But do not wait till planahead finish, start displaying output immediately ##
         while True:
             out = p.stderr.read(1)
             if out == '' and p.poll() != None:
@@ -182,12 +187,10 @@ mrproper:
                                syn_grade,
                                syn_package,
                                syn_top):
-        PAPP = _VivadoProjectProperty
+        PAPP = _PlanAheadProjectProperty
         self.add_property(PAPP(name='part', value=syn_device+syn_package+syn_grade, objects='current_project'))
-        # self.add_property(PAPP(name='board_part', value='em.avnet.com:microzed_7010:part0:1.0', objects='current_project'))
         self.add_property(PAPP(name='target_language', value='VHDL', objects='current_project'))
-
-        # self.add_property(PAPP(name='ng.output_hdl_format', value='VHDL', objects='get_filesets sim_1'))
+        self.add_property(PAPP(name='ng.output_hdl_format', value='VHDL', objects='get_filesets sim_1'))
         # the bitgen b arg generates a raw configuration bitstream
         # self.add_property(PAPP(name='steps.bitgen.args.b', value='true', objects='get_runs impl_1'))
         self.add_property(PAPP(name='top', value=syn_top, objects='get_property srcset [current_run]'))
@@ -199,7 +202,7 @@ mrproper:
 
     def update_project(self):
         tmp = 'open_project ./{0}'
-        self.header = tmp.format(self.filename+'.xpr')
+        self.header = tmp.format(self.filename+'.ppr')
 
 
     def __emit_properties(self):
@@ -213,32 +216,22 @@ mrproper:
 
     def __emit_files(self):
         tmp = "add_files -norecurse {0}"
-        tcl = "source {0}"
         ret = []
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile, BDFile, TCLFile
+        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile
         for f in self.files:
-            if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile) or isinstance(f, BDFile):
+            if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile):
                 line = tmp.format(f.rel_path())
-            elif isinstance(f, TCLFile):
-                line = tcl.format(f.rel_path())
             else:
                 continue
             ret.append(line)
         return ('\n'.join(ret))+'\n'
 
+
     def supported_files(self, fileset):
-        from hdlmake.srcfile import UCFFile, NGCFile, XMPFile, XCOFile
-        from hdlmake.srcfile import BDFile, TCLFile, SourceFileSet
+        from hdlmake.srcfile import UCFFile, NGCFile, XMPFile, XCOFile, SourceFileSet
         sup_files = SourceFileSet()
         for f in fileset:
-            if (
-                   (isinstance(f, UCFFile)) or
-                   (isinstance(f, NGCFile)) or
-                   (isinstance(f, XMPFile)) or
-                   (isinstance(f, XCOFile)) or
-                   (isinstance(f, BDFile)) or
-                   (isinstance(f, TCLFile))
-               ):
+            if (isinstance(f, UCFFile)) or (isinstance(f, NGCFile)) or (isinstance(f, XMPFile)) or (isinstance(f, XCOFile)):
                 sup_files.add(f)
             else:
                 continue
@@ -246,7 +239,7 @@ mrproper:
 
 
 
-class _VivadoProjectProperty:
+class _PlanAheadProjectProperty:
     def __init__(self, name=None, value=None, objects=None):
         self.name = name
         self.value = value
@@ -256,4 +249,6 @@ class _VivadoProjectProperty:
         tmp = "set_property {0} {1} [{2}]"
         line = tmp.format(self.name, self.value, self.objects)
         return(line)
+
+
 

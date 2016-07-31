@@ -31,7 +31,32 @@ from hdlmake.util import path
 
 from .action import Action
 
-class ActionSynthesis(Action):
+from hdlmake.tools import (
+    ToolISE, ToolPlanAhead, ToolVivado,
+    ToolQuartus, ToolDiamond, ToolLibero)
+
+class ActionSynthesis(Action,
+    ToolISE, ToolPlanAhead, ToolVivado,
+    ToolQuartus, ToolDiamond, ToolLibero):
+
+    def _load_synthesis_tool(self):
+        tool_name = self.get_top_module().manifest_dict["syn_tool"]
+        if tool_name is "ise":
+            tool_object = ToolISE()
+        elif tool_name is "planahead":
+            tool_object = ToolPlanAhead()
+        elif tool_name is "vivado":
+            tool_object = ToolVivado()
+        elif tool_name is "quartus":
+            tool_object = ToolQuartus()
+        elif tool_name is "diamond":
+            tool_object = ToolDiamond()
+        elif tool_name is "libero":
+            tool_object = ToolLibero()
+        else:
+            logging.error("Synthesis tool not recognized: %s", tool_name)
+        return tool_object
+
 
     def _check_synthesis_makefile(self):
         # NOTE: top_module is not used in synthesis!!
@@ -49,9 +74,7 @@ class ActionSynthesis(Action):
 
 
     def _generate_synthesis_makefile(self):
-        tool_name = self.get_top_module().manifest_dict["syn_tool"]
-        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-        tool_object = tool_module.ToolControls()
+        tool_object = self._load_synthesis_tool()
         tool_info = tool_object.get_keys()
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
@@ -173,9 +196,7 @@ end sdb_meta_pkg;""")
 
 
     def _generate_synthesis_project(self):
-        tool_name = self.get_top_module().manifest_dict["syn_tool"]
-        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-        tool_object = tool_module.ToolControls()
+        tool_object = self._load_synthesis_tool()
         tool_info = tool_object.get_keys()
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
@@ -248,9 +269,7 @@ end sdb_meta_pkg;""")
 
 
     def _generate_remote_synthesis_makefile(self):
-        tool_name = self.get_top_module().manifest_dict["syn_tool"]
-        tool_module = importlib.import_module("hdlmake.tools.%s.%s" % (tool_name, tool_name))
-        tool_object = tool_module.ToolControls()
+        tool_object = self._load_synthesis_tool()
         logging.info("Generating makefile for remote synthesis.")
 
         top_mod = self.get_top_module()

@@ -34,8 +34,10 @@ from hdlmake.makefile_writer import MakefileWriter
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
 
-class ToolControls(MakefileWriter):
+class ToolQuartus(MakefileWriter):
 
+    def __init__(self):
+        super(ToolQuartus, self).__init__()
 
     def detect_version(self, path):
         return 'unknown'

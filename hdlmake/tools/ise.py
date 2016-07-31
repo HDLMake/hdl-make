@@ -49,7 +49,10 @@ FAMILY_NAMES = {
     "XC7A": "Artix7"}
 
 
-class ToolControls(MakefileWriter):
+class ToolISE(MakefileWriter):
+
+    def __init__(self):
+        super(ToolISE, self).__init__()
 
     def get_keys(self):
         tool_info = {
