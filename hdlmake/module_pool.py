@@ -36,13 +36,13 @@ from . import fetch
 from .env import Env
 from .action import (CheckManifest, CheckCondition, FetchModules, ListFiles,
                     ListModules, MergeCores, Tree, GenerateSimulationMakefile,
-                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
+                    ActionSynthesis,
                     QsysHwTclUpdate)
 
 
 class ModulePool(list, CheckManifest, CheckCondition, FetchModules, ListFiles,
                     ListModules, MergeCores, Tree, GenerateSimulationMakefile,
-                    GenerateSynthesisMakefile, GenerateRemoteSynthesisMakefile, GenerateSynthesisProject,
+                    ActionSynthesis,
                     QsysHwTclUpdate):
     """
     The ModulePool class acts as the container for the HDLMake modules that

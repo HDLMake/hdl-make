@@ -28,8 +28,6 @@ from .list_modules import ListModules
 from .merge_cores import MergeCores
 from .tree import Tree
 
-from .synthesis_project import GenerateSynthesisProject
-from .synthesis import GenerateSynthesisMakefile
-from .remote_synthesis import GenerateRemoteSynthesisMakefile
+from .synthesis import ActionSynthesis
 from .simulation import GenerateSimulationMakefile
 from .qsys_hw_tcl_update import QsysHwTclUpdate
