@@ -35,7 +35,7 @@ from .util import path as path_mod
 from . import fetch
 from .env import Env
 
-from .action import (ActionCheck, ActionCore,
+from .action import (Action, ActionCheck, ActionCore,
                     ActionTree, ActionSimulation,
                     ActionSynthesis,
                     QsysHwTclUpdate)
@@ -51,9 +51,7 @@ class ModulePool(list, ActionCheck, ActionCore,
     """
     def __init__(self, *args):
         list.__init__(self, *args)
-        self.top_module = None
-        self._deps_solved = False
-        self.env = None
+        Action.__init__(self)
 
     def set_environment(self, options):
         """Initialize the module pool environment from the provided options"""

@@ -27,6 +27,12 @@ import logging
 class Action(object):
     """This is the base class providing the common Action methods"""
 
+    def __init__(self):
+        self.top_module = None
+        self._deps_solved = False
+        self.env = None
+
+
     def _check_all_fetched_or_quit(self):
         """Check if every module in the pool is fetched"""
         if not self.is_everything_fetched():
