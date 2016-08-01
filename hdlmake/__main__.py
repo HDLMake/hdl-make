@@ -124,7 +124,6 @@ def _action_runner(modules_pool):
         elif top_mod.action == "synthesis":
             modules_pool.synthesis_project()
             modules_pool.synthesis_makefile()
-            #modules_pool.remote_synthesis()
         elif top_mod.action == "qsys_hw_tcl_update":
             if not top_mod.manifest_dict["hw_tcl_filename"]:
                 logging.error("'hw_tcl_filename' manifest variable has to be specified. "
@@ -135,8 +134,6 @@ def _action_runner(modules_pool):
         modules_pool.simulation_makefile()
     elif options.command == "make-synthesis":
         modules_pool.synthesis_makefile()
-    elif options.command == "make-remote":
-        modules_pool.remote_synthesis()
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":
@@ -180,7 +177,6 @@ def _get_parser():
     manifest_help = subparsers.add_parser("manifest-help", help="print manifest file variables description")
     make_simulation = subparsers.add_parser("make-simulation", help="generate simulation makefile")
     make_synthesis = subparsers.add_parser("make-synthesis", help="generate synthesis makefile")
-    make_remote = subparsers.add_parser("make-remote", help="generate remote synthesis makefile")
 
     fetch = subparsers.add_parser("fetch", help="fetch and/or update remote modules listed in Manifest")
     clean = subparsers.add_parser("clean", help="remove all modules fetched for direct and indirect children of this module")

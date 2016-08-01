@@ -151,49 +151,6 @@ class Env(dict):
             print("Detected " + name +" version %s" % self[version_key])
 
 
-    def check_remote_tool(self, info_class):
-
-        if platform.system() == 'Windows': is_windows = True
-        else: is_windows = False
-
-        tool_info = info_class.get_keys()
-        remote_path_key = 'rsynth_' + tool_info['id'] + '_path'
-        remote_version_key = 'rsynth_' + tool_info['id'] + '_version'
-        name = tool_info['name']
-        
-        print("\n### Remote tool " + name + " environment information ###")
-        self._report_and_set_hdlmake_var("rsynth_user")
-        self._report_and_set_hdlmake_var("rsynth_server")
-        can_connect = False
-        if self["rsynth_user"] is not None and self["rsynth_server"] is not None:
-            ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s echo ok 2>&1'
-            ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"])
-            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=not is_windows)
-            ssh_response = ssh_out.stdout.readlines()[0].strip()
-            if ssh_response == "ok":
-                print("Can connect to the remote machine: %s@%s." % (self["rsynth_user"], self["rsynth_server"]))
-                can_connect = True
-            else:
-                print("Can't make a passwordless connection to the remote machine: %s@%s" % (self["rsynth_user"], self["rsynth_server"]))
-                can_connect = False
-
-        self._report_and_set_hdlmake_var(remote_path_key)
-        if can_connect and self[remote_path_key] is not None:
-            ssh_cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=5 %s@%s test -e %s 2>&1'
-            ssh_cmd = ssh_cmd % (self["rsynth_user"], self["rsynth_server"], self[remote_path_key])
-            ssh_out = Popen(ssh_cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=not is_windows)
-            ssh_response = ssh_out.returncode
-            if ssh_response == 0:
-                print("%s found on remote machine under %s." % (name, self[remote_path_key]))
-            else:
-                print("Can't find %s on remote machine under %s." % (name, self[remote_path_key]))
-        self._report_and_set_hdlmake_var("rsynth_use_screen")
-        if self["rsynth_use_screen"]:
-            print("Remote execution will use screen.")
-        else:
-            print("To use screen, set it to '1'.")
-
-
     def _report_and_set_hdlmake_var(self, name):
         name = name.upper()
         val = self._get(name)

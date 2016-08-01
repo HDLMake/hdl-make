@@ -124,9 +124,6 @@ mrproper:
             if os.path.exists(f):
                 self.write("include %s\n" % f)
 
-    def generate_remote_synthesis_makefile(
-            self, files, name, cwd, user, server):
-        logging.info("Remote Quartus wrapper")
 
     def _set_tcl_files(self, mod):
         """Method that checks if the TCL files declared by the module

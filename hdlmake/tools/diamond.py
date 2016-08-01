@@ -115,9 +115,6 @@ mrproper:
             if os.path.exists(f):
                 self.write("include %s\n" % f)
 
-    def generate_remote_synthesis_makefile(
-            self, files, name, cwd, user, server):
-        logging.info("Remote Diamond wrapper")
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
