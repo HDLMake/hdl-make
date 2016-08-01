@@ -25,7 +25,6 @@
 from __future__ import print_function
 import logging
 import sys
-import importlib
 
 from hdlmake.dep_file import DepFile
 #import hdlmake.new_dep_solver as dep_solver
@@ -90,7 +89,7 @@ class ActionSimulation(
 
         top_module = self.get_top_module()
 
-        fset = self.build_file_set(self.get_top_module().manifest_dict["sim_top"])
+        fset = self.build_file_set(top_module.manifest_dict["sim_top"])
         dep_files = fset.filter(DepFile)
         #dep_solver.solve(dep_files)
 

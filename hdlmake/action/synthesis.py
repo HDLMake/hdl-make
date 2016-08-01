@@ -20,11 +20,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""This module provides the synthesis functionality to HDLMake"""
+
 from __future__ import print_function
 import logging
 import sys
 import os
-import importlib
 
 from hdlmake.srcfile import SourceFileFactory
 from hdlmake.util import path
@@ -36,8 +37,10 @@ from hdlmake.tools import (
 class ActionSynthesis(
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero):
+    """Class providing the public synthesis methods for the user"""
 
     def _load_synthesis_tool(self):
+        """Returns a tool_object that provides the synthesis tool interface"""
         tool_name = self.get_top_module().manifest_dict["syn_tool"]
         if tool_name is "ise":
             tool_object = ToolISE()
@@ -57,6 +60,7 @@ class ActionSynthesis(
 
 
     def _check_synthesis_makefile(self):
+        """Check the manifest contains all the keys for a synthesis makefile"""
         # NOTE: top_module is not used in synthesis!!
         if not self.get_top_module().manifest_dict["syn_top"]:
             logging.error("syn_top variable must be set in the top manifest.")
@@ -67,19 +71,13 @@ class ActionSynthesis(
 
 
     def synthesis_makefile(self):
+        """Generate a synthesis Makefile for the selected tool"""
         self._check_all_fetched_or_quit()
-        self._generate_synthesis_makefile()
+        self._check_synthesis_makefile()
 
-
-    def _generate_synthesis_makefile(self):
         tool_object = self._load_synthesis_tool()
         tool_info = tool_object.get_keys()
-        if sys.platform == 'cygwin':
-            bin_name = tool_info['windows_bin']
-        else:
-            bin_name = tool_info['linux_bin']
         path_key = tool_info['id'] + '_path'
-        version_key = tool_info['id'] + '_version'
         name = tool_info['name']
 
         env = self.env
@@ -92,38 +90,14 @@ class ActionSynthesis(
             tool_path = ""
 
         logging.info("Generating synthesis makefile for " + name)
-        tool_object.generate_synthesis_makefile(top_mod=self.get_top_module(),
-                                                         tool_path=tool_path)
+        tool_object.generate_synthesis_makefile(
+            top_mod=self.get_top_module(),
+            tool_path=tool_path)
         logging.info("Synthesis makefile generated.")
 
 
-
-    def _check_synthesis_project(self):
-        manifest = self.get_top_module().manifest_dict
-        if not manifest["syn_tool"]:
-            logging.error("syn_tool variable must be set in the top manifest.")
-            sys.exit("Exiting")
-        if not manifest["syn_device"]:
-            logging.error("syn_device variable must be set in the top manifest.")
-            sys.exit("Exiting")
-        if not manifest["syn_grade"]:
-            logging.error("syn_grade variable must be set in the top manifest.")
-            sys.exit("Exiting")
-        if not manifest["syn_package"]:
-            logging.error("syn_package variable must be set in the top manifest.")
-            sys.exit("Exiting")
-        if not manifest["syn_top"]:
-            logging.error("syn_top variable must be set in the top manifest.")
-            sys.exit("Exiting")
-
-
-    def synthesis_project(self):
-        self._check_all_fetched_or_quit()
-        self._check_synthesis_project()
-        self._generate_synthesis_project()
-
-
     def _write_project_vhd(self, tool, version):
+        """Create a VHDL file containing a SDB compatible design description"""
         from string import Template
         from datetime import date
         import getpass
@@ -169,37 +143,63 @@ end sdb_meta_pkg;""")
 
         project_vhd = open("project.vhd", 'w')
         date_std_logic_vector = []
-        import re 
+        import re
         for digit in date_string:
             date_std_logic_vector.append("{0:04b}".format(int(digit)))
 
         syn_tool_version = version
-        syn_tool_version = re.sub("\D", "", syn_tool_version)
-	syn_tool_std_logic_vector = []
-	for digit in syn_tool_version:
-	    syn_tool_std_logic_vector.append("{0:04b}".format(int(digit)))
+        syn_tool_version = re.sub(r"\D", "", syn_tool_version)
+        syn_tool_std_logic_vector = []
+        for digit in syn_tool_version:
+            syn_tool_std_logic_vector.append("{0:04b}".format(int(digit)))
 
-        filled_template = template.substitute(repo_url=self.top_module.url,
-                                              syn_module_name=self.top_module.manifest_dict["syn_top"],
-                                              syn_commit_id=self.top_module.revision,
-                                              syn_tool_name=tool.upper(),
-                                              syn_tool_version="0000"*(8-len(syn_tool_std_logic_vector))+''.join(syn_tool_std_logic_vector),
-					      syn_tool_version_str=syn_tool_version,
-                                              syn_date=''.join(date_std_logic_vector),
-					      syn_date_str=date_string,
-                                              syn_username=getpass.getuser())
-        project_vhd.write(filled_template)
+        template.substitute(
+            repo_url=self.top_module.url,
+            syn_module_name=self.top_module.manifest_dict["syn_top"],
+            syn_commit_id=self.top_module.revision,
+            syn_tool_name=tool.upper(),
+            syn_tool_version="0000"*(8-len(syn_tool_std_logic_vector)) +
+                             ''.join(syn_tool_std_logic_vector),
+	    syn_tool_version_str=syn_tool_version,
+            syn_date=''.join(date_std_logic_vector),
+	    syn_date_str=date_string,
+            syn_username=getpass.getuser())
+        project_vhd.write(template)
         project_vhd.close()
 
 
+    def _check_synthesis_project(self):
+        """Check the manifest contains all the keys for a synthesis project"""
+        manifest = self.get_top_module().manifest_dict
+        if not manifest["syn_tool"]:
+            logging.error(
+                "syn_tool variable must be set in the top manifest.")
+            sys.exit("Exiting")
+        if not manifest["syn_device"]:
+            logging.error(
+                "syn_device variable must be set in the top manifest.")
+            sys.exit("Exiting")
+        if not manifest["syn_grade"]:
+            logging.error(
+                "syn_grade variable must be set in the top manifest.")
+            sys.exit("Exiting")
+        if not manifest["syn_package"]:
+            logging.error(
+                "syn_package variable must be set in the top manifest.")
+            sys.exit("Exiting")
+        if not manifest["syn_top"]:
+            logging.error(
+                "syn_top variable must be set in the top manifest.")
+            sys.exit("Exiting")
 
-    def _generate_synthesis_project(self):
+
+    def synthesis_project(self):
+        """Generate a project for the specific synthesis tool"""
+        self._check_all_fetched_or_quit()
+        self._check_synthesis_project()
+
         tool_object = self._load_synthesis_tool()
         tool_info = tool_object.get_keys()
-        if sys.platform == 'cygwin':
-            bin_name = tool_info['windows_bin']
-        else:
-            bin_name = tool_info['linux_bin']
         path_key = tool_info['id'] + '_path'
         version_key = tool_info['id'] + '_version'
         name = tool_info['name']
@@ -212,28 +212,34 @@ end sdb_meta_pkg;""")
 
         if not self.env.options.force:
             if self.env[path_key] is None:
-                logging.error("Can't generate the " + name + " project. " + name + " not found.")
+                logging.error("Can't generate the " + name + " project. "
+                              + name + " not found.")
                 quit()
         if version_key not in env or not env[version_key]:
-            logging.error(name + " version cannot be deduced. Cannot generate " + name + " "
-                          "project file properly. Please use syn_" + id_value + "_version in the manifest "
-                          "or set")
+            logging.error(name + " version cannot be deduced. Cannot generate "
+                          + name + " project file properly. Please use syn_"
+                          + id_value + "_version in the manifest or set")
             sys.exit("Exiting")
-        logging.info("Generating project for " + name + " v. %s" % env[version_key])
-        
-        if os.path.exists(self.top_module.manifest_dict["syn_project"]) or os.path.exists(self.top_module.manifest_dict["syn_project"] + "." + ext_value):
+        logging.info("Generating project for " + name + " v. %s",
+                     env[version_key])
+
+        if (os.path.exists(self.top_module.manifest_dict["syn_project"]) or
+            os.path.exists(self.top_module.manifest_dict["syn_project"] + "."
+                           + ext_value)):
             logging.info("Existing project detected: updating...")
-            update=True
+            update = True
         else:
             logging.info("No previous project: creating a new one...")
-            update=False
+            update = False
 
         top_mod = self.get_top_module()
         fileset = self.build_file_set(top_mod.manifest_dict["syn_top"])
-        privative_files = tool_object.supported_files(self.build_complete_file_set())
+        privative_files = tool_object.supported_files(
+            self.build_complete_file_set())
 
         if privative_files:
-            logging.info("Privative / non-parseable files detected: %s" % len(privative_files))
+            logging.info("Privative / non-parseable files detected: %s",
+                len(privative_files))
             fileset.add(privative_files)
 
         sff = SourceFileFactory()
@@ -245,12 +251,13 @@ end sdb_meta_pkg;""")
         tool_object.generate_synthesis_project(update=update,
                          tool_version=self.env[version_key],
                          top_mod=self.get_top_module(),
-                         fileset = fileset)
+                         fileset=fileset)
 
         logging.info(name + " project file generated.")
 
 
     def _check_remote_synthesis(self):
+        """Check we have all the variables to run a remote synthesis"""
         if not self.top_module.action == "synthesis":
             logging.error("action must be equal to \"synthesis\"")
             sys.exit("Exiting")
@@ -261,12 +268,10 @@ end sdb_meta_pkg;""")
 
 
     def remote_synthesis(self):
+        """Generate a Makefile that is able to run a remote synthesis"""
         self._check_all_fetched_or_quit()
         self._check_remote_synthesis()
-        self._generate_remote_synthesis_makefile()
 
-
-    def _generate_remote_synthesis_makefile(self):
         tool_object = self._load_synthesis_tool()
         logging.info("Generating makefile for remote synthesis.")
 
@@ -275,14 +280,17 @@ end sdb_meta_pkg;""")
         self.env.check_remote_tool(tool_object)
         self.env.check_general()
 
-        files = self.build_file_set(self.get_top_module().manifest_dict["syn_top"])
+        files = self.build_file_set(
+            self.get_top_module().manifest_dict["syn_top"])
 
         sff = SourceFileFactory()
-        files.add(sff.new(top_mod.manifest_dict["syn_project"], module=self.top_module))
+        files.add(sff.new(top_mod.manifest_dict["syn_project"],
+                          module=self.top_module))
 
-        tool_object.generate_remote_synthesis_makefile(files=files, name=top_mod.manifest_dict["syn_project"][:-5],
-                                                            cwd=top_mod.url, user=self.env["rsynth_user"],
-                                                            server=self.env["rsynth_server"])
+        tool_object.generate_remote_synthesis_makefile(
+            files=files, name=top_mod.manifest_dict["syn_project"][:-5],
+            cwd=top_mod.url, user=self.env["rsynth_user"],
+            server=self.env["rsynth_server"])
         logging.info("Remote synthesis makefile generated.")
 
 

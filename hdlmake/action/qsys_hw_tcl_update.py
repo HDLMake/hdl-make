@@ -27,22 +27,23 @@ import logging
 
 class QsysHwTclUpdate(object):
     def qsys_hw_tcl_update(self):
-        file_set = self.build_file_set(self.get_top_module().manifest_dict["syn_top"])
+        file_set = self.build_file_set(
+            self.get_top_module().manifest_dict["syn_top"])
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [os.path.relpath(f.path) for f in file_list]
-        
+
         file_tcl = []
         for fs in files_str:
             path, fname = os.path.split(fs)
             file_tcl.append("add_fileset_file %s VHDL PATH %s" % (fname, fs))
 
-        # mark the last file as the top level file. 
+        # mark the last file as the top level file.
         file_tcl[-1] += " TOP_LEVEL_FILE"
         file_tcl.append("\n")
-        
+
         hw_tcl_filename = self.get_top_module().manifest_dict["hw_tcl_filename"]
 
-        infile = open(hw_tcl_filename,"r")
+        infile = open(hw_tcl_filename, "r")
         inserted = True
         out_lines = []
         for line in infile.readlines():
@@ -64,8 +65,7 @@ class QsysHwTclUpdate(object):
         logging.info("Old hw.tcl file backed up to %s", hw_tcl_filename_backup)
 
         logging.info("Updating the file list in %s", hw_tcl_filename)
-        
-        
+
         outfile = open(hw_tcl_filename, "w")
         outfile.writelines(out_lines)
         outfile.close()

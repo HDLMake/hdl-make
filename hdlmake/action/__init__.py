@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""The Action package provides the full set of provided user functionalities"""
 
 from .check import ActionCheck
 from .core import ActionCore

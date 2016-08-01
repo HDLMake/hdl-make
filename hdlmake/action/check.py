@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module providing generic checking actions. This needs to be implemented"""
+
 from __future__ import print_function
 import logging
 import sys
@@ -26,14 +28,21 @@ import re
 
 
 class ActionCheck(object):
+    """Class providing the method to check general properties"""
 
     def check_manifest(self):
+        """Method that checks the manifest dict"""
+        logging.warning("Problems with top_module at %s", self.top_module.path)
         logging.error("This action is not implemented yet!")
-
+        quit()
 
     def check_condition(self):
+        """Method that checks if a supplied condition is OK"""
 
+        logging.error("This action is not implemented yet!")
+        quit()
         def _compare(local, reference, cond):
+            """Function that provides the actual condition line"""
             if cond == "==":
                 return local == reference
             elif cond == "<":
@@ -80,7 +89,7 @@ class ActionCheck(object):
             ver = re.sub("[a-zA-Z]", '', ver)
             ref = re.sub("[a-zA-Z]", '', ref)
         else:
-            logging.error("Unknown tool: %s" % tool)
+            logging.error("Unknown tool: %s", tool)
             sys.exit("\nExiting")
 
         comparison = _compare(ver, ref, self.env.options.condition)

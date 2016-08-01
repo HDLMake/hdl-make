@@ -19,54 +19,47 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module providing graph funtionalities to HDLMake"""
+
 from hdlmake.util import path
 
 import logging
 
 class ActionTree(object):
-    def generate_tree(self):
-        try:
-            import networkx as nx
-        except Exception as e:
-            logging.error(e)
-            quit()
-        unfetched_modules = False
-        files_str = []
-        hierarchy = nx.DiGraph()
-        color_index = 0
+    """Class providing methods to create a graph from pool and to analyze it"""
 
-        if self.env.options.solved:
-            logging.warning("This is the solved tree")
-        else:
-            for m in self:
-                if not m.isfetched:
-                    unfetched_modules = True
-                else:
-                    if m.parent: 
-                        hierarchy.add_node(path.relpath(m.path))
-                        hierarchy.add_edge(path.relpath(m.parent.path), path.relpath(m.path))
-                    else:
-                        hierarchy.add_node(path.relpath(m.path))
-                        top_id = path.relpath(m.path)
-                    if self.env.options.withfiles:
-                        if len(m.files):
-                            for f in m.files:
-                                hierarchy.add_edge(path.relpath(m.path), path.relpath(f.path))
-                color_index += 1
+    def _generate_tree_web(self, hierarchy, top_id):
+        """Create a JSON file containing the graph hierarchy from pool"""
+        if self.env.options.web:
+            try:
+                import json
+                from networkx.readwrite import json_graph
+            except ImportError as error_import:
+                logging.error(error_import)
+                quit()
+            data = json_graph.tree_data(hierarchy, root=top_id)
+            json_string = json.dumps(data)
+            json_file = open("hierarchy.json", "w")
+            json_file.write(json_string)
+            json_file.close()
 
-        if unfetched_modules: logging.warning("Some of the modules have not been fetched!")
 
-        # Define the program used to write the graphviz:
-        # Program should be one of: 
-        #     twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, 
-        #     circo, neato, acyclic, nop, gvpr, dot, sfdp.
+    def _generate_tree_graphviz(self, hierarchy, top_id):
+        """Define the program used to write the graphviz:
+        Program should be one of:
+             twopi, gvcolor, wc, ccomps, tred, sccmap, fdp,
+             circo, neato, acyclic, nop, gvpr, dot, sfdp
+        """
         if self.env.options.graphviz:
             try:
                 import matplotlib.pyplot as plt
-            except Exception as e:
-                logging.error(e)
+                import networkx as nx
+            except ImportError as error_import:
+                logging.error(error_import)
                 quit()
-            pos=nx.graphviz_layout(hierarchy, prog=self.env.options.graphviz, root=top_id)
+            pos = nx.graphviz_layout(hierarchy,
+                                     prog=self.env.options.graphviz,
+                                     root=top_id)
             nx.draw(hierarchy, pos,
                 with_labels=True,
                 alpha=0.5,
@@ -75,18 +68,40 @@ class ActionTree(object):
             plt.show()
 
 
-        if self.env.options.web:
-            try:
-                import json
-                from networkx.readwrite import json_graph
-            except Exception as e:
-                logging.error(e)
-                quit()
-            data = json_graph.tree_data(hierarchy, root=top_id)
-            s = json.dumps(data)
-            json_file = open("hierarchy.json", "w")
-            json_file.write(s)
-            json_file.close()
+    def generate_tree(self):
+        """Generate the graph from pool and create the requested outcomes"""
+        try:
+            import networkx as nx
+        except ImportError as error_import:
+            logging.error(error_import)
+            quit()
+        unfetched_modules = False
+        hierarchy = nx.DiGraph()
 
+        if self.env.options.solved:
+            logging.warning("This is the solved tree")
+        else:
+            for mod_aux in self:
+                if not mod_aux.isfetched:
+                    unfetched_modules = True
+                else:
+                    if mod_aux.parent:
+                        hierarchy.add_node(path.relpath(mod_aux.path))
+                        hierarchy.add_edge(path.relpath(mod_aux.parent.path),
+                                           path.relpath(mod_aux.path))
+                    else:
+                        hierarchy.add_node(path.relpath(mod_aux.path))
+                        top_id = path.relpath(mod_aux.path)
+                    if self.env.options.withfiles:
+                        if len(mod_aux.files):
+                            for file_aux in mod_aux.files:
+                                hierarchy.add_edge(path.relpath(mod_aux.path),
+                                                   path.relpath(file_aux.path))
+
+        if unfetched_modules:
+            logging.warning("Some of the modules have not been fetched!")
+
+        self._generate_tree_web(hierarchy, top_id)
+        self._generate_tree_graphviz(hierarchy, top_id)
 
 
