@@ -12,4 +12,3 @@ from .vivado import ToolVivado
 from .quartus import ToolQuartus
 from .diamond import ToolDiamond
 from .libero import ToolLibero
-

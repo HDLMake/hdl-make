@@ -41,7 +41,6 @@ class ToolLibero(MakefileWriter):
     def detect_version(self, path):
         return 'unknown'
 
-
     def get_keys(self):
         tool_info = {
             'name': 'Libero',
@@ -100,24 +99,25 @@ mrproper:
         else:
             syn_post_cmd = ''
 
-
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
-                                  project_name=top_mod.manifest_dict["syn_project"],
-                                  libero_path=tool_path,
-                                  syn_pre_cmd=syn_pre_cmd,
-                                  syn_post_cmd=syn_post_cmd,
-                                  libero_sh_path=os.path.join(tool_path, "libero"))
+        makefile_text = makefile_tmplt.substitute(
+            syn_top=top_mod.manifest_dict["syn_top"],
+            project_name=top_mod.manifest_dict[
+                "syn_project"],
+            libero_path=tool_path,
+            syn_pre_cmd=syn_pre_cmd,
+            syn_post_cmd=syn_post_cmd,
+            libero_sh_path=os.path.join(tool_path, "libero"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
                 self.write("include %s\n" % f)
 
-
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
+    def generate_remote_synthesis_makefile(
+            self, files, name, cwd, user, server):
         logging.info("Remote Libero wrapper")
 
-
-    def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
+    def generate_synthesis_project(
+            self, update=False, tool_version='', top_mod=None, fileset=None):
         self.files = []
         self.filename = top_mod.manifest_dict["syn_project"]
         self.syn_device = top_mod.manifest_dict["syn_device"]
@@ -133,12 +133,11 @@ mrproper:
             self.create_project()
         self.add_files(fileset)
         self.emit()
-        self.execute()     
-
+        self.execute()
 
     def emit(self, update=False):
         f = open(self.tclname, "w")
-        f.write(self.header+'\n')
+        f.write(self.header + '\n')
         f.write(self.__emit_files(update=update))
         f.write('save_project\n')
         f.write('close_project\n')
@@ -148,16 +147,16 @@ mrproper:
         tmp = 'libero SCRIPT:{0}'
         cmd = tmp.format(self.tclname)
         p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
-        ## But do not wait till Libero finish, start displaying output immediately ##
+        # But do not wait till Libero finish, start displaying output
+        # immediately ##
         while True:
             out = p.stderr.read(1)
-            if out == '' and p.poll() != None:
+            if out == '' and p.poll() is not None:
                 break
             if out != '':
                 sys.stdout.write(out)
                 sys.stdout.flush()
         os.remove(self.tclname)
-
 
     def add_files(self, fileset):
         for f in fileset:
@@ -165,12 +164,15 @@ mrproper:
 
     def create_project(self):
         tmp = 'new_project -location {{./{0}}} -name {{{0}}} -hdl {{VHDL}} -family {{ProASIC3}} -die {{{1}}} -package {{{2}}} -speed {{{3}}} -die_voltage {{1.5}}'
-        self.header = tmp.format(self.filename, self.syn_device.upper(), self.syn_package.upper(), self.syn_grade)
+        self.header = tmp.format(
+            self.filename,
+            self.syn_device.upper(),
+            self.syn_package.upper(),
+            self.syn_grade)
 
     def update_project(self):
         tmp = 'open_project -file {{{0}/{0}.prjx}}'
         self.header = tmp.format(self.filename)
-
 
     def __emit_files(self, update=False):
         link_string = 'create_links {0} {{{1}}}'
@@ -193,25 +195,28 @@ mrproper:
             else:
                 continue
             ret.append(line)
-        # Second stage: Organizing / activating synthesis constraints (the top module needs to be present!)
+        # Second stage: Organizing / activating synthesis constraints (the top
+        # module needs to be present!)
         if synthesis_constraints:
             line = 'organize_tool_files -tool {SYNTHESIZE} '
             for f in synthesis_constraints:
-                line = line+'-file {'+f.rel_path()+'} '
-            line = line+'-module {'+self.syn_top+'::work} -input_type {constraint}'
+                line = line + '-file {' + f.rel_path() + '} '
+            line = line + \
+                '-module {' + self.syn_top + '::work} -input_type {constraint}'
             ret.append(line)
-        # Third stage: Organizing / activating compilation constraints (the top module needs to be present!)
+        # Third stage: Organizing / activating compilation constraints (the top
+        # module needs to be present!)
         if compilation_constraints:
             line = 'organize_tool_files -tool {COMPILE} '
             for f in compilation_constraints:
-                line = line+'-file {'+f.rel_path()+'} '
-            line = line+'-module {'+self.syn_top+'::work} -input_type {constraint}'
+                line = line + '-file {' + f.rel_path() + '} '
+            line = line + \
+                '-module {' + self.syn_top + '::work} -input_type {constraint}'
             ret.append(line)
         # Fourth stage: set root/top module
-        line = 'set_root -module {'+self.syn_top+'::work}'
+        line = 'set_root -module {' + self.syn_top + '::work}'
         ret.append(line)
-        return ('\n'.join(ret))+'\n'
-
+        return ('\n'.join(ret)) + '\n'
 
     def supported_files(self, fileset):
         from hdlmake.srcfile import SDCFile, PDCFile, SourceFileSet
@@ -222,4 +227,3 @@ mrproper:
             else:
                 continue
         return sup_files
-

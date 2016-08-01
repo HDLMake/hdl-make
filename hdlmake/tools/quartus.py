@@ -42,7 +42,6 @@ class ToolQuartus(MakefileWriter):
     def detect_version(self, path):
         return 'unknown'
 
-
     def get_keys(self):
         tool_info = {
             'name': 'Quartus',
@@ -112,59 +111,57 @@ mrproper:
         else:
             syn_post_cmd = ''
 
-
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
-                                  project_name=top_mod.manifest_dict["syn_project"],
-                                  quartus_path=tool_path,
-                                  syn_pre_cmd=syn_pre_cmd,
-                                  syn_post_cmd=syn_post_cmd,
-                                  quartus_sh_path=os.path.join(tool_path, "quartus_sh"))
+        makefile_text = makefile_tmplt.substitute(
+            syn_top=top_mod.manifest_dict["syn_top"],
+            project_name=top_mod.manifest_dict[
+                "syn_project"],
+            quartus_path=tool_path,
+            syn_pre_cmd=syn_pre_cmd,
+            syn_post_cmd=syn_post_cmd,
+            quartus_sh_path=os.path.join(tool_path, "quartus_sh"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
                 self.write("include %s\n" % f)
 
-
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
+    def generate_remote_synthesis_makefile(
+            self, files, name, cwd, user, server):
         logging.info("Remote Quartus wrapper")
-        
-
 
     def _set_tcl_files(self, mod):
         """Method that checks if the TCL files declared by the module
         manifest dictionary exists and if so create them and
         initialize the appropriated variables in the Module instance"""
         from hdlmake.srcfile import TCLFile
-        if mod.manifest_dict["quartus_preflow"] != None:
+        if mod.manifest_dict["quartus_preflow"] is not None:
             path = path_mod.compose(
                 mod.manifest_dict["quartus_preflow"], mod.path)
             if not os.path.exists(path):
                 logging.error("quartus_preflow file listed in " + mod.path +
-                    " doesn't exist: " + path + ".\nExiting.")
+                              " doesn't exist: " + path + ".\nExiting.")
                 quit()
             self.preflow = TCLFile(path)
 
-        if mod.manifest_dict["quartus_postmodule"] != None:
+        if mod.manifest_dict["quartus_postmodule"] is not None:
             path = path_mod.compose(
                 mod.manifest_dict["quartus_postmodule"], mod.path)
             if not os.path.exists(path):
                 logging.error("quartus_postmodule file listed in " + mod.path +
-                    " doesn't exist: " + path + ".\nExiting.")
+                              " doesn't exist: " + path + ".\nExiting.")
                 quit()
             self.postmodule = TCLFile(path)
 
-        if mod.manifest_dict["quartus_postflow"] != None:
+        if mod.manifest_dict["quartus_postflow"] is not None:
             path = path_mod.compose(
                 mod.manifest_dict["quartus_postflow"], mod.path)
             if not os.path.exists(path):
                 logging.error("quartus_postflow file listed in " + mod.path +
-                    " doesn't exist: " + path + ".\nExiting.")
+                              " doesn't exist: " + path + ".\nExiting.")
                 quit()
             self.postflow = TCLFile(path)
 
-
-
-    def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
+    def generate_synthesis_project(
+            self, update=False, tool_version='', top_mod=None, fileset=None):
         self.properties = []
         self.files = []
         self.filename = top_mod.manifest_dict["syn_project"]
@@ -176,22 +173,21 @@ mrproper:
             self.read()
         else:
             self.add_initial_properties(top_mod.manifest_dict["syn_device"],
-                                       top_mod.manifest_dict["syn_family"],
-                                       top_mod.manifest_dict["syn_grade"],
-                                       top_mod.manifest_dict["syn_package"],
-                                       top_mod.manifest_dict["syn_top"])
+                                        top_mod.manifest_dict["syn_family"],
+                                        top_mod.manifest_dict["syn_grade"],
+                                        top_mod.manifest_dict["syn_package"],
+                                        top_mod.manifest_dict["syn_top"])
         self.add_files(fileset)
         self.emit()
 
-
     def emit(self):
-        f = open(self.filename+'.qsf', "w")
+        f = open(self.filename + '.qsf', "w")
         for p in self.properties:
-            f.write(p.emit()+'\n')
+            f.write(p.emit() + '\n')
         f.write(self.__emit_files())
         f.write(self.__emit_scripts())
         f.close()
-        f = open(self.filename+'.qpf', "w")
+        f = open(self.filename + '.qpf', "w")
         f.write("PROJECT_REVISION = \"" + self.filename + "\"\n")
         f.close()
 
@@ -201,13 +197,17 @@ mrproper:
         if self.preflow:
             pre = tmp.format("PRE_FLOW_SCRIPT_FILE", self.preflow.rel_path())
         if self.postmodule:
-            mod = tmp.format("POST_MODULE_SCRIPT_FILE", self.postmodule.rel_path())
+            mod = tmp.format(
+                "POST_MODULE_SCRIPT_FILE",
+                self.postmodule.rel_path())
         if self.postflow:
-            post = tmp.format("POST_FLOW_SCRIPT_FILE", self.postflow.rel_path())
-        return pre+'\n'+mod+'\n'+post+'\n'
+            post = tmp.format(
+                "POST_FLOW_SCRIPT_FILE",
+                self.postflow.rel_path())
+        return pre + '\n' + mod + '\n' + post + '\n'
 
     def __emit_files(self):
-        from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, 
+        from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                                      SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
                                      QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
         tmp = "set_global_assignment -name {0} {1}"
@@ -217,7 +217,10 @@ mrproper:
             if isinstance(f, VHDLFile):
                 line = tmplib.format("VHDL_FILE", f.rel_path(), f.library)
             elif isinstance(f, SVFile):
-                line = tmplib.format("SYSTEMVERILOG_FILE", f.rel_path(), f.library)
+                line = tmplib.format(
+                    "SYSTEMVERILOG_FILE",
+                    f.rel_path(),
+                    f.library)
             elif isinstance(f, VerilogFile):
                 line = tmp.format("VERILOG_FILE", f.rel_path())
             elif isinstance(f, SignalTapFile):
@@ -243,8 +246,7 @@ mrproper:
             else:
                 continue
             ret.append(line)
-        return ('\n'.join(ret))+'\n'
-
+        return ('\n'.join(ret)) + '\n'
 
     def supported_files(self, fileset):
         from hdlmake.srcfile import SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile, QSFFile
@@ -252,25 +254,24 @@ mrproper:
         sup_files = SourceFileSet()
         for f in fileset:
             if (
-                   (isinstance(f, SignalTapFile)) or 
-                   (isinstance(f, SDCFile)) or 
-                   (isinstance(f, QIPFile)) or 
-                   (isinstance(f, QSYSFile)) or
-                   (isinstance(f, DPFFile)) or 
-                   (isinstance(f, QSFFile)) or 
-                   (isinstance(f, BSFFile)) or 
-                   (isinstance(f, BDFFile)) or 
-                   (isinstance(f, TDFFile)) or 
-                   (isinstance(f, GDFFile)) 
-               ):
+                (isinstance(f, SignalTapFile)) or
+                (isinstance(f, SDCFile)) or
+                (isinstance(f, QIPFile)) or
+                (isinstance(f, QSYSFile)) or
+                (isinstance(f, DPFFile)) or
+                (isinstance(f, QSFFile)) or
+                (isinstance(f, BSFFile)) or
+                (isinstance(f, BDFFile)) or
+                (isinstance(f, TDFFile)) or
+                (isinstance(f, GDFFile))
+            ):
                 sup_files.add(f)
             else:
                 continue
         return sup_files
 
-
     def add_property(self, val):
-        #don't save files (they are unneeded)
+        # don't save files (they are unneeded)
         if val.name_type is not None and "_FILE" in val.name_type:
             return
         self.properties.append(val)
@@ -288,11 +289,11 @@ mrproper:
             else:
                 while True:
                     ret.append(words[i])
-                    if words[i][len(words[i])-1] == '"':
+                    if words[i][len(words[i]) - 1] == '"':
                         return (' '.join(ret), len(ret))
                     i = i + 1
 
-        f = open(self.filename+'.qsf', "r")
+        f = open(self.filename + '.qsf', "r")
         lines = [l.strip() for l in f.readlines()]
         lines = [l for l in lines if l != "" and l[0] != '#']
         QPP = _QuartusProjectProperty
@@ -306,25 +307,25 @@ mrproper:
                     break
 
                 if words[i] == "-name":
-                    name_type = words[i+1]
-                    name, add = __gather_string(words, i+2)
-                    i = i+2+add
+                    name_type = words[i + 1]
+                    name, add = __gather_string(words, i + 2)
+                    i = i + 2 + add
                     continue
                 elif words[i] == "-section_id":
-                    section_id, add = __gather_string(words, i+1)
-                    i = i+1+add
+                    section_id, add = __gather_string(words, i + 1)
+                    i = i + 1 + add
                     continue
                 elif words[i] == "-to":
-                    to, add = __gather_string(words, i+1)
-                    i = i+1+add
+                    to, add = __gather_string(words, i + 1)
+                    i = i + 1 + add
                     continue
                 elif words[i] == "-from":
-                    from_, add = __gather_string(words, i+1)
-                    i = i+2
+                    from_, add = __gather_string(words, i + 1)
+                    i = i + 2
                     continue
                 else:
                     what = words[i]
-                    i = i+1
+                    i = i + 1
                     continue
             prop = QPP(command=command,
                        what=what, name=name,
@@ -336,7 +337,8 @@ mrproper:
             self.add_property(prop)
         f.close()
 
-    def add_initial_properties(self, syn_device, syn_family, syn_grade, syn_package, syn_top):
+    def add_initial_properties(
+            self, syn_device, syn_family, syn_grade, syn_package, syn_top):
         import re
         family_names = {
             "^EP2AGX.*$": "Arria II GX",
@@ -346,33 +348,45 @@ mrproper:
             "^5S.*$": "Stratix V",
         }
 
-        if syn_family == None:
+        if syn_family is None:
             for key in family_names:
                 if re.match(key, syn_device.upper()):
                     syn_family = family_names[key]
-                    logging.debug("Auto-guessed syn_family to be %s (%s => %s)" % (syn_family, syn_device, key))
+                    logging.debug(
+                        "Auto-guessed syn_family to be %s (%s => %s)" %
+                        (syn_family, syn_device, key))
 
-        if syn_family == None:
-            logging.error("Could not auto-guess device family, please specify in Manifest.py using syn_family!")
+        if syn_family is None:
+            logging.error(
+                "Could not auto-guess device family, please specify in Manifest.py using syn_family!")
             sys.exit("\nExiting")
 
         devstring = (syn_device + syn_package + syn_grade).upper()
         QPP = _QuartusProjectProperty
-        self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='FAMILY', name='"'+syn_family+'"'))
-        self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='DEVICE', name=devstring))
-        self.add_property(QPP(QPP.SET_GLOBAL_ASSIGNMENT, name_type='TOP_LEVEL_ENTITY', name=syn_top))
-
-
+        self.add_property(
+            QPP(QPP.SET_GLOBAL_ASSIGNMENT,
+                name_type='FAMILY',
+                name='"' + syn_family + '"'))
+        self.add_property(
+            QPP(QPP.SET_GLOBAL_ASSIGNMENT,
+                name_type='DEVICE',
+                name=devstring))
+        self.add_property(
+            QPP(QPP.SET_GLOBAL_ASSIGNMENT,
+                name_type='TOP_LEVEL_ENTITY',
+                name=syn_top))
 
 
 class _QuartusProjectProperty:
-    SET_GLOBAL_INSTANCE, SET_INSTANCE_ASSIGNMENT, SET_LOCATION_ASSIGNMENT, SET_GLOBAL_ASSIGNMENT = range(4)
+    SET_GLOBAL_INSTANCE, SET_INSTANCE_ASSIGNMENT, SET_LOCATION_ASSIGNMENT, SET_GLOBAL_ASSIGNMENT = range(
+        4)
     t = {"set_global_instance": SET_GLOBAL_INSTANCE,
          "set_instance_assignment": SET_INSTANCE_ASSIGNMENT,
          "set_location_assignment": SET_LOCATION_ASSIGNMENT,
          "set_global_assignment": SET_GLOBAL_ASSIGNMENT}
 
-    def __init__(self, command, what=None, name=None, name_type=None, from_=None, to=None, section_id=None):
+    def __init__(self, command, what=None, name=None,
+                 name_type=None, from_=None, to=None, section_id=None):
         self.command = command
         self.what = what
         self.name = name
@@ -401,6 +415,3 @@ class _QuartusProjectProperty:
             words.append("-section_id")
             words.append(self.section_id)
         return ' '.join(words)
-
-
-

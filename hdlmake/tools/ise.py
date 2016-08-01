@@ -70,24 +70,32 @@ class ToolISE(MakefileWriter):
         return ISE_STANDARD_LIBS
 
     def detect_version(self, path):
-        if platform.system() == 'Windows': is_windows = True
-        else: is_windows = False
- 
-        version_pattern = re.compile('.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
+        if platform.system() == 'Windows':
+            is_windows = True
+        else:
+            is_windows = False
+
+        version_pattern = re.compile(
+            '.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
         # First check if we have version in path
 
         match = re.match(version_pattern, path)
         if match:
-            ise_version = "%s.%s" % (match.group('major'), match.group('minor'))
+            ise_version = "%s.%s" % (
+                match.group('major'),
+                match.group('minor'))
         else:  # If it is not the case call the "xst -h" to get version
             xst_output = Popen('xst -h', shell=True, stdin=PIPE,
                                stdout=PIPE, close_fds=not is_windows)
             xst_output = xst_output.stdout.readlines()[0]
             xst_output = xst_output.strip()
-            version_pattern = re.compile('Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
+            version_pattern = re.compile(
+                'Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
             match = re.match(version_pattern, xst_output)
             if match:
-                ise_version = "%s.%s" % (match.group('major'), match.group('minor'))
+                ise_version = "%s.%s" % (
+                    match.group('major'),
+                    match.group('minor'))
             else:
                 logging.error("xst output is not in expected format: %s\n" % xst_output +
                               "Can't determine ISE version")
@@ -95,14 +103,22 @@ class ToolISE(MakefileWriter):
 
         return ise_version
 
-
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
-        if platform.system() == 'Windows': is_windows = True
-        else: is_windows = False
+    def generate_remote_synthesis_makefile(
+            self, files, name, cwd, user, server):
+        if platform.system() == 'Windows':
+            is_windows = True
+        else:
+            is_windows = False
         if name is None:
             import random
-            name = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))
-        whoami = Popen('whoami', shell=True, stdin=PIPE, stdout=PIPE, close_fds=not is_windows)
+            name = ''.join(random.choice(string.ascii_letters + string.digits)
+                           for _ in range(8))
+        whoami = Popen(
+            'whoami',
+            shell=True,
+            stdin=PIPE,
+            stdout=PIPE,
+            close_fds=not is_windows)
         name = whoami.stdout.readlines()[0].strip() + '/' + name
         user_tmpl = "USER:={0}"
         server_tmpl = "SERVER:={0}"
@@ -111,7 +127,8 @@ class ToolISE(MakefileWriter):
         remote_name_tmpl = "R_NAME:={0}"
         files_tmpl = "FILES := {0}"
 
-        user_tmpl = user_tmpl.format("$(HDLMAKE_RSYNTH_USER)# take the value from the environment")
+        user_tmpl = user_tmpl.format(
+            "$(HDLMAKE_RSYNTH_USER)# take the value from the environment")
         test_tmpl = """__test_for_remote_synthesis_variables:
 ifeq (x$(USER),x)
 \t@echo "Remote synthesis user is not set. \
@@ -127,7 +144,8 @@ You can set it by editing variable ISE_PATH in the makefile or setting env. vari
 endif
 """
         if server is None:
-            server_tmpl = server_tmpl.format("$(HDLMAKE_RSYNTH_SERVER)# take the value from the environment")
+            server_tmpl = server_tmpl.format(
+                "$(HDLMAKE_RSYNTH_SERVER)# take the value from the environment")
         else:
             server_tmpl = server_tmpl.format(server)
 
@@ -142,7 +160,8 @@ endif
         self.writeln(test_tmpl)
         self.writeln("CWD := $(shell pwd)")
         self.writeln("")
-        self.writeln(files_tmpl.format(' \\\n'.join([s.rel_path() for s in files])))
+        self.writeln(
+            files_tmpl.format(' \\\n'.join([s.rel_path() for s in files])))
         self.writeln("")
         self.writeln("#target for running synthesis in the remote location")
         self.writeln("remote: remote_bitstream")
@@ -184,7 +203,6 @@ endif
         self.writeln("#target for removing stuff from the remote location")
         self.writeln(cln_cmd)
         self.writeln()
-
 
     def generate_synthesis_makefile(self, top_mod, tool_path):
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
@@ -336,29 +354,43 @@ mrproper:
 
 """)
 
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
-                                  project_name=top_mod.manifest_dict["syn_project"],
-                                  ise_path=tool_path,
-                                  syn_pre_cmd=top_mod.manifest_dict["syn_pre_cmd"],
-                                  syn_post_cmd=top_mod.manifest_dict["syn_post_cmd"],
-                                  syn_pre_synthesize_cmd=top_mod.manifest_dict["syn_pre_synthesize_cmd"],
-                                  syn_post_synthesize_cmd=top_mod.manifest_dict["syn_post_synthesize_cmd"],
-                                  syn_pre_translate_cmd=top_mod.manifest_dict["syn_pre_translate_cmd"],
-                                  syn_post_translate_cmd=top_mod.manifest_dict["syn_post_translate_cmd"],
-                                  syn_pre_map_cmd=top_mod.manifest_dict["syn_pre_map_cmd"],
-                                  syn_post_map_cmd=top_mod.manifest_dict["syn_post_map_cmd"],
-                                  syn_pre_par_cmd=top_mod.manifest_dict["syn_pre_par_cmd"],
-                                  syn_post_par_cmd=top_mod.manifest_dict["syn_post_par_cmd"],
-                                  syn_pre_bitstream_cmd=top_mod.manifest_dict["syn_pre_bitstream_cmd"],
-                                  syn_post_bitstream_cmd=top_mod.manifest_dict["syn_post_bitstream_cmd"],
-                                  xtclsh_path=os.path.join(tool_path, "xtclsh"))
+        makefile_text = makefile_tmplt.substitute(
+            syn_top=top_mod.manifest_dict["syn_top"],
+            project_name=top_mod.manifest_dict[
+                "syn_project"],
+            ise_path=tool_path,
+            syn_pre_cmd=top_mod.manifest_dict[
+                "syn_pre_cmd"],
+            syn_post_cmd=top_mod.manifest_dict[
+                "syn_post_cmd"],
+            syn_pre_synthesize_cmd=top_mod.manifest_dict[
+                "syn_pre_synthesize_cmd"],
+            syn_post_synthesize_cmd=top_mod.manifest_dict[
+                "syn_post_synthesize_cmd"],
+            syn_pre_translate_cmd=top_mod.manifest_dict[
+                "syn_pre_translate_cmd"],
+            syn_post_translate_cmd=top_mod.manifest_dict[
+                "syn_post_translate_cmd"],
+            syn_pre_map_cmd=top_mod.manifest_dict[
+                "syn_pre_map_cmd"],
+            syn_post_map_cmd=top_mod.manifest_dict[
+                "syn_post_map_cmd"],
+            syn_pre_par_cmd=top_mod.manifest_dict[
+                "syn_pre_par_cmd"],
+            syn_post_par_cmd=top_mod.manifest_dict[
+                "syn_post_par_cmd"],
+            syn_pre_bitstream_cmd=top_mod.manifest_dict[
+                "syn_pre_bitstream_cmd"],
+            syn_post_bitstream_cmd=top_mod.manifest_dict[
+                "syn_post_bitstream_cmd"],
+            xtclsh_path=os.path.join(tool_path, "xtclsh"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
                 self.write("include %s\n" % f)
 
-
     class StringBuffer(list):
+
         def __init__(self):
             self.append("")
             self.__blank = re.compile("^[ \t\n]+$")
@@ -367,18 +399,18 @@ mrproper:
             if what == "":
                 return
             elif re.match(self.__blank, what):
-                if self[len(self)-1] != "":
+                if self[len(self) - 1] != "":
                     self.append("")
                 else:
                     pass
-            elif what[len(what)-1] == "\n":
-                self[len(self)-1] += what[:len(what)-1]
+            elif what[len(what) - 1] == "\n":
+                self[len(self) - 1] += what[:len(what) - 1]
                 self.append("")
             else:
-                self[len(self)-1] += what
+                self[len(self) - 1] += what
 
-
-    def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
+    def generate_synthesis_project(
+            self, update=False, tool_version='', top_mod=None, fileset=None):
         self.props = {}
         self.files = []
         self.libs = []
@@ -399,7 +431,7 @@ mrproper:
         self.add_files(self.flist)
 
         self.add_libs(self.fileset.get_libs())
-        
+
         if update is True:
             try:
                 self.load_xml(top_mod.manifest_dict["syn_project"])
@@ -409,10 +441,9 @@ mrproper:
                 raise
         else:
             self.add_initial_properties()
-        
-        logging.info("Writing down .xise project file")
-        self.emit_xml(self.top_mod.manifest_dict["syn_project"])       
 
+        logging.info("Writing down .xise project file")
+        self.emit_xml(self.top_mod.manifest_dict["syn_project"])
 
     def add_files(self, files):
         self.files.extend(files)
@@ -441,32 +472,45 @@ mrproper:
 
     def _set_values_from_manifest(self):
         tm = self.top_mod
-        if tm.manifest_dict["syn_family"] == None:
-            tm.manifest_dict["syn_family"] = FAMILY_NAMES.get(tm.manifest_dict["syn_device"][0:4].upper())
-            if tm.manifest_dict["syn_family"] == None:
-                logging.error("syn_family is not definied in Manifest.py and can not be guessed!")
+        if tm.manifest_dict["syn_family"] is None:
+            tm.manifest_dict["syn_family"] = FAMILY_NAMES.get(
+                tm.manifest_dict["syn_device"][0:4].upper())
+            if tm.manifest_dict["syn_family"] is None:
+                logging.error(
+                    "syn_family is not definied in Manifest.py and can not be guessed!")
                 quit(-1)
         self.add_property("Device", tm.manifest_dict["syn_device"])
         self.add_property("Device Family", tm.manifest_dict["syn_family"])
         self.add_property("Speed Grade", tm.manifest_dict["syn_grade"])
         self.add_property("Package", tm.manifest_dict["syn_package"])
-        self.add_property("Implementation Top", "Architecture|"+tm.manifest_dict["syn_top"])
-        self.add_property("Implementation Top Instance Path", "/"+tm.manifest_dict["syn_top"])
+        self.add_property(
+            "Implementation Top",
+            "Architecture|" +
+            tm.manifest_dict[
+                "syn_top"])
+        self.add_property(
+            "Implementation Top Instance Path",
+            "/" + tm.manifest_dict["syn_top"])
 
     def _parse_props(self):
         for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
             self.add_property(
                 name=xmlp.getAttribute("xil_pn:name"),
                 value=xmlp.getAttribute("xil_pn:value"),
-                is_default=(xmlp.getAttribute("xil_pn:valueState") == "default")
+                is_default=(
+                    xmlp.getAttribute("xil_pn:valueState") == "default")
             )
 
-        self.xml_props = self._purge_dom_node(name="properties", where=self.xml_doc.documentElement)
+        self.xml_props = self._purge_dom_node(
+            name="properties",
+            where=self.xml_doc.documentElement)
 
     def _parse_libs(self):
         for l in self.xml_project.getElementsByTagName("libraries")[0].getElementsByTagName("library"):
             self._add_lib(l.getAttribute("xil_pn:name"))
-        self.xml_libs = self._purge_dom_node(name="libraries", where=self.xml_doc.documentElement)
+        self.xml_libs = self._purge_dom_node(
+            name="libraries",
+            where=self.xml_doc.documentElement)
 
     def load_xml(self, filename):
         f = open(filename)
@@ -493,7 +537,10 @@ mrproper:
         try:
             node = where.getElementsByTagName("version")[0]
             if not self.ise:
-                self.ise = tuple(node.getAttribute("xil_pn:ise_version").split('.'))
+                self.ise = tuple(
+                    node.getAttribute(
+                        "xil_pn:ise_version").split(
+                            '.'))
             where.removeChild(node)
         except:
             pass
@@ -531,7 +578,7 @@ mrproper:
 
             assoc = self.xml_doc.createElement("association")
             assoc.setAttribute("xil_pn:name", "Implementation")
-            assoc.setAttribute("xil_pn:seqID", str(self.files.index(f)+1))
+            assoc.setAttribute("xil_pn:seqID", str(self.files.index(f) + 1))
 
             try:
                 if(f.library != "work"):
@@ -548,7 +595,9 @@ mrproper:
         from hdlmake.srcfile import CDCFile
         for b in [f for f in self.files if isinstance(f, CDCFile)]:
             bp = self.xml_doc.createElement("binding")
-            bp.setAttribute("xil_pn:location", self.top_mod.manifest_dict["syn_top"])
+            bp.setAttribute(
+                "xil_pn:location",
+                self.top_mod.manifest_dict["syn_top"])
             bp.setAttribute("xil_pn:name", b.rel_path())
             node.appendChild(bp)
 
@@ -585,10 +634,15 @@ mrproper:
         output_file.close()
 
     def create_empty_project(self):
-        self.xml_doc = XmlImpl.createDocument("http://www.xilinx.com/XMLSchema", "project", None)
+        self.xml_doc = XmlImpl.createDocument(
+            "http://www.xilinx.com/XMLSchema",
+            "project",
+            None)
         top_element = self.xml_doc.documentElement
         top_element.setAttribute("xmlns", "http://www.xilinx.com/XMLSchema")
-        top_element.setAttribute("xmlns:xil_pn", "http://www.xilinx.com/XMLSchema")
+        top_element.setAttribute(
+            "xmlns:xil_pn",
+            "http://www.xilinx.com/XMLSchema")
 
         header = self.xml_doc.createElement("header")
         header.appendChild(self.xml_doc.createTextNode(""))
@@ -625,7 +679,8 @@ mrproper:
 
 
 class ISEProjectProperty:
-    def __init__(self,  name, value, is_default=False):
+
+    def __init__(self, name, value, is_default=False):
         self.name = name
         self.value = value
         self.is_default = is_default
@@ -640,5 +695,3 @@ class ISEProjectProperty:
             prop.setAttribute("xil_pn:valueState", "non-default")
 
         return prop
-
-

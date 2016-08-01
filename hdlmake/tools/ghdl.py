@@ -33,7 +33,6 @@ class ToolGHDL(MakefileWriter):
     def detect_version(self, path):
         pass
 
-
     def get_keys(self):
         tool_info = {
             'name': 'GHDL',
@@ -47,16 +46,14 @@ class ToolGHDL(MakefileWriter):
         GHDL_STANDARD_LIBS = ['ieee', 'std']
         return GHDL_STANDARD_LIBS
 
-
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet
         sup_files = SourceFileSet()
         return sup_files
 
-
     def generate_simulation_makefile(self, fileset, top_module):
         # TODO: vhdl87 vs vhdl97 options
-        
+
         from hdlmake.srcfile import VHDLFile
 
         makefile_tmplt_1 = string.Template("""TOP_MODULE := ${top_module}
@@ -84,7 +81,7 @@ simulation:
         self.writeln("\t\tghdl -e $(TOP_MODULE)")
         self.writeln()
 
-        makefile_tmplt_2 = string.Template("""      
+        makefile_tmplt_2 = string.Template("""
 sim_pre_cmd:
 \t\t${sim_pre_cmd}
 
@@ -112,7 +109,6 @@ mrproper: clean
             sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
         else:
             sim_post_cmd = ''
-
 
         makefile_text_2 = makefile_tmplt_2.substitute(
             sim_pre_cmd=sim_pre_cmd,

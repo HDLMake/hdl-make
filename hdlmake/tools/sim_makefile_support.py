@@ -29,12 +29,14 @@ from hdlmake.makefile_writer import MakefileWriter
 
 
 class VsimMakefileWriter(MakefileWriter):
+
     """A Makefile writer for simulation suitable for vsim based simulators.
 
     Currently used by:
       - Modelsim
       - Riviera
     """
+
     def __init__(self):
 
         # additional global flags to pass to every invocation of these commands
@@ -65,17 +67,18 @@ class VsimMakefileWriter(MakefileWriter):
         etc are defined by the specific tool.
         """
         from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
-        
-        if platform.system() == 'Windows': 
+
+        if platform.system() == 'Windows':
             del_command = "rm -rf"
             mkdir_command = "mkdir"
             slash_char = "\\"
-        else: 
+        else:
             del_command = "rm -rf"
             mkdir_command = "mkdir -p"
             slash_char = "/"
-        
-        self.vlog_flags.append(self.__get_rid_of_vsim_incdirs(top_module.manifest_dict["vlog_opt"]))
+
+        self.vlog_flags.append(
+            self.__get_rid_of_vsim_incdirs(top_module.manifest_dict["vlog_opt"]))
         self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
         self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
         self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
@@ -94,7 +97,8 @@ PWD := $(shell pwd)
         self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
-        #self.writeln("INCLUDE_DIRS := +incdir+%s" % ('+'.join(top_module.include_dirs)))
+        # self.writeln("INCLUDE_DIRS := +incdir+%s" %
+        # ('+'.join(top_module.include_dirs)))
 
         self.write("VERILOG_SRC := ")
         for vl in fileset.filter(VerilogFile):
@@ -107,7 +111,16 @@ PWD := $(shell pwd)
             # the compilation process fails) and add an ending according to file's
             # extension (.sv and .vhd files may have the same corename and this
             # causes a mess
-            self.write(os.path.join(vl.library, vl.purename, "." + vl.purename + "_" + vl.extension()) + " \\\n")
+            self.write(
+                os.path.join(
+                    vl.library,
+                    vl.purename,
+                    "." +
+                    vl.purename +
+                    "_" +
+                    vl.extension(
+                    )) +
+                " \\\n")
         self.write('\n')
 
         libs = set(f.library for f in fileset)
@@ -121,7 +134,16 @@ PWD := $(shell pwd)
         self.write("VHDL_OBJ := ")
         for vhdl in fileset.filter(VHDLFile):
             # file compilation indicator (important: add _vhd ending)
-            self.write(os.path.join(vhdl.library, vhdl.purename, "." + vhdl.purename + "_" + vhdl.extension()) + " \\\n")
+            self.write(
+                os.path.join(
+                    vhdl.library,
+                    vhdl.purename,
+                    "." +
+                    vhdl.purename +
+                    "_" +
+                    vhdl.extension(
+                    )) +
+                " \\\n")
         self.write('\n')
 
         self.write('LIBS := ')
@@ -136,9 +158,14 @@ PWD := $(shell pwd)
         self.writeln()
         self.writeln("local: sim_pre_cmd simulation sim_post_cmd")
         self.writeln()
-        self.writeln("simulation: %s $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)" % (' '.join(self.additional_deps)),)
+        self.writeln(
+            "simulation: %s $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)" %
+            (' '.join(self.additional_deps)),)
         self.writeln("$(VERILOG_OBJ) : " + ' '.join(self.additional_deps))
-        self.writeln("$(VHDL_OBJ): $(LIB_IND) " + ' '.join(self.additional_deps))
+        self.writeln(
+            "$(VHDL_OBJ): $(LIB_IND) " +
+            ' '.join(
+                self.additional_deps))
         self.writeln()
 
         simcommands = string.Template("""sim_pre_cmd:
@@ -158,9 +185,8 @@ sim_post_cmd:
         else:
             sim_post_cmd = ''
 
-
         simcommands = simcommands.substitute(sim_pre_cmd=sim_pre_cmd,
-                                                                         sim_post_cmd=sim_post_cmd)
+                                             sim_post_cmd=sim_post_cmd)
         self.write(simcommands)
         self.writeln()
 
@@ -168,7 +194,8 @@ sim_post_cmd:
             self.write(self.__create_copy_rule(filename, filesource))
 
         self.writeln("clean:")
-        tmp = "\t\t" + del_command + " $(LIBS) " + ' '.join(self.additional_clean)
+        tmp = "\t\t" + del_command + \
+            " $(LIBS) " + ' '.join(self.additional_clean)
         self.writeln(tmp)
 
         self.writeln(".PHONY: clean sim_pre_cmd sim_post_cmd simulation")
@@ -178,27 +205,30 @@ sim_post_cmd:
             self.write(lib + slash_char + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command,
-                                         lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
+                                 lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
             self.write(' '.join(["||", del_command, lib, "\n"]))
             self.write('\n\n')
 
         # rules for all _primary.dat files for sv
         for vl in fileset.filter(VerilogFile):
-            self.write("%s: %s" % (os.path.join(vl.library, vl.purename, ".%s_%s" % (vl.purename, vl.extension())),
-                                          vl.rel_path())
-                         )
+            self.write(
+                "%s: %s" % (os.path.join(vl.library, vl.purename, ".%s_%s" % (vl.purename, vl.extension())),
+                            vl.rel_path())
+            )
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile in vl.depends_on if dfile is not vl]:
-                if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
+                if dep_file in fileset:  # the dep_file is compiled -> we depend on marker file
                     name = dep_file.purename
                     extension = dep_file.extension()
-                    self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
-                else: #the file is included -> we depend directly on the file
+                    self.write(
+                        " \\\n" + os.path.join(dep_file.library, name, ".%s_%s" %
+                              (name, extension)))
+                else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
 
             self.writeln()
 
-            # ##
+            #
             # self.write("\t\tvlog -work "+vl.library)
             # self.write(" $(VLOG_FLAGS) ")
             # if isinstance(vl, SVFile):
@@ -208,10 +238,11 @@ sim_post_cmd:
             # incdir += " "
             # self.write(incdir)
             # self.writeln(vl.vlog_opt+" $<")
-            ####
-            compile_template = string.Template("\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
+            #
+            compile_template = string.Template(
+                "\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
             compile_line = compile_template.substitute(library=vl.library,
-                                                 sv_option="-sv" if isinstance(vl, SVFile) else "")
+                                                       sv_option="-sv" if isinstance(vl, SVFile) else "")
             self.writeln(compile_line)
             self.write("\t\t@" + mkdir_command + " $(dir $@)")
             self.writeln(" && touch $@ \n\n")
@@ -222,28 +253,34 @@ sim_post_cmd:
             lib = vhdl.library
             purename = vhdl.purename
             # each .dat depends on corresponding .vhd file
-            self.write("%s: %s" % (os.path.join(lib, purename, "." + purename + "_" + vhdl.extension()),
-                                          vhdl.rel_path())
-                          )
+            self.write(
+                "%s: %s" % (os.path.join(lib, purename, "." + purename + "_" + vhdl.extension()),
+                            vhdl.rel_path())
+            )
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile in vhdl.depends_on if dfile is not vhdl]:
-                if dep_file in fileset: # the dep_file is compiled -> we depend on marker file
+                if dep_file in fileset:  # the dep_file is compiled -> we depend on marker file
                     name = dep_file.purename
                     extension = dep_file.extension()
-                    self.write(" \\\n" + os.path.join(dep_file.library, name, ".%s_%s" % (name, extension)))
-                else: #the file is included -> we depend directly on the file
+                    self.write(
+                        " \\\n" + os.path.join(dep_file.library, name, ".%s_%s" %
+                              (name, extension)))
+                else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
 
             self.writeln()
-            self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
+            self.writeln(
+                ' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
             self.writeln("\t\t@" + mkdir_command + " $(dir $@) && touch $@ \n")
             self.writeln()
 
     def __create_copy_rule(self, name, src):
         """Get a Makefile rule named name, which depends on src, copying it to
         the local directory."""
-        if platform.system() == 'Windows': copy_command = "copy"
-        else: copy_command = "cp"
+        if platform.system() == 'Windows':
+            copy_command = "copy"
+        else:
+            copy_command = "cp"
         rule = """%s: %s
 \t\t%s $< . 2>&1
 """ % (name, src, copy_command)
@@ -258,4 +295,3 @@ sim_post_cmd:
             if not v.startswith("+incdir+"):
                 ret.append(v)
         return ' '.join(ret)
-

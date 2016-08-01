@@ -34,7 +34,7 @@ RIVIERA_STANDARD_LIBS = [
     'vtl_dbg', 'assertions', 'ieee_proposed',
     'ovm_2_0_3', 'ovm_2_1_2', 'uvm_1_0p1',
     'uvm_1_1d', 'uvm', 'osvvm',
-    ]
+]
 
 # there are many vendor specific libraries available
 # a few of them are listed here
@@ -61,6 +61,7 @@ RIVIERA_STANDARD_LIBS.extend(RIVIERA_XILINX_VLOG_LIBRARIES)
 
 
 class ToolRiviera(VsimMakefileWriter):
+
     def __init__(self):
         super(ToolRiviera, self).__init__()
         self.vcom_flags.append("-2008")
@@ -85,4 +86,3 @@ class ToolRiviera(VsimMakefileWriter):
         from hdlmake.srcfile import SourceFileSet
         sup_files = SourceFileSet()
         return sup_files
-

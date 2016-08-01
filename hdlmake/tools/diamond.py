@@ -98,28 +98,29 @@ mrproper:
         else:
             syn_post_cmd = ''
 
-
         if sys.platform == 'cygwin':
-		    bin_name = 'pnmainc'
+            bin_name = 'pnmainc'
         else:
-            bin_name = 'diamondc'		
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
-                                  project_name=top_mod.manifest_dict["syn_project"],
-                                  diamond_path=tool_path,
-                                  syn_pre_cmd=syn_pre_cmd,
-                                  syn_post_cmd=syn_post_cmd,
-                                  diamondc_path=os.path.join(tool_path, bin_name))
+            bin_name = 'diamondc'
+        makefile_text = makefile_tmplt.substitute(
+            syn_top=top_mod.manifest_dict["syn_top"],
+            project_name=top_mod.manifest_dict[
+                "syn_project"],
+            diamond_path=tool_path,
+            syn_pre_cmd=syn_pre_cmd,
+            syn_post_cmd=syn_post_cmd,
+            diamondc_path=os.path.join(tool_path, bin_name))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
                 self.write("include %s\n" % f)
 
-
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
+    def generate_remote_synthesis_makefile(
+            self, files, name, cwd, user, server):
         logging.info("Remote Diamond wrapper")
-        
 
-    def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
+    def generate_synthesis_project(
+            self, update=False, tool_version='', top_mod=None, fileset=None):
         self.files = []
         self.filename = top_mod.manifest_dict["syn_project"]
         self.header = None
@@ -128,57 +129,56 @@ mrproper:
             self.update_project()
         else:
             self.create_project(top_mod.manifest_dict["syn_device"],
-                               top_mod.manifest_dict["syn_grade"],
-                               top_mod.manifest_dict["syn_package"],
-                               top_mod.manifest_dict["syn_top"])
+                                top_mod.manifest_dict["syn_grade"],
+                                top_mod.manifest_dict["syn_package"],
+                                top_mod.manifest_dict["syn_top"])
         self.add_files(fileset)
         self.emit(update=update)
-        self.execute()        
+        self.execute()
 
     def emit(self, update=False):
         f = open(self.tclname, "w")
-        f.write(self.header+'\n')
+        f.write(self.header + '\n')
         f.write(self.__emit_files(update=update))
         f.write('prj_project save\n')
         f.write('prj_project close\n')
         f.close()
 
     def execute(self):
-        # The binary name for Diamond is different in Linux and Windows 
+        # The binary name for Diamond is different in Linux and Windows
         if sys.platform == 'cygwin':
             tmp = 'pnmainc {0}'
         else:
             tmp = 'diamondc {0}'
         cmd = tmp.format(self.tclname)
         p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
-        ## But do not wait till diamond finish, start displaying output immediately ##
+        # But do not wait till diamond finish, start displaying output
+        # immediately ##
         while True:
             out = p.stderr.read(1)
-            if out == '' and p.poll() != None:
+            if out == '' and p.poll() is not None:
                 break
             if out != '':
                 sys.stdout.write(out)
                 sys.stdout.flush()
         os.remove(self.tclname)
 
-
     def add_files(self, fileset):
         for f in fileset:
             self.files.append(f)
 
-    def create_project(self, 
+    def create_project(self,
                        syn_device,
                        syn_grade,
                        syn_package,
                        syn_top):
         tmp = 'prj_project new -name {0} -impl {0} -dev {1} -synthesis \"synplify\"'
-        target = syn_device+syn_grade+syn_package
+        target = syn_device + syn_grade + syn_package
         self.header = tmp.format(self.filename, target.upper())
 
     def update_project(self):
         tmp = 'prj_project open \"{0}\"'
-        self.header = tmp.format(self.filename+'.ldf')
-
+        self.header = tmp.format(self.filename + '.ldf')
 
     def supported_files(self, fileset):
         from hdlmake.srcfile import EDFFile, LPFFile, SourceFileSet
@@ -190,7 +190,6 @@ mrproper:
                 continue
         return sup_files
 
-
     def __emit_files(self, update=False):
         tmp = 'prj_src {0} \"{1}\"'
         ret = []
@@ -198,17 +197,17 @@ mrproper:
         for f in self.files:
             line = ''
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, EDFFile):
-                if update == True:
-                    line = line+'\n'+tmp.format('remove', f.rel_path())
-                line = line+'\n'+tmp.format('add', f.rel_path())
+                if update:
+                    line = line + '\n' + tmp.format('remove', f.rel_path())
+                line = line + '\n' + tmp.format('add', f.rel_path())
             elif isinstance(f, LPFFile):
-                if update == True:
-                    line = line+'\n'+tmp.format('enable', self.filename+'.lpf') 
-                    line = line+'\n'+tmp.format('remove', f.rel_path())
-                line = line+'\n'+tmp.format('add -exclude', f.rel_path())
-                line = line+'\n'+tmp.format('enable', f.rel_path())
+                if update:
+                    line = line + '\n' + \
+                        tmp.format('enable', self.filename + '.lpf')
+                    line = line + '\n' + tmp.format('remove', f.rel_path())
+                line = line + '\n' + tmp.format('add -exclude', f.rel_path())
+                line = line + '\n' + tmp.format('enable', f.rel_path())
             else:
                 continue
             ret.append(line)
-        return ('\n'.join(ret))+'\n'
-
+        return ('\n'.join(ret)) + '\n'

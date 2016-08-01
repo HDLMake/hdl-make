@@ -40,6 +40,7 @@ ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                       'simprims_ver', 'unisims_ver', 'uni9000_ver',
                       'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
+
 class ToolISim(MakefileWriter):
 
     def __init__(self):
@@ -58,13 +59,16 @@ class ToolISim(MakefileWriter):
         return ISIM_STANDARD_LIBS
 
     def detect_version(self, path):
-        if platform.system() == 'Windows': is_windows = True
-        else: is_windows = False
-        isim = Popen("%s --version | awk '{print $2}'" % os.path.join(path, "vlogcomp"),
-                     shell=True,
-                     close_fds=not is_windows,
-                     stdin=PIPE,
-                     stdout=PIPE)
+        if platform.system() == 'Windows':
+            is_windows = True
+        else:
+            is_windows = False
+        isim = Popen(
+            "%s --version | awk '{print $2}'" % os.path.join(path, "vlogcomp"),
+            shell=True,
+            close_fds=not is_windows,
+            stdin=PIPE,
+            stdout=PIPE)
         print os.path.join(path, "vlogcomp")
         try:
             isim_version = isim.stdout.readlines()[0].strip()
@@ -72,12 +76,10 @@ class ToolISim(MakefileWriter):
             return None
         return isim_version
 
-
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet
         sup_files = SourceFileSet()
         return sup_files
-
 
     def generate_simulation_makefile(self, fileset, top_module):
         from hdlmake.srcfile import VerilogFile, VHDLFile
@@ -116,7 +118,7 @@ isim.wdb isim_proj isim_proj.*
 .PHONY: clean sim_pre_cmd sim_post_cmd simulation
 
 """)
-        #open the file and write the above preambule (part 1)
+        # open the file and write the above preambule (part 1)
         self.write(make_preambule_p1)
 
         self.write("VERILOG_SRC := ")
@@ -126,11 +128,20 @@ isim.wdb isim_proj isim_proj.*
 
         self.write("VERILOG_OBJ := ")
         for vl in fileset.filter(VerilogFile):
-            #make a file compilation indicator (these .dat files are made even if
-            #the compilation process fails) and add an ending according to file's
-            #extension (.sv and .vhd files may have the same corename and this
-            #causes a mess
-            self.write(os.path.join(vl.library, vl.purename, "."+vl.purename+"_"+vl.extension()) + " \\\n")
+            # make a file compilation indicator (these .dat files are made even if
+            # the compilation process fails) and add an ending according to file's
+            # extension (.sv and .vhd files may have the same corename and this
+            # causes a mess
+            self.write(
+                os.path.join(
+                    vl.library,
+                    vl.purename,
+                    "." +
+                    vl.purename +
+                    "_" +
+                    vl.extension(
+                    )) +
+                " \\\n")
         self.write('\n')
 
         libs = set(f.library for f in fileset)
@@ -140,19 +151,28 @@ isim.wdb isim_proj isim_proj.*
             self.write(vhdl.rel_path() + " \\\n")
         self.writeln()
 
-        #list vhdl objects (_primary.dat files)
+        # list vhdl objects (_primary.dat files)
         self.write("VHDL_OBJ := ")
         for vhdl in fileset.filter(VHDLFile):
-            #file compilation indicator (important: add _vhd ending)
-            self.write(os.path.join(vhdl.library, vhdl.purename, "."+vhdl.purename+"_"+vhdl.extension()) + " \\\n")
+            # file compilation indicator (important: add _vhd ending)
+            self.write(
+                os.path.join(
+                    vhdl.library,
+                    vhdl.purename,
+                    "." +
+                    vhdl.purename +
+                    "_" +
+                    vhdl.extension(
+                    )) +
+                " \\\n")
         self.write('\n')
 
         self.write('LIBS := ')
         self.write(' '.join(libs))
         self.write('\n')
-        #tell how to make libraries
+        # tell how to make libraries
         self.write('LIB_IND := ')
-        self.write(' '.join([lib+"/."+lib for lib in libs]))
+        self.write(' '.join([lib + "/." + lib for lib in libs]))
         self.write('\n')
 
         if top_module.manifest_dict["sim_pre_cmd"]:
@@ -165,76 +185,112 @@ isim.wdb isim_proj isim_proj.*
         else:
             sim_post_cmd = ''
 
-        make_text_p2 = make_preambule_p2.substitute(sim_pre_cmd=sim_pre_cmd, sim_post_cmd=sim_post_cmd)
+        make_text_p2 = make_preambule_p2.substitute(
+            sim_pre_cmd=sim_pre_cmd,
+            sim_post_cmd=sim_post_cmd)
         self.writeln(make_text_p2)
 
         # ISim does not have a vmap command to insert additional libraries in
         #.ini file.
         for lib in libs:
-            self.write(lib+"/."+lib+":\n")
-            self.write(' '.join(["\t(mkdir", lib, "&&", "touch", lib+"/."+lib+" "]))
-            #self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\" ", ">>", "xilinxsim.ini) "]))
-            self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"\" ", ">>", "xilinxsim.ini) "]))
+            self.write(lib + "/." + lib + ":\n")
+            self.write(
+                ' '.join(["\t(mkdir", lib, "&&", "touch", lib + "/." + lib + " "]))
+            # self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\"
+            # ", ">>", "xilinxsim.ini) "]))
+            self.write(
+                ' '.join(["&&",
+                          "echo",
+                          "\"" + lib + "=" + lib + "\" ",
+                          ">>",
+                          "xilinxsim.ini) "]))
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
             self.write('\n')
 
             # Modify xilinxsim.ini file by including the extra local libraries
-            #self.write(' '.join(["\t(echo """, lib+"="+lib+"/."+lib, ">>", "${XILINX_INI_PATH}/xilinxsim.ini"]))
+            # self.write(' '.join(["\t(echo """, lib+"="+lib+"/."+lib, ">>",
+            # "${XILINX_INI_PATH}/xilinxsim.ini"]))
 
-        #rules for all _primary.dat files for sv
-        #incdir = ""
+        # rules for all _primary.dat files for sv
+        # incdir = ""
         objs = []
         for vl in fileset.filter(VerilogFile):
             comp_obj = os.path.join(vl.library, vl.purename)
             objs.append(comp_obj)
-            #self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
-            #self.writeln(".PHONY: " + os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension()))
-            self.write(os.path.join(comp_obj, '.'+vl.purename+"_"+vl.extension())+': ')
+            # self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
+            # self.writeln(".PHONY: " + os.path.join(comp_obj,
+            # '.'+vl.purename+"_"+vl.extension()))
+            self.write(
+                os.path.join(
+                    comp_obj,
+                    '.' +
+                    vl.purename +
+                    "_" +
+                    vl.extension(
+                    )) +
+                ': ')
             self.write(vl.rel_path() + ' ')
-            self.writeln(' '.join([fname.rel_path() for fname in vl.depends_on]))
-            self.write("\t\tvlogcomp -work "+vl.library+"=./"+vl.library)
+            self.writeln(
+                ' '.join([fname.rel_path() for fname in vl.depends_on]))
+            self.write("\t\tvlogcomp -work " + vl.library + "=./" + vl.library)
             self.write(" $(VLOGCOMP_FLAGS) ")
-            #if isinstance(vl, SVFile):
+            # if isinstance(vl, SVFile):
             #    self.write(" -sv ")
-            #incdir = "-i "
-            #incdir += " -i ".join(vl.include_dirs)
-            #incdir += " "
+            # incdir = "-i "
+            # incdir += " -i ".join(vl.include_dirs)
+            # incdir += " "
             if vl.include_dirs:
                 self.write(' -i ')
                 self.write(' '.join(vl.include_dirs) + ' ')
-            self.writeln(vl.vlog_opt+" $<")
+            self.writeln(vl.vlog_opt + " $<")
             self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")
         self.write("\n")
 
-        #list rules for all _primary.dat files for vhdl
+        # list rules for all _primary.dat files for vhdl
         for vhdl in fileset.filter(VHDLFile):
             lib = vhdl.library
             purename = vhdl.purename
             comp_obj = os.path.join(lib, purename)
             objs.append(comp_obj)
-            #each .dat depends on corresponding .vhd file and its dependencies
-            #self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
-            #self.writeln(".PHONY: " + os.path.join(comp_obj, "."+purename+"_"+ vhdl.extension()))
-            self.write(os.path.join(comp_obj, "."+purename+"_" + vhdl.extension()) + ": " + vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
-            self.writeln(' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)", vhdl.vcom_opt, "-work", lib+"=./"+lib, "$< "]))
+            # each .dat depends on corresponding .vhd file and its dependencies
+            # self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
+            # self.writeln(".PHONY: " + os.path.join(comp_obj,
+            # "."+purename+"_"+ vhdl.extension()))
+            self.write(
+                os.path.join(
+                    comp_obj,
+                    "." + purename + "_" + vhdl.extension(
+                    )) + ": " + vhdl.rel_path(
+                ) + " " + os.path.join(
+                    lib,
+                    purename,
+                    "." + purename) + '\n')
+            self.writeln(
+                ' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)",
+                          vhdl.vcom_opt,
+                          "-work",
+                          lib + "=./" + lib,
+                          "$< "]))
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
             # dependency meta-target. This rule just list the dependencies of the above file
-            #if len(vhdl.depends_on) != 0:
-            #self.writeln(".PHONY: " + os.path.join(lib, purename, "."+purename))
+            # if len(vhdl.depends_on) != 0:
+            # self.writeln(".PHONY: " + os.path.join(lib, purename, "."+purename))
             # Touch the dependency file as well. In this way, "make" will recompile only what is needed (out of date)
-            #if len(vhdl.depends_on) != 0:
-            self.write(os.path.join(lib, purename, "."+purename) + ":")
+            # if len(vhdl.depends_on) != 0:
+            self.write(os.path.join(lib, purename, "." + purename) + ":")
             for dep_file in vhdl.depends_on:
                 if dep_file in fileset:
                     name = dep_file.purename
-                    self.write(" \\\n" + os.path.join(dep_file.library, name, "."+name + "_" + vhdl.extension()))
+                    self.write(
+                        " \\\n" + os.path.join(dep_file.library,
+                                               name,
+                                               "." + name + "_" + vhdl.extension()))
                 else:
                     self.write(" \\\n" + os.path.join(dep_file.rel_path()))
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
-
 
     # FIX. Make it more robust
     def __get_rid_of_isim_incdirs(self, vlog_opt):
@@ -254,15 +310,14 @@ isim.wdb isim_proj isim_proj.*
                 skip = True
         return ' '.join(ret)
 
-
     def __get_xilinxsim_ini_dir(self, env):
         if env["isim_path"]:
-            xilinx_dir = str(os.path.join(env["isim_path"],"..",".."))
+            xilinx_dir = str(os.path.join(env["isim_path"], "..", ".."))
         else:
             logging.error("Cannot calculate xilinx tools base directory")
             quit()
 
-        hdl_language = 'vhdl' #'verilog'
+        hdl_language = 'vhdl'  # 'verilog'
 
         if sys.platform == 'cygwin':
             os_prefix = 'nt'
@@ -273,12 +328,10 @@ isim.wdb isim_proj isim_proj.*
             arch_sufix = ''
         else:
             arch_sufix = '64'
-            
+
         xilinx_ini_path = str(os.path.join(xilinx_dir,
                               hdl_language,
                               "hdp",
                               os_prefix + arch_sufix))
         # Ensure the path is absolute and normalized
         return os.path.abspath(xilinx_ini_path)
-
-

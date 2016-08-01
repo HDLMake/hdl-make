@@ -37,11 +37,10 @@ class ToolVivado(MakefileWriter):
 
     def __init__(self):
         super(ToolVivado, self).__init__()
-    
+
     def detect_version(self, path):
         return 'unknown'
 
-    
     def get_keys(self):
         tool_info = {
             'name': 'vivado',
@@ -106,24 +105,25 @@ mrproper:
         else:
             syn_post_cmd = ''
 
-
-        makefile_text = makefile_tmplt.substitute(syn_top=top_mod.manifest_dict["syn_top"],
-                                  project_name=top_mod.manifest_dict["syn_project"],
-                                  planahead_path=tool_path,
-                                  syn_pre_cmd=syn_pre_cmd,
-                                  syn_post_cmd=syn_post_cmd,
-                                  vivado_sh_path=os.path.join(tool_path, "vivado"))
+        makefile_text = makefile_tmplt.substitute(
+            syn_top=top_mod.manifest_dict["syn_top"],
+            project_name=top_mod.manifest_dict[
+                "syn_project"],
+            planahead_path=tool_path,
+            syn_pre_cmd=syn_pre_cmd,
+            syn_post_cmd=syn_post_cmd,
+            vivado_sh_path=os.path.join(tool_path, "vivado"))
         self.write(makefile_text)
         for f in top_mod.incl_makefiles:
             if os.path.exists(f):
                 self.write("include %s\n" % f)
 
-
-    def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
+    def generate_remote_synthesis_makefile(
+            self, files, name, cwd, user, server):
         logging.info("Remote Vivado wrapper")
 
-
-    def generate_synthesis_project(self, update=False, tool_version='', top_mod=None, fileset=None):
+    def generate_synthesis_project(
+            self, update=False, tool_version='', top_mod=None, fileset=None):
         self.properties = []
         self.files = []
         self.filename = top_mod.manifest_dict["syn_project"]
@@ -136,21 +136,20 @@ mrproper:
             logging.info("No previous project: creating a new one...")
             self.create_project()
             self.add_initial_properties(top_mod.manifest_dict["syn_device"],
-                                   top_mod.manifest_dict["syn_grade"],
-                                   top_mod.manifest_dict["syn_package"],
-                                   top_mod.manifest_dict["syn_top"])
+                                        top_mod.manifest_dict["syn_grade"],
+                                        top_mod.manifest_dict["syn_package"],
+                                        top_mod.manifest_dict["syn_top"])
         self.add_files(fileset)
         self.emit()
         self.execute()
 
         logging.info("Vivado project file generated.")
 
-
     def emit(self):
         f = open(self.tclname, "w")
-        f.write(self.header+'\n')
+        f.write(self.header + '\n')
         for p in self.properties:
-            f.write(p.emit()+'\n')
+            f.write(p.emit() + '\n')
         f.write(self.__emit_files())
         f.write('update_compile_order -fileset sources_1\n')
         f.write('update_compile_order -fileset sim_1\n')
@@ -161,16 +160,16 @@ mrproper:
         tmp = 'vivado -mode tcl -source {0}'
         cmd = tmp.format(self.tclname)
         p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
-        ## But do not wait till Vivado finish, start displaying output immediately ##
+        # But do not wait till Vivado finish, start displaying output
+        # immediately ##
         while True:
             out = p.stderr.read(1)
-            if out == '' and p.poll() != None:
+            if out == '' and p.poll() is not None:
                 break
             if out != '':
                 sys.stdout.write(out)
                 sys.stdout.flush()
         os.remove(self.tclname)
-
 
     def add_files(self, fileset):
         for f in fileset:
@@ -179,30 +178,43 @@ mrproper:
     def add_property(self, new_property):
         self.properties.append(new_property)
 
-    def add_initial_properties(self, 
+    def add_initial_properties(self,
                                syn_device,
                                syn_grade,
                                syn_package,
                                syn_top):
         PAPP = _VivadoProjectProperty
-        self.add_property(PAPP(name='part', value=syn_device+syn_package+syn_grade, objects='current_project'))
-        # self.add_property(PAPP(name='board_part', value='em.avnet.com:microzed_7010:part0:1.0', objects='current_project'))
-        self.add_property(PAPP(name='target_language', value='VHDL', objects='current_project'))
+        self.add_property(
+            PAPP(
+                name='part',
+                value=syn_device +
+                syn_package +
+                syn_grade,
+                objects='current_project'))
+        # self.add_property(PAPP(name='board_part',
+        # value='em.avnet.com:microzed_7010:part0:1.0',
+        # objects='current_project'))
+        self.add_property(
+            PAPP(name='target_language',
+                         value='VHDL',
+                         objects='current_project'))
 
         # self.add_property(PAPP(name='ng.output_hdl_format', value='VHDL', objects='get_filesets sim_1'))
         # the bitgen b arg generates a raw configuration bitstream
-        # self.add_property(PAPP(name='steps.bitgen.args.b', value='true', objects='get_runs impl_1'))
-        self.add_property(PAPP(name='top', value=syn_top, objects='get_property srcset [current_run]'))
-
+        # self.add_property(PAPP(name='steps.bitgen.args.b', value='true',
+        # objects='get_runs impl_1'))
+        self.add_property(
+            PAPP(name='top',
+                         value=syn_top,
+                         objects='get_property srcset [current_run]'))
 
     def create_project(self):
         tmp = 'create_project {0} ./'
-        self.header = tmp.format(self.filename)        
+        self.header = tmp.format(self.filename)
 
     def update_project(self):
         tmp = 'open_project ./{0}'
-        self.header = tmp.format(self.filename+'.xpr')
-
+        self.header = tmp.format(self.filename + '.xpr')
 
     def __emit_properties(self):
         tmp = "set_property {0} {1} [{2}]"
@@ -210,8 +222,7 @@ mrproper:
         for p in self.properties:
             line = tmp.format(p.name, p.value, p.objects)
             ret.append(line)
-        return ('\n'.join(ret))+'\n'
-
+        return ('\n'.join(ret)) + '\n'
 
     def __emit_files(self):
         tmp = "add_files -norecurse {0}"
@@ -226,7 +237,7 @@ mrproper:
             else:
                 continue
             ret.append(line)
-        return ('\n'.join(ret))+'\n'
+        return ('\n'.join(ret)) + '\n'
 
     def supported_files(self, fileset):
         from hdlmake.srcfile import UCFFile, NGCFile, XMPFile, XCOFile
@@ -234,21 +245,21 @@ mrproper:
         sup_files = SourceFileSet()
         for f in fileset:
             if (
-                   (isinstance(f, UCFFile)) or
-                   (isinstance(f, NGCFile)) or
-                   (isinstance(f, XMPFile)) or
-                   (isinstance(f, XCOFile)) or
-                   (isinstance(f, BDFile)) or
-                   (isinstance(f, TCLFile))
-               ):
+                (isinstance(f, UCFFile)) or
+                (isinstance(f, NGCFile)) or
+                (isinstance(f, XMPFile)) or
+                (isinstance(f, XCOFile)) or
+                (isinstance(f, BDFile)) or
+                (isinstance(f, TCLFile))
+            ):
                 sup_files.add(f)
             else:
                 continue
         return sup_files
 
 
-
 class _VivadoProjectProperty:
+
     def __init__(self, name=None, value=None, objects=None):
         self.name = name
         self.value = value
@@ -258,4 +269,3 @@ class _VivadoProjectProperty:
         tmp = "set_property {0} {1} [{2}]"
         line = tmp.format(self.name, self.value, self.objects)
         return(line)
-

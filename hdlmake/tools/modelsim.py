@@ -33,6 +33,7 @@ MODELSIM_STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
 
 
 class ToolModelsim(VsimMakefileWriter):
+
     def __init__(self):
         super(ToolModelsim, self).__init__()
 
@@ -61,13 +62,20 @@ class ToolModelsim(VsimMakefileWriter):
         self.vlog_flags.extend(["-modelsimini", "modelsim.ini"])
         self.vmap_flags.extend(["-modelsimini", "modelsim.ini"])
         if top_module.pool.env["modelsim_path"]:
-            modelsim_ini_path = os.path.join(top_module.pool.env["modelsim_path"], "..")
+            modelsim_ini_path = os.path.join(
+                top_module.pool.env["modelsim_path"],
+                "..")
         else:
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
         self.additional_deps.append("modelsim.ini")
-        self.additional_clean.extend(["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
+        self.additional_clean.extend(
+            ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
 
-        self.copy_rules["modelsim.ini"] = os.path.join("$(MODELSIM_INI_PATH)", "modelsim.ini")
-        super(ToolModelsim, self).generate_simulation_makefile(fileset, top_module)
-
+        self.copy_rules["modelsim.ini"] = os.path.join(
+            "$(MODELSIM_INI_PATH)", "modelsim.ini")
+        super(
+            ToolModelsim,
+            self).generate_simulation_makefile(
+            fileset,
+            top_module)
