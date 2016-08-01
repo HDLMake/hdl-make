@@ -23,10 +23,10 @@
 
 import string
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
-class ToolActiveHDL(MakefileWriter):
+class ToolActiveHDL(ActionMakefile):
 
     def __init__(self):
         super(ToolActiveHDL, self).__init__()

@@ -23,8 +23,8 @@
 
 import os
 
-from . import fetch
-
+from hdlmake import fetch
+from .action import Action
 
 class _StaticClassVariable():
     pass
@@ -33,7 +33,7 @@ _m = _StaticClassVariable()
 _m.initialized = False
 
 
-class MakefileWriter(object):
+class ActionMakefile(Action):
     
     def __init__(self, filename=None):
         self._file = None
@@ -41,7 +41,7 @@ class MakefileWriter(object):
             self._filename = filename
         else:
             self._filename = "Makefile"
-        super(MakefileWriter, self).__init__()
+        super(ActionMakefile, self).__init__()
 
     def __del__(self):
         if self._file:

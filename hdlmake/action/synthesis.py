@@ -34,21 +34,13 @@ from hdlmake.tools import (
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero)
 
-from .action import Action
-
-class ActionSynthesis(Action,
+class ActionSynthesis(
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero):
     """Class providing the public synthesis methods for the user"""
 
     def __init__(self, *args):
-        Action.__init__(self, *args)
-        ToolISE.__init__(self, *args)
-        ToolPlanAhead.__init__(self, *args)
-        ToolVivado.__init__(self, *args)
-        ToolQuartus.__init__(self, *args)
-        ToolDiamond.__init__(self, *args)
-        ToolLibero.__init__(self, *args)
+        super(ActionSynthesis, self).__init__(*args)
 
     def _load_synthesis_tool(self):
         """Returns a tool_object that provides the synthesis tool interface"""

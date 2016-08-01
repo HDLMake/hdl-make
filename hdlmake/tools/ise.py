@@ -32,7 +32,7 @@ import string
 from subprocess import Popen, PIPE
 
 import hdlmake.new_dep_solver as dep_solver
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
@@ -49,7 +49,7 @@ FAMILY_NAMES = {
     "XC7A": "Artix7"}
 
 
-class ToolISE(MakefileWriter):
+class ToolISE(ActionMakefile):
 
     def __init__(self):
         super(ToolISE, self).__init__()

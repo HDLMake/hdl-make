@@ -37,7 +37,7 @@ class ActionCore(Action):
     """Class that contains the methods for core actions"""
 
     def __init__(self, *args):
-        Action.__init__(self, *args)
+        super(ActionCore, self).__init__(*args)
 
     def fetch(self):
         """Fetch the missing required modules from their remote origin"""

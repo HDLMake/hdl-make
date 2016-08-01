@@ -25,6 +25,7 @@
 from .check import ActionCheck
 from .core import ActionCore
 from .tree import ActionTree
+from .makefile import ActionMakefile
 
 from .synthesis import ActionSynthesis
 from .simulation import ActionSimulation

@@ -25,10 +25,10 @@ import os
 import platform
 import string
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
-class VsimMakefileWriter(MakefileWriter):
+class VsimMakefileWriter(ActionMakefile):
 
     """A Makefile writer for simulation suitable for vsim based simulators.
 

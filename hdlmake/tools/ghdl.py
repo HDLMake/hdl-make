@@ -22,10 +22,10 @@
 #
 
 import string
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
-class ToolGHDL(MakefileWriter):
+class ToolGHDL(ActionMakefile):
 
     def __init__(self):
         super(ToolGHDL, self).__init__()

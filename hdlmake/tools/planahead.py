@@ -28,13 +28,13 @@ import string
 from string import Template
 import logging
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
 PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolPlanAhead(MakefileWriter):
+class ToolPlanAhead(ActionMakefile):
 
     def __init__(self):
         super(ToolPlanAhead, self).__init__()

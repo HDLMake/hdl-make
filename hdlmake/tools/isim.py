@@ -31,7 +31,7 @@ import sys
 import string
 import platform
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
 ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
@@ -41,7 +41,7 @@ ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                       'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
 
-class ToolISim(MakefileWriter):
+class ToolISim(ActionMakefile):
 
     def __init__(self):
         super(ToolISim, self).__init__()

@@ -27,13 +27,13 @@ import os
 import string
 import logging
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
 VIVADO_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolVivado(MakefileWriter):
+class ToolVivado(ActionMakefile):
 
     def __init__(self):
         super(ToolVivado, self).__init__()

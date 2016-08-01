@@ -27,7 +27,7 @@ import os
 import platform
 import logging
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
 IVERILOG_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
@@ -37,7 +37,7 @@ IVERILOG_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                           'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
 
-class ToolIVerilog(MakefileWriter):
+class ToolIVerilog(ActionMakefile):
 
     def __init__(self):
         super(ToolIVerilog, self).__init__()

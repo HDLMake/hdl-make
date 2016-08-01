@@ -28,13 +28,13 @@ from string import Template
 import logging
 
 from hdlmake import fetch
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
 
-class ToolQuartus(MakefileWriter):
+class ToolQuartus(ActionMakefile):
 
     def __init__(self):
         super(ToolQuartus, self).__init__()

@@ -33,21 +33,14 @@ from hdlmake.tools import (
     ToolIVerilog, ToolISim, ToolModelsim,
     ToolActiveHDL, ToolRiviera, ToolGHDL)
 
-from .action import Action
 
-class ActionSimulation(Action,
+class ActionSimulation(
     ToolIVerilog, ToolISim, ToolModelsim,
     ToolActiveHDL, ToolRiviera, ToolGHDL):
     """This class contains the simulation specific methods"""
 
     def __init__(self, *args):
-        Action.__init__(self, *args)
-        ToolIVerilog.__init__(self, *args)
-        ToolISim.__init__(self, *args)
-        ToolModelsim.__init__(self, *args)
-        ToolActiveHDL.__init__(self, *args)
-        ToolRiviera.__init__(self, *args)
-        ToolGHDL.__init__(self, *args)
+        super(ActionSimulation, self).__init__(*args)
 
     def _check_simulation_makefile(self):
         """Check if the simulation keys are provided by the top manifest"""

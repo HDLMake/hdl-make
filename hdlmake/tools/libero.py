@@ -27,13 +27,13 @@ import os
 import string
 import logging
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 
 LIBERO_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolLibero(MakefileWriter):
+class ToolLibero(ActionMakefile):
 
     def __init__(self):
         super(ToolLibero, self).__init__()

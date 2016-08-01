@@ -27,12 +27,12 @@ import os
 import logging
 import string
 
-from hdlmake.makefile_writer import MakefileWriter
+from hdlmake.action import ActionMakefile
 
 DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolDiamond(MakefileWriter):
+class ToolDiamond(ActionMakefile):
 
     def __init__(self):
         super(ToolDiamond, self).__init__()

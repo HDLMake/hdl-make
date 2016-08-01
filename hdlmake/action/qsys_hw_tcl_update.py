@@ -29,7 +29,7 @@ from .action import Action
 class QsysHwTclUpdate(Action):
 
     def __init__(self, *args):
-        Action.__init__(self, *args)
+        super(QsysHwTclUpdate, self).__init__(*args)
 
     def qsys_hw_tcl_update(self):
         file_set = self.build_file_set(

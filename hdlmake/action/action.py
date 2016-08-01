@@ -44,6 +44,7 @@ class Action(list):
         self._deps_solved = False
         self.env = None
         list.__init__(self, *args)
+        super(Action, self).__init__(*args)
 
 
     def new_module(self, parent, url, source, fetchto):
