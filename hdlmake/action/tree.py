@@ -31,7 +31,7 @@ class ActionTree(Action):
     """Class providing methods to create a graph from pool and to analyze it"""
 
     def __init__(self, *args):
-        super(Action, self).__init__(*args)
+        super(ActionTree, self).__init__(*args)
 
     def _generate_tree_web(self, hierarchy, top_id):
         """Create a JSON file containing the graph hierarchy from pool"""

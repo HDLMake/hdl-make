@@ -19,6 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module providing an way to update Altera Qsys HW TCL files.
+NOTE: This module is provided by the SKA telescope collaboration
+and need a rework to fully fit into the HDLMake structure. """
+
 import hdlmake.new_dep_solver as dep_solver
 import os
 import shutil
@@ -27,20 +31,22 @@ import logging
 from .action import Action
 
 class QsysHwTclUpdate(Action):
-
+    """Class providing methods to update a set of Altera Qsys HW TCL files"""
     def __init__(self, *args):
         super(QsysHwTclUpdate, self).__init__(*args)
 
     def qsys_hw_tcl_update(self):
+        """Build the fileset for synthesis and update the HW TCL files"""
         file_set = self.build_file_set(
             self.get_top_module().manifest_dict["syn_top"])
         file_list = dep_solver.make_dependency_sorted_list(file_set)
-        files_str = [os.path.relpath(f.path) for f in file_list]
+        files_str = [os.path.relpath(f_listed.path) for f_listed in file_list]
 
         file_tcl = []
-        for fs in files_str:
-            path, fname = os.path.split(fs)
-            file_tcl.append("add_fileset_file %s VHDL PATH %s" % (fname, fs))
+        for file_aux in files_str:
+            fname = os.path.split(file_aux)[1]
+            file_tcl.append("add_fileset_file %s VHDL PATH %s"
+                            % (fname, file_aux))
 
         # mark the last file as the top level file.
         file_tcl[-1] += " TOP_LEVEL_FILE"
