@@ -141,7 +141,7 @@ class File(object):
 
 class DepFile(File):
     def __init__(self, file_path, module):
-        from .module import Module
+        from hdlmake.module import Module
         assert isinstance(file_path, basestring)
         assert isinstance(module, Module)
 

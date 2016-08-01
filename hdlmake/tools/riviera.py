@@ -82,6 +82,13 @@ class ToolRiviera(VsimMakefileWriter):
     def get_standard_libraries(self):
         return RIVIERA_STANDARD_LIBS
 
+    def generate_simulation_makefile(self, fileset, top_module):
+        super(
+            ToolRiviera,
+            self).generate_simulation_makefile(
+            fileset,
+            top_module)
+
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet
         sup_files = SourceFileSet()

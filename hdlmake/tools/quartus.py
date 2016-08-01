@@ -29,6 +29,7 @@ import logging
 
 from hdlmake import fetch
 from hdlmake.action import ActionMakefile
+from hdlmake.util import path as path_mod
 
 
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
@@ -37,6 +38,9 @@ QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 class ToolQuartus(ActionMakefile):
 
     def __init__(self):
+        self._preflow = None
+        self._postmodule = None
+        self._postflow = None
         super(ToolQuartus, self).__init__()
 
     def detect_version(self, path):
@@ -129,7 +133,6 @@ mrproper:
         """Method that checks if the TCL files declared by the module
         manifest dictionary exists and if so create them and
         initialize the appropriated variables in the Module instance"""
-        from hdlmake.srcfile import TCLFile
         if mod.manifest_dict["quartus_preflow"] is not None:
             path = path_mod.compose(
                 mod.manifest_dict["quartus_preflow"], mod.path)
@@ -137,7 +140,7 @@ mrproper:
                 logging.error("quartus_preflow file listed in " + mod.path +
                               " doesn't exist: " + path + ".\nExiting.")
                 quit()
-            self.preflow = TCLFile(path)
+            self._preflow = path
 
         if mod.manifest_dict["quartus_postmodule"] is not None:
             path = path_mod.compose(
@@ -146,7 +149,7 @@ mrproper:
                 logging.error("quartus_postmodule file listed in " + mod.path +
                               " doesn't exist: " + path + ".\nExiting.")
                 quit()
-            self.postmodule = TCLFile(path)
+            self._postmodule = path
 
         if mod.manifest_dict["quartus_postflow"] is not None:
             path = path_mod.compose(
@@ -155,7 +158,7 @@ mrproper:
                 logging.error("quartus_postflow file listed in " + mod.path +
                               " doesn't exist: " + path + ".\nExiting.")
                 quit()
-            self.postflow = TCLFile(path)
+            self._postflow = path
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
@@ -163,8 +166,6 @@ mrproper:
         self.files = []
         self.filename = top_mod.manifest_dict["syn_project"]
         self._set_tcl_files(top_mod)
-        self.postmodule = top_mod.quartus_postmodule
-        self.postflow = top_mod.quartus_postflow
 
         if update is True:
             self.read()
@@ -191,16 +192,18 @@ mrproper:
     def __emit_scripts(self):
         tmp = 'set_global_assignment -name {0} "quartus_sh:{1}"'
         pre = mod = post = ""
-        if self.preflow:
-            pre = tmp.format("PRE_FLOW_SCRIPT_FILE", self.preflow.rel_path())
-        if self.postmodule:
+        if self._preflow:
+            pre = tmp.format(
+                "PRE_FLOW_SCRIPT_FILE",
+                self._preflow)
+        if self._postmodule:
             mod = tmp.format(
                 "POST_MODULE_SCRIPT_FILE",
-                self.postmodule.rel_path())
-        if self.postflow:
+                self._postmodule)
+        if self._postflow:
             post = tmp.format(
                 "POST_FLOW_SCRIPT_FILE",
-                self.postflow.rel_path())
+                self._postflow)
         return pre + '\n' + mod + '\n' + post + '\n'
 
     def __emit_files(self):
