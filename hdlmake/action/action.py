@@ -21,8 +21,18 @@
 
 """This module provides the common stuff for the different supported actions"""
 
-import sys
+
+from __future__ import print_function
+import os
 import logging
+import platform
+from subprocess import PIPE, Popen
+import sys
+
+from hdlmake.util import path as path_mod
+from hdlmake import fetch
+from hdlmake.env import Env
+
 
 from hdlmake import new_dep_solver as dep_solver
 
@@ -36,6 +46,33 @@ class Action(list):
         list.__init__(self, *args)
 
 
+    def new_module(self, parent, url, source, fetchto):
+        """Add new module to the pool.
+
+        This is the only way to add new modules to the pool
+        Thanks to it the pool can easily control its content
+
+        NOTE: the first module added to the pool will become the top_module!.
+        """
+        from hdlmake.module import Module, ModuleArgs
+        self._deps_solved = False
+
+        new_module_args = ModuleArgs()
+        new_module_args.set_args(parent, url, source, fetchto)
+        new_module = Module(new_module_args, self)
+
+        if not self.__contains(new_module):
+            self._add(new_module)
+            if not self.top_module:
+                self.top_module = new_module
+                new_module.parse_manifest()
+                url = self._guess_origin(self.top_module.path)
+                if url:
+                    self.top_module.url = url
+
+        return new_module
+
+
     def _check_all_fetched_or_quit(self):
         """Check if every module in the pool is fetched"""
         if not self.is_everything_fetched():
@@ -47,6 +84,7 @@ class Action(list):
             )
             quit()
 
+
     def _check_manifest_variable_is_set(self, name):
         """Method to check if a specific manifest variable is set"""
         if getattr(self.top_module, name) is None:
@@ -55,6 +93,7 @@ class Action(list):
                 "to perform current action (%s)",
                 name, self.__class__.__name__)
             sys.exit("\nExiting")
+
 
     def _check_manifest_variable_value(self, name, value):
         """Method to check if a manifest variable is set to a specific value"""
@@ -80,6 +119,7 @@ class Action(list):
         logging.debug("End build complete file set")
         return all_manifested_files
 
+
     def build_file_set(self, top_entity=None):
         """Build file set with only those files required by the top entity"""
         logging.debug("Begin build file set for %s", top_entity)
@@ -93,9 +133,20 @@ class Action(list):
         logging.debug("End build file set")
         return source_files
 
+
     def get_top_module(self):
         """Get the Top module from the pool"""
         return self.top_module
+
+
+    def get_module_by_path(self, path):
+        """Get instance of Module being stored at a given location"""
+        path = path_mod.rel2abs(path)
+        for module in self:
+            if module.path == path:
+                return module
+        return None
+
 
     def is_everything_fetched(self):
         """Check if every module is already fetched"""
@@ -103,4 +154,110 @@ class Action(list):
             return True
         else:
             return False
+
+
+    def fetch_all(self):
+        """Fetch all the modules declared in the design"""
+
+        def fetch_module(module):
+            """Fetch the given module from the remote origin"""
+            new_modules = []
+            logging.debug("Fetching module: %s", str(module))
+            backend = fetch.fetch_type_lookup.get_backend(module)
+            fetcher = backend()
+            result = fetcher.fetch(module)
+            if result is False:
+                logging.error("Unable to fetch module %s", str(module.url))
+                sys.exit("Exiting")
+            module.parse_manifest()
+            new_modules.extend(module.local)
+            new_modules.extend(module.svn)
+            new_modules.extend(module.git)
+            return new_modules
+
+        fetch_queue = [m for m in self]
+
+        while len(fetch_queue) > 0:
+            cur_mod = fetch_queue.pop()
+            new_modules = []
+            if cur_mod.isfetched:
+                new_modules = cur_mod.submodules()
+            else:
+                new_modules = fetch_module(cur_mod)
+            for mod in new_modules:
+                if not mod.isfetched:
+                    logging.debug("Appended to fetch queue: "
+                        + str(mod.url))
+                    self._add(mod)
+                    fetch_queue.append(mod)
+                else:
+                    logging.debug("NOT appended to fetch queue: "
+                        + str(mod.url))
+
+    def _add(self, new_module):
+        """Add the given new module if this is not already in the pool"""
+        from hdlmake.module import Module
+        if not isinstance(new_module, Module):
+            raise RuntimeError("Expecting a Module instance")
+        if self.__contains(new_module):
+            return False
+        if new_module.isfetched:
+            for mod in new_module.submodules():
+                self._add(mod)
+        self.append(new_module)
+        return True
+
+
+    def __contains(self, module):
+        """Check if the pool contains the given module by checking the URL"""
+        for mod in self:
+            if mod.url == module.url:
+                return True
+        return False
+
+
+    def _guess_origin(self, path):
+        """Guess origin (git, svn, local) of a module at given path"""
+        cwd = self.top_module.path
+        try:
+            if platform.system() == 'Windows':
+                is_windows = True
+            else:
+                is_windows = False
+            os.chdir(path)
+            git_out = Popen("git config --get remote.origin.url",
+                            stdout=PIPE, shell=True, close_fds=not is_windows)
+            lines = git_out.stdout.readlines()
+            if len(lines) == 0:
+                return None
+            url = lines[0].strip()
+            if not url:  # try svn
+                svn_out = Popen(
+                    "svn info | grep 'Repository Root' | awk '{print $NF}'",
+                    stdout=PIPE, shell=True, close_fds=not is_windows)
+                url = svn_out.stdout.readlines()[0].strip()
+                if url:
+                    return url
+                else:
+                    return None
+            else:
+                return url
+        finally:
+            os.chdir(cwd)
+
+
+    def set_environment(self, options):
+        """Initialize the module pool environment from the provided options"""
+        env = Env(options)
+        self.env = env
+
+    def get_fetchable_modules(self):
+        """Get list with the remote modules, i.e. those that can be fetched"""
+        return [m for m in self if m.source != fetch.LOCAL]
+
+    def __str__(self):
+        """Cast the module list as a list of strings"""
+        return str([str(m) for m in self])
+
+
 
