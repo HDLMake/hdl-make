@@ -25,7 +25,9 @@ from hdlmake.util import path
 
 import logging
 
-class ActionTree(object):
+from .action import Action
+
+class ActionTree(Action):
     """Class providing methods to create a graph from pool and to analyze it"""
 
     def _generate_tree_web(self, hierarchy, top_id):

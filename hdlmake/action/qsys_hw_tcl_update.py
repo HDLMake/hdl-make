@@ -24,8 +24,9 @@ import os
 import shutil
 import logging
 
+from .action import Action
 
-class QsysHwTclUpdate(object):
+class QsysHwTclUpdate(Action):
     def qsys_hw_tcl_update(self):
         file_set = self.build_file_set(
             self.get_top_module().manifest_dict["syn_top"])

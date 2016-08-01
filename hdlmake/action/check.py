@@ -26,8 +26,9 @@ import logging
 import sys
 import re
 
+from .action import Action
 
-class ActionCheck(object):
+class ActionCheck(Action):
     """Class providing the method to check general properties"""
 
     def check_manifest(self):

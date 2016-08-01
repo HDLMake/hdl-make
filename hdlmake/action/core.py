@@ -31,8 +31,9 @@ import hdlmake.new_dep_solver as dep_solver
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile, NGCFile
 from hdlmake.vlog_parser import VerilogPreprocessor
+from .action import Action
 
-class ActionCore(object):
+class ActionCore(Action):
     """Class that contains the methods for core actions"""
 
     def fetch(self):

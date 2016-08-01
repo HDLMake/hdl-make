@@ -24,15 +24,7 @@
 import sys
 import logging
 
-from hdlmake.action import (ActionCheck, ActionCore,
-                    ActionTree, ActionSimulation,
-                    ActionSynthesis,
-                    QsysHwTclUpdate)
-
-class Action(ActionCheck, ActionCore,
-             ActionTree, ActionSimulation,
-             ActionSynthesis,
-             QsysHwTclUpdate):
+class Action(object):
     """This is the base class providing the common Action methods"""
 
     def _check_all_fetched_or_quit(self):

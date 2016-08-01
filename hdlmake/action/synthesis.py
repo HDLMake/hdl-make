@@ -34,7 +34,9 @@ from hdlmake.tools import (
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero)
 
-class ActionSynthesis(
+from .action import Action
+
+class ActionSynthesis(Action,
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero):
     """Class providing the public synthesis methods for the user"""
