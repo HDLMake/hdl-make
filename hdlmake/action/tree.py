@@ -30,6 +30,9 @@ from .action import Action
 class ActionTree(Action):
     """Class providing methods to create a graph from pool and to analyze it"""
 
+    def __init__(self, *args):
+        Action.__init__(self, *args)
+
     def _generate_tree_web(self, hierarchy, top_id):
         """Create a JSON file containing the graph hierarchy from pool"""
         if self.env.options.web:

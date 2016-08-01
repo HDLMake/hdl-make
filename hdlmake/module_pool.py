@@ -34,23 +34,28 @@ from .util import path as path_mod
 from . import fetch
 from .env import Env
 
-from .action import (Action, ActionCheck, ActionCore,
+from .action import (ActionCheck, ActionCore,
                     ActionTree, ActionSimulation,
                     ActionSynthesis,
                     QsysHwTclUpdate)
 
 
-class ModulePool(list, ActionCheck, ActionCore,
-                    ActionTree, ActionSimulation,
-                    ActionSynthesis,
-                    QsysHwTclUpdate):
+class ModulePool(ActionCheck, ActionCore,
+                 ActionTree, ActionSimulation,
+                 ActionSynthesis,
+                 QsysHwTclUpdate):
     """
     The ModulePool class acts as the container for the HDLMake modules that
     are progressively being added to the design hierarchy.
     """
+
     def __init__(self, *args):
-        list.__init__(self, *args)
-        Action.__init__(self)
+        ActionCheck.__init__(self, *args)
+        ActionCore.__init__(self, *args)
+        ActionTree.__init__(self, *args)
+        ActionSimulation.__init__(self, *args)
+        ActionSynthesis.__init__(self, *args)
+        QsysHwTclUpdate.__init__(self, *args)
 
     def set_environment(self, options):
         """Initialize the module pool environment from the provided options"""
@@ -95,7 +100,7 @@ class ModulePool(list, ActionCheck, ActionCore,
         new_module_args = ModuleArgs()
         new_module_args.set_args(parent, url, source, fetchto)
         new_module = Module(new_module_args, self)
- 
+
         if not self.__contains(new_module):
             self._add(new_module)
             if not self.top_module:

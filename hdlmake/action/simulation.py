@@ -40,6 +40,15 @@ class ActionSimulation(Action,
     ToolActiveHDL, ToolRiviera, ToolGHDL):
     """This class contains the simulation specific methods"""
 
+    def __init__(self, *args):
+        Action.__init__(self, *args)
+        ToolIVerilog.__init__(self, *args)
+        ToolISim.__init__(self, *args)
+        ToolModelsim.__init__(self, *args)
+        ToolActiveHDL.__init__(self, *args)
+        ToolRiviera.__init__(self, *args)
+        ToolGHDL.__init__(self, *args)
+
     def _check_simulation_makefile(self):
         """Check if the simulation keys are provided by the top manifest"""
         if not self.get_top_module().manifest_dict["sim_top"]:

@@ -41,6 +41,15 @@ class ActionSynthesis(Action,
     ToolQuartus, ToolDiamond, ToolLibero):
     """Class providing the public synthesis methods for the user"""
 
+    def __init__(self, *args):
+        Action.__init__(self, *args)
+        ToolISE.__init__(self, *args)
+        ToolPlanAhead.__init__(self, *args)
+        ToolVivado.__init__(self, *args)
+        ToolQuartus.__init__(self, *args)
+        ToolDiamond.__init__(self, *args)
+        ToolLibero.__init__(self, *args)
+
     def _load_synthesis_tool(self):
         """Returns a tool_object that provides the synthesis tool interface"""
         tool_name = self.get_top_module().manifest_dict["syn_tool"]

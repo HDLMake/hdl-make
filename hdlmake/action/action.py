@@ -26,13 +26,14 @@ import logging
 
 from hdlmake import new_dep_solver as dep_solver
 
-class Action(object):
+class Action(list):
     """This is the base class providing the common Action methods"""
 
-    def __init__(self):
+    def __init__(self, *args):
         self.top_module = None
         self._deps_solved = False
         self.env = None
+        list.__init__(self, *args)
 
 
     def _check_all_fetched_or_quit(self):

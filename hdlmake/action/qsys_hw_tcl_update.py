@@ -27,6 +27,10 @@ import logging
 from .action import Action
 
 class QsysHwTclUpdate(Action):
+
+    def __init__(self, *args):
+        Action.__init__(self, *args)
+
     def qsys_hw_tcl_update(self):
         file_set = self.build_file_set(
             self.get_top_module().manifest_dict["syn_top"])

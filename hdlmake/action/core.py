@@ -36,6 +36,9 @@ from .action import Action
 class ActionCore(Action):
     """Class that contains the methods for core actions"""
 
+    def __init__(self, *args):
+        Action.__init__(self, *args)
+
     def fetch(self):
         """Fetch the missing required modules from their remote origin"""
         top_module = self.get_top_module()

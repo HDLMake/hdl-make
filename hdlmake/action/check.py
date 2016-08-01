@@ -31,6 +31,9 @@ from .action import Action
 class ActionCheck(Action):
     """Class providing the method to check general properties"""
 
+    def __init__(self, *args):
+        Action.__init__(self, *args)
+
     def check_manifest(self):
         """Method that checks the manifest dict"""
         logging.warning("Problems with top_module at %s", self.top_module.path)
