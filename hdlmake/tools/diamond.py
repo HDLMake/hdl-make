@@ -28,6 +28,7 @@ import logging
 import string
 
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, EDFFile, LPFFile
 
 DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
@@ -40,6 +41,8 @@ class ToolDiamond(ActionMakefile):
         'windows_bin': 'pnmainc',
         'linux_bin': 'diamondc',
         'project_ext': 'ldf'}
+
+    SUPPORTED_FILES = [EDFFile, LPFFile]
 
     def __init__(self):
         super(ToolDiamond, self).__init__()
@@ -171,20 +174,9 @@ mrproper:
         tmp = 'prj_project open \"{0}\"'
         self.header = tmp.format(self.filename + '.ldf')
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import EDFFile, LPFFile, SourceFileSet
-        sup_files = SourceFileSet()
-        for f in fileset:
-            if (isinstance(f, EDFFile)) or (isinstance(f, LPFFile)):
-                sup_files.add(f)
-            else:
-                continue
-        return sup_files
-
     def __emit_files(self, update=False):
         tmp = 'prj_src {0} \"{1}\"'
         ret = []
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, EDFFile, LPFFile
         for f in self.files:
             line = ''
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, EDFFile):

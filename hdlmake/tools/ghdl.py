@@ -23,6 +23,7 @@
 
 import string
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import VHDLFile
 
 GHDL_STANDARD_LIBS = ['ieee', 'std']
 
@@ -34,16 +35,14 @@ class ToolGHDL(ActionMakefile):
         'windows_bin': 'ghdl',
         'linux_bin': 'ghdl'}
 
+    SUPPORTED_FILES = []
+
     def __init__(self):
         super(ToolGHDL, self).__init__()
 
     def detect_version(self, path):
         pass
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SourceFileSet
-        sup_files = SourceFileSet()
-        return sup_files
 
     def _print_sim_options(self, top_module):
         if top_module.manifest_dict["ghdl_opt"]:
@@ -70,16 +69,11 @@ mrproper: clean
 
     def _print_sim_compilation(self, fileset, top_module):
         # TODO: vhdl87 vs vhdl97 options
-
-        from hdlmake.srcfile import VHDLFile
-
         self.writeln("simulation:")
-
         self.writeln("\t\t# Analyze sources")
         for vhdl in fileset.filter(VHDLFile):
             self.writeln("\t\tghdl -a " + vhdl.rel_path())
         self.writeln()
-
         self.writeln("\t\t# Elaborate design")
         self.writeln("\t\tghdl -e $(TOP_MODULE)")
         self.writeln()

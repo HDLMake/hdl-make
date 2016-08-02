@@ -29,6 +29,8 @@ from string import Template
 import logging
 
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
+                             UCFFile, NGCFile, XMPFile, XCOFile)
 
 
 PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
@@ -42,6 +44,8 @@ class ToolPlanAhead(ActionMakefile):
         'windows_bin': 'planAhead',
         'linux_bin': 'planAhead',
         'project_ext': 'ppr'}
+
+    SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile, XCOFile]
 
     def __init__(self):
         super(ToolPlanAhead, self).__init__()
@@ -221,7 +225,6 @@ mrproper:
     def __emit_files(self):
         tmp = "add_files -norecurse {0}"
         ret = []
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile
         for f in self.files:
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile):
                 line = tmp.format(f.rel_path())
@@ -229,16 +232,6 @@ mrproper:
                 continue
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
-
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import UCFFile, NGCFile, XMPFile, XCOFile, SourceFileSet
-        sup_files = SourceFileSet()
-        for f in fileset:
-            if (isinstance(f, UCFFile)) or (isinstance(f, NGCFile)) or (isinstance(f, XMPFile)) or (isinstance(f, XCOFile)):
-                sup_files.add(f)
-            else:
-                continue
-        return sup_files
 
 
 class _PlanAheadProjectProperty:

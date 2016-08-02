@@ -24,6 +24,7 @@
 import string
 
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile
 
 
 class ToolActiveHDL(ActionMakefile):
@@ -34,18 +35,13 @@ class ToolActiveHDL(ActionMakefile):
         'windows_bin': 'vsimsa',
         'linux_bin': None}
 
+    SUPPORTED_FILES = []
 
     def __init__(self):
         super(ToolActiveHDL, self).__init__()
 
     def detect_version(self, path):
         pass
-
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SourceFileSet
-        sup_files = SourceFileSet()
-        # Return an empty fileset
-        return sup_files
 
 
     def _print_clean(self, top_module):
@@ -62,7 +58,6 @@ mrproper: clean
 
     def _print_sim_compilation(self, fileset, top_module):
         # TODO: ??
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile
 
         self.writeln("simulation:")
 

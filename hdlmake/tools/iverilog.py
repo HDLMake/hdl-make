@@ -29,6 +29,7 @@ import logging
 
 from hdlmake.util import path as path_mod
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
 
 IVERILOG_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
@@ -46,6 +47,8 @@ class ToolIVerilog(ActionMakefile):
         'windows_bin': 'iverilog',
         'linux_bin': 'iverilog'}
 
+    SUPPORTED_FILES = []
+
     def __init__(self):
         super(ToolIVerilog, self).__init__()
 
@@ -59,13 +62,7 @@ class ToolIVerilog(ActionMakefile):
         version = iverilog.stdout.readlines()[0].strip()
         return version
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SourceFileSet
-        sup_files = SourceFileSet()
-        return sup_files
-
     def _print_sim_compilation(self, fileset, top_module):
-        from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
         self.writeln("simulation:")
 

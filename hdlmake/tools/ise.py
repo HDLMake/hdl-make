@@ -29,6 +29,7 @@ import xml.parsers.expat
 import logging
 import re
 import os
+import sys
 import string
 from subprocess import Popen, PIPE
 
@@ -36,6 +37,8 @@ import hdlmake.new_dep_solver as dep_solver
 from hdlmake.action import ActionMakefile
 from hdlmake.util import path as path_mod
 
+from hdlmake.srcfile import (UCFFile, VHDLFile, VerilogFile,
+                             CDCFile, NGCFile, SourceFileSet)
 
 XML_IMPL = xml.dom.minidom.getDOMImplementation()
 
@@ -63,6 +66,8 @@ class ToolISE(ActionMakefile):
         'windows_bin': 'ise',
         'linux_bin': 'ise',
         'project_ext': 'xise'}
+
+    SUPPORTED_FILES = [UCFFile, CDCFile, NGCFile]
 
     def __init__(self):
         super(ToolISE, self).__init__()
@@ -436,7 +441,6 @@ mrproper:
         file_xml = open(filename)
         self.xml_doc = xml.dom.minidom.parse(file_xml)
         self.xml_project = self.xml_doc.getElementsByTagName("project")[0]
-        import sys
         try:
             self._parse_props()
         except xml.parsers.expat.ExpatError:
@@ -480,8 +484,6 @@ mrproper:
 
     def _output_files(self, node):
         """Add the HDL design files to the Xilinx ISE Project"""
-        from hdlmake.srcfile import (UCFFile, VHDLFile, VerilogFile,
-                                     CDCFile, NGCFile)
         for file_aux in self.files:
             file_project = self.xml_doc.createElement("file")
             file_project.setAttribute("xil_pn:name",
@@ -514,7 +516,6 @@ mrproper:
 
     def _output_bindings(self, node):
         """Add ChipScope bindings to the Xilinx ISE project"""
-        from hdlmake.srcfile import CDCFile
         for binding in [file_aux for file_aux in self.files
                         if isinstance(file_aux, CDCFile)]:
             binding_project = self.xml_doc.createElement("binding")
@@ -591,19 +592,6 @@ mrproper:
         top_element.appendChild(self.xml_files)
         top_element.appendChild(self.xml_bindings)
         top_element.appendChild(version)
-
-    def supported_files(self, fileset):
-        """Filter the non dependable but supported files"""
-        from hdlmake.srcfile import UCFFile, CDCFile, NGCFile, SourceFileSet
-        sup_files = SourceFileSet()
-        for file_aux in fileset:
-            if ((isinstance(file_aux, UCFFile)) or
-                (isinstance(file_aux, NGCFile)) or
-                (isinstance(file_aux, CDCFile))):
-                sup_files.add(file_aux)
-            else:
-                continue
-        return sup_files
 
 
 class ISEProjectProperty(object):

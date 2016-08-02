@@ -68,6 +68,8 @@ class ToolRiviera(VsimMakefileWriter):
         'windows_bin': 'vsim',
         'linux_bin': 'vsim'}
 
+    SUPPORTED_FILES = []
+
     def __init__(self):
         super(ToolRiviera, self).__init__()
         self.vcom_flags.append("-2008")
@@ -76,7 +78,3 @@ class ToolRiviera(VsimMakefileWriter):
     def detect_version(self, path):
         pass
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SourceFileSet
-        sup_files = SourceFileSet()
-        return sup_files

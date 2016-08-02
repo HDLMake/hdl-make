@@ -40,6 +40,8 @@ class ToolModelsim(VsimMakefileWriter):
         'windows_bin': 'vsim',
         'linux_bin': 'vsim'}
 
+    SUPPORTED_FILES = []
+
 
     def __init__(self):
         super(ToolModelsim, self).__init__()
@@ -55,10 +57,6 @@ class ToolModelsim(VsimMakefileWriter):
     def detect_version(self, path):
         pass
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SourceFileSet
-        sup_files = SourceFileSet()
-        return sup_files
 
     def _print_sim_options(self, top_module):
         if top_module.pool.env["modelsim_path"]:

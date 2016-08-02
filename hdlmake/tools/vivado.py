@@ -28,6 +28,8 @@ import string
 import logging
 
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, UCFFile,
+                             NGCFile, XMPFile, XCOFile, BDFile, TCLFile)
 
 
 VIVADO_STANDARD_LIBS = ['ieee', 'std']
@@ -42,6 +44,9 @@ class ToolVivado(ActionMakefile):
         'linux_bin': 'vivado',
         'project_ext': 'xpr'
     }
+
+    SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile,
+                       XCOFile, BDFile, TCLFile]
 
     def __init__(self):
         super(ToolVivado, self).__init__()
@@ -219,7 +224,6 @@ mrproper:
         tmp = "add_files -norecurse {0}"
         tcl = "source {0}"
         ret = []
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, UCFFile, NGCFile, XMPFile, XCOFile, BDFile, TCLFile
         for f in self.files:
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile) or isinstance(f, BDFile):
                 line = tmp.format(f.rel_path())
@@ -229,24 +233,6 @@ mrproper:
                 continue
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
-
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import UCFFile, NGCFile, XMPFile, XCOFile
-        from hdlmake.srcfile import BDFile, TCLFile, SourceFileSet
-        sup_files = SourceFileSet()
-        for f in fileset:
-            if (
-                (isinstance(f, UCFFile)) or
-                (isinstance(f, NGCFile)) or
-                (isinstance(f, XMPFile)) or
-                (isinstance(f, XCOFile)) or
-                (isinstance(f, BDFile)) or
-                (isinstance(f, TCLFile))
-            ):
-                sup_files.add(f)
-            else:
-                continue
-        return sup_files
 
 
 class _VivadoProjectProperty:

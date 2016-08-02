@@ -30,6 +30,9 @@ import logging
 from hdlmake import fetch
 from hdlmake.action import ActionMakefile
 from hdlmake.util import path as path_mod
+from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
+                             SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
+                             QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
 
 
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
@@ -43,6 +46,9 @@ class ToolQuartus(ActionMakefile):
         'windows_bin': 'quartus',
         'linux_bin': 'quartus',
         'project_ext': 'qsf'}
+
+    SUPPORTED_FILES = [SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
+                       QSFFile, BSFFile, BDFFile, TDFFile, GDFFile]
 
     def __init__(self):
         self._preflow = None
@@ -201,9 +207,6 @@ mrproper:
         return pre + '\n' + mod + '\n' + post + '\n'
 
     def __emit_files(self):
-        from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
-                                     SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
-                                     QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
         ret = []
@@ -242,27 +245,6 @@ mrproper:
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile, QSFFile
-        from hdlmake.srcfile import BSFFile, BDFFile, TDFFile, GDFFile, SourceFileSet
-        sup_files = SourceFileSet()
-        for f in fileset:
-            if (
-                (isinstance(f, SignalTapFile)) or
-                (isinstance(f, SDCFile)) or
-                (isinstance(f, QIPFile)) or
-                (isinstance(f, QSYSFile)) or
-                (isinstance(f, DPFFile)) or
-                (isinstance(f, QSFFile)) or
-                (isinstance(f, BSFFile)) or
-                (isinstance(f, BDFFile)) or
-                (isinstance(f, TDFFile)) or
-                (isinstance(f, GDFFile))
-            ):
-                sup_files.add(f)
-            else:
-                continue
-        return sup_files
 
     def add_property(self, val):
         # don't save files (they are unneeded)

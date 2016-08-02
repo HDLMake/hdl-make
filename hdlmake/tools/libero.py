@@ -28,6 +28,7 @@ import string
 import logging
 
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
 
 
 LIBERO_STANDARD_LIBS = ['ieee', 'std']
@@ -41,6 +42,8 @@ class ToolLibero(ActionMakefile):
         'windows_bin': 'libero',
         'linux_bin': 'libero',
         'project_ext': 'prjx'}
+
+    SUPPORTED_FILES = [SDCFile, PDCFile]
 
     def __init__(self):
         super(ToolLibero, self).__init__()
@@ -171,7 +174,6 @@ mrproper:
         synthesis_constraints = []
         compilation_constraints = []
         ret = []
-        from hdlmake.srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
         # First stage: linking files
         for f in self.files:
             if isinstance(f, VHDLFile) or isinstance(f, VerilogFile):
@@ -209,12 +211,3 @@ mrproper:
         ret.append(line)
         return ('\n'.join(ret)) + '\n'
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SDCFile, PDCFile, SourceFileSet
-        sup_files = SourceFileSet()
-        for f in fileset:
-            if (isinstance(f, SDCFile)) or (isinstance(f, PDCFile)):
-                sup_files.add(f)
-            else:
-                continue
-        return sup_files

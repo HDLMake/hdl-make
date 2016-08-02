@@ -33,6 +33,7 @@ import platform
 
 from hdlmake.util import path as path_mod
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import VerilogFile, VHDLFile
 
 
 ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
@@ -49,6 +50,8 @@ class ToolISim(ActionMakefile):
         'id': 'isim',
         'windows_bin': 'isimgui',
         'linux_bin': 'isimgui'}
+
+    SUPPORTED_FILES = []
 
     def __init__(self):
         super(ToolISim, self).__init__()
@@ -68,10 +71,6 @@ class ToolISim(ActionMakefile):
             return None
         return isim_version
 
-    def supported_files(self, fileset):
-        from hdlmake.srcfile import SourceFileSet
-        sup_files = SourceFileSet()
-        return sup_files
 
     def _print_sim_top(self, top_module):
         self.writeln("""## variables #############################
@@ -103,7 +102,6 @@ mrproper: clean
 
 
     def _print_sim_compilation(self, fileset, top_module):
-        from hdlmake.srcfile import VerilogFile, VHDLFile
         make_preambule_p2 = """## rules #################################
 simulation: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ) fuse
 $(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini

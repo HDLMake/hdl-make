@@ -237,13 +237,19 @@ end sdb_meta_pkg;""")
 
         top_mod = self.get_top_module()
         fileset = self.build_file_set(top_mod.manifest_dict["syn_top"])
-        privative_files = tool_object.supported_files(
-            self.build_complete_file_set())
 
-        if privative_files:
-            logging.info("Privative / non-parseable files detected: %s",
-                len(privative_files))
-            fileset.add(privative_files)
+
+        sup_files = self.build_complete_file_set()
+        privative_files = []
+        for file_aux in sup_files:
+            if any(isinstance(file_aux, file_type)
+                   for file_type in tool_object.SUPPORTED_FILES):
+                privative_files.append(file_aux)
+        if len(privative_files) > 0:
+             logging.info("Detected %d supported files that are not parseable",
+                          len(privative_files))
+             fileset.add(privative_files)
+
 
         sff = SourceFileFactory()
         if self.env.options.generate_project_vhd:
