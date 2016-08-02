@@ -34,21 +34,18 @@ DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
 class ToolDiamond(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'Diamond',
+        'id': 'diamond',
+        'windows_bin': 'pnmainc',
+        'linux_bin': 'diamondc',
+        'project_ext': 'ldf'}
+
     def __init__(self):
         super(ToolDiamond, self).__init__()
 
     def detect_version(self, path):
         return 'unknown'
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'Diamond',
-            'id': 'diamond',
-            'windows_bin': 'pnmainc',
-            'linux_bin': 'diamondc',
-            'project_ext': 'ldf'
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         return DIAMOND_STANDARD_LIBS

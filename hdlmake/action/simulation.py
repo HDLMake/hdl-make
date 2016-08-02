@@ -71,7 +71,7 @@ class ActionSimulation(
         elif tool_name is "ghdl":
             tool_object = ToolGHDL()
 
-        tool_info = tool_object.get_keys()
+        tool_info = tool_object.TOOL_INFO
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
         else:

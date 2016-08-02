@@ -44,17 +44,14 @@ ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
 
 class ToolISim(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'ISim',
+        'id': 'isim',
+        'windows_bin': 'isimgui',
+        'linux_bin': 'isimgui'}
+
     def __init__(self):
         super(ToolISim, self).__init__()
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'ISim',
-            'id': 'isim',
-            'windows_bin': 'isimgui',
-            'linux_bin': 'isimgui'
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         return ISIM_STANDARD_LIBS

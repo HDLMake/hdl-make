@@ -28,20 +28,18 @@ from hdlmake.action import ActionMakefile
 
 class ToolActiveHDL(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'Aldec Active-HDL',
+        'id': 'aldec',
+        'windows_bin': 'vsimsa',
+        'linux_bin': None}
+
+
     def __init__(self):
         super(ToolActiveHDL, self).__init__()
 
     def detect_version(self, path):
         pass
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'Aldec Active-HDL',
-            'id': 'aldec',
-            'windows_bin': 'vsimsa',
-            'linux_bin': None
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         ALDEC_STANDARD_LIBS = ['ieee', 'std']

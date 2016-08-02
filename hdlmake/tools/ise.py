@@ -21,13 +21,14 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing the classes that are used to handle Xilinx ISE"""
+
 from __future__ import print_function
 import xml.dom.minidom
 import xml.parsers.expat
 import logging
 import re
 import os
-import platform
 import string
 from subprocess import Popen, PIPE
 
@@ -35,8 +36,8 @@ import hdlmake.new_dep_solver as dep_solver
 from hdlmake.action import ActionMakefile
 from hdlmake.util import path as path_mod
 
-XmlImpl = xml.dom.minidom.getDOMImplementation()
 
+XML_IMPL = xml.dom.minidom.getDOMImplementation()
 
 FAMILY_NAMES = {
     "XC6S": "Spartan6",
@@ -49,32 +50,45 @@ FAMILY_NAMES = {
     "XC7K": "Kintex7",
     "XC7A": "Artix7"}
 
+ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
+                     'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
+
 
 class ToolISE(ActionMakefile):
+    """Class providing the methods to create and build a Xilinx ISE project"""
+
+    TOOL_INFO = {
+        'name': 'ISE',
+        'id': 'ise',
+        'windows_bin': 'ise',
+        'linux_bin': 'ise',
+        'project_ext': 'xise'}
 
     def __init__(self):
         super(ToolISE, self).__init__()
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'ISE',
-            'id': 'ise',
-            'windows_bin': 'ise',
-            'linux_bin': 'ise',
-            'project_ext': 'xise'
-        }
-        return tool_info
+        self.props = {}
+        self.files = []
+        self.libs = []
+        self.xml_doc = None
+        self.xml_files = []
+        self.xml_props = []
+        self.xml_libs = []
+        self.xml_ise = None
+        self.xml_project = None
+        self.xml_bindings = None
+        self.top_mod = None
+        self.ise = None
+        self.fileset = []
+        self.flist = []
 
     def get_standard_libraries(self):
-        ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
-                     'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
         return ISE_STANDARD_LIBS
 
     def detect_version(self, path):
         is_windows = path_mod.check_windows()
 
         version_pattern = re.compile(
-            '.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
+            r'.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
         # First check if we have version in path
 
         match = re.match(version_pattern, path)
@@ -88,15 +102,15 @@ class ToolISE(ActionMakefile):
             xst_output = xst_output.stdout.readlines()[0]
             xst_output = xst_output.strip()
             version_pattern = re.compile(
-                'Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
+                r'Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
             match = re.match(version_pattern, xst_output)
             if match:
                 ise_version = "%s.%s" % (
                     match.group('major'),
                     match.group('minor'))
             else:
-                logging.error("xst output is not in expected format: %s\n" % xst_output +
-                              "Can't determine ISE version")
+                logging.error("xst output is not in expected format: %s\n",
+                    xst_output + "Can't determine ISE version")
                 return None
 
         return ise_version
@@ -283,9 +297,9 @@ mrproper:
                 "syn_post_bitstream_cmd"],
             xtclsh_path=os.path.join(tool_path, "xtclsh"))
         self.write(makefile_text)
-        for f in top_mod.incl_makefiles:
-            if os.path.exists(f):
-                self.write("include %s\n" % f)
+        for file_aux in top_mod.incl_makefiles:
+            if os.path.exists(file_aux):
+                self.write("include %s\n" % file_aux)
 
     class StringBuffer(list):
 
@@ -309,16 +323,6 @@ mrproper:
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
-        self.props = {}
-        self.files = []
-        self.libs = []
-        self.xml_doc = None
-        self.xml_files = []
-        self.xml_props = []
-        self.xml_libs = []
-        self.xml_ise = None
-        self.xml_project = None
-        self.xml_bindings = None
         self.top_mod = top_mod
         self.ise = tool_version
 
@@ -335,7 +339,8 @@ mrproper:
                 self.load_xml(top_mod.manifest_dict["syn_project"])
             except:
                 logging.error("Error while reading the project file.\n"
-                              "Are you sure that syn_project indicates a correct ISE project file?")
+                              "Are you sure that syn_project indicates "
+                              "a correct ISE project file?")
                 raise
         else:
             self.add_initial_properties()
@@ -351,8 +356,8 @@ mrproper:
             self.libs.append(lib)
 
     def add_libs(self, libs):
-        for l in libs:
-            self._add_lib(l)
+        for lib_aux in libs:
+            self._add_lib(lib_aux)
         self.libs.remove('work')
 
     def add_property(self, name, value, is_default=False):
@@ -369,29 +374,32 @@ mrproper:
         self.add_property("Create Binary Configuration File", "true")
 
     def _set_values_from_manifest(self):
-        tm = self.top_mod
-        if tm.manifest_dict["syn_family"] is None:
-            tm.manifest_dict["syn_family"] = FAMILY_NAMES.get(
-                tm.manifest_dict["syn_device"][0:4].upper())
-            if tm.manifest_dict["syn_family"] is None:
+        top_module = self.top_mod
+        if top_module.manifest_dict["syn_family"] is None:
+            top_module.manifest_dict["syn_family"] = FAMILY_NAMES.get(
+                top_module.manifest_dict["syn_device"][0:4].upper())
+            if top_module.manifest_dict["syn_family"] is None:
                 logging.error(
-                    "syn_family is not definied in Manifest.py and can not be guessed!")
+                    "syn_family is not definied in Manifest.py"
+                    " and can not be guessed!")
                 quit(-1)
-        self.add_property("Device", tm.manifest_dict["syn_device"])
-        self.add_property("Device Family", tm.manifest_dict["syn_family"])
-        self.add_property("Speed Grade", tm.manifest_dict["syn_grade"])
-        self.add_property("Package", tm.manifest_dict["syn_package"])
+        self.add_property("Device", top_module.manifest_dict["syn_device"])
+        self.add_property("Device Family",
+            top_module.manifest_dict["syn_family"])
+        self.add_property("Speed Grade", top_module.manifest_dict["syn_grade"])
+        self.add_property("Package", top_module.manifest_dict["syn_package"])
         self.add_property(
             "Implementation Top",
             "Architecture|" +
-            tm.manifest_dict[
+            top_module.manifest_dict[
                 "syn_top"])
         self.add_property(
             "Implementation Top Instance Path",
-            "/" + tm.manifest_dict["syn_top"])
+            "/" + top_module.manifest_dict["syn_top"])
 
     def _parse_props(self):
-        for xmlp in self.xml_project.getElementsByTagName("properties")[0].getElementsByTagName("property"):
+        properties_temp = self.xml_project.getElementsByTagName("properties")
+        for xmlp in properties_temp[0].getElementsByTagName("property"):
             self.add_property(
                 name=xmlp.getAttribute("xil_pn:name"),
                 value=xmlp.getAttribute("xil_pn:value"),
@@ -404,15 +412,16 @@ mrproper:
             where=self.xml_doc.documentElement)
 
     def _parse_libs(self):
-        for l in self.xml_project.getElementsByTagName("libraries")[0].getElementsByTagName("library"):
-            self._add_lib(l.getAttribute("xil_pn:name"))
+        libraries_temp = self.xml_project.getElementsByTagName("libraries")
+        for lib_aux in libraries_temp[0].getElementsByTagName("library"):
+            self._add_lib(lib_aux.getAttribute("xil_pn:name"))
         self.xml_libs = self._purge_dom_node(
             name="libraries",
             where=self.xml_doc.documentElement)
 
     def load_xml(self, filename):
-        f = open(filename)
-        self.xml_doc = xml.dom.minidom.parse(f)
+        file_xml = open(filename)
+        self.xml_doc = xml.dom.minidom.parse(file_xml)
         self.xml_project = self.xml_doc.getElementsByTagName("project")[0]
         import sys
         try:
@@ -440,80 +449,84 @@ mrproper:
                         "xil_pn:ise_version").split(
                             '.'))
             where.removeChild(node)
-        except:
+        except xml.parsers.expat.ExpatError:
             pass
-        f.close()
+        file_xml.close()
         self._set_values_from_manifest()
 
     def _purge_dom_node(self, name, where):
         try:
             node = where.getElementsByTagName(name)[0]
             where.removeChild(node)
-        except:
+        except xml.parsers.expat.ExpatError:
             pass
         new = self.xml_doc.createElement(name)
         where.appendChild(new)
         return new
 
     def _output_files(self, node):
-        from hdlmake.srcfile import UCFFile, VHDLFile, VerilogFile, CDCFile, NGCFile
+        from hdlmake.srcfile import (UCFFile, VHDLFile, VerilogFile,
+                                     CDCFile, NGCFile)
 
-        for f in self.files:
-            fp = self.xml_doc.createElement("file")
-            fp.setAttribute("xil_pn:name", os.path.relpath(f.path))
-            if isinstance(f, VHDLFile):
-                fp.setAttribute("xil_pn:type", "FILE_VHDL")
-            elif isinstance(f, VerilogFile):
-                fp.setAttribute("xil_pn:type", "FILE_VERILOG")
-            elif isinstance(f, UCFFile):
-                fp.setAttribute("xil_pn:type", "FILE_UCF")
-            elif isinstance(f, CDCFile):
-                fp.setAttribute("xil_pn:type", "FILE_CDC")
-            elif isinstance(f, NGCFile):
-                fp.setAttribute("xil_pn:type", "FILE_NGC")
+        for file_aux in self.files:
+            file_project = self.xml_doc.createElement("file")
+            file_project.setAttribute("xil_pn:name",
+                os.path.relpath(file_aux.path))
+            if isinstance(file_aux, VHDLFile):
+                file_project.setAttribute("xil_pn:type", "FILE_VHDL")
+            elif isinstance(file_aux, VerilogFile):
+                file_project.setAttribute("xil_pn:type", "FILE_VERILOG")
+            elif isinstance(file_aux, UCFFile):
+                file_project.setAttribute("xil_pn:type", "FILE_UCF")
+            elif isinstance(file_aux, CDCFile):
+                file_project.setAttribute("xil_pn:type", "FILE_CDC")
+            elif isinstance(file_aux, NGCFile):
+                file_project.setAttribute("xil_pn:type", "FILE_NGC")
             else:
                 continue
 
             assoc = self.xml_doc.createElement("association")
             assoc.setAttribute("xil_pn:name", "Implementation")
-            assoc.setAttribute("xil_pn:seqID", str(self.files.index(f) + 1))
+            assoc.setAttribute("xil_pn:seqID",
+                str(self.files.index(file_aux) + 1))
 
             try:
-                if(f.library != "work"):
+                if file_aux.library != "work":
                     lib = self.xml_doc.createElement("library")
-                    lib.setAttribute("xil_pn:name", f.library)
-                    fp.appendChild(lib)
+                    lib.setAttribute("xil_pn:name", file_aux.library)
+                    file_project.appendChild(lib)
             except:
                 pass
 
-            fp.appendChild(assoc)
-            node.appendChild(fp)
+            file_project.appendChild(assoc)
+            node.appendChild(file_project)
 
     def _output_bindings(self, node):
         from hdlmake.srcfile import CDCFile
-        for b in [f for f in self.files if isinstance(f, CDCFile)]:
-            bp = self.xml_doc.createElement("binding")
-            bp.setAttribute(
+        for binding in [file_aux for file_aux in self.files
+                        if isinstance(file_aux, CDCFile)]:
+            binding_project = self.xml_doc.createElement("binding")
+            binding_project.setAttribute(
                 "xil_pn:location",
                 self.top_mod.manifest_dict["syn_top"])
-            bp.setAttribute("xil_pn:name", b.rel_path())
-            node.appendChild(bp)
+            binding_project.setAttribute("xil_pn:name", binding.rel_path())
+            node.appendChild(binding_project)
 
     def _output_props(self, node):
         for name, prop in self.props.iteritems():
             node.appendChild(prop.emit_xml(self.xml_doc))
 
     def _output_libs(self, node):
-        for l in self.libs:
-            ll = self.xml_doc.createElement("library")
-            ll.setAttribute("xil_pn:name", l)
-            node.appendChild(ll)
+        for lib_aux in self.libs:
+            lib_project = self.xml_doc.createElement("library")
+            lib_project.setAttribute("xil_pn:name", lib_aux)
+            node.appendChild(lib_project)
 
     def _output_ise(self, node):
-        i = self.xml_doc.createElement("version")
-        i.setAttribute("xil_pn:ise_version", '%s' % (self.ise))
-        i.setAttribute("xil_pn:schema_version", "2")
-        node.appendChild(i)
+        ise_ver_project = self.xml_doc.createElement("version")
+        ise_ver_project.setAttribute("xil_pn:ise_version", '%s' % (self.ise))
+        ise_ver_project.setAttribute("xil_pn:schema_version", "2")
+        node.appendChild(ise_ver_project)
 
     def emit_xml(self, filename=None):
         if not self.xml_doc:
@@ -532,7 +545,7 @@ mrproper:
         output_file.close()
 
     def create_empty_project(self):
-        self.xml_doc = XmlImpl.createDocument(
+        self.xml_doc = XML_IMPL.createDocument(
             "http://www.xilinx.com/XMLSchema",
             "project",
             None)
@@ -568,9 +581,11 @@ mrproper:
     def supported_files(self, fileset):
         from hdlmake.srcfile import UCFFile, CDCFile, NGCFile, SourceFileSet
         sup_files = SourceFileSet()
-        for f in fileset:
-            if (isinstance(f, UCFFile)) or (isinstance(f, NGCFile)) or (isinstance(f, CDCFile)):
-                sup_files.add(f)
+        for file_aux in fileset:
+            if ((isinstance(file_aux, UCFFile)) or
+                (isinstance(file_aux, NGCFile)) or
+                (isinstance(file_aux, CDCFile))):
+                sup_files.add(file_aux)
             else:
                 continue
         return sup_files

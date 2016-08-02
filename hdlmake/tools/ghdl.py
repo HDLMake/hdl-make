@@ -27,20 +27,17 @@ from hdlmake.action import ActionMakefile
 
 class ToolGHDL(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'GHDL',
+        'id': 'ghdl',
+        'windows_bin': 'ghdl',
+        'linux_bin': 'ghdl'}
+
     def __init__(self):
         super(ToolGHDL, self).__init__()
 
     def detect_version(self, path):
         pass
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'GHDL',
-            'id': 'ghdl',
-            'windows_bin': 'ghdl',
-            'linux_bin': 'ghdl'
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         GHDL_STANDARD_LIBS = ['ieee', 'std']
@@ -66,10 +63,11 @@ class ToolGHDL(ActionMakefile):
         self.writeln("""\
 #target for cleaning all intermediate stuff
 clean:
-\t\trm -rf *.cf
+\t\trm -rf *.cf *.o $(TOP_MODULE)
 
 #target for cleaning final files
 mrproper: clean
+\t\trm -r *.vcd
 """)
 
 

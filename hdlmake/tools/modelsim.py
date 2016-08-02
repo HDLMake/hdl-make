@@ -34,6 +34,13 @@ MODELSIM_STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
 
 class ToolModelsim(VsimMakefileWriter):
 
+    TOOL_INFO = {
+        'name': 'Modelsim',
+        'id': 'modelsim',
+        'windows_bin': 'vsim',
+        'linux_bin': 'vsim'}
+
+
     def __init__(self):
         super(ToolModelsim, self).__init__()
         self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])
@@ -48,14 +55,6 @@ class ToolModelsim(VsimMakefileWriter):
 
     def detect_version(self, path):
         pass
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'Modelsim',
-            'id': 'modelsim',
-        }
-        tool_info.update(super(ToolModelsim, self).get_keys())
-        return tool_info
 
     def get_standard_libraries(self):
         return MODELSIM_STANDARD_LIBS

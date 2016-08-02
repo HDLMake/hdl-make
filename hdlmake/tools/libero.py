@@ -35,21 +35,18 @@ LIBERO_STANDARD_LIBS = ['ieee', 'std']
 
 class ToolLibero(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'Libero',
+        'id': 'libero',
+        'windows_bin': 'libero',
+        'linux_bin': 'libero',
+        'project_ext': 'prjx'}
+
     def __init__(self):
         super(ToolLibero, self).__init__()
 
     def detect_version(self, path):
         return 'unknown'
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'Libero',
-            'id': 'libero',
-            'windows_bin': 'libero',
-            'linux_bin': 'libero',
-            'project_ext': 'prjx'  # older projects are prj
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         return LIBERO_STANDARD_LIBS

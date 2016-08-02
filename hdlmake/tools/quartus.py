@@ -37,6 +37,13 @@ QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
 class ToolQuartus(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'Quartus',
+        'id': 'quartus',
+        'windows_bin': 'quartus',
+        'linux_bin': 'quartus',
+        'project_ext': 'qsf'}
+
     def __init__(self):
         self._preflow = None
         self._postmodule = None
@@ -45,16 +52,6 @@ class ToolQuartus(ActionMakefile):
 
     def detect_version(self, path):
         return 'unknown'
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'Quartus',
-            'id': 'quartus',
-            'windows_bin': 'quartus',
-            'linux_bin': 'quartus',
-            'project_ext': 'qsf'
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         return QUARTUS_STANDARD_LIBS

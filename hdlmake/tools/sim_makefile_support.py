@@ -61,14 +61,6 @@ class VsimMakefileWriter(ActionMakefile):
         super(VsimMakefileWriter, self).__init__()
 
 
-    def get_keys(self):
-        tool_info = {
-            'windows_bin': 'vsim',
-            'linux_bin': 'vsim'
-        }
-        return tool_info
-
-
     def _print_sim_options(self, top_module):
         self.vlog_flags.append(
             self.__get_rid_of_vsim_incdirs(top_module.manifest_dict["vlog_opt"]))

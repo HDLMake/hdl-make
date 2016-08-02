@@ -62,6 +62,12 @@ RIVIERA_STANDARD_LIBS.extend(RIVIERA_XILINX_VLOG_LIBRARIES)
 
 class ToolRiviera(VsimMakefileWriter):
 
+    TOOL_INFO = {
+        'name': 'Riviera',
+        'id': 'riviera',
+        'windows_bin': 'vsim',
+        'linux_bin': 'vsim'}
+
     def __init__(self):
         super(ToolRiviera, self).__init__()
         self.vcom_flags.append("-2008")
@@ -69,14 +75,6 @@ class ToolRiviera(VsimMakefileWriter):
 
     def detect_version(self, path):
         pass
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'Riviera',
-            'id': 'riviera',
-        }
-        tool_info.update(super(ToolRiviera, self).get_keys())
-        return tool_info
 
     def get_standard_libraries(self):
         return RIVIERA_STANDARD_LIBS

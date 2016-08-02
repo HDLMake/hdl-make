@@ -35,21 +35,19 @@ VIVADO_STANDARD_LIBS = ['ieee', 'std']
 
 class ToolVivado(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'vivado',
+        'id': 'vivado',
+        'windows_bin': 'vivado',
+        'linux_bin': 'vivado',
+        'project_ext': 'xpr'
+    }
+
     def __init__(self):
         super(ToolVivado, self).__init__()
 
     def detect_version(self, path):
         return 'unknown'
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'vivado',
-            'id': 'vivado',
-            'windows_bin': 'vivado',
-            'linux_bin': 'vivado',
-            'project_ext': 'xpr'
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         return VIVADO_STANDARD_LIBS

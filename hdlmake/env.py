@@ -123,7 +123,7 @@ class Env(dict):
 
     def check_tool(self, info_class):
         
-        tool_info = info_class.get_keys()
+        tool_info = info_class.TOOL_INFO
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
         else:

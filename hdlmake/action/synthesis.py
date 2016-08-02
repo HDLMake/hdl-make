@@ -79,7 +79,7 @@ class ActionSynthesis(
         self._check_synthesis_makefile()
 
         tool_object = self._load_synthesis_tool()
-        tool_info = tool_object.get_keys()
+        tool_info = tool_object.TOOL_INFO
         path_key = tool_info['id'] + '_path'
         name = tool_info['name']
 
@@ -202,7 +202,7 @@ end sdb_meta_pkg;""")
         self._check_synthesis_project()
 
         tool_object = self._load_synthesis_tool()
-        tool_info = tool_object.get_keys()
+        tool_info = tool_object.TOOL_INFO
         path_key = tool_info['id'] + '_path'
         version_key = tool_info['id'] + '_version'
         name = tool_info['name']

@@ -40,17 +40,14 @@ IVERILOG_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
 
 class ToolIVerilog(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'Icarus Verilog',
+        'id': 'iverilog',
+        'windows_bin': 'iverilog',
+        'linux_bin': 'iverilog'}
+
     def __init__(self):
         super(ToolIVerilog, self).__init__()
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'Icarus Verilog',
-            'id': 'iverilog',
-            'windows_bin': 'iverilog',
-            'linux_bin': 'iverilog'
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         return IVERILOG_STANDARD_LIBS

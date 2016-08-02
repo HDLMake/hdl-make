@@ -36,21 +36,18 @@ PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
 
 class ToolPlanAhead(ActionMakefile):
 
+    TOOL_INFO = {
+        'name': 'PlanAhead',
+        'id': 'planahead',
+        'windows_bin': 'planAhead',
+        'linux_bin': 'planAhead',
+        'project_ext': 'ppr'}
+
     def __init__(self):
         super(ToolPlanAhead, self).__init__()
 
     def detect_version(self, path):
         return 'unknown'
-
-    def get_keys(self):
-        tool_info = {
-            'name': 'PlanAhead',
-            'id': 'planahead',
-            'windows_bin': 'planAhead',
-            'linux_bin': 'planAhead',
-            'project_ext': 'ppr'
-        }
-        return tool_info
 
     def get_standard_libraries(self):
         return PLANAHEAD_STANDARD_LIBS
