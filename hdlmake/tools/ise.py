@@ -82,12 +82,11 @@ class ToolISE(ActionMakefile):
         self.flist = []
 
     def detect_version(self, path):
+        """Method returning a string with the Xilinx ISE version from path"""
         is_windows = path_mod.check_windows()
-
         version_pattern = re.compile(
             r'.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
         # First check if we have version in path
-
         match = re.match(version_pattern, path)
         if match:
             ise_version = "%s.%s" % (
@@ -109,11 +108,11 @@ class ToolISE(ActionMakefile):
                 logging.error("xst output is not in expected format: %s\n",
                     xst_output + "Can't determine ISE version")
                 return None
-
         return ise_version
 
 
     def generate_synthesis_makefile(self, top_mod, tool_path):
+        """Generate a Makefile to handle a synthesis Xilinx ISE project"""
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
 ISE_CRAP := \
 *.b \
@@ -298,13 +297,15 @@ mrproper:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 
-    class StringBuffer(list):
 
+    class StringBuffer(list):
+        """Auxiliar class providing a convenient string storage"""
         def __init__(self):
             self.append("")
             self.__blank = re.compile("^[ \t\n]+$")
 
         def write(self, what):
+            """Write a new string into the buffer"""
             if what == "":
                 return
             elif re.match(self.__blank, what):
@@ -318,22 +319,20 @@ mrproper:
             else:
                 self[len(self) - 1] += what
 
+
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
+        """Generate a synthesis project for Xilinx ISE"""
         self.top_mod = top_mod
         self.ise = tool_version
-
         self.fileset = fileset
         self.flist = dep_solver.make_dependency_sorted_list(fileset)
         assert isinstance(self.flist, list)
-
         self.add_files(self.flist)
-
         self.add_libs(self.fileset.get_libs())
-
         if update is True:
             try:
-                self.load_xml(top_mod.manifest_dict["syn_project"])
+                self._load_xml(top_mod.manifest_dict["syn_project"])
             except:
                 logging.error("Error while reading the project file.\n"
                               "Are you sure that syn_project indicates "
@@ -341,28 +340,37 @@ mrproper:
                 raise
         else:
             self.add_initial_properties()
-
         logging.info("Writing down .xise project file")
         self.emit_xml(self.top_mod.manifest_dict["syn_project"])
 
+
     def add_files(self, files):
+        """Add files to the ISE project"""
         self.files.extend(files)
 
+
     def _add_lib(self, lib):
+        """Check if a library is in the ISE project before adding it"""
         if lib not in self.libs:
             self.libs.append(lib)
 
+
     def add_libs(self, libs):
+        """Add a list of libraries to the ISE project"""
         for lib_aux in libs:
             self._add_lib(lib_aux)
         self.libs.remove('work')
 
+
     def add_property(self, name, value, is_default=False):
+        """Add a property to the Xilinx ISE project"""
         self.props[name] = ISEProjectProperty(name=name,
                                               value=value,
                                               is_default=is_default)
 
+
     def add_initial_properties(self):
+        """Add initial properties to the Xilinx ISE project"""
         self._set_values_from_manifest()
         self.add_property("Enable Multi-Threading", "2")
         self.add_property("Enable Multi-Threading par", "4")
@@ -370,7 +378,9 @@ mrproper:
         self.add_property("Auto Implementation Top", "false")
         self.add_property("Create Binary Configuration File", "true")
 
+
     def _set_values_from_manifest(self):
+        """Add the synthesis properties from the Manifest to the project"""
         top_module = self.top_mod
         if top_module.manifest_dict["syn_family"] is None:
             top_module.manifest_dict["syn_family"] = FAMILY_NAMES.get(
@@ -394,7 +404,9 @@ mrproper:
             "Implementation Top Instance Path",
             "/" + top_module.manifest_dict["syn_top"])
 
+
     def _parse_props(self):
+        """Parse properties from the existing ISE project"""
         properties_temp = self.xml_project.getElementsByTagName("properties")
         for xmlp in properties_temp[0].getElementsByTagName("property"):
             self.add_property(
@@ -408,7 +420,9 @@ mrproper:
             name="properties",
             where=self.xml_doc.documentElement)
 
+
     def _parse_libs(self):
+        """Parse libraries from the existing ISE project"""
         libraries_temp = self.xml_project.getElementsByTagName("libraries")
         for lib_aux in libraries_temp[0].getElementsByTagName("library"):
             self._add_lib(lib_aux.getAttribute("xil_pn:name"))
@@ -416,7 +430,9 @@ mrproper:
             name="libraries",
             where=self.xml_doc.documentElement)
 
-    def load_xml(self, filename):
+
+    def _load_xml(self, filename):
+        """Load Xilinx ISE project as a XML file"""
         file_xml = open(filename)
         self.xml_doc = xml.dom.minidom.parse(file_xml)
         self.xml_project = self.xml_doc.getElementsByTagName("project")[0]
@@ -427,14 +443,12 @@ mrproper:
             print("Error while parsing existing file's properties:")
             print(str(sys.exc_info()))
             quit()
-
         try:
             self._parse_libs()
         except xml.parsers.expat.ExpatError:
             print("Error while parsing existing file's libraries:")
             print(str(sys.exc_info()))
             quit()
-
         where = self.xml_doc.documentElement
         self.xml_files = self._purge_dom_node(name="files", where=where)
         self.xml_bindings = self._purge_dom_node(name="bindings", where=where)
@@ -451,7 +465,9 @@ mrproper:
         file_xml.close()
         self._set_values_from_manifest()
 
+
     def _purge_dom_node(self, name, where):
+        """Purge node at the XML file to accomodate a new value"""
         try:
             node = where.getElementsByTagName(name)[0]
             where.removeChild(node)
@@ -461,10 +477,11 @@ mrproper:
         where.appendChild(new)
         return new
 
+
     def _output_files(self, node):
+        """Add the HDL design files to the Xilinx ISE Project"""
         from hdlmake.srcfile import (UCFFile, VHDLFile, VerilogFile,
                                      CDCFile, NGCFile)
-
         for file_aux in self.files:
             file_project = self.xml_doc.createElement("file")
             file_project.setAttribute("xil_pn:name",
@@ -481,12 +498,10 @@ mrproper:
                 file_project.setAttribute("xil_pn:type", "FILE_NGC")
             else:
                 continue
-
             assoc = self.xml_doc.createElement("association")
             assoc.setAttribute("xil_pn:name", "Implementation")
             assoc.setAttribute("xil_pn:seqID",
                 str(self.files.index(file_aux) + 1))
-
             try:
                 if file_aux.library != "work":
                     lib = self.xml_doc.createElement("library")
@@ -494,11 +509,11 @@ mrproper:
                     file_project.appendChild(lib)
             except:
                 pass
-
             file_project.appendChild(assoc)
             node.appendChild(file_project)
 
     def _output_bindings(self, node):
+        """Add ChipScope bindings to the Xilinx ISE project"""
         from hdlmake.srcfile import CDCFile
         for binding in [file_aux for file_aux in self.files
                         if isinstance(file_aux, CDCFile)]:
@@ -510,22 +525,27 @@ mrproper:
             node.appendChild(binding_project)
 
     def _output_props(self, node):
+        """Insert the list of properties into the Xilinx ISE Project"""
         for name, prop in self.props.iteritems():
             node.appendChild(prop.emit_xml(self.xml_doc))
 
     def _output_libs(self, node):
+        """Insert the list of libraries into the Xilinx ISE Project"""
         for lib_aux in self.libs:
             lib_project = self.xml_doc.createElement("library")
             lib_project.setAttribute("xil_pn:name", lib_aux)
             node.appendChild(lib_project)
 
     def _output_ise(self, node):
+        """Insert project atributes into the Xilinx ISE Project"""
         ise_ver_project = self.xml_doc.createElement("version")
         ise_ver_project.setAttribute("xil_pn:ise_version", '%s' % (self.ise))
         ise_ver_project.setAttribute("xil_pn:schema_version", "2")
         node.appendChild(ise_ver_project)
 
+
     def emit_xml(self, filename=None):
+        """Process the required outputs and write an ISE Project"""
         if not self.xml_doc:
             self.create_empty_project()
         else:
@@ -541,7 +561,9 @@ mrproper:
         output_file.write('\n'.join(string_buffer))
         output_file.close()
 
+
     def create_empty_project(self):
+        """Create an empty XML docmument to accomodate the ISE Project"""
         self.xml_doc = XML_IMPL.createDocument(
             "http://www.xilinx.com/XMLSchema",
             "project",
@@ -551,22 +573,17 @@ mrproper:
         top_element.setAttribute(
             "xmlns:xil_pn",
             "http://www.xilinx.com/XMLSchema")
-
         header = self.xml_doc.createElement("header")
         header.appendChild(self.xml_doc.createTextNode(""))
-
         amf = self.xml_doc.createElement("autoManagedFiles")
         amf.appendChild(self.xml_doc.createTextNode(""))
-
         self.xml_props = self.xml_doc.createElement("properties")
         self.xml_files = self.xml_doc.createElement("files")
         self.xml_libs = self.xml_doc.createElement("libraries")
         self.xml_bindings = self.xml_doc.createElement("bindings")
-
         version = self.xml_doc.createElement("version")
         version.setAttribute("xil_pn:ise_version", self.ise)
         version.setAttribute("xil_pn:schema_version", "2")
-
         top_element.appendChild(header)
         top_element.appendChild(amf)
         top_element.appendChild(self.xml_props)
@@ -576,6 +593,7 @@ mrproper:
         top_element.appendChild(version)
 
     def supported_files(self, fileset):
+        """Filter the non dependable but supported files"""
         from hdlmake.srcfile import UCFFile, CDCFile, NGCFile, SourceFileSet
         sup_files = SourceFileSet()
         for file_aux in fileset:
@@ -588,7 +606,8 @@ mrproper:
         return sup_files
 
 
-class ISEProjectProperty:
+class ISEProjectProperty(object):
+    """Class that serves as container for the Xilinx ISE project properties"""
 
     def __init__(self, name, value, is_default=False):
         self.name = name
@@ -596,6 +615,7 @@ class ISEProjectProperty:
         self.is_default = is_default
 
     def emit_xml(self, doc):
+        """Return a XML doc property calculated from inner class parameters"""
         prop = doc.createElement("property")
         prop.setAttribute("xil_pn:name", self.name)
         prop.setAttribute("xil_pn:value", self.value)
@@ -603,5 +623,4 @@ class ISEProjectProperty:
             prop.setAttribute("xil_pn:valueState", "default")
         else:
             prop.setAttribute("xil_pn:valueState", "non-default")
-
         return prop
