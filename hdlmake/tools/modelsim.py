@@ -36,6 +36,15 @@ class ToolModelsim(VsimMakefileWriter):
 
     def __init__(self):
         super(ToolModelsim, self).__init__()
+        self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])
+        self.vlog_flags.extend(["-modelsimini", "modelsim.ini"])
+        self.vmap_flags.extend(["-modelsimini", "modelsim.ini"])
+        self.copy_rules["modelsim.ini"] = os.path.join(
+            "$(MODELSIM_INI_PATH)", "modelsim.ini")
+        self.additional_deps.append("modelsim.ini")
+        self.additional_clean.extend(
+            ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
+
 
     def detect_version(self, path):
         pass
@@ -57,9 +66,6 @@ class ToolModelsim(VsimMakefileWriter):
         return sup_files
 
     def _print_sim_options(self, top_module):
-        self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])
-        self.vlog_flags.extend(["-modelsimini", "modelsim.ini"])
-        self.vmap_flags.extend(["-modelsimini", "modelsim.ini"])
         if top_module.pool.env["modelsim_path"]:
             modelsim_ini_path = os.path.join(
                 top_module.pool.env["modelsim_path"],
@@ -69,14 +75,4 @@ class ToolModelsim(VsimMakefileWriter):
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
         super(ToolModelsim, self)._print_sim_options(top_module)
 
-    def _print_sim_compilation(self, fileset, top_module):
-        self.copy_rules["modelsim.ini"] = os.path.join(
-            "$(MODELSIM_INI_PATH)", "modelsim.ini")
-        self.additional_deps.append("modelsim.ini")
-        super(ToolModelsim, self)._print_sim_compilation(fileset, top_module)
-
-    def _print_sim_clean(self, top_module):
-        self.additional_clean.extend(
-            ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
-        super(ToolModelsim, self)._print_sim_clean(top_module)
 
