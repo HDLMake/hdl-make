@@ -70,17 +70,6 @@ class ToolIVerilog(ActionMakefile):
         sup_files = SourceFileSet()
         return sup_files
 
-    def generate_simulation_makefile(self, fileset, top_module):
-        # TODO FLAGS: 2009 enables SystemVerilog (ongoing support) and partial
-        # VHDL support
-        self._print_sim_top(top_module)
-        self._print_sim_options(top_module)
-        self._print_sim_local(top_module)
-        self._print_sim_compilation(fileset, top_module)
-        self._print_sim_command(top_module)
-        self._print_clean(top_module)
-        self._print_sim_phony(top_module)
-
     def _print_sim_compilation(self, fileset, top_module):
         from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 

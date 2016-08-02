@@ -101,7 +101,8 @@ class ManifestParser(ConfigParser):
         self.add_option('vmap_opt', default="", help="Additional options for vmap", type='')
 
         self.add_delimiter()
-        self.add_option('iverilog_opt', default="", help="Additional options for iverilog", type='')
+        self.add_option('iverilog_opt', default="", help="Additional options for IVerilog", type='')
+        self.add_option('ghdl_opt', default="", help="Additional options for GHDL", type='')
 
         self.add_delimiter()
 

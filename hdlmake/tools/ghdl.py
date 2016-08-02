@@ -51,26 +51,34 @@ class ToolGHDL(ActionMakefile):
         sup_files = SourceFileSet()
         return sup_files
 
-    def generate_simulation_makefile(self, fileset, top_module):
+    def _print_sim_options(self, top_module):
+        if top_module.manifest_dict["ghdl_opt"]:
+            ghdl_opt = top_module.manifest_dict["ghdl_opt"]
+        else:
+            ghdl_opt = ''
+        ghdl_string = string.Template(
+            """GHDL_OPT := ${ghdl_opt}\n""")
+        self.writeln(ghdl_string.substitute(
+            ghdl_opt=ghdl_opt))
+
+
+    def _print_clean(self, top_module):
+        self.writeln("""\
+#target for cleaning all intermediate stuff
+clean:
+\t\trm -rf *.cf
+
+#target for cleaning final files
+mrproper: clean
+""")
+
+
+    def _print_sim_compilation(self, fileset, top_module):
         # TODO: vhdl87 vs vhdl97 options
 
         from hdlmake.srcfile import VHDLFile
 
-        makefile_tmplt_1 = string.Template("""TOP_MODULE := ${top_module}
-GHDL_CRAP := \
-*.cf
-
-
-#target for performing local simulation
-local: sim_pre_cmd simulation sim_post_cmd
-
-simulation:
-""")
-
-        makefile_text_1 = makefile_tmplt_1.substitute(
-            top_module=top_module.manifest_dict["sim_top"]
-        )
-        self.write(makefile_text_1)
+        self.writeln("simulation:")
 
         self.writeln("\t\t# Analyze sources")
         for vhdl in fileset.filter(VHDLFile):
@@ -81,37 +89,4 @@ simulation:
         self.writeln("\t\tghdl -e $(TOP_MODULE)")
         self.writeln()
 
-        makefile_tmplt_2 = string.Template("""
-sim_pre_cmd:
-\t\t${sim_pre_cmd}
 
-sim_post_cmd:
-\t\t${sim_post_cmd}
-
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -rf $$(GHDL_CRAP)
-
-#target for cleaning final files
-mrproper: clean
-\t\trm -f *.vcd
-
-.PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation
-
-""")
-
-        if top_module.manifest_dict["sim_pre_cmd"]:
-            sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
-        else:
-            sim_pre_cmd = ''
-
-        if top_module.manifest_dict["sim_post_cmd"]:
-            sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
-        else:
-            sim_post_cmd = ''
-
-        makefile_text_2 = makefile_tmplt_2.substitute(
-            sim_pre_cmd=sim_pre_cmd,
-            sim_post_cmd=sim_post_cmd,
-        )
-        self.write(makefile_text_2)
