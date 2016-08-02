@@ -31,6 +31,7 @@ import sys
 import string
 import platform
 
+from hdlmake.util import path as path_mod
 from hdlmake.action import ActionMakefile
 
 
@@ -59,10 +60,7 @@ class ToolISim(ActionMakefile):
         return ISIM_STANDARD_LIBS
 
     def detect_version(self, path):
-        if platform.system() == 'Windows':
-            is_windows = True
-        else:
-            is_windows = False
+        is_windows = path_mod.check_windows()
         isim = Popen(
             "%s --version | awk '{print $2}'" % os.path.join(path, "vlogcomp"),
             shell=True,
@@ -81,91 +79,50 @@ class ToolISim(ActionMakefile):
         sup_files = SourceFileSet()
         return sup_files
 
-    def generate_simulation_makefile(self, fileset, top_module):
-        from hdlmake.srcfile import VerilogFile, VHDLFile
-        make_preambule_p1 = """## variables #############################
+    def _print_sim_top(self, top_module):
+        self.writeln("""## variables #############################
 PWD := $(shell pwd)
 TOP_MODULE := """ + top_module.manifest_dict["sim_top"] + """
 FUSE_OUTPUT ?= isim_proj
 
 XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) + """
+""")
 
-VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
+    def _print_sim_options(self, top_module):
+        self.writeln("""VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_isim_incdirs(top_module.manifest_dict["vlog_opt"]) + """
-"""
-        make_preambule_p2 = string.Template("""## rules #################################
-local: sim_pre_cmd simulation sim_post_cmd
+""")
 
-simulation: xilinxsim.ini $$(LIB_IND) $$(VERILOG_OBJ) $$(VHDL_OBJ) fuse
-$$(VERILOG_OBJ): $$(LIB_IND) xilinxsim.ini
-$$(VHDL_OBJ): $$(LIB_IND) xilinxsim.ini
-
-sim_pre_cmd:
-\t\t${sim_pre_cmd}
-
-sim_post_cmd:
-\t\t${sim_post_cmd}
-
-xilinxsim.ini: $$(XILINX_INI_PATH)/xilinxsim.ini
-\t\tcp $$< .
-fuse:
-\t\tfuse work.$$(TOP_MODULE) -intstyle ise -incremental -o $$(FUSE_OUTPUT)
-
+    def _print_clean(self, top_module):
+        self.writeln("""\
+#target for cleaning all intermediate stuff
 clean:
-\t\trm -rf ./xilinxsim.ini $$(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
+\t\trm -rf ./xilinxsim.ini $(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
 isim.wdb isim_proj isim_proj.*
-.PHONY: clean sim_pre_cmd sim_post_cmd simulation
+
+#target for cleaning final files
+mrproper: clean
 
 """)
-        # open the file and write the above preambule (part 1)
-        self.write(make_preambule_p1)
 
-        self.write("VERILOG_SRC := ")
-        for vl in fileset.filter(VerilogFile):
-            self.write(vl.rel_path() + " \\\n")
-        self.write("\n")
 
-        self.write("VERILOG_OBJ := ")
-        for vl in fileset.filter(VerilogFile):
-            # make a file compilation indicator (these .dat files are made even if
-            # the compilation process fails) and add an ending according to file's
-            # extension (.sv and .vhd files may have the same corename and this
-            # causes a mess
-            self.write(
-                os.path.join(
-                    vl.library,
-                    vl.purename,
-                    "." +
-                    vl.purename +
-                    "_" +
-                    vl.extension(
-                    )) +
-                " \\\n")
-        self.write('\n')
+
+    def _print_sim_compilation(self, fileset, top_module):
+        from hdlmake.srcfile import VerilogFile, VHDLFile
+        make_preambule_p2 = """## rules #################################
+simulation: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ) fuse
+$(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini
+$(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
+
+xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
+\t\tcp $< .
+fuse:
+\t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
+
+"""
 
         libs = set(f.library for f in fileset)
-
-        self.write("VHDL_SRC := ")
-        for vhdl in fileset.filter(VHDLFile):
-            self.write(vhdl.rel_path() + " \\\n")
-        self.writeln()
-
-        # list vhdl objects (_primary.dat files)
-        self.write("VHDL_OBJ := ")
-        for vhdl in fileset.filter(VHDLFile):
-            # file compilation indicator (important: add _vhd ending)
-            self.write(
-                os.path.join(
-                    vhdl.library,
-                    vhdl.purename,
-                    "." +
-                    vhdl.purename +
-                    "_" +
-                    vhdl.extension(
-                    )) +
-                " \\\n")
-        self.write('\n')
 
         self.write('LIBS := ')
         self.write(' '.join(libs))
@@ -175,20 +132,8 @@ isim.wdb isim_proj isim_proj.*
         self.write(' '.join([lib + "/." + lib for lib in libs]))
         self.write('\n')
 
-        if top_module.manifest_dict["sim_pre_cmd"]:
-            sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
-        else:
-            sim_pre_cmd = ''
 
-        if top_module.manifest_dict["sim_post_cmd"]:
-            sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
-        else:
-            sim_post_cmd = ''
-
-        make_text_p2 = make_preambule_p2.substitute(
-            sim_pre_cmd=sim_pre_cmd,
-            sim_post_cmd=sim_post_cmd)
-        self.writeln(make_text_p2)
+        self.writeln(make_preambule_p2)
 
         # ISim does not have a vmap command to insert additional libraries in
         #.ini file.

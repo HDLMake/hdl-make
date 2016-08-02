@@ -33,6 +33,7 @@ from subprocess import Popen, PIPE
 
 import hdlmake.new_dep_solver as dep_solver
 from hdlmake.action import ActionMakefile
+from hdlmake.util import path as path_mod
 
 XmlImpl = xml.dom.minidom.getDOMImplementation()
 
@@ -70,10 +71,7 @@ class ToolISE(ActionMakefile):
         return ISE_STANDARD_LIBS
 
     def detect_version(self, path):
-        if platform.system() == 'Windows':
-            is_windows = True
-        else:
-            is_windows = False
+        is_windows = path_mod.check_windows()
 
         version_pattern = re.compile(
             '.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')

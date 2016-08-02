@@ -74,9 +74,8 @@ class ToolRiviera(VsimMakefileWriter):
         tool_info = {
             'name': 'Riviera',
             'id': 'riviera',
-            'windows_bin': 'vsim',
-            'linux_bin': 'vsim'
         }
+        tool_info.update(super(ToolRiviera, self).get_keys())
         return tool_info
 
     def get_standard_libraries(self):

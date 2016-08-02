@@ -108,8 +108,7 @@ class Git(Fetcher):
         commit = None
         stderr = TemporaryFile()
         try:
-            if platform.system() == 'Windows': is_windows = True
-            else: is_windows = False
+            is_windows = path.check_windows()
             os.chdir(path)
             git_cmd = 'git log -1 --format="%H" | cut -c1-32'
             git_out = Popen(git_cmd,

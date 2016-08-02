@@ -60,7 +60,44 @@ class VsimMakefileWriter(ActionMakefile):
         self.copy_rules = {}
         super(VsimMakefileWriter, self).__init__()
 
-    def generate_simulation_makefile(self, fileset, top_module):
+
+    def get_keys(self):
+        tool_info = {
+            'windows_bin': 'vsim',
+            'linux_bin': 'vsim'
+        }
+        return tool_info
+
+
+    def _print_sim_options(self, top_module):
+        self.vlog_flags.append(
+            self.__get_rid_of_vsim_incdirs(top_module.manifest_dict["vlog_opt"]))
+        self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
+        self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
+        self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
+
+        for var, value in self.custom_variables.iteritems():
+            self.writeln("%s := %s" % (var, value))
+        self.writeln()
+
+        self.writeln("VCOM_FLAGS := %s" % (' '.join(self.vcom_flags)))
+        self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
+        self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
+        self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
+
+    def _print_clean(self, top_module):
+        if platform.system() == 'Windows':
+            del_command = "rm -rf"
+        else:
+            del_command = "rm -rf"
+        self.writeln("clean:")
+        tmp = "\t\t" + del_command + \
+            " $(LIBS) " + ' '.join(self.additional_clean)
+        self.writeln(tmp)
+        self.writeln("#target for cleaning final files")
+        self.writeln("mrproper: clean")
+
+    def _print_sim_compilation(self, fileset, top_module):
         """Write a properly formatted Makefile for the simulator.
 
         The Makefile format is shared, but flags, dependencies, clean rules,
@@ -77,74 +114,10 @@ class VsimMakefileWriter(ActionMakefile):
             mkdir_command = "mkdir -p"
             slash_char = "/"
 
-        self.vlog_flags.append(
-            self.__get_rid_of_vsim_incdirs(top_module.manifest_dict["vlog_opt"]))
-        self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
-        self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
-        self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
-
-        tmp = """## variables #############################
-PWD := $(shell pwd)
-"""
-        self.write(tmp)
-        self.writeln()
-
-        for var, value in self.custom_variables.iteritems():
-            self.writeln("%s := %s" % (var, value))
-        self.writeln()
-
-        self.writeln("VCOM_FLAGS := %s" % (' '.join(self.vcom_flags)))
-        self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
-        self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
-        self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
         # self.writeln("INCLUDE_DIRS := +incdir+%s" %
         # ('+'.join(top_module.include_dirs)))
 
-        self.write("VERILOG_SRC := ")
-        for vl in fileset.filter(VerilogFile):
-            self.write(vl.rel_path() + " \\\n")
-        self.write("\n")
-
-        self.write("VERILOG_OBJ := ")
-        for vl in fileset.filter(VerilogFile):
-            # make a file compilation indicator (these .dat files are made even if
-            # the compilation process fails) and add an ending according to file's
-            # extension (.sv and .vhd files may have the same corename and this
-            # causes a mess
-            self.write(
-                os.path.join(
-                    vl.library,
-                    vl.purename,
-                    "." +
-                    vl.purename +
-                    "_" +
-                    vl.extension(
-                    )) +
-                " \\\n")
-        self.write('\n')
-
         libs = set(f.library for f in fileset)
-
-        self.write("VHDL_SRC := ")
-        for vhdl in fileset.filter(VHDLFile):
-            self.write(vhdl.rel_path() + " \\\n")
-        self.writeln()
-
-        # list vhdl objects (_primary.dat files)
-        self.write("VHDL_OBJ := ")
-        for vhdl in fileset.filter(VHDLFile):
-            # file compilation indicator (important: add _vhd ending)
-            self.write(
-                os.path.join(
-                    vhdl.library,
-                    vhdl.purename,
-                    "." +
-                    vhdl.purename +
-                    "_" +
-                    vhdl.extension(
-                    )) +
-                " \\\n")
-        self.write('\n')
 
         self.write('LIBS := ')
         self.write(' '.join(libs))
@@ -154,9 +127,6 @@ PWD := $(shell pwd)
         self.write(' '.join([lib + slash_char + "." + lib for lib in libs]))
         self.write('\n')
 
-        self.writeln("## rules #################################")
-        self.writeln()
-        self.writeln("local: sim_pre_cmd simulation sim_post_cmd")
         self.writeln()
         self.writeln(
             "simulation: %s $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)" %
@@ -168,38 +138,8 @@ PWD := $(shell pwd)
                 self.additional_deps))
         self.writeln()
 
-        simcommands = string.Template("""sim_pre_cmd:
-\t\t${sim_pre_cmd}
-
-sim_post_cmd:
-\t\t${sim_post_cmd}
-""")
-
-        if top_module.manifest_dict["sim_pre_cmd"]:
-            sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
-        else:
-            sim_pre_cmd = ''
-
-        if top_module.manifest_dict["sim_post_cmd"]:
-            sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
-        else:
-            sim_post_cmd = ''
-
-        simcommands = simcommands.substitute(sim_pre_cmd=sim_pre_cmd,
-                                             sim_post_cmd=sim_post_cmd)
-        self.write(simcommands)
-        self.writeln()
-
         for filename, filesource in self.copy_rules.iteritems():
             self.write(self.__create_copy_rule(filename, filesource))
-
-        self.writeln("clean:")
-        tmp = "\t\t" + del_command + \
-            " $(LIBS) " + ' '.join(self.additional_clean)
-        self.writeln(tmp)
-
-        self.writeln(".PHONY: clean sim_pre_cmd sim_post_cmd simulation")
-        self.writeln()
 
         for lib in libs:
             self.write(lib + slash_char + "." + lib + ":\n")

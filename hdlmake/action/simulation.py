@@ -97,5 +97,13 @@ class ActionSimulation(
         dep_files = fset.filter(DepFile)
         #dep_solver.solve(dep_files)
 
-        tool_object.generate_simulation_makefile(dep_files, top_module)
+        #tool_object.generate_simulation_makefile(dep_files, top_module)
+        tool_object._print_sim_top(top_module)
+        tool_object._print_sim_options(top_module)
+        tool_object._print_sim_local(top_module)
+        tool_object._print_sim_sources(dep_files)
+        tool_object._print_sim_compilation(dep_files, top_module)
+        tool_object._print_sim_command(top_module)
+        tool_object._print_clean(top_module)
+        tool_object._print_sim_phony(top_module)
 

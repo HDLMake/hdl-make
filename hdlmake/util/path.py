@@ -23,7 +23,7 @@
 from __future__ import print_function
 import os
 import logging
-
+import platform
 
 def url_parse(url):
     """
@@ -158,4 +158,9 @@ def flatten_list(sth):
         sth = []
     return sth
 
+def check_windows():
+    if platform.system() == 'Windows':
+        return True
+    else:
+        return False
 

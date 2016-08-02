@@ -221,10 +221,7 @@ class Action(list):
         """Guess origin (git, svn, local) of a module at given path"""
         cwd = self.top_module.path
         try:
-            if platform.system() == 'Windows':
-                is_windows = True
-            else:
-                is_windows = False
+            is_windows = path_mod.check_windows()
             os.chdir(path)
             git_out = Popen("git config --get remote.origin.url",
                             stdout=PIPE, shell=True, close_fds=not is_windows)

@@ -44,9 +44,8 @@ class ToolModelsim(VsimMakefileWriter):
         tool_info = {
             'name': 'Modelsim',
             'id': 'modelsim',
-            'windows_bin': 'vsim',
-            'linux_bin': 'vsim'
         }
+        tool_info.update(super(ToolModelsim, self).get_keys())
         return tool_info
 
     def get_standard_libraries(self):
@@ -57,7 +56,7 @@ class ToolModelsim(VsimMakefileWriter):
         sup_files = SourceFileSet()
         return sup_files
 
-    def generate_simulation_makefile(self, fileset, top_module):
+    def _print_sim_options(self, top_module):
         self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])
         self.vlog_flags.extend(["-modelsimini", "modelsim.ini"])
         self.vmap_flags.extend(["-modelsimini", "modelsim.ini"])
@@ -68,14 +67,16 @@ class ToolModelsim(VsimMakefileWriter):
         else:
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
-        self.additional_deps.append("modelsim.ini")
-        self.additional_clean.extend(
-            ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
+        super(ToolModelsim, self)._print_sim_options(top_module)
 
+    def _print_sim_compilation(self, fileset, top_module):
         self.copy_rules["modelsim.ini"] = os.path.join(
             "$(MODELSIM_INI_PATH)", "modelsim.ini")
-        super(
-            ToolModelsim,
-            self).generate_simulation_makefile(
-            fileset,
-            top_module)
+        self.additional_deps.append("modelsim.ini")
+        super(ToolModelsim, self)._print_sim_compilation(fileset, top_module)
+
+    def _print_sim_clean(self, top_module):
+        self.additional_clean.extend(
+            ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
+        super(ToolModelsim, self)._print_sim_clean(top_module)
+

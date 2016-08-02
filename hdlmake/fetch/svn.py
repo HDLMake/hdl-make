@@ -69,8 +69,7 @@ class Svn(Fetcher):
         stderr = TemporaryFile()
 
         try:
-            if platform.system() == 'Windows': is_windows = True
-            else: is_windows = False
+            is_windows = path.check_windows()
             os.chdir(path)
             svn_cmd = "svn info 2>/dev/null | awk '{if(NR == 5) {print $2}}'"
             svn_out = Popen(svn_cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=stderr, close_fds=not is_windows)
