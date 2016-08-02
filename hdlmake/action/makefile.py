@@ -60,6 +60,9 @@ PWD := $$(shell pwd)""")
         self.writeln(top_parameter.substitute(
             top_module=top_module.manifest_dict["syn_top"]))
 
+    def _print_sim_options(self, top_module):
+        pass
+
     def _print_sim_local(self, top_module):
         self.writeln("#target for performing local simulation\n"
                      "local: sim_pre_cmd simulation sim_post_cmd\n")
