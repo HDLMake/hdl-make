@@ -49,9 +49,6 @@ class ToolIVerilog(ActionMakefile):
     def __init__(self):
         super(ToolIVerilog, self).__init__()
 
-    def get_standard_libraries(self):
-        return IVERILOG_STANDARD_LIBS
-
     def detect_version(self, path):
         is_windows = path_mod.check_windows()
         iverilog = Popen("iverilog -v 2>/dev/null| awk '{if(NR==1) print $4}'",

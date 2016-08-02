@@ -41,10 +41,6 @@ class ToolActiveHDL(ActionMakefile):
     def detect_version(self, path):
         pass
 
-    def get_standard_libraries(self):
-        ALDEC_STANDARD_LIBS = ['ieee', 'std']
-        return ALDEC_STANDARD_LIBS
-
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet
         sup_files = SourceFileSet()

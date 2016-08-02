@@ -53,9 +53,6 @@ class ToolISim(ActionMakefile):
     def __init__(self):
         super(ToolISim, self).__init__()
 
-    def get_standard_libraries(self):
-        return ISIM_STANDARD_LIBS
-
     def detect_version(self, path):
         is_windows = path_mod.check_windows()
         isim = Popen(

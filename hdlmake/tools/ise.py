@@ -81,9 +81,6 @@ class ToolISE(ActionMakefile):
         self.fileset = []
         self.flist = []
 
-    def get_standard_libraries(self):
-        return ISE_STANDARD_LIBS
-
     def detect_version(self, path):
         is_windows = path_mod.check_windows()
 

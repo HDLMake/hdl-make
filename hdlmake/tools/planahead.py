@@ -49,9 +49,6 @@ class ToolPlanAhead(ActionMakefile):
     def detect_version(self, path):
         return 'unknown'
 
-    def get_standard_libraries(self):
-        return PLANAHEAD_STANDARD_LIBS
-
     def generate_synthesis_makefile(self, top_mod, tool_path):
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
 PLANAHEAD_CRAP := \

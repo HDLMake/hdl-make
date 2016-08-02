@@ -24,6 +24,7 @@
 import string
 from hdlmake.action import ActionMakefile
 
+GHDL_STANDARD_LIBS = ['ieee', 'std']
 
 class ToolGHDL(ActionMakefile):
 
@@ -38,10 +39,6 @@ class ToolGHDL(ActionMakefile):
 
     def detect_version(self, path):
         pass
-
-    def get_standard_libraries(self):
-        GHDL_STANDARD_LIBS = ['ieee', 'std']
-        return GHDL_STANDARD_LIBS
 
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet

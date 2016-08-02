@@ -52,12 +52,8 @@ class ToolModelsim(VsimMakefileWriter):
         self.additional_clean.extend(
             ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
 
-
     def detect_version(self, path):
         pass
-
-    def get_standard_libraries(self):
-        return MODELSIM_STANDARD_LIBS
 
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet

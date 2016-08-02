@@ -53,9 +53,6 @@ class ToolQuartus(ActionMakefile):
     def detect_version(self, path):
         return 'unknown'
 
-    def get_standard_libraries(self):
-        return QUARTUS_STANDARD_LIBS
-
     def generate_synthesis_makefile(self, top_mod, tool_path):
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
 QUARTUS_CRAP := \

@@ -76,9 +76,6 @@ class ToolRiviera(VsimMakefileWriter):
     def detect_version(self, path):
         pass
 
-    def get_standard_libraries(self):
-        return RIVIERA_STANDARD_LIBS
-
     def supported_files(self, fileset):
         from hdlmake.srcfile import SourceFileSet
         sup_files = SourceFileSet()
