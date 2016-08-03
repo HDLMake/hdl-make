@@ -38,8 +38,8 @@ PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
 
 
 class ToolPlanAhead(ActionMakefile):
-    """Class providing the interface for Xilinx PlanAhead synthesis"""
 
+    """Class providing the interface for Xilinx PlanAhead synthesis"""
 
     TOOL_INFO = {
         'name': 'PlanAhead',
@@ -128,7 +128,6 @@ mrproper:
         for file_aux in top_mod.incl_makefiles:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
-
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
@@ -248,7 +247,7 @@ mrproper:
                 isinstance(file_aux, UCFFile) or
                 isinstance(file_aux, NGCFile) or
                 isinstance(file_aux, XMPFile) or
-                isinstance(file_aux, XCOFile)):
+                    isinstance(file_aux, XCOFile)):
                 line = tmp.format(file_aux.rel_path())
             else:
                 continue
@@ -257,6 +256,7 @@ mrproper:
 
 
 class _PlanAheadProjectProperty(object):
+
     """Class that serves as a convenient storage for PlanAhead properties"""
 
     def __init__(self, name=None, value=None, objects=None):

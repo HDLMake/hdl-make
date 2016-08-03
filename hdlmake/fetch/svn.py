@@ -29,6 +29,7 @@ from .fetcher import Fetcher
 
 
 class Svn(Fetcher):
+
     def __init__(self):
         pass
 
@@ -72,10 +73,18 @@ class Svn(Fetcher):
             is_windows = path.check_windows()
             os.chdir(path)
             svn_cmd = "svn info 2>/dev/null | awk '{if(NR == 5) {print $2}}'"
-            svn_out = Popen(svn_cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=stderr, close_fds=not is_windows)
+            svn_out = Popen(
+                svn_cmd,
+                shell=True,
+                stdin=PIPE,
+                stdout=PIPE,
+                stderr=stderr,
+                close_fds=not is_windows)
             errmsg = stderr.readlines()
             if errmsg:
-                logging.debug("svn error message (in %s): %s" % (path, '\n'.join(errmsg)))
+                logging.debug(
+                    "svn error message (in %s): %s" %
+                    (path, '\n'.join(errmsg)))
 
             try:
                 revision = svn_out.stdout.readlines()[0].strip()

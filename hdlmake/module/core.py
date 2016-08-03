@@ -9,8 +9,10 @@ from hdlmake.util import path as path_mod
 
 
 class ModuleConfig(object):
+
     """This class containt the base properties and methods that
     need to be initialized for a proper behavior"""
+
     def __init__(self):
         self.source = None
         self.parent = None
@@ -56,12 +58,12 @@ class ModuleConfig(object):
                 self.path = path
                 self.isfetched = True
                 logging.debug("Module %s (parent: %s) is fetched.",
-                    url, self.parent.path)
+                              url, self.parent.path)
             else:
                 self.path = path
                 self.isfetched = False
                 logging.debug("Module %s (parent: %s) is NOT fetched.",
-                    url, self.parent.path)
+                              url, self.parent.path)
         else:
             self.url, self.branch, self.revision = url, None, None
 
@@ -72,7 +74,6 @@ class ModuleConfig(object):
                 quit()
             self.path = url
             self.isfetched = True
-
 
     def _check_filepath(self, filepath):
         """Check the provided filepath against several conditions"""
@@ -96,7 +97,6 @@ class ModuleConfig(object):
                     self.path, filepath)
         return True
 
-
     def _make_list_of_paths(self, list_of_paths):
         """Get a list with only the valid absolute paths from the provided"""
         paths = []
@@ -106,9 +106,10 @@ class ModuleConfig(object):
         return paths
 
 
-
 class ModuleCore(ModuleConfig):
+
     """This is the class providing the module core functionality"""
+
     def __init__(self):
         # Universal Manifest Properties
         self.library = "work"
@@ -118,27 +119,23 @@ class ModuleCore(ModuleConfig):
         self.manifest_dict = None
         super(ModuleCore, self).__init__()
 
-
     def set_pool(self, pool):
         """Set the associated pool for the module instance"""
         self.pool = pool
         self.top_module = pool.get_top_module()
-
 
     def process_manifest(self):
         """Method that process the core manifest section"""
         self._process_manifest_universal()
         super(ModuleCore, self).process_manifest()
 
-
     def _process_manifest_universal(self):
         """Method processing the universal manifest directives"""
-        #if "top_module" in self.manifest_dict:
+        # if "top_module" in self.manifest_dict:
         #    self.top_module = self.manifest_dict["top_module"]
         # Libraries
         self.library = self.manifest_dict["library"]
         self.action = self.manifest_dict["action"].lower()
-
 
     def _create_file_list_from_paths(self, paths):
         """
@@ -162,4 +159,3 @@ class ModuleCore(ModuleConfig):
                                  module=self,
                                  library=self.library))
         return srcs
-

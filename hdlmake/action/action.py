@@ -36,7 +36,9 @@ from hdlmake.env import Env
 
 from hdlmake import new_dep_solver as dep_solver
 
+
 class Action(list):
+
     """This is the base class providing the common Action methods"""
 
     def __init__(self, *args):
@@ -45,7 +47,6 @@ class Action(list):
         self.env = None
         list.__init__(self, *args)
         super(Action, self).__init__(*args)
-
 
     def new_module(self, parent, url, source, fetchto):
         """Add new module to the pool.
@@ -73,7 +74,6 @@ class Action(list):
 
         return new_module
 
-
     def _check_all_fetched_or_quit(self):
         """Check if every module in the pool is fetched"""
         if not self.is_everything_fetched():
@@ -85,7 +85,6 @@ class Action(list):
             )
             quit()
 
-
     def _check_manifest_variable_is_set(self, name):
         """Method to check if a specific manifest variable is set"""
         if getattr(self.top_module, name) is None:
@@ -94,7 +93,6 @@ class Action(list):
                 "to perform current action (%s)",
                 name, self.__class__.__name__)
             sys.exit("\nExiting")
-
 
     def _check_manifest_variable_value(self, name, value):
         """Method to check if a manifest variable is set to a specific value"""
@@ -106,9 +104,8 @@ class Action(list):
         if variable_match is False:
             logging.error(
                 "Variable %s must be set in the manifest and equal to '%s'.",
-                 name, value)
+                name, value)
             sys.exit("Exiting")
-
 
     def build_complete_file_set(self):
         """Build file set with all the files listed in the complete pool"""
@@ -119,7 +116,6 @@ class Action(list):
             all_manifested_files.add(module.files)
         logging.debug("End build complete file set")
         return all_manifested_files
-
 
     def build_file_set(self, top_entity=None):
         """Build file set with only those files required by the top entity"""
@@ -134,11 +130,9 @@ class Action(list):
         logging.debug("End build file set")
         return source_files
 
-
     def get_top_module(self):
         """Get the Top module from the pool"""
         return self.top_module
-
 
     def get_module_by_path(self, path):
         """Get instance of Module being stored at a given location"""
@@ -148,14 +142,12 @@ class Action(list):
                 return module
         return None
 
-
     def is_everything_fetched(self):
         """Check if every module is already fetched"""
         if len([m for m in self if not m.isfetched]) == 0:
             return True
         else:
             return False
-
 
     def fetch_all(self):
         """Fetch all the modules declared in the design"""
@@ -188,12 +180,12 @@ class Action(list):
             for mod in new_modules:
                 if not mod.isfetched:
                     logging.debug("Appended to fetch queue: "
-                        + str(mod.url))
+                                  + str(mod.url))
                     self._add(mod)
                     fetch_queue.append(mod)
                 else:
                     logging.debug("NOT appended to fetch queue: "
-                        + str(mod.url))
+                                  + str(mod.url))
 
     def _add(self, new_module):
         """Add the given new module if this is not already in the pool"""
@@ -208,14 +200,12 @@ class Action(list):
         self.append(new_module)
         return True
 
-
     def __contains(self, module):
         """Check if the pool contains the given module by checking the URL"""
         for mod in self:
             if mod.url == module.url:
                 return True
         return False
-
 
     def _guess_origin(self, path):
         """Guess origin (git, svn, local) of a module at given path"""
@@ -243,7 +233,6 @@ class Action(list):
         finally:
             os.chdir(cwd)
 
-
     def set_environment(self, options):
         """Initialize the module pool environment from the provided options"""
         env = Env(options)
@@ -256,6 +245,3 @@ class Action(list):
     def __str__(self):
         """Cast the module list as a list of strings"""
         return str([str(m) for m in self])
-
-
-

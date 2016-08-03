@@ -37,6 +37,7 @@ def stdoutIO(stdout=None):
 
 
 class ConfigParser(object):
+
     """Class for parsing python configuration files
 
     Case1: Normal usage
@@ -133,6 +134,7 @@ class ConfigParser(object):
     """
 
     class Option:
+
         def __init__(self, name, **others):
             self.name = name
             self.keys = []
@@ -187,7 +189,12 @@ class ConfigParser(object):
                 tmp_def = opt.default
                 if tmp_def == "":
                     tmp_def = '""'
-                line = line.format(opt.name, str(opt.types), opt.help, ', default=', tmp_def)
+                line = line.format(
+                    opt.name,
+                    str(opt.types),
+                    opt.help,
+                    ', default=',
+                    tmp_def)
             except AttributeError:  # no default value
                 line = line.format(opt.name, str(opt.types), opt.help, "", "")
             print(line)
@@ -212,7 +219,8 @@ class ConfigParser(object):
             self[name].allowed_keys.append(key)
         except AttributeError:
             if type(dict()) not in self[name].types:
-                raise RuntimeError("Allowing a key makes sense for dictionaries only")
+                raise RuntimeError(
+                    "Allowing a key makes sense for dictionaries only")
             self[name].allowed_keys = [key]
 
         self[name].allowed_keys.append(key)
@@ -239,7 +247,7 @@ class ConfigParser(object):
 
         # These hdlmake keys wont be inherited
         key_purge_list = ["modules", "files", "include_dirs",
-            "inc_makefiles", "library"]
+                          "inc_makefiles", "library"]
         for key_to_be_deleted in key_purge_list:
             extra_context.pop(key_to_be_deleted, None)
 
@@ -254,12 +262,12 @@ class ConfigParser(object):
             content = ''
         content = self.arbitrary_code + '\n' + content
 
-        #now the trick:
-        #I take the arbitrary code and parse it
-        #the values are not important, but thanks to it I can check
-        #if a variable came from the arbitrary code.
-        #This is important because in the manifests only certain group
-        #of variables is allowed. In arbitrary code all of them can be used.
+        # now the trick:
+        # I take the arbitrary code and parse it
+        # the values are not important, but thanks to it I can check
+        # if a variable came from the arbitrary code.
+        # This is important because in the manifests only certain group
+        # of variables is allowed. In arbitrary code all of them can be used.
         arbitrary_options = {}
         import sys
         try:
@@ -273,7 +281,7 @@ class ConfigParser(object):
             quit()
         except:
             logging.error("Unexpected error while parsing arbitrary code:")
-            print(str(sys.exc_info()[0])+':'+str(sys.exc_info()[1]))
+            print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
             quit()
 
         try:
@@ -281,16 +289,22 @@ class ConfigParser(object):
                 exec(content, extra_context, options)
             printed = s.getvalue()
             if len(printed) > 0:
-                logging.info("The manifest inside " + self.config_file + " tried to print something:")
+                logging.info(
+                    "The manifest inside " +
+                    self.config_file +
+                    " tried to print something:")
                 for line in printed.split('\n'):
                     print("> " + line)
-            #print "out:", s.getvalue()
+            # print "out:", s.getvalue()
         except SyntaxError as e:
-            logging.error("Invalid syntax in the manifest file " + self.config_file + ":\n" + str(e))
+            logging.error(
+                "Invalid syntax in the manifest file " + self.config_file + ":\n" + str(e))
             logging.error(content)
             quit()
         except:
-            logging.error("Encountered unexpected error while parsing " + self.config_file)
+            logging.error(
+                "Encountered unexpected error while parsing " +
+                self.config_file)
             logging.error(content)
             print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
             raise
@@ -303,18 +317,24 @@ class ConfigParser(object):
                     continue  # finish processing of this variable here
                 else:
                     ret[opt_name] = val
-                    logging.debug("New custom variable found: %s (=%s).\n" % (opt_name, val))
+                    logging.debug(
+                        "New custom variable found: %s (=%s).\n" %
+                        (opt_name, val))
                     continue
             opt = self[opt_name]
             if type(val) not in opt.types:
-                raise RuntimeError("Given option: %s doesn't match specified types: %s" % (str(type(val)), str(opt.types)))
+                raise RuntimeError(
+                    "Given option: %s doesn't match specified types: %s" %
+                    (str(type(val)), str(opt.types)))
             ret[opt_name] = val
 #            print("Opt_name ", opt_name)
-            if type(val) == type(dict()):
+            if isinstance(val, type(dict())):
                 try:
                     for key in val:
                         if key not in self[opt_name].allowed_keys:
-                            raise RuntimeError("Encountered unallowed key: %s for option '%s'" % (key, opt_name))
+                            raise RuntimeError(
+                                "Encountered unallowed key: %s for option '%s'" %
+                                (key, opt_name))
                 except AttributeError:  # no allowed_keys member - don't perform any check
                     pass
 

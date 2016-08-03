@@ -29,7 +29,9 @@ from hdlmake.srcfile import VHDLFile
 
 GHDL_STANDARD_LIBS = ['ieee', 'std']
 
+
 class ToolGHDL(ActionMakefile):
+
     """Class providing the interface for Lattice Diamond synthesis"""
 
     TOOL_INFO = {
@@ -40,13 +42,16 @@ class ToolGHDL(ActionMakefile):
 
     SUPPORTED_FILES = []
 
+    CLEAN_TARGETS = {'clean': ["*.cf", "*.o", "$(TOP_MODULE)"],
+                     'mrproper': ["*.vcd"]}
+
+
     def __init__(self):
         super(ToolGHDL, self).__init__()
 
     def detect_version(self, path):
         """Get tool version for GHDL"""
         pass
-
 
     def _print_sim_options(self, top_module):
         """Print the GHDL options to the Makefile"""
@@ -60,19 +65,6 @@ class ToolGHDL(ActionMakefile):
             ghdl_opt=ghdl_opt))
 
 
-    def _print_clean(self, top_module):
-        """Print the Makefile clean target for GHDL"""
-        self.writeln("""\
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -rf *.cf *.o $(TOP_MODULE)
-
-#target for cleaning final files
-mrproper: clean
-\t\trm -r *.vcd
-""")
-
-
     def _print_sim_compilation(self, fileset, top_module):
         """Print the GDHL simulation compilation target"""
         self.writeln("simulation:")
@@ -83,5 +75,3 @@ mrproper: clean
         self.writeln("\t\t# Elaborate design")
         self.writeln("\t\tghdl -e $(TOP_MODULE)")
         self.writeln()
-
-

@@ -48,6 +48,7 @@ class SourceFile(DepFile):
 
 
 class VHDLFile(SourceFile):
+
     def __init__(self, path, module, library=None, vcom_opt=None):
         SourceFile.__init__(self, path=path, module=module, library=library)
         if not vcom_opt:
@@ -66,7 +67,9 @@ class VHDLFile(SourceFile):
 
 
 class VerilogFile(SourceFile):
-    def __init__(self, path, module, library=None, vlog_opt=None, include_dirs=None):
+
+    def __init__(self, path, module, library=None,
+                 vlog_opt=None, include_dirs=None):
         SourceFile.__init__(self, path=path, module=module, library=library)
         if not vlog_opt:
             self.vlog_opt = ""
@@ -124,17 +127,21 @@ class XMPFile(File):
     # Xilinx Embedded Micro Processor
     pass
 
+
 class PPRFile(File):
     # Xilinx PlanAhead Project
     pass
+
 
 class XPRFile(File):
     # Xilinx Vivado Project
     pass
 
+
 class BDFile(File):
     # Xilinx Block Design
     pass
+
 
 class XCOFile(File):
     # Xilinx Core Generator File
@@ -143,52 +150,64 @@ class XCOFile(File):
 # class NGCFile(SourceFile):
 #     def __init__(self, path, module):
 #         SourceFile.__init__(self, path=path, module=module)
+
+
 class NGCFile(File):
     # Xilinx Generated Netlist File
     pass
+
 
 class LDFFile(File):
     # Lattice Diamond Project File
     pass
 
+
 class LPFFile(File):
     # Lattice Preference/Constraint File
     pass
+
 
 class EDFFile(File):
     # EDIF Netlist Files
     pass
 
+
 class PDCFile(File):
     # Physical Design Constraints
     pass
 
+
 class WBGenFile(File):
     pass
+
 
 class QSFFile(File):
     # Quartus Settings File
     pass
 
+
 class BSFFile(File):
     # Quartus Block Symbol File
     pass
+
 
 class BDFFile(File):
     # Quartus Block Design File
     pass
 
+
 class TDFFile(File):
     # Quartus Text Design File
     pass
+
 
 class GDFFile(File):
     # Quartus Graphic Design File
     pass
 
 
-
 class SourceFileSet(set):
+
     def __init__(self):
         super(SourceFileSet, self).__init__()
         self = []
@@ -233,15 +252,17 @@ class SourceFileSet(set):
 
 
 class SourceFileFactory:
-    def new(self, path, module, library=None, vcom_opt=None, vlog_opt=None, include_dirs=None):
+
+    def new(self, path, module, library=None,
+            vcom_opt=None, vlog_opt=None, include_dirs=None):
         if path == "/home/pawel/cern/wr-cores/testbench/top_level/gn4124_bfm.svh":
             raise Exception()
         if path is None or path == "":
-            raise RuntimeError("Expected a file path, got: "+str(path))
+            raise RuntimeError("Expected a file path, got: " + str(path))
         if not os.path.isabs(path):
             path = os.path.abspath(path)
         tmp = path.rsplit('.')
-        extension = tmp[len(tmp)-1]
+        extension = tmp[len(tmp) - 1]
         logging.debug("add file " + path)
 
         nf = None

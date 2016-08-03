@@ -39,6 +39,7 @@ IVERILOG_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
 
 
 class ToolIVerilog(ActionMakefile):
+
     """Class providing the interface for Icarus Verilog simulator"""
 
     TOOL_INFO = {
@@ -49,8 +50,13 @@ class ToolIVerilog(ActionMakefile):
 
     SUPPORTED_FILES = []
 
+    CLEAN_TARGETS = {'clean': ["run.command", "ivl_vhdl_work"],
+                     'mrproper': ["*.vcd", "*.vvp"]}
+
+
     def __init__(self):
         super(ToolIVerilog, self).__init__()
+
 
     def detect_version(self, path):
         """Get version from Icarus Verilog program"""
@@ -62,6 +68,7 @@ class ToolIVerilog(ActionMakefile):
                          close_fds=not is_windows)
         version = iverilog.stdout.readlines()[0].strip()
         return version
+
 
     def _print_sim_compilation(self, fileset, top_module):
         """Generate compile simulation Makefile target for IVerilog"""
@@ -81,7 +88,11 @@ class ToolIVerilog(ActionMakefile):
             self.writeln("\t\techo \"" + vhdl.rel_path() + "\" >> run.command")
 
         for svlog in fileset.filter(SVFile):
-            self.writeln("\t\techo \"" + svlog.rel_path() + "\" >> run.command")
+            self.writeln(
+                "\t\techo \"" +
+                svlog.rel_path(
+                ) +
+                "\" >> run.command")
 
         self.writeln("\t\tiverilog $(IVERILOG_OPT) -s $(TOP_MODULE)"
                      " -o $(TOP_MODULE).vvp -c run.command")
@@ -96,17 +107,4 @@ class ToolIVerilog(ActionMakefile):
             """IVERILOG_OPT := ${iverilog_opt}\n""")
         self.writeln(iverilog_string.substitute(
             iverilog_opt=iverilog_opt))
-
-
-    def _print_clean(self, top_module):
-        """Print the Makefile clean target for Icarus Verilog"""
-        self.writeln("""\
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -rf run.command ivl_vhdl_work
-
-#target for cleaning final files
-mrproper: clean
-\t\trm -f *.vcd *.vvp
-""")
 

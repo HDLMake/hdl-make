@@ -25,11 +25,13 @@
 
 import os
 import string
+import platform
 
 from .action import Action
 
 
 class ActionMakefile(Action):
+
     """Class that provides the Makefile writing methods and status"""
 
     def __init__(self, filename=None):
@@ -44,9 +46,6 @@ class ActionMakefile(Action):
     def __del__(self):
         if self._file:
             self._file.close()
-
-
-
 
     def _print_sim_top(self, top_module):
         top_parameter = string.Template("""TOP_MODULE := ${top_module}\n
@@ -113,7 +112,6 @@ PWD := $$(shell pwd)""")
                 " \\\n")
         self.write('\n')
 
-
     def _print_syn_command(self, top_module):
         if top_module.manifest_dict["syn_pre_cmd"]:
             syn_pre_cmd = top_module.manifest_dict["syn_pre_cmd"]
@@ -134,7 +132,6 @@ syn_post_cmd:
 
         self.writeln(syn_command.substitute(syn_pre_cmd=syn_pre_cmd,
                                             syn_post_cmd=syn_post_cmd))
-
 
     def _print_sim_command(self, top_module):
         if top_module.manifest_dict["sim_pre_cmd"]:
@@ -157,8 +154,31 @@ sim_post_cmd:
         self.writeln(sim_command.substitute(sim_pre_cmd=sim_pre_cmd,
                                             sim_post_cmd=sim_post_cmd))
 
+
+    def _print_clean(self, clean_targets):
+        """Print the Makefile clean target"""
+        if platform.system() == 'Windows':
+            del_command = "rm -rf"
+        else:
+            del_command = "rm -rf"
+        self.writeln("#target for cleaning intermediate files")
+        self.writeln("clean:")
+        tmp = "\t\t" + del_command + \
+            " $(LIBS) " + ' '.join(clean_targets["clean"])
+        self.writeln(tmp)
+        self.writeln()
+        self.writeln("#target for cleaning final files")
+        self.writeln("mrproper: clean")
+        tmp = "\t\t" + del_command + \
+            " " + ' '.join(clean_targets["mrproper"])
+        self.writeln(tmp)
+        self.writeln()
+
+
     def _print_sim_phony(self, top_module):
-        self.writeln(".PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation")
+        """Print simulation PHONY target list to the Makefile"""
+        self.writeln(
+            ".PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation")
 
 
     def initialize(self):
@@ -192,4 +212,3 @@ sim_post_cmd:
             self.write("\n")
         else:
             self.write(text + "\n")
-

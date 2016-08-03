@@ -23,4 +23,3 @@ from .constants import (GIT, SVN, LOCAL, fetch_type_lookup)
 from .git import Git
 from .svn import Svn
 from .backend_factory import BackendFactory
-

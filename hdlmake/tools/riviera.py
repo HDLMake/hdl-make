@@ -63,6 +63,7 @@ RIVIERA_STANDARD_LIBS.extend(RIVIERA_XILINX_VLOG_LIBRARIES)
 
 
 class ToolRiviera(VsimMakefileWriter):
+
     """Class providing the interface for Aldec Riviera-PRO simulator"""
 
     TOOL_INFO = {
@@ -73,12 +74,14 @@ class ToolRiviera(VsimMakefileWriter):
 
     SUPPORTED_FILES = []
 
+    CLEAN_TARGETS = {'clean': ["*.asdb"],
+                     'mrproper': ["*.vcd"]}
+
     def __init__(self):
         super(ToolRiviera, self).__init__()
         self.vcom_flags.append("-2008")
-        self.additional_clean.extend(["*.asdb", "*.vcd", ])
+
 
     def detect_version(self, path):
         """Get version from Aldec Riviera-PRO binary program"""
         pass
-

@@ -39,6 +39,7 @@ QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
 
 class ToolQuartus(ActionMakefile):
+
     """Class providing the interface for Altera Quartus synthesis"""
 
     TOOL_INFO = {
@@ -133,7 +134,6 @@ mrproper:
         for file_aux in top_mod.incl_makefiles:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
-
 
     def _set_tcl_files(self, mod):
         """Method that checks if the TCL files declared by the module
@@ -250,7 +250,6 @@ mrproper:
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
 
-
     def add_property(self, val):
         """Add Altera Quartus property to the set of already existing ones"""
         # don't save files (they are unneeded)
@@ -357,19 +356,20 @@ mrproper:
         q_prop = _QuartusProjectProperty
         self.add_property(
             q_prop(q_prop.SET_GLOBAL_ASSIGNMENT,
-                name_type='FAMILY',
-                name='"' + syn_family + '"'))
+                   name_type='FAMILY',
+                   name='"' + syn_family + '"'))
         self.add_property(
             q_prop(q_prop.SET_GLOBAL_ASSIGNMENT,
-                name_type='DEVICE',
-                name=devstring))
+                   name_type='DEVICE',
+                   name=devstring))
         self.add_property(
             q_prop(q_prop.SET_GLOBAL_ASSIGNMENT,
-                name_type='TOP_LEVEL_ENTITY',
-                name=syn_top))
+                   name_type='TOP_LEVEL_ENTITY',
+                   name=syn_top))
 
 
 class _QuartusProjectProperty(object):
+
     """Class that serves as a container for Altera Quartus properties"""
 
     SET_GLOBAL_INSTANCE = 0
@@ -413,4 +413,3 @@ class _QuartusProjectProperty(object):
             words.append("-section_id")
             words.append(self.section_id)
         return ' '.join(words)
-

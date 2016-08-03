@@ -33,7 +33,9 @@ from hdlmake.srcfile import VerilogFile, VHDLFile, NGCFile
 from hdlmake.vlog_parser import VerilogPreprocessor
 from .action import Action
 
+
 class ActionCore(Action):
+
     """Class that contains the methods for core actions"""
 
     def __init__(self, *args):
@@ -48,12 +50,11 @@ class ActionCore(Action):
         os.system(top_module.manifest_dict["fetch_post_cmd"])
         logging.info("All modules fetched.")
 
-
     def clean(self):
         """Delete the local copy of the fetched modules"""
         logging.info("Removing fetched modules..")
         remove_list = [mod_aux for mod_aux in self if
-            mod_aux.source in [fetch.GIT, fetch.SVN] and mod_aux.isfetched]
+                       mod_aux.source in [fetch.GIT, fetch.SVN] and mod_aux.isfetched]
         remove_list.reverse()  # we will remove modules in backward order
         if len(remove_list):
             for mod_aux in remove_list:
@@ -63,7 +64,6 @@ class ActionCore(Action):
         else:
             logging.info("There are no modules to be removed")
         logging.info("Modules cleaned.")
-
 
     def list_files(self):
         """List the files added to the design across the pool hierarchy"""
@@ -75,12 +75,11 @@ class ActionCore(Action):
         file_set = self.build_file_set()
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [file_aux.path for file_aux in file_list]
-        if self.env.options.delimiter == None:
+        if self.env.options.delimiter is None:
             delimiter = "\n"
         else:
             delimiter = self.env.options.delimiter
         print delimiter.join(files_str)
-
 
     def _print_comment(self, message):
         """Private method that prints a message to stdout if not terse"""
@@ -95,7 +94,6 @@ class ActionCore(Action):
             for file_aux in file_list:
                 print "%s\t%s" % (
                     path_mod.relpath(file_aux.path), "file")
-
 
     def list_modules(self):
         """List the modules that are contained by the pool"""
@@ -118,18 +116,17 @@ class ActionCore(Action):
                 if mod_aux.source in [fetch.SVN, fetch.GIT]:
                     self._print_comment("# * URL: " + mod_aux.url)
                 if (mod_aux.source in [fetch.SVN, fetch.GIT, fetch.LOCAL] and
-                    mod_aux.parent):
+                        mod_aux.parent):
                     self._print_comment("# * The parent for this module is: %s"
                                         % mod_aux.parent.url)
                 else:
                     self._print_comment("# * This is the root module")
                 print "%s\t%s" % (path_mod.relpath(mod_aux.path),
-                     _convert_to_source_name(mod_aux.source))
+                                  _convert_to_source_name(mod_aux.source))
                 if self.env.options.withfiles:
                     self._print_file_list(mod_aux.files)
                 self._print_comment("# MODULE END -> %s" % mod_aux.url)
             self._print_comment("")
-
 
     def merge_cores(self):
         """Merge the design into a single VHDL and a single Verilog file"""
@@ -147,10 +144,10 @@ class ActionCore(Action):
             "-- re-generate the merged version!                       --\n"
             "-----------------------------------------------------------\n"
             "\n\n\n\n"
-            )
+        )
 
         # Generate a VHDL file containing all the required VHDL files
-        f_out = open(base+".vhd", "w")
+        f_out = open(base + ".vhd", "w")
         f_out.write(file_header)
         for vhdl in flist.filter(VHDLFile):
             f_out.write("\n\n---  File: %s ----\n" % vhdl.rel_path())
@@ -158,13 +155,13 @@ class ActionCore(Action):
             if vhdl.module.revision:
                 f_out.write("---  Revision: %s\n" % vhdl.module.revision)
             f_out.write("---  Last modified: %s\n" %
-                time.ctime(os.path.getmtime(vhdl.path)))
-            f_out.write(open(vhdl.rel_path(), "r").read()+"\n\n")
-                #print("VHDL: %s" % vhdl.rel_path())
+                        time.ctime(os.path.getmtime(vhdl.path)))
+            f_out.write(open(vhdl.rel_path(), "r").read() + "\n\n")
+                # print("VHDL: %s" % vhdl.rel_path())
         f_out.close()
 
         # Generate a VHDL file containing all the required VHDL files
-        f_out = open(base+".v", "w")
+        f_out = open(base + ".v", "w")
         f_out.write(file_header)
         for vlog in flist.filter(VerilogFile):
             f_out.write("\n\n//  File: %s\n" % vlog.rel_path())
@@ -172,7 +169,7 @@ class ActionCore(Action):
             if vlog.module.revision:
                 f_out.write("//  Revision: %s\n" % vlog.module.revision)
             f_out.write("//  Last modified: %s\n" %
-                time.ctime(os.path.getmtime(vlog.path)))
+                        time.ctime(os.path.getmtime(vlog.path)))
             vpp = VerilogPreprocessor()
             for include_path in vlog.include_dirs:
                 vpp.add_path(include_path)

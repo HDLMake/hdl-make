@@ -27,7 +27,9 @@ import logging
 
 from .action import Action
 
+
 class ActionTree(Action):
+
     """Class providing methods to create a graph from pool and to analyze it"""
 
     def __init__(self, *args):
@@ -48,7 +50,6 @@ class ActionTree(Action):
             json_file.write(json_string)
             json_file.close()
 
-
     def _generate_tree_graphviz(self, hierarchy, top_id):
         """Define the program used to write the graphviz:
         Program should be one of:
@@ -66,12 +67,11 @@ class ActionTree(Action):
                                      prog=self.env.options.graphviz,
                                      root=top_id)
             nx.draw(hierarchy, pos,
-                with_labels=True,
-                alpha=0.5,
-                node_size=100)
+                    with_labels=True,
+                    alpha=0.5,
+                    node_size=100)
             plt.savefig("hierarchy.png")
             plt.show()
-
 
     def generate_tree(self):
         """Generate the graph from pool and create the requested outcomes"""
@@ -108,5 +108,3 @@ class ActionTree(Action):
 
         self._generate_tree_web(hierarchy, top_id)
         self._generate_tree_graphviz(hierarchy, top_id)
-
-

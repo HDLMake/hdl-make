@@ -33,16 +33,18 @@ MODELSIM_STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
 
 
 class ToolModelsim(VsimMakefileWriter):
+
     """Class providing the interface for Mentor Modelsim simulator"""
 
-    TOOL_INFO = {
-        'name': 'Modelsim',
-        'id': 'modelsim',
-        'windows_bin': 'vsim',
-        'linux_bin': 'vsim'}
+    TOOL_INFO = {'name': 'Modelsim',
+                 'id': 'modelsim',
+                 'windows_bin': 'vsim',
+                 'linux_bin': 'vsim'}
 
     SUPPORTED_FILES = []
 
+    CLEAN_TARGETS = {'clean': ["./modelsim.ini", "transcript"],
+                     'mrproper': ["*.vcd", "*.wlf"]}
 
     def __init__(self):
         super(ToolModelsim, self).__init__()
@@ -52,13 +54,10 @@ class ToolModelsim(VsimMakefileWriter):
         self.copy_rules["modelsim.ini"] = os.path.join(
             "$(MODELSIM_INI_PATH)", "modelsim.ini")
         self.additional_deps.append("modelsim.ini")
-        self.additional_clean.extend(
-            ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
 
     def detect_version(self, path):
         """Get version from the Mentor Modelsim program"""
         pass
-
 
     def _print_sim_options(self, top_module):
         """Print the Modelsim options to the Makefile"""
@@ -70,5 +69,4 @@ class ToolModelsim(VsimMakefileWriter):
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
         super(ToolModelsim, self)._print_sim_options(top_module)
-
 

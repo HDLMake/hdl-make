@@ -22,14 +22,16 @@
 import logging
 from .constants import (LOCAL)
 
+
 class BackendFactory(object):
+
     def __init__(self):
         self.backend_table = {}
 
     def register_backend(self, backend_id, backend):
         """Add a mapping: backend_id -> backend"""
         self.backend_table[backend_id] = backend
-        
+
     def get_backend(self, module):
         try:
             if module.source != LOCAL:
@@ -38,8 +40,8 @@ class BackendFactory(object):
             backend = self.backend_table[module.source]
         except KeyError:
             error_string = "No registered backend found for module: " +\
-                 str(module) + "\n" +\
-                 "Registered backends are:\n"
+                str(module) + "\n" +\
+                "Registered backends are:\n"
             for backend_id in self.backend_table.iterkeys():
                 error_string += "\t%d" % (backend_id)
             logging.error(error_string)

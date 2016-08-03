@@ -35,6 +35,7 @@ DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
 
 class ToolDiamond(ActionMakefile):
+
     """Class providing the interface for Lattice Diamond synthesis"""
 
     TOOL_INFO = {
@@ -120,7 +121,6 @@ mrproper:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 
-
     def generate_synthesis_project(self, update=False, tool_version='',
                                    top_mod=None, fileset=None):
         """Create project for Lattice Diamond synthesis"""
@@ -195,7 +195,7 @@ mrproper:
             if (isinstance(file_aux, VHDLFile) or
                 isinstance(file_aux, VerilogFile) or
                 isinstance(file_aux, SVFile) or
-                isinstance(file_aux, EDFFile)):
+                    isinstance(file_aux, EDFFile)):
                 if update:
                     line = line + '\n' + tmp.format('remove',
                                                     file_aux.rel_path())
@@ -215,4 +215,3 @@ mrproper:
                 continue
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
-

@@ -58,6 +58,7 @@ ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
 
 
 class ToolISE(ActionMakefile):
+
     """Class providing the methods to create and build a Xilinx ISE project"""
 
     TOOL_INFO = {
@@ -114,7 +115,6 @@ class ToolISE(ActionMakefile):
                     xst_output + "Can't determine ISE version")
                 return None
         return ise_version
-
 
     def generate_synthesis_makefile(self, top_mod, tool_path):
         """Generate a Makefile to handle a synthesis Xilinx ISE project"""
@@ -302,9 +302,10 @@ mrproper:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 
-
     class StringBuffer(list):
+
         """Auxiliar class providing a convenient string storage"""
+
         def __init__(self):
             self.append("")
             self.__blank = re.compile("^[ \t\n]+$")
@@ -323,7 +324,6 @@ mrproper:
                 self.append("")
             else:
                 self[len(self) - 1] += what
-
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
@@ -348,17 +348,14 @@ mrproper:
         logging.info("Writing down .xise project file")
         self.emit_xml(self.top_mod.manifest_dict["syn_project"])
 
-
     def add_files(self, files):
         """Add files to the ISE project"""
         self.files.extend(files)
-
 
     def _add_lib(self, lib):
         """Check if a library is in the ISE project before adding it"""
         if lib not in self.libs:
             self.libs.append(lib)
-
 
     def add_libs(self, libs):
         """Add a list of libraries to the ISE project"""
@@ -366,13 +363,11 @@ mrproper:
             self._add_lib(lib_aux)
         self.libs.remove('work')
 
-
     def add_property(self, name, value, is_default=False):
         """Add a property to the Xilinx ISE project"""
         self.props[name] = ISEProjectProperty(name=name,
                                               value=value,
                                               is_default=is_default)
-
 
     def add_initial_properties(self):
         """Add initial properties to the Xilinx ISE project"""
@@ -382,7 +377,6 @@ mrproper:
         self.add_property("Manual Implementation Compile Order", "true")
         self.add_property("Auto Implementation Top", "false")
         self.add_property("Create Binary Configuration File", "true")
-
 
     def _set_values_from_manifest(self):
         """Add the synthesis properties from the Manifest to the project"""
@@ -409,7 +403,6 @@ mrproper:
             "Implementation Top Instance Path",
             "/" + top_module.manifest_dict["syn_top"])
 
-
     def _parse_props(self):
         """Parse properties from the existing ISE project"""
         properties_temp = self.xml_project.getElementsByTagName("properties")
@@ -425,7 +418,6 @@ mrproper:
             name="properties",
             where=self.xml_doc.documentElement)
 
-
     def _parse_libs(self):
         """Parse libraries from the existing ISE project"""
         libraries_temp = self.xml_project.getElementsByTagName("libraries")
@@ -434,7 +426,6 @@ mrproper:
         self.xml_libs = self._purge_dom_node(
             name="libraries",
             where=self.xml_doc.documentElement)
-
 
     def _load_xml(self, filename):
         """Load Xilinx ISE project as a XML file"""
@@ -462,13 +453,12 @@ mrproper:
                 self.ise = tuple(
                     node.getAttribute(
                         "xil_pn:ise_version").split(
-                            '.'))
+                    '.'))
             where.removeChild(node)
         except xml.parsers.expat.ExpatError:
             pass
         file_xml.close()
         self._set_values_from_manifest()
-
 
     def _purge_dom_node(self, name, where):
         """Purge node at the XML file to accomodate a new value"""
@@ -480,7 +470,6 @@ mrproper:
         new = self.xml_doc.createElement(name)
         where.appendChild(new)
         return new
-
 
     def _output_files(self, node):
         """Add the HDL design files to the Xilinx ISE Project"""
@@ -544,7 +533,6 @@ mrproper:
         ise_ver_project.setAttribute("xil_pn:schema_version", "2")
         node.appendChild(ise_ver_project)
 
-
     def emit_xml(self, filename=None):
         """Process the required outputs and write an ISE Project"""
         if not self.xml_doc:
@@ -561,7 +549,6 @@ mrproper:
         self.xml_doc.writexml(string_buffer, newl="\n", addindent="\t")
         output_file.write('\n'.join(string_buffer))
         output_file.close()
-
 
     def create_empty_project(self):
         """Create an empty XML docmument to accomodate the ISE Project"""
@@ -595,6 +582,7 @@ mrproper:
 
 
 class ISEProjectProperty(object):
+
     """Class that serves as container for the Xilinx ISE project properties"""
 
     def __init__(self, name, value, is_default=False):

@@ -28,7 +28,9 @@ import re
 
 from .action import Action
 
+
 class ActionCheck(Action):
+
     """Class providing the method to check general properties"""
 
     def __init__(self, *args):
@@ -45,6 +47,7 @@ class ActionCheck(Action):
 
         logging.error("This action is not implemented yet!")
         quit()
+
         def _compare(local, reference, cond):
             """Function that provides the actual condition line"""
             if cond == "==":

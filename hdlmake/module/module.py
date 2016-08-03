@@ -37,7 +37,9 @@ from hdlmake.module import ModuleContent
 
 
 class ModuleArgs(object):
+
     """This class is just a container for the main Module args"""
+
     def __init__(self):
         self.parent = None
         self.url = None
@@ -57,6 +59,7 @@ class ModuleArgs(object):
 
 
 class Module(ModuleContent):
+
     """
     This is the class providing the HDLMake module, the basic element
     providing the modular behavior allowing for structured designs.
@@ -72,16 +75,13 @@ class Module(ModuleContent):
         self.module_args = ModuleArgs()
         self.module_args = module_args
 
-
     def __str__(self):
         return self.url
-
 
     @property
     def is_fetched_to(self):
         """Get the path where the module instance resides"""
         return os.path.dirname(self.path)
-
 
     def submodules(self):
         """Get a list with all the submodules this module instance requires"""
@@ -93,7 +93,6 @@ class Module(ModuleContent):
                 return submodule_list
         return __nonull(self.local) + __nonull(self.git) \
             + __nonull(self.svn)
-
 
     def remove_dir_from_disk(self):
         """Delete the module dir if it is already fetched and available"""
@@ -119,7 +118,6 @@ class Module(ModuleContent):
         super(Module, self).process_manifest()
         self._set_simulation_options()
 
-
     def _set_simulation_options(self):
         """This set the simulation option for all the files in the Module"""
         from hdlmake.srcfile import VerilogFile, VHDLFile
@@ -130,7 +128,6 @@ class Module(ModuleContent):
                 file_aux.include_dirs = include_dirs_list
             elif isinstance(file_aux, VHDLFile):
                 file_aux.vcom_opt = self.manifest_dict["vcom_opt"]
-
 
     def get_include_dirs_list(self):
         """Private method that processes the included directory list"""
@@ -143,7 +140,7 @@ class Module(ModuleContent):
                 include_dirs.append(dir_list)
             else:
                 dir_list = [path_mod.compose(self.path, x) for
-                    x in self.manifest_dict["include_dirs"]]
+                            x in self.manifest_dict["include_dirs"]]
                 include_dirs.extend(dir_list)
             # Analyze included dirs and report if any issue is found
             for dir_ in include_dirs:
@@ -153,11 +150,8 @@ class Module(ModuleContent):
                         self.path, dir_)
                 if not os.path.exists(dir_):
                     logging.warning(self.path +
-                        " has an unexisting include directory: " + dir_)
+                                    " has an unexisting include directory: " + dir_)
         return include_dirs
-
-
-
 
     def parse_manifest(self):
         """
@@ -189,7 +183,7 @@ PARSE START: %s
 
         manifest_parser = ManifestParser()
 
-        #manifest_parser.add_arbitrary_code(
+        # manifest_parser.add_arbitrary_code(
         #    self.pool.top_module.options.arbitrary_code)
 
         manifest_parser.add_manifest(self.path)
@@ -224,4 +218,3 @@ PARSE END: %s
 ***********************************************************
 
                       """, self.path)
-

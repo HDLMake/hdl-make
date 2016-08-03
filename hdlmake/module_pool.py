@@ -24,15 +24,16 @@
 """This is the Python module providing the container for the HDL Modules"""
 
 from .action import (ActionCheck, ActionCore,
-                    ActionTree, ActionSimulation,
-                    ActionSynthesis,
-                    QsysHwTclUpdate)
+                     ActionTree, ActionSimulation,
+                     ActionSynthesis,
+                     QsysHwTclUpdate)
 
 
 class ModulePool(ActionCheck, ActionCore,
                  ActionTree, ActionSimulation,
                  ActionSynthesis,
                  QsysHwTclUpdate):
+
     """
     The ModulePool class acts as the container for the HDLMake modules that
     are progressively being added to the design hierarchy.
@@ -45,5 +46,3 @@ class ModulePool(ActionCheck, ActionCore,
         ActionSimulation.__init__(self, *args)
         ActionSynthesis.__init__(self, *args)
         QsysHwTclUpdate.__init__(self, *args)
-
-

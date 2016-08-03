@@ -38,6 +38,7 @@ VIVADO_STANDARD_LIBS = ['ieee', 'std']
 
 
 class ToolVivado(ActionMakefile):
+
     """Class providing the interface for Xilinx Vivado synthesis"""
 
     TOOL_INFO = {
@@ -245,7 +246,7 @@ mrproper:
                 isinstance(file_aux, NGCFile) or
                 isinstance(file_aux, XMPFile) or
                 isinstance(file_aux, XCOFile) or
-                isinstance(file_aux, BDFile)):
+                    isinstance(file_aux, BDFile)):
                 line = tmp.format(file_aux.rel_path())
             elif isinstance(file_aux, TCLFile):
                 line = tcl.format(file_aux.rel_path())
@@ -256,6 +257,7 @@ mrproper:
 
 
 class _VivadoProjectProperty(object):
+
     """Class providing an storage for Xilinx Vivado properties"""
 
     def __init__(self, name=None, value=None, objects=None):
@@ -268,4 +270,3 @@ class _VivadoProjectProperty(object):
         tmp = "set_property {0} {1} [{2}]"
         line = tmp.format(self.name, self.value, self.objects)
         return line
-

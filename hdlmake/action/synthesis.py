@@ -34,9 +34,11 @@ from hdlmake.tools import (
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero)
 
+
 class ActionSynthesis(
     ToolISE, ToolPlanAhead, ToolVivado,
-    ToolQuartus, ToolDiamond, ToolLibero):
+        ToolQuartus, ToolDiamond, ToolLibero):
+
     """Class providing the public synthesis methods for the user"""
 
     def __init__(self, *args):
@@ -61,7 +63,6 @@ class ActionSynthesis(
             logging.error("Synthesis tool not recognized: %s", tool_name)
         return tool_object
 
-
     def _check_synthesis_makefile(self):
         """Check the manifest contains all the keys for a synthesis makefile"""
         # NOTE: top_module is not used in synthesis!!
@@ -71,7 +72,6 @@ class ActionSynthesis(
         if not self.get_top_module().manifest_dict["syn_tool"]:
             logging.error("syn_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
-
 
     def synthesis_makefile(self):
         """Generate a synthesis Makefile for the selected tool"""
@@ -97,7 +97,6 @@ class ActionSynthesis(
             top_mod=self.get_top_module(),
             tool_path=tool_path)
         logging.info("Synthesis makefile generated.")
-
 
     def _write_project_vhd(self, tool, version):
         """Create a VHDL file containing a SDB compatible design description"""
@@ -161,15 +160,14 @@ end sdb_meta_pkg;""")
             syn_module_name=self.top_module.manifest_dict["syn_top"],
             syn_commit_id=self.top_module.revision,
             syn_tool_name=tool.upper(),
-            syn_tool_version="0000"*(8-len(syn_tool_std_logic_vector)) +
+            syn_tool_version="0000" * (8 - len(syn_tool_std_logic_vector)) +
                              ''.join(syn_tool_std_logic_vector),
-	    syn_tool_version_str=syn_tool_version,
+            syn_tool_version_str=syn_tool_version,
             syn_date=''.join(date_std_logic_vector),
-	    syn_date_str=date_string,
+            syn_date_str=date_string,
             syn_username=getpass.getuser())
         project_vhd.write(template)
         project_vhd.close()
-
 
     def _check_synthesis_project(self):
         """Check the manifest contains all the keys for a synthesis project"""
@@ -194,7 +192,6 @@ end sdb_meta_pkg;""")
             logging.error(
                 "syn_top variable must be set in the top manifest.")
             sys.exit("Exiting")
-
 
     def synthesis_project(self):
         """Generate a project for the specific synthesis tool"""
@@ -238,7 +235,6 @@ end sdb_meta_pkg;""")
         top_mod = self.get_top_module()
         fileset = self.build_file_set(top_mod.manifest_dict["syn_top"])
 
-
         sup_files = self.build_complete_file_set()
         privative_files = []
         for file_aux in sup_files:
@@ -246,10 +242,9 @@ end sdb_meta_pkg;""")
                    for file_type in tool_object.SUPPORTED_FILES):
                 privative_files.append(file_aux)
         if len(privative_files) > 0:
-             logging.info("Detected %d supported files that are not parseable",
-                          len(privative_files))
-             fileset.add(privative_files)
-
+            logging.info("Detected %d supported files that are not parseable",
+                         len(privative_files))
+            fileset.add(privative_files)
 
         sff = SourceFileFactory()
         if self.env.options.generate_project_vhd:
@@ -258,9 +253,9 @@ end sdb_meta_pkg;""")
                                  module=self.get_module_by_path("."))])
 
         tool_object.generate_synthesis_project(update=update,
-                         tool_version=self.env[version_key],
-                         top_mod=self.get_top_module(),
-                         fileset=fileset)
+                                               tool_version=self.env[
+                                               version_key],
+                                               top_mod=self.get_top_module(),
+                                               fileset=fileset)
 
         logging.info(name + " project file generated.")
-

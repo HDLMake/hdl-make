@@ -39,7 +39,12 @@ class DepRelation(object):
 
     def __init__(self, obj_name, direction, rel_type):
         assert direction in [DepRelation.PROVIDE, DepRelation.USE]
-        assert rel_type in [DepRelation.ENTITY, DepRelation.PACKAGE, DepRelation.INCLUDE, DepRelation.ARCHITECTURE, DepRelation.MODULE]
+        assert rel_type in [
+            DepRelation.ENTITY,
+            DepRelation.PACKAGE,
+            DepRelation.INCLUDE,
+            DepRelation.ARCHITECTURE,
+            DepRelation.MODULE]
         self.direction = direction
         self.rel_type = rel_type
         self.obj_name = obj_name.lower()
@@ -64,7 +69,12 @@ class DepRelation(object):
 
     def __repr__(self):
         dstr = {self.USE: "Use", self.PROVIDE: "Provide"}
-        ostr = {self.ENTITY: "entity", self.PACKAGE: "package", self.INCLUDE: "include/header", self.ARCHITECTURE: "architecture", self.MODULE: "module"}
+        ostr = {
+            self.ENTITY: "entity",
+            self.PACKAGE: "package",
+            self.INCLUDE: "include/header",
+            self.ARCHITECTURE: "architecture",
+            self.MODULE: "module"}
         return "%s %s '%s'" % (dstr[self.direction], ostr[self.rel_type], self.obj_name)
 
     def __hash__(self):
@@ -79,6 +89,7 @@ class DepRelation(object):
 
 
 class File(object):
+
     def __init__(self, path, module=None):
         self.path = path
         assert not isinstance(module, basestring)
@@ -135,11 +146,12 @@ class File(object):
 
     def extension(self):
         tmp = self.path.rsplit('.')
-        ext = tmp[len(tmp)-1]
+        ext = tmp[len(tmp) - 1]
         return ext
 
 
 class DepFile(File):
+
     def __init__(self, file_path, module):
         from hdlmake.module import Module
         assert isinstance(file_path, basestring)
@@ -150,7 +162,9 @@ class DepFile(File):
         self._rels = set()
         self._inputs = set()
         self._outputs = set()
-        self.depends_on = set()  # set of files that the file depends on, items of type DepFile
+        self.depends_on = set()
+                              # set of files that the file depends on, items of
+                              # type DepFile
         self.dep_level = None
         self.is_parsed = False
         self.file_path = file_path
@@ -164,9 +178,9 @@ class DepFile(File):
             parser = ParserFactory().create(self)
             parser.parse(self)
 
-    #use proxy template here
+    # use proxy template here
     def __get_rels(self):
-        #self._parse_if_needed()
+        # self._parse_if_needed()
         return self._rels
 
     def __set_rels(self, what):
@@ -179,11 +193,11 @@ class DepFile(File):
 
     def satisfies(self, rel_b):
         assert isinstance(rel_b, DepRelation)
-        #self._parse_if_needed()
+        # self._parse_if_needed()
         return any(map(lambda x: x.satisfies(rel_b), self.rels))
 
     def show_relations(self):
-        #self._parse_if_needed()
+        # self._parse_if_needed()
         for r in self.rels:
             print(str(r))
 
@@ -192,15 +206,19 @@ class DepFile(File):
         return os.path.basename(self.file_path)
 
     def get_dep_level(self):
-        if self.dep_level == None:
+        if self.dep_level is None:
             if len(self.depends_on) == 0:
                 self.dep_level = 0
             else:
                 # set dep_level to a negative value so we can detect if the recusion below brings us back to
-                # this file in a circular reference, that would otherwise result in an infinite loop.
+                # this file in a circular reference, that would otherwise
+                # result in an infinite loop.
                 self.dep_level = -1
                 # recurse, to find the largest number of levels below.
-                self.dep_level = 1 + max([dep.get_dep_level() for dep in self.depends_on]);
+                self.dep_level = 1 + \
+                    max([dep.get_dep_level() for dep in self.depends_on])
         elif self.dep_level < 0:
-                logging.warning("Probably run into a circular reference of file dependencies. It appears %s depends on itself, indirectly via atleast one other file." % self.file_path)
+                logging.warning(
+                    "Probably run into a circular reference of file dependencies. It appears %s depends on itself, indirectly via atleast one other file." %
+                    self.file_path)
         return self.dep_level

@@ -27,7 +27,7 @@ import logging
 import sys
 
 from hdlmake.dep_file import DepFile
-#import hdlmake.new_dep_solver as dep_solver
+# import hdlmake.new_dep_solver as dep_solver
 
 from hdlmake.tools import (
     ToolIVerilog, ToolISim, ToolModelsim,
@@ -36,7 +36,8 @@ from hdlmake.tools import (
 
 class ActionSimulation(
     ToolIVerilog, ToolISim, ToolModelsim,
-    ToolActiveHDL, ToolRiviera, ToolGHDL):
+        ToolActiveHDL, ToolRiviera, ToolGHDL):
+
     """This class contains the simulation specific methods"""
 
     def __init__(self, *args):
@@ -50,7 +51,6 @@ class ActionSimulation(
         if not self.get_top_module().manifest_dict["sim_tool"]:
             logging.error("sim_tool variable must be set in the top manifest.")
             sys.exit("Exiting")
-
 
     def simulation_makefile(self):
         """Execute the simulation action"""
@@ -83,10 +83,9 @@ class ActionSimulation(
         self.env.check_tool(tool_object)
         self.env.check_general()
 
-
         if self.env[path_key] is None and self.env.options.force is not True:
             logging.error("Can't generate a " + name + " makefile. " +
-                bin_name + " not found.")
+                          bin_name + " not found.")
             sys.exit("Exiting")
 
         logging.info("Generating " + name + " makefile for simulation.")
@@ -95,15 +94,15 @@ class ActionSimulation(
 
         fset = self.build_file_set(top_module.manifest_dict["sim_top"])
         dep_files = fset.filter(DepFile)
-        #dep_solver.solve(dep_files)
+        # dep_solver.solve(dep_files)
 
-        #tool_object.generate_simulation_makefile(dep_files, top_module)
+        # tool_object.generate_simulation_makefile(dep_files, top_module)
         tool_object._print_sim_top(top_module)
         tool_object._print_sim_options(top_module)
         tool_object._print_sim_local(top_module)
         tool_object._print_sim_sources(dep_files)
         tool_object._print_sim_compilation(dep_files, top_module)
         tool_object._print_sim_command(top_module)
-        tool_object._print_clean(top_module)
+        tool_object._print_clean(tool_object.CLEAN_TARGETS)
         tool_object._print_sim_phony(top_module)
 

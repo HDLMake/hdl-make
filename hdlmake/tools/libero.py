@@ -36,6 +36,7 @@ LIBERO_STANDARD_LIBS = ['ieee', 'std']
 
 
 class ToolLibero(ActionMakefile):
+
     """Class providing the interface for Microsemi Libero IDE synthesis"""
 
     TOOL_INFO = {
@@ -121,7 +122,6 @@ mrproper:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 
-
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
         """Create a Microsemi Libero IDE synthesis project"""
@@ -196,7 +196,7 @@ mrproper:
         # First stage: linking files
         for file_aux in self.files:
             if (isinstance(file_aux, VHDLFile) or
-                isinstance(file_aux, VerilogFile)):
+                    isinstance(file_aux, VerilogFile)):
                 line = link_string.format('-hdl_source', file_aux.rel_path())
             elif isinstance(file_aux, SDCFile):
                 line = link_string.format('-sdc', file_aux.rel_path())
@@ -230,4 +230,3 @@ mrproper:
         line = 'set_root -module {' + self.syn_top + '::work}'
         ret.append(line)
         return ('\n'.join(ret)) + '\n'
-

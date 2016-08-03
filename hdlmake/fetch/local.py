@@ -21,10 +21,11 @@
 
 from .fetcher import Fetcher
 
+
 class Local(Fetcher):
+
     def __init__(self):
         pass
 
     def fetch(self, module):
         pass
-    

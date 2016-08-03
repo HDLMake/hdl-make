@@ -44,6 +44,7 @@ ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
 
 
 class ToolISim(ActionMakefile):
+
     """Class providing the interface for Xilinx ISim simulator"""
 
     TOOL_INFO = {
@@ -53,6 +54,12 @@ class ToolISim(ActionMakefile):
         'linux_bin': 'isimgui'}
 
     SUPPORTED_FILES = []
+
+    CLEAN_TARGETS = {'clean': ["./xilinxsim.ini $(LIBS)", "fuse.xmsgs",
+                               "fuse.log", "fuseRelaunch.cmd", "isim",
+                               "isim.log", "isim.wdb", "isim_proj", 
+                               "isim_proj.*"],
+                     'mrproper': ["*.vcd"]}
 
     def __init__(self):
         super(ToolISim, self).__init__()
@@ -73,7 +80,6 @@ class ToolISim(ActionMakefile):
             return None
         return isim_version
 
-
     def _print_sim_top(self, top_module):
         """Print the top section of the Makefile for Xilinx ISim"""
         self.writeln("""## variables #############################
@@ -82,8 +88,9 @@ TOP_MODULE := """ + top_module.manifest_dict["sim_top"] + """
 FUSE_OUTPUT ?= isim_proj
 
 XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) +
-"""
+                     """
 """)
+
 
     def _print_sim_options(self, top_module):
         """Print the Xilinx ISim simulation options in the Makefile"""
@@ -91,21 +98,8 @@ XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) +
 -incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
-            self.__get_rid_of_isim_incdirs(
-                top_module.manifest_dict["vlog_opt"]) + """
-""")
-
-    def _print_clean(self, top_module):
-        """Print the Makefile clean target for Xilinx ISim simulator"""
-        self.writeln("""\
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -rf ./xilinxsim.ini $(LIBS) fuse.xmsgs fuse.log fuseRelaunch.cmd isim isim.log \
-isim.wdb isim_proj isim_proj.*
-
-#target for cleaning final files
-mrproper: clean
-
+                     self.__get_rid_of_isim_incdirs(
+                     top_module.manifest_dict["vlog_opt"]) + """
 """)
 
 
@@ -245,7 +239,6 @@ fuse:
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 
-
     def __get_rid_of_isim_incdirs(self, vlog_opt):
         """Clean the vlog options from include dirs"""
         if not vlog_opt:
@@ -262,7 +255,6 @@ fuse:
             else:
                 skip = True
         return ' '.join(ret)
-
 
     def __get_xilinxsim_ini_dir(self, env):
         """Get Xilinx ISim ini simulation file"""
@@ -286,4 +278,3 @@ fuse:
                               os_prefix + arch_sufix))
         # Ensure the path is absolute and normalized
         return os.path.abspath(xilinx_ini_path)
-

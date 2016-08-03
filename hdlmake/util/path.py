@@ -25,6 +25,7 @@ import os
 import logging
 import platform
 
+
 def url_parse(url):
     """
     Check if link to a repo seems to be correct. Filter revision number and branch
@@ -78,10 +79,10 @@ def pathsplit(p, rest=None):
         rest = []
     (h, t) = os.path.split(p)
     if len(h) < 1:
-        return [t]+rest
+        return [t] + rest
     if len(t) < 1:
-        return [h]+rest
-    return pathsplit(h, [t]+rest)
+        return [h] + rest
+    return pathsplit(h, [t] + rest)
 
 
 def commonpath(l1, l2, common=None):
@@ -93,7 +94,7 @@ def commonpath(l1, l2, common=None):
         return (common, l1, l2)
     if l1[0] != l2[0]:
         return (common, l1, l2)
-    return commonpath(l1[1:], l2[1:], common+[l1[0]])
+    return commonpath(l1[1:], l2[1:], common + [l1[0]])
 
 
 def is_rel_path(path):
@@ -158,9 +159,9 @@ def flatten_list(sth):
         sth = []
     return sth
 
+
 def check_windows():
     if platform.system() == 'Windows':
         return True
     else:
         return False
-

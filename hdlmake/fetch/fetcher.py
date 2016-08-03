@@ -21,5 +21,6 @@
 
 
 class Fetcher(object):
+
     def fetch(self, module):
         pass

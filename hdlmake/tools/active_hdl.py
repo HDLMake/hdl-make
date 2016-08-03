@@ -28,6 +28,7 @@ from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile
 
 
 class ToolActiveHDL(ActionMakefile):
+
     """Class providing the interface to control an Active-HDL simulation"""
 
     TOOL_INFO = {
@@ -38,6 +39,10 @@ class ToolActiveHDL(ActionMakefile):
 
     SUPPORTED_FILES = []
 
+    CLEAN_TARGETS = {'clean': ["run.command", "library.cfg", "work"],
+                     'mrproper': ["*.vcd", "*.asdb"]}
+
+
     def __init__(self):
         super(ToolActiveHDL, self).__init__()
 
@@ -45,19 +50,6 @@ class ToolActiveHDL(ActionMakefile):
     def detect_version(self, path):
         """Get the version from the Aldec-HDL binary program"""
         pass
-
-
-    def _print_clean(self, top_module):
-        """Print the Makefile clean target for Aldec Active-HDL simulator"""
-        self.writeln("""\
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -rf run.command library.cfg work
-
-#target for cleaning final files
-mrproper: clean
-\t\trm -f *.vcd *.asdb
-""")
 
 
     def _print_sim_compilation(self, fileset, top_module):
@@ -93,4 +85,3 @@ mrproper: clean
                 "\" >> run.command")
         self.writeln()
         self.writeln("\t\tvsimsa -do run.command")
-

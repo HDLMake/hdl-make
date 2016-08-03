@@ -30,8 +30,11 @@ import logging
 
 from .action import Action
 
+
 class QsysHwTclUpdate(Action):
+
     """Class providing methods to update a set of Altera Qsys HW TCL files"""
+
     def __init__(self, *args):
         super(QsysHwTclUpdate, self).__init__(*args)
 
@@ -52,7 +55,8 @@ class QsysHwTclUpdate(Action):
         file_tcl[-1] += " TOP_LEVEL_FILE"
         file_tcl.append("\n")
 
-        hw_tcl_filename = self.get_top_module().manifest_dict["hw_tcl_filename"]
+        hw_tcl_filename = self.get_top_module().manifest_dict[
+            "hw_tcl_filename"]
 
         infile = open(hw_tcl_filename, "r")
         inserted = True

@@ -33,7 +33,8 @@ from .local import Local
 from .backend_factory import BackendFactory
 
 
-# Initialize an instance of BackendFactory which will be made publicly available
+# Initialize an instance of BackendFactory which will be made publicly
+# available
 fetch_type_lookup = BackendFactory()
 fetch_type_lookup.register_backend(GIT, Git)
 fetch_type_lookup.register_backend(SVN, Svn)

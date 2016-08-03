@@ -55,14 +55,10 @@ class VsimMakefileWriter(ActionMakefile):
         # Additional sim dependencies (e.g. modelsim.ini)
         self.additional_deps = []
 
-        # Additional things removed during a clean e.g. simulator temp files
-        self.additional_clean = []
-
         # These are files copied into your working directory by a make rule
         # The key is the filename, the value is the file source path
         self.copy_rules = {}
         super(VsimMakefileWriter, self).__init__()
-
 
     def _print_sim_options(self, top_module):
         """Print the vsim options to the Makefile"""
@@ -82,18 +78,6 @@ class VsimMakefileWriter(ActionMakefile):
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
 
-    def _print_clean(self, top_module):
-        """Print the Makefile clean target"""
-        if platform.system() == 'Windows':
-            del_command = "rm -rf"
-        else:
-            del_command = "rm -rf"
-        self.writeln("clean:")
-        tmp = "\t\t" + del_command + \
-            " $(LIBS) " + ' '.join(self.additional_clean)
-        self.writeln(tmp)
-        self.writeln("#target for cleaning final files")
-        self.writeln("mrproper: clean")
 
     def _print_sim_compilation(self, fileset, top_module):
         """Write a properly formatted Makefile for the simulator.
@@ -141,14 +125,14 @@ class VsimMakefileWriter(ActionMakefile):
             self.write(lib + slash_char + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command,
-                lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
+                                 lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
             self.write(' '.join(["||", del_command, lib, "\n"]))
             self.write('\n\n')
 
         # rules for all _primary.dat files for sv
         for vlog in fileset.filter(VerilogFile):
             self.write("%s: %s" % (os.path.join(vlog.library, vlog.purename,
-                ".%s_%s" % (vlog.purename, vlog.extension())), vlog.rel_path()))
+                                                ".%s_%s" % (vlog.purename, vlog.extension())), vlog.rel_path()))
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile
                              in vlog.depends_on if dfile is not vlog]:
@@ -156,7 +140,7 @@ class VsimMakefileWriter(ActionMakefile):
                     name = dep_file.purename
                     extension = dep_file.extension()
                     self.write(" \\\n" + os.path.join(dep_file.library,
-                        name, ".%s_%s" % (name, extension)))
+                                                      name, ".%s_%s" % (name, extension)))
                 else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
             self.writeln()
@@ -172,7 +156,7 @@ class VsimMakefileWriter(ActionMakefile):
             # self.writeln(vlog.vlog_opt+" $<")
 
             compile_template = string.Template("\t\tvlog -work ${library}"
-                " $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
+                                               " $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
             compile_line = compile_template.substitute(
                 library=vlog.library, sv_option="-sv"
                 if isinstance(vlog, SVFile) else "")
@@ -187,7 +171,7 @@ class VsimMakefileWriter(ActionMakefile):
             purename = vhdl.purename
             # each .dat depends on corresponding .vhd file
             self.write("%s: %s" % (os.path.join(lib, purename, "." +
-                purename + "_" + vhdl.extension()), vhdl.rel_path()))
+                                                purename + "_" + vhdl.extension()), vhdl.rel_path()))
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile in vhdl.depends_on
                              if dfile is not vhdl]:
@@ -226,4 +210,3 @@ class VsimMakefileWriter(ActionMakefile):
             if not vlog_aux.startswith("+incdir+"):
                 ret.append(vlog_aux)
         return ' '.join(ret)
-

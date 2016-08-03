@@ -30,6 +30,7 @@ from .fetcher import Fetcher
 
 
 class Git(Fetcher):
+
     def __init__(self):
         pass
 
@@ -41,14 +42,13 @@ class Git(Fetcher):
             if not os.path.exists(".gitmodules"):
                 return None
             tree_root_cmd = Popen("git rev-parse --show-toplevel",
-                              stdout=PIPE,
-                              stdin=PIPE,
-                              shell=True)
+                                  stdout=PIPE,
+                                  stdin=PIPE,
+                                  shell=True)
             tree_root_line = tree_root_cmd.stdout.readlines()[0].strip()
             return tree_root_line
         finally:
             os.chdir(cur_dir)
-
 
     def fetch(self, module):
         fetchto = module.fetchto()
@@ -119,7 +119,9 @@ class Git(Fetcher):
                             close_fds=not is_windows)
             errmsg = stderr.readlines()
             if errmsg:
-                logging.debug("git error message (in %s): %s" % (path, '\n'.join(errmsg)))
+                logging.debug(
+                    "git error message (in %s): %s" %
+                    (path, '\n'.join(errmsg)))
 
             try:
                 commit = git_out.stdout.readlines()[0].strip()

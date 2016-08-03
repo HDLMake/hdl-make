@@ -35,12 +35,22 @@ from .srcfile import SourceFileFactory
 
 
 class VerilogPreprocessor(object):
-    
+
     # Reserved verilog preprocessor keywords. The list is certainly not full
-    vpp_keywords = ["define", "line", "include", "elsif", "ifdef", "endif", "else", "undef", "timescale"]
-    
+    vpp_keywords = [
+        "define",
+        "line",
+        "include",
+        "elsif",
+        "ifdef",
+        "endif",
+        "else",
+        "undef",
+        "timescale"]
+
     # Verilog `define class
     class VL_Define(object):
+
         def __init__(self, name, args, expansion):
             self.name = name
             self.args = args
@@ -48,6 +58,7 @@ class VerilogPreprocessor(object):
 
     # Simple binary stack, for nested `ifdefs    evaluation
     class VL_Stack(object):
+
         def __init__(self):
             self.stack = []
 
@@ -73,7 +84,6 @@ class VerilogPreprocessor(object):
         # Dictionary of files sub-included by each file parsed
         self.vpp_filedeps = {}
 
-
     def _find_macro(self, name):
         for m in self.vpp_macros:
             if(m.name == name):
@@ -87,7 +97,9 @@ class VerilogPreprocessor(object):
                 return ""
             else:
                 return s
-        pattern = re.compile('//.*?$|/\*.*?\*/|"(?:\\.|[^\\"])*"', re.DOTALL | re.MULTILINE)
+        pattern = re.compile(
+            '//.*?$|/\*.*?\*/|"(?:\\.|[^\\"])*"',
+            re.DOTALL | re.MULTILINE)
         return re.sub(pattern, replacer, s)
 
     def _degapize(self, s):
@@ -100,10 +112,10 @@ class VerilogPreprocessor(object):
             if l.endswith('\\'):
                 if cline is None:
                     cline = ""
-                cline += l[:len(l)-1]
+                cline += l[:len(l) - 1]
                 continue
             elif cline:
-                l = cline+l
+                l = cline + l
                 cline = None
             else:
                 cline = None
@@ -139,10 +151,13 @@ class VerilogPreprocessor(object):
 
     def _preprocess_file(self, file_content, file_name, library):
         exps = {"include": re.compile("^\s*`include\s+\"(.+)\""),
-                "define": re.compile("^\s*`define\s+(\w+)(?:\(([\w\s,]*)\))?(.*)"),
-                "ifdef_elsif": re.compile("^\s*`(ifdef|ifndef|elsif)\s+(\w+)\s*$"),
+                "define":
+                re.compile("^\s*`define\s+(\w+)(?:\(([\w\s,]*)\))?(.*)"),
+                "ifdef_elsif":
+                re.compile("^\s*`(ifdef|ifndef|elsif)\s+(\w+)\s*$"),
                 "endif_else": re.compile("^\s*`(endif|else)\s*$"),
-                "begin_protected": re.compile("^\s*`pragma\s*protect\s*begin_protected\s*$"),
+                "begin_protected":
+                re.compile("^\s*`pragma\s*protect\s*begin_protected\s*$"),
                 "end_protected": re.compile("^\s*`pragma\s*protect\s*end_protected\s*$")}
 
         vl_macro_expand = re.compile("`(\w+)(?:\(([\w\s,]*)\))?")
@@ -151,7 +166,9 @@ class VerilogPreprocessor(object):
 
         cur_iter = 0
 
-        logging.debug("preprocess file %s (of length %d) in library %s" % (file_name, len(file_content), library))
+        logging.debug(
+            "preprocess file %s (of length %d) in library %s" %
+            (file_name, len(file_content), library))
 #        print("BUF '%s'" %buf)
         buf = self._remove_comment(file_content)
         protected_region = False
@@ -199,13 +216,22 @@ class VerilogPreprocessor(object):
                     continue
 
                 if matches["include"]:
-                    included_file_path = self._search_include(last.group(1), os.path.dirname(file_name))
-                    logging.debug("File being parsed %s (library %s) includes %s" % (file_name, library, included_file_path))
-                    line = self._preprocess_file(file_content=open(included_file_path, "r").read(),
-                                                 file_name=included_file_path, library=library)
-                    self.vpp_filedeps[file_name + library].append(included_file_path)
-                    # add the whole include chain to the dependencies of the currently parsed file
-                    self.vpp_filedeps[file_name + library].extend(self.vpp_filedeps[included_file_path + library])
+                    included_file_path = self._search_include(
+                        last.group(1), os.path.dirname(file_name))
+                    logging.debug(
+                        "File being parsed %s (library %s) includes %s" %
+                        (file_name, library, included_file_path))
+                    line = self._preprocess_file(
+                        file_content=open(included_file_path, "r").read(),
+                        file_name=included_file_path, library=library)
+                    self.vpp_filedeps[
+                        file_name +
+                        library].append(
+                        included_file_path)
+                    # add the whole include chain to the dependencies of the
+                    # currently parsed file
+                    self.vpp_filedeps[file_name + library].extend(
+                        self.vpp_filedeps[included_file_path + library])
                     new_buf += line + '\n'
                     n_expansions += 1
                     continue
@@ -218,12 +244,14 @@ class VerilogPreprocessor(object):
 #                    print("Expand %s" % what.group(1))
                     if what.group(1) in self.vpp_keywords:
 #                        print("GotReserved")
-                        return '`'+what.group(1)
+                        return '`' + what.group(1)
                     m = self._find_macro(what.group(1))
                     if m:
                         return m.expansion
                     else:
-                        logging.error("No expansion for macro '`%s' (%s) (%s)" % (what.group(1), line[:50] if len(line)>50 else line, file_name))
+                        logging.error(
+                            "No expansion for macro '`%s' (%s) (%s)" %
+                            (what.group(1), line[:50] if len(line) > 50 else line, file_name))
 
                 repl_line = re.sub(vl_macro_expand, do_expand, line)
                 new_buf += repl_line + '\n'
@@ -247,7 +275,7 @@ class VerilogPreprocessor(object):
         self.vlog_file = vlog_file
         file_path = vlog_file.file_path
         buf = open(file_path, "r").read()
-        return self._preprocess_file(file_content=buf, file_name=file_path, library = vlog_file.library)
+        return self._preprocess_file(file_content=buf, file_name=file_path, library=vlog_file.library)
 
     def _find_first(self, f, l):
         x = filter(f, l)
@@ -547,60 +575,97 @@ class VerilogParser(DepParser):
         return buf2
 
     def parse(self, dep_file):
-        i = 0;
+        i = 0
         if dep_file.is_parsed:
             return
         logging.info("Parsing %s" % dep_file.path)
-        # assert isinstance(dep_file, DepFile), print("unexpected type: " + str(type(dep_file)))
+        # assert isinstance(dep_file, DepFile), print("unexpected type: " +
+        # str(type(dep_file)))
         buf = self.preprocessor.preprocess(dep_file)
         self.preprocessed = buf[:]
 
-        #add includes as dependencies
+        # add includes as dependencies
         try:
-            includes = self.preprocessor.vpp_filedeps[dep_file.path + dep_file.library]
+            includes = self.preprocessor.vpp_filedeps[
+                dep_file.path + dep_file.library]
             for f in includes:
-                dep_file.depends_on.add(SourceFileFactory().new(path=f, module=dep_file.module))
-            logging.debug( "%s has %d includes." % (str(dep_file), len(includes)))
+                dep_file.depends_on.add(
+                    SourceFileFactory(
+                    ).new(
+                        path=f,
+                        module=dep_file.module))
+            logging.debug(
+                "%s has %d includes." %
+                (str(dep_file), len(includes)))
         except KeyError:
             logging.debug(str(dep_file) + " has no includes.")
-         
-        #look for packages used inside in file
-        #it may generate false dependencies as package in SV can be used by:
+
+        # look for packages used inside in file
+        # it may generate false dependencies as package in SV can be used by:
         #    import my_package::*;
-        #or directly
+        # or directly
         #    logic var = my_package::MY_CONST;
-        #The same way constants and others can be imported directly from other modules:
+        # The same way constants and others can be imported directly from other modules:
         #    logic var = my_other_module::MY_CONST;
-        #and HdlMake will anyway create dependency marking my_other_module as requested package
+        # and HdlMake will anyway create dependency marking my_other_module as
+        # requested package
         import_pattern = re.compile("(\w+) *::(\w+|\\*)")
+
         def do_imports(s):
-            logging.debug("file %s imports/uses %s.%s package" %( dep_file.path , dep_file.library, s.group(1) ) )
-            dep_file.add_relation( DepRelation( "%s.%s" % (dep_file.library, s.group(1)) , DepRelation.USE, DepRelation.PACKAGE))
+            logging.debug(
+                "file %s imports/uses %s.%s package" %
+                (dep_file.path, dep_file.library, s.group(1)))
+            dep_file.add_relation(
+                DepRelation("%s.%s" %
+                                 (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.PACKAGE))
         re.subn(import_pattern, do_imports, buf)
-        
-        #packages
-        m_inside_package = re.compile("package\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)endpackage", re.DOTALL | re.MULTILINE)
+
+        # packages
+        m_inside_package = re.compile(
+            "package\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)endpackage",
+            re.DOTALL | re.MULTILINE)
+
         def do_package(s):
-            logging.debug("found pacakge %s.%s" %(dep_file.library, s.group(1)) )
-            dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.PACKAGE))
+            logging.debug(
+                "found pacakge %s.%s" %
+                (dep_file.library, s.group(1)))
+            dep_file.add_relation(
+                DepRelation("%s.%s" %
+                                 (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.PACKAGE))
         re.subn(m_inside_package, do_package, buf)
 
-        #modules and instatniations
-        m_inside_module = re.compile("(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)(?:endmodule|endinterface)", re.DOTALL | re.MULTILINE)
-        m_instantiation = re.compile("(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*", re.DOTALL | re.MULTILINE)
+        # modules and instatniations
+        m_inside_module = re.compile(
+            "(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)(?:endmodule|endinterface)",
+            re.DOTALL | re.MULTILINE)
+        m_instantiation = re.compile(
+            "(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*",
+            re.DOTALL | re.MULTILINE)
 
         def do_module(s):
-            logging.debug("found module %s.%s" % (dep_file.library, s.group(1) ))
-            dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.MODULE))
+            logging.debug(
+                "found module %s.%s" %
+                (dep_file.library, s.group(1)))
+            dep_file.add_relation(
+                DepRelation("%s.%s" %
+                                 (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.MODULE))
 
             def do_inst(s):
                 mod_name = s.group(1)
                 if(mod_name in self.reserved_words):
                     return
-                logging.debug("-> instantiates %s.%s as %s" % (dep_file.library, s.group(1), s.group(2) ))
-                dep_file.add_relation(DepRelation( "%s.%s" % (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.MODULE))
+                logging.debug(
+                    "-> instantiates %s.%s as %s" %
+                    (dep_file.library, s.group(1), s.group(2)))
+                dep_file.add_relation(
+                    DepRelation("%s.%s" %
+                                     (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.MODULE))
             re.subn(m_instantiation, do_inst, s.group(2))
-        re.subn(m_inside_module, do_module,  buf)
+        re.subn(m_inside_module, do_module, buf)
 
-        dep_file.add_relation(DepRelation(dep_file.path, DepRelation.PROVIDE, DepRelation.INCLUDE))
+        dep_file.add_relation(
+            DepRelation(
+                dep_file.path,
+                DepRelation.PROVIDE,
+                DepRelation.INCLUDE))
         dep_file.is_parsed = True
