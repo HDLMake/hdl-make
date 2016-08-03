@@ -21,6 +21,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing support for GHDL simulator"""
+
 import string
 from hdlmake.action import ActionMakefile
 from hdlmake.srcfile import VHDLFile
@@ -28,6 +30,7 @@ from hdlmake.srcfile import VHDLFile
 GHDL_STANDARD_LIBS = ['ieee', 'std']
 
 class ToolGHDL(ActionMakefile):
+    """Class providing the interface for Lattice Diamond synthesis"""
 
     TOOL_INFO = {
         'name': 'GHDL',
@@ -41,10 +44,12 @@ class ToolGHDL(ActionMakefile):
         super(ToolGHDL, self).__init__()
 
     def detect_version(self, path):
+        """Get tool version for GHDL"""
         pass
 
 
     def _print_sim_options(self, top_module):
+        """Print the GHDL options to the Makefile"""
         if top_module.manifest_dict["ghdl_opt"]:
             ghdl_opt = top_module.manifest_dict["ghdl_opt"]
         else:
@@ -56,6 +61,7 @@ class ToolGHDL(ActionMakefile):
 
 
     def _print_clean(self, top_module):
+        """Print the Makefile clean target for GHDL"""
         self.writeln("""\
 #target for cleaning all intermediate stuff
 clean:
@@ -68,7 +74,7 @@ mrproper: clean
 
 
     def _print_sim_compilation(self, fileset, top_module):
-        # TODO: vhdl87 vs vhdl97 options
+        """Print the GDHL simulation compilation target"""
         self.writeln("simulation:")
         self.writeln("\t\t# Analyze sources")
         for vhdl in fileset.filter(VHDLFile):

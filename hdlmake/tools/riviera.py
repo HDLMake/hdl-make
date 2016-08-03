@@ -22,6 +22,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing support for Aldec Riviera-PRO simulation"""
+
 from __future__ import print_function
 from .sim_makefile_support import VsimMakefileWriter
 
@@ -61,6 +63,7 @@ RIVIERA_STANDARD_LIBS.extend(RIVIERA_XILINX_VLOG_LIBRARIES)
 
 
 class ToolRiviera(VsimMakefileWriter):
+    """Class providing the interface for Aldec Riviera-PRO simulator"""
 
     TOOL_INFO = {
         'name': 'Riviera',
@@ -76,5 +79,6 @@ class ToolRiviera(VsimMakefileWriter):
         self.additional_clean.extend(["*.asdb", "*.vcd", ])
 
     def detect_version(self, path):
+        """Get version from Aldec Riviera-PRO binary program"""
         pass
 

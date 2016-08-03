@@ -21,10 +21,11 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing support for Lattice Diamond IDE"""
+
 import subprocess
 import sys
 import os
-import logging
 import string
 
 from hdlmake.action import ActionMakefile
@@ -34,6 +35,7 @@ DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
 
 class ToolDiamond(ActionMakefile):
+    """Class providing the interface for Lattice Diamond synthesis"""
 
     TOOL_INFO = {
         'name': 'Diamond',
@@ -46,11 +48,17 @@ class ToolDiamond(ActionMakefile):
 
     def __init__(self):
         super(ToolDiamond, self).__init__()
+        self.files = []
+        self.filename = None
+        self.header = None
+        self.tclname = 'temporal.tcl'
 
     def detect_version(self, path):
+        """Get version from the Lattice Diamond program"""
         return 'unknown'
 
     def generate_synthesis_makefile(self, top_mod, tool_path):
+        """Generate a synthesis Makefile for a Lattice Diamond project"""
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
 DIAMOND_CRAP := \
 $$(PROJECT)1.sty \
@@ -108,17 +116,15 @@ mrproper:
             syn_post_cmd=syn_post_cmd,
             diamondc_path=os.path.join(tool_path, bin_name))
         self.write(makefile_text)
-        for f in top_mod.incl_makefiles:
-            if os.path.exists(f):
-                self.write("include %s\n" % f)
+        for file_aux in top_mod.incl_makefiles:
+            if os.path.exists(file_aux):
+                self.write("include %s\n" % file_aux)
 
 
-    def generate_synthesis_project(
-            self, update=False, tool_version='', top_mod=None, fileset=None):
-        self.files = []
+    def generate_synthesis_project(self, update=False, tool_version='',
+                                   top_mod=None, fileset=None):
+        """Create project for Lattice Diamond synthesis"""
         self.filename = top_mod.manifest_dict["syn_project"]
-        self.header = None
-        self.tclname = 'temporal.tcl'
         if update is True:
             self.update_project()
         else:
@@ -131,26 +137,28 @@ mrproper:
         self.execute()
 
     def emit(self, update=False):
-        f = open(self.tclname, "w")
-        f.write(self.header + '\n')
-        f.write(self.__emit_files(update=update))
-        f.write('prj_project save\n')
-        f.write('prj_project close\n')
-        f.close()
+        """Create a TCL file to feed Lattice Diamond command interpreter"""
+        file_aux = open(self.tclname, "w")
+        file_aux.write(self.header + '\n')
+        file_aux.write(self.__emit_files(update=update))
+        file_aux.write('prj_project save\n')
+        file_aux.write('prj_project close\n')
+        file_aux.close()
 
     def execute(self):
+        """Feed the TCL file to the Lattice Diamond command interpreter"""
         # The binary name for Diamond is different in Linux and Windows
         if sys.platform == 'cygwin':
             tmp = 'pnmainc {0}'
         else:
             tmp = 'diamondc {0}'
         cmd = tmp.format(self.tclname)
-        p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+        process_aux = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         # But do not wait till diamond finish, start displaying output
         # immediately ##
         while True:
-            out = p.stderr.read(1)
-            if out == '' and p.poll() is not None:
+            out = process_aux.stderr.read(1)
+            if out == '' and process_aux.poll() is not None:
                 break
             if out != '':
                 sys.stdout.write(out)
@@ -158,39 +166,53 @@ mrproper:
         os.remove(self.tclname)
 
     def add_files(self, fileset):
-        for f in fileset:
-            self.files.append(f)
+        """Add files to the inner fileset"""
+        for file_aux in fileset:
+            self.files.append(file_aux)
 
     def create_project(self,
                        syn_device,
                        syn_grade,
                        syn_package,
                        syn_top):
-        tmp = 'prj_project new -name {0} -impl {0} -dev {1} -synthesis \"synplify\"'
+        """Create an empty Lattice Diamond project"""
+        tmp = ('prj_project new -name {0} -impl {0}'
+               ' -dev {1} -synthesis \"synplify\"')
         target = syn_device + syn_grade + syn_package
         self.header = tmp.format(self.filename, target.upper())
 
     def update_project(self):
+        """Create an empty Lattice Diamond project"""
         tmp = 'prj_project open \"{0}\"'
         self.header = tmp.format(self.filename + '.ldf')
 
     def __emit_files(self, update=False):
+        """Emit files required for building the Lattice Diamond project"""
         tmp = 'prj_src {0} \"{1}\"'
         ret = []
-        for f in self.files:
+        for file_aux in self.files:
             line = ''
-            if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, EDFFile):
+            if (isinstance(file_aux, VHDLFile) or
+                isinstance(file_aux, VerilogFile) or
+                isinstance(file_aux, SVFile) or
+                isinstance(file_aux, EDFFile)):
                 if update:
-                    line = line + '\n' + tmp.format('remove', f.rel_path())
-                line = line + '\n' + tmp.format('add', f.rel_path())
-            elif isinstance(f, LPFFile):
+                    line = line + '\n' + tmp.format('remove',
+                                                    file_aux.rel_path())
+                line = line + '\n' + tmp.format('add',
+                                                file_aux.rel_path())
+            elif isinstance(file_aux, LPFFile):
                 if update:
                     line = line + '\n' + \
                         tmp.format('enable', self.filename + '.lpf')
-                    line = line + '\n' + tmp.format('remove', f.rel_path())
-                line = line + '\n' + tmp.format('add -exclude', f.rel_path())
-                line = line + '\n' + tmp.format('enable', f.rel_path())
+                    line = line + '\n' + tmp.format('remove',
+                                                    file_aux.rel_path())
+                line = line + '\n' + tmp.format('add -exclude',
+                                                file_aux.rel_path())
+                line = line + '\n' + tmp.format('enable',
+                                                file_aux.rel_path())
             else:
                 continue
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
+

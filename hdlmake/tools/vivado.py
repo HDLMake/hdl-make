@@ -21,6 +21,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing support for Xilinx Vivado synthesis"""
+
 import subprocess
 import sys
 import os
@@ -36,6 +38,7 @@ VIVADO_STANDARD_LIBS = ['ieee', 'std']
 
 
 class ToolVivado(ActionMakefile):
+    """Class providing the interface for Xilinx Vivado synthesis"""
 
     TOOL_INFO = {
         'name': 'vivado',
@@ -50,11 +53,18 @@ class ToolVivado(ActionMakefile):
 
     def __init__(self):
         super(ToolVivado, self).__init__()
+        self.properties = []
+        self.files = []
+        self.filename = None
+        self.header = None
+        self.tclname = 'temporal.tcl'
 
     def detect_version(self, path):
+        """Get version from Xilinx Vivado binary program"""
         return 'unknown'
 
     def generate_synthesis_makefile(self, top_mod, tool_path):
+        """Generate a synthesis Makefile for Xilinx Vivado"""
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
 VIVADO_CRAP := \
 run.tcl
@@ -114,17 +124,14 @@ mrproper:
             syn_post_cmd=syn_post_cmd,
             vivado_sh_path=os.path.join(tool_path, "vivado"))
         self.write(makefile_text)
-        for f in top_mod.incl_makefiles:
-            if os.path.exists(f):
-                self.write("include %s\n" % f)
+        for file_aux in top_mod.incl_makefiles:
+            if os.path.exists(file_aux):
+                self.write("include %s\n" % file_aux)
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
-        self.properties = []
-        self.files = []
+        """Generate a Xilinx Vivado synthesis project"""
         self.filename = top_mod.manifest_dict["syn_project"]
-        self.header = None
-        self.tclname = 'temporal.tcl'
         if update is True:
             logging.info("Existing project detected: updating...")
             self.update_project()
@@ -138,29 +145,30 @@ mrproper:
         self.add_files(fileset)
         self.emit()
         self.execute()
-
         logging.info("Vivado project file generated.")
 
     def emit(self):
-        f = open(self.tclname, "w")
-        f.write(self.header + '\n')
-        for p in self.properties:
-            f.write(p.emit() + '\n')
-        f.write(self.__emit_files())
-        f.write('update_compile_order -fileset sources_1\n')
-        f.write('update_compile_order -fileset sim_1\n')
-        f.write('exit\n')
-        f.close()
+        """Emit the TCL file that will be feeded to the Vivado interpreter"""
+        file_aux = open(self.tclname, "w")
+        file_aux.write(self.header + '\n')
+        for prop in self.properties:
+            file_aux.write(prop.emit() + '\n')
+        file_aux.write(self.__emit_files())
+        file_aux.write('update_compile_order -fileset sources_1\n')
+        file_aux.write('update_compile_order -fileset sim_1\n')
+        file_aux.write('exit\n')
+        file_aux.close()
 
     def execute(self):
+        """Feed the TCL file to the Xilinx Vivado command line interpreter"""
         tmp = 'vivado -mode tcl -source {0}'
         cmd = tmp.format(self.tclname)
-        p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+        process_aux = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         # But do not wait till Vivado finish, start displaying output
         # immediately ##
         while True:
-            out = p.stderr.read(1)
-            if out == '' and p.poll() is not None:
+            out = process_aux.stderr.read(1)
+            if out == '' and process_aux.poll() is not None:
                 break
             if out != '':
                 sys.stdout.write(out)
@@ -168,20 +176,20 @@ mrproper:
         os.remove(self.tclname)
 
     def add_files(self, fileset):
-        for f in fileset:
-            self.files.append(f)
+        """Add files to the inner fileset"""
+        for file_aux in fileset:
+            self.files.append(file_aux)
 
     def add_property(self, new_property):
+        """Add a new propertiy to the Xilinx Vivado project"""
         self.properties.append(new_property)
 
-    def add_initial_properties(self,
-                               syn_device,
-                               syn_grade,
-                               syn_package,
-                               syn_top):
-        PAPP = _VivadoProjectProperty
+    def add_initial_properties(self, syn_device, syn_grade,
+                               syn_package, syn_top):
+        """Add initial properties to the Xilinx Vivado project"""
+        vivado_prop = _VivadoProjectProperty
         self.add_property(
-            PAPP(
+            vivado_prop(
                 name='part',
                 value=syn_device +
                 syn_package +
@@ -191,51 +199,64 @@ mrproper:
         # value='em.avnet.com:microzed_7010:part0:1.0',
         # objects='current_project'))
         self.add_property(
-            PAPP(name='target_language',
-                         value='VHDL',
-                         objects='current_project'))
+            vivado_prop(name='target_language',
+                        value='VHDL',
+                        objects='current_project'))
 
-        # self.add_property(PAPP(name='ng.output_hdl_format', value='VHDL', objects='get_filesets sim_1'))
+        # self.add_property(PAPP(name='ng.output_hdl_format',
+        #                   value='VHDL', objects='get_filesets sim_1'))
         # the bitgen b arg generates a raw configuration bitstream
         # self.add_property(PAPP(name='steps.bitgen.args.b', value='true',
         # objects='get_runs impl_1'))
         self.add_property(
-            PAPP(name='top',
-                         value=syn_top,
-                         objects='get_property srcset [current_run]'))
+            vivado_prop(name='top',
+                        value=syn_top,
+                        objects='get_property srcset [current_run]'))
 
     def create_project(self):
+        """Create an empty Xilinx Vivado project"""
         tmp = 'create_project {0} ./'
         self.header = tmp.format(self.filename)
 
     def update_project(self):
+        """Update an existing Xilinx Vivado project"""
         tmp = 'open_project ./{0}'
         self.header = tmp.format(self.filename + '.xpr')
 
     def __emit_properties(self):
+        """Emit the properties to be added to the project"""
         tmp = "set_property {0} {1} [{2}]"
         ret = []
-        for p in self.properties:
-            line = tmp.format(p.name, p.value, p.objects)
+        for prop in self.properties:
+            line = tmp.format(prop.name, prop.value, prop.objects)
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
 
     def __emit_files(self):
+        """Emit the design HDL files that must be added to the project"""
         tmp = "add_files -norecurse {0}"
         tcl = "source {0}"
         ret = []
-        for f in self.files:
-            if isinstance(f, VHDLFile) or isinstance(f, VerilogFile) or isinstance(f, SVFile) or isinstance(f, UCFFile) or isinstance(f, NGCFile) or isinstance(f, XMPFile) or isinstance(f, XCOFile) or isinstance(f, BDFile):
-                line = tmp.format(f.rel_path())
-            elif isinstance(f, TCLFile):
-                line = tcl.format(f.rel_path())
+        for file_aux in self.files:
+            if (isinstance(file_aux, VHDLFile) or
+                isinstance(file_aux, VerilogFile) or
+                isinstance(file_aux, SVFile) or
+                isinstance(file_aux, UCFFile) or
+                isinstance(file_aux, NGCFile) or
+                isinstance(file_aux, XMPFile) or
+                isinstance(file_aux, XCOFile) or
+                isinstance(file_aux, BDFile)):
+                line = tmp.format(file_aux.rel_path())
+            elif isinstance(file_aux, TCLFile):
+                line = tcl.format(file_aux.rel_path())
             else:
                 continue
             ret.append(line)
         return ('\n'.join(ret)) + '\n'
 
 
-class _VivadoProjectProperty:
+class _VivadoProjectProperty(object):
+    """Class providing an storage for Xilinx Vivado properties"""
 
     def __init__(self, name=None, value=None, objects=None):
         self.name = name
@@ -243,6 +264,8 @@ class _VivadoProjectProperty:
         self.objects = objects
 
     def emit(self):
+        """Emit the Xilinx Vivado property the class instance contains"""
         tmp = "set_property {0} {1} [{2}]"
         line = tmp.format(self.name, self.value, self.objects)
-        return(line)
+        return line
+

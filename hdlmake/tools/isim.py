@@ -23,13 +23,13 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing support for Xilinx ISim simulator"""
+
 import os
 import os.path
 from subprocess import Popen, PIPE
 import logging
 import sys
-import string
-import platform
 
 from hdlmake.util import path as path_mod
 from hdlmake.action import ActionMakefile
@@ -44,6 +44,7 @@ ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
 
 
 class ToolISim(ActionMakefile):
+    """Class providing the interface for Xilinx ISim simulator"""
 
     TOOL_INFO = {
         'name': 'ISim',
@@ -57,6 +58,7 @@ class ToolISim(ActionMakefile):
         super(ToolISim, self).__init__()
 
     def detect_version(self, path):
+        """Get version from Xilinx ISim simulator program"""
         is_windows = path_mod.check_windows()
         isim = Popen(
             "%s --version | awk '{print $2}'" % os.path.join(path, "vlogcomp"),
@@ -73,21 +75,28 @@ class ToolISim(ActionMakefile):
 
 
     def _print_sim_top(self, top_module):
+        """Print the top section of the Makefile for Xilinx ISim"""
         self.writeln("""## variables #############################
 PWD := $(shell pwd)
 TOP_MODULE := """ + top_module.manifest_dict["sim_top"] + """
 FUSE_OUTPUT ?= isim_proj
 
-XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) + """
+XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) +
+"""
 """)
 
     def _print_sim_options(self, top_module):
-        self.writeln("""VHPCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini
+        """Print the Xilinx ISim simulation options in the Makefile"""
+        self.writeln("""VHPCOMP_FLAGS := -intstyle default \
+-incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
-VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ + self.__get_rid_of_isim_incdirs(top_module.manifest_dict["vlog_opt"]) + """
+VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
+            self.__get_rid_of_isim_incdirs(
+                top_module.manifest_dict["vlog_opt"]) + """
 """)
 
     def _print_clean(self, top_module):
+        """Print the Makefile clean target for Xilinx ISim simulator"""
         self.writeln("""\
 #target for cleaning all intermediate stuff
 clean:
@@ -100,8 +109,8 @@ mrproper: clean
 """)
 
 
-
     def _print_sim_compilation(self, fileset, top_module):
+        """Print the compile simulation target for Xilinx ISim"""
         make_preambule_p2 = """## rules #################################
 simulation: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ) fuse
 $(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini
@@ -124,7 +133,6 @@ fuse:
         self.write(' '.join([lib + "/." + lib for lib in libs]))
         self.write('\n')
 
-
         self.writeln(make_preambule_p2)
 
         # ISim does not have a vmap command to insert additional libraries in
@@ -132,7 +140,8 @@ fuse:
         for lib in libs:
             self.write(lib + "/." + lib + ":\n")
             self.write(
-                ' '.join(["\t(mkdir", lib, "&&", "touch", lib + "/." + lib + " "]))
+                ' '.join(["\t(mkdir", lib, "&&", "touch",
+                          lib + "/." + lib + " "]))
             # self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\"
             # ", ">>", "xilinxsim.ini) "]))
             self.write(
@@ -151,124 +160,130 @@ fuse:
         # rules for all _primary.dat files for sv
         # incdir = ""
         objs = []
-        for vl in fileset.filter(VerilogFile):
-            comp_obj = os.path.join(vl.library, vl.purename)
+        for vl_file in fileset.filter(VerilogFile):
+            comp_obj = os.path.join(vl_file.library, vl_file.purename)
             objs.append(comp_obj)
-            # self.write(os.path.join(vl.library, vl.purename, '.'+vl.purename+"_"+vl.extension())+': ')
+            # self.write(os.path.join(vl_file.library, vl_file.purename,
+            #            '.'+vl_file.purename+"_"+vl_file.extension())+': ')
             # self.writeln(".PHONY: " + os.path.join(comp_obj,
-            # '.'+vl.purename+"_"+vl.extension()))
+            # '.'+vl_file.purename+"_"+vl_file.extension()))
             self.write(
                 os.path.join(
                     comp_obj,
                     '.' +
-                    vl.purename +
+                    vl_file.purename +
                     "_" +
-                    vl.extension(
+                    vl_file.extension(
                     )) +
                 ': ')
-            self.write(vl.rel_path() + ' ')
+            self.write(vl_file.rel_path() + ' ')
             self.writeln(
-                ' '.join([fname.rel_path() for fname in vl.depends_on]))
-            self.write("\t\tvlogcomp -work " + vl.library + "=./" + vl.library)
+                ' '.join([fname.rel_path() for fname in vl_file.depends_on]))
+            self.write("\t\tvlogcomp -work " + vl_file.library
+                       + "=./" + vl_file.library)
             self.write(" $(VLOGCOMP_FLAGS) ")
-            # if isinstance(vl, SVFile):
+            # if isinstance(vl_file, SVFile):
             #    self.write(" -sv ")
             # incdir = "-i "
-            # incdir += " -i ".join(vl.include_dirs)
+            # incdir += " -i ".join(vl_file.include_dirs)
             # incdir += " "
-            if vl.include_dirs:
+            if vl_file.include_dirs:
                 self.write(' -i ')
-                self.write(' '.join(vl.include_dirs) + ' ')
-            self.writeln(vl.vlog_opt + " $<")
+                self.write(' '.join(vl_file.include_dirs) + ' ')
+            self.writeln(vl_file.vlog_opt + " $<")
             self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")
         self.write("\n")
 
         # list rules for all _primary.dat files for vhdl
-        for vhdl in fileset.filter(VHDLFile):
-            lib = vhdl.library
-            purename = vhdl.purename
+        for vhdl_file in fileset.filter(VHDLFile):
+            lib = vhdl_file.library
+            purename = vhdl_file.purename
             comp_obj = os.path.join(lib, purename)
             objs.append(comp_obj)
             # each .dat depends on corresponding .vhd file and its dependencies
-            # self.write(os.path.join(lib, purename, "."+purename+"_"+ vhdl.extension()) + ": "+ vhdl.rel_path()+" " + os.path.join(lib, purename, "."+purename) + '\n')
+            # self.write(os.path.join(lib, purename, "."+purename+"_"
+            #     + vhdl_file.extension()) + ": "+ vhdl_file.rel_path()+" "
+            #     + os.path.join(lib, purename, "."+purename) + '\n')
             # self.writeln(".PHONY: " + os.path.join(comp_obj,
-            # "."+purename+"_"+ vhdl.extension()))
+            # "."+purename+"_"+ vhdl_file.extension()))
             self.write(
                 os.path.join(
                     comp_obj,
-                    "." + purename + "_" + vhdl.extension(
-                    )) + ": " + vhdl.rel_path(
+                    "." + purename + "_" + vhdl_file.extension(
+                    )) + ": " + vhdl_file.rel_path(
                 ) + " " + os.path.join(
                     lib,
                     purename,
                     "." + purename) + '\n')
             self.writeln(
                 ' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)",
-                          vhdl.vcom_opt,
+                          vhdl_file.vcom_opt,
                           "-work",
                           lib + "=./" + lib,
                           "$< "]))
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
-            # dependency meta-target. This rule just list the dependencies of the above file
-            # if len(vhdl.depends_on) != 0:
-            # self.writeln(".PHONY: " + os.path.join(lib, purename, "."+purename))
-            # Touch the dependency file as well. In this way, "make" will recompile only what is needed (out of date)
-            # if len(vhdl.depends_on) != 0:
+            # dependency meta-target.
+            # This rule just list the dependencies of the above file
+            # if len(vhdl_file.depends_on) != 0:
+            # self.writeln(".PHONY: " + os.path.join(
+            #     lib, purename, "."+purename))
+            # Touch the dependency file as well. In this way, "make" will
+            # recompile only what is needed (out of date)
+            # if len(vhdl_file.depends_on) != 0:
             self.write(os.path.join(lib, purename, "." + purename) + ":")
-            for dep_file in vhdl.depends_on:
+            for dep_file in vhdl_file.depends_on:
                 if dep_file in fileset:
                     name = dep_file.purename
                     self.write(
                         " \\\n" + os.path.join(dep_file.library,
-                                               name,
-                                               "." + name + "_" + vhdl.extension()))
+                                               name, "." + name + "_" +
+                                               vhdl_file.extension()))
                 else:
                     self.write(" \\\n" + os.path.join(dep_file.rel_path()))
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 
-    # FIX. Make it more robust
+
     def __get_rid_of_isim_incdirs(self, vlog_opt):
+        """Clean the vlog options from include dirs"""
         if not vlog_opt:
             vlog_opt = ""
         vlogs = vlog_opt.split(' ')
         ret = []
         skip = False
-        for v in vlogs:
+        for vlog_option in vlogs:
             if skip:
                 skip = False
                 continue
-
-            if not v.startswith("-i"):
-                ret.append(v)
+            if not vlog_option.startswith("-i"):
+                ret.append(vlog_option)
             else:
                 skip = True
         return ' '.join(ret)
 
+
     def __get_xilinxsim_ini_dir(self, env):
+        """Get Xilinx ISim ini simulation file"""
         if env["isim_path"]:
             xilinx_dir = str(os.path.join(env["isim_path"], "..", ".."))
         else:
             logging.error("Cannot calculate xilinx tools base directory")
             quit()
-
         hdl_language = 'vhdl'  # 'verilog'
-
         if sys.platform == 'cygwin':
             os_prefix = 'nt'
         else:
             os_prefix = 'lin'
-
         if env["architecture"] == 32:
             arch_sufix = ''
         else:
             arch_sufix = '64'
-
         xilinx_ini_path = str(os.path.join(xilinx_dir,
                               hdl_language,
                               "hdp",
                               os_prefix + arch_sufix))
         # Ensure the path is absolute and normalized
         return os.path.abspath(xilinx_ini_path)
+

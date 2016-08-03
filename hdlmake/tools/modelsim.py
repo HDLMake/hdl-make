@@ -21,18 +21,19 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing support for Mentor Modelsim simulation"""
+
 from __future__ import print_function
-import xml.dom.minidom
 import os
 
 from .sim_makefile_support import VsimMakefileWriter
 
-XmlImpl = xml.dom.minidom.getDOMImplementation()
 
 MODELSIM_STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
 
 
 class ToolModelsim(VsimMakefileWriter):
+    """Class providing the interface for Mentor Modelsim simulator"""
 
     TOOL_INFO = {
         'name': 'Modelsim',
@@ -55,10 +56,12 @@ class ToolModelsim(VsimMakefileWriter):
             ["./modelsim.ini", "transcript", "*.vcd", "*.wlf"])
 
     def detect_version(self, path):
+        """Get version from the Mentor Modelsim program"""
         pass
 
 
     def _print_sim_options(self, top_module):
+        """Print the Modelsim options to the Makefile"""
         if top_module.pool.env["modelsim_path"]:
             modelsim_ini_path = os.path.join(
                 top_module.pool.env["modelsim_path"],

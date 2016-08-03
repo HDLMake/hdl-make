@@ -21,11 +21,14 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing common stuff for Modelsim, Vsim... like simulators"""
+
 import os
 import platform
 import string
 
 from hdlmake.action import ActionMakefile
+from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
 
 class VsimMakefileWriter(ActionMakefile):
@@ -62,8 +65,10 @@ class VsimMakefileWriter(ActionMakefile):
 
 
     def _print_sim_options(self, top_module):
+        """Print the vsim options to the Makefile"""
         self.vlog_flags.append(
-            self.__get_rid_of_vsim_incdirs(top_module.manifest_dict["vlog_opt"]))
+            self.__get_rid_of_vsim_incdirs(
+                top_module.manifest_dict["vlog_opt"]))
         self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
         self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
         self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
@@ -78,6 +83,7 @@ class VsimMakefileWriter(ActionMakefile):
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
 
     def _print_clean(self, top_module):
+        """Print the Makefile clean target"""
         if platform.system() == 'Windows':
             del_command = "rm -rf"
         else:
@@ -91,11 +97,9 @@ class VsimMakefileWriter(ActionMakefile):
 
     def _print_sim_compilation(self, fileset, top_module):
         """Write a properly formatted Makefile for the simulator.
-
         The Makefile format is shared, but flags, dependencies, clean rules,
         etc are defined by the specific tool.
         """
-        from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
         if platform.system() == 'Windows':
             del_command = "rm -rf"
@@ -137,74 +141,68 @@ class VsimMakefileWriter(ActionMakefile):
             self.write(lib + slash_char + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command,
-                                 lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
+                lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
             self.write(' '.join(["||", del_command, lib, "\n"]))
             self.write('\n\n')
 
         # rules for all _primary.dat files for sv
-        for vl in fileset.filter(VerilogFile):
-            self.write(
-                "%s: %s" % (os.path.join(vl.library, vl.purename, ".%s_%s" % (vl.purename, vl.extension())),
-                            vl.rel_path())
-            )
+        for vlog in fileset.filter(VerilogFile):
+            self.write("%s: %s" % (os.path.join(vlog.library, vlog.purename,
+                ".%s_%s" % (vlog.purename, vlog.extension())), vlog.rel_path()))
             # list dependencies, do not include the target file
-            for dep_file in [dfile for dfile in vl.depends_on if dfile is not vl]:
-                if dep_file in fileset:  # the dep_file is compiled -> we depend on marker file
+            for dep_file in [dfile for dfile
+                             in vlog.depends_on if dfile is not vlog]:
+                if dep_file in fileset:
                     name = dep_file.purename
                     extension = dep_file.extension()
-                    self.write(
-                        " \\\n" + os.path.join(dep_file.library, name, ".%s_%s" %
-                              (name, extension)))
+                    self.write(" \\\n" + os.path.join(dep_file.library,
+                        name, ".%s_%s" % (name, extension)))
                 else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
-
             self.writeln()
 
-            #
-            # self.write("\t\tvlog -work "+vl.library)
+            # self.write("\t\tvlog -work "+vlog.library)
             # self.write(" $(VLOG_FLAGS) ")
             # if isinstance(vl, SVFile):
             #      self.write(" -sv ")
             # incdir = "+incdir+"
-            # incdir += '+'.join(vl.include_dirs)
+            # incdir += '+'.join(vlog.include_dirs)
             # incdir += " "
             # self.write(incdir)
-            # self.writeln(vl.vlog_opt+" $<")
-            #
-            compile_template = string.Template(
-                "\t\tvlog -work ${library} $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
-            compile_line = compile_template.substitute(library=vl.library,
-                                                       sv_option="-sv" if isinstance(vl, SVFile) else "")
+            # self.writeln(vlog.vlog_opt+" $<")
+
+            compile_template = string.Template("\t\tvlog -work ${library}"
+                " $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
+            compile_line = compile_template.substitute(
+                library=vlog.library, sv_option="-sv"
+                if isinstance(vlog, SVFile) else "")
             self.writeln(compile_line)
             self.write("\t\t@" + mkdir_command + " $(dir $@)")
             self.writeln(" && touch $@ \n\n")
-            self.write("\n")
+            self.writeln()
 
         # list rules for all _primary.dat files for vhdl
         for vhdl in fileset.filter(VHDLFile):
             lib = vhdl.library
             purename = vhdl.purename
             # each .dat depends on corresponding .vhd file
-            self.write(
-                "%s: %s" % (os.path.join(lib, purename, "." + purename + "_" + vhdl.extension()),
-                            vhdl.rel_path())
-            )
+            self.write("%s: %s" % (os.path.join(lib, purename, "." +
+                purename + "_" + vhdl.extension()), vhdl.rel_path()))
             # list dependencies, do not include the target file
-            for dep_file in [dfile for dfile in vhdl.depends_on if dfile is not vhdl]:
-                if dep_file in fileset:  # the dep_file is compiled -> we depend on marker file
+            for dep_file in [dfile for dfile in vhdl.depends_on
+                             if dfile is not vhdl]:
+                if dep_file in fileset:
                     name = dep_file.purename
                     extension = dep_file.extension()
-                    self.write(
-                        " \\\n" + os.path.join(dep_file.library, name, ".%s_%s" %
-                              (name, extension)))
-                else:  # the file is included -> we depend directly on the file
+                    self.write(" \\\n" + os.path.join(dep_file.library,
+                               name, ".%s_%s" % (name, extension)))
+                else:
                     self.write(" \\\n" + dep_file.rel_path())
-
             self.writeln()
-            self.writeln(
-                ' '.join(["\t\tvcom $(VCOM_FLAGS)", vhdl.vcom_opt, "-work", lib, "$< "]))
-            self.writeln("\t\t@" + mkdir_command + " $(dir $@) && touch $@ \n")
-            self.writeln()
+            self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)",
+                         vhdl.vcom_opt, "-work", lib, "$< "]))
+            self.writeln("\t\t@" + mkdir_command +
+                         " $(dir $@) && touch $@ \n\n")
 
     def __create_copy_rule(self, name, src):
         """Get a Makefile rule named name, which depends on src, copying it to
@@ -219,11 +217,13 @@ class VsimMakefileWriter(ActionMakefile):
         return rule
 
     def __get_rid_of_vsim_incdirs(self, vlog_opt=""):
+        """Parse the VLOG options and purge the included dirs"""
         if not vlog_opt:
             vlog_opt = ""
         vlogs = vlog_opt.split(' ')
         ret = []
-        for v in vlogs:
-            if not v.startswith("+incdir+"):
-                ret.append(v)
+        for vlog_aux in vlogs:
+            if not vlog_aux.startswith("+incdir+"):
+                ret.append(vlog_aux)
         return ' '.join(ret)
+

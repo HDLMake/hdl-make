@@ -21,13 +21,13 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing support for Altera Quartus synthesis"""
+
 import os
 import sys
 import string
-from string import Template
 import logging
 
-from hdlmake import fetch
 from hdlmake.action import ActionMakefile
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
@@ -39,6 +39,7 @@ QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
 
 class ToolQuartus(ActionMakefile):
+    """Class providing the interface for Altera Quartus synthesis"""
 
     TOOL_INFO = {
         'name': 'Quartus',
@@ -54,12 +55,17 @@ class ToolQuartus(ActionMakefile):
         self._preflow = None
         self._postmodule = None
         self._postflow = None
+        self.properties = []
+        self.files = []
+        self.filename = None
         super(ToolQuartus, self).__init__()
 
     def detect_version(self, path):
+        """Get Altera Quartus version from the binary program"""
         return 'unknown'
 
     def generate_synthesis_makefile(self, top_mod, tool_path):
+        """Generate the synthesis Makefile for Altera Quartus"""
         makefile_tmplt = string.Template("""PROJECT := ${project_name}
 QUARTUS_CRAP := \
 $$(PROJECT).asm.rpt \
@@ -124,9 +130,9 @@ mrproper:
             syn_post_cmd=syn_post_cmd,
             quartus_sh_path=os.path.join(tool_path, "quartus_sh"))
         self.write(makefile_text)
-        for f in top_mod.incl_makefiles:
-            if os.path.exists(f):
-                self.write("include %s\n" % f)
+        for file_aux in top_mod.incl_makefiles:
+            if os.path.exists(file_aux):
+                self.write("include %s\n" % file_aux)
 
 
     def _set_tcl_files(self, mod):
@@ -162,34 +168,30 @@ mrproper:
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
-        self.properties = []
-        self.files = []
+        """Generate an Altera Quartus synthesis project"""
         self.filename = top_mod.manifest_dict["syn_project"]
         self._set_tcl_files(top_mod)
-
         if update is True:
             self.read()
         else:
-            self.add_initial_properties(top_mod.manifest_dict["syn_device"],
-                                        top_mod.manifest_dict["syn_family"],
-                                        top_mod.manifest_dict["syn_grade"],
-                                        top_mod.manifest_dict["syn_package"],
-                                        top_mod.manifest_dict["syn_top"])
+            self.add_initial_properties(top_mod)
         self.add_files(fileset)
         self.emit()
 
     def emit(self):
-        f = open(self.filename + '.qsf', "w")
-        for p in self.properties:
-            f.write(p.emit() + '\n')
-        f.write(self.__emit_files())
-        f.write(self.__emit_scripts())
-        f.close()
-        f = open(self.filename + '.qpf', "w")
-        f.write("PROJECT_REVISION = \"" + self.filename + "\"\n")
-        f.close()
+        """Emit both the QSF and the QPF files with the needed properties"""
+        file_aux = open(self.filename + '.qsf', "w")
+        for prop in self.properties:
+            file_aux.write(prop.emit() + '\n')
+        file_aux.write(self.__emit_files())
+        file_aux.write(self.__emit_scripts())
+        file_aux.close()
+        file_aux = open(self.filename + '.qpf', "w")
+        file_aux.write("PROJECT_REVISION = \"" + self.filename + "\"\n")
+        file_aux.close()
 
     def __emit_scripts(self):
+        """Emit the required TCL scripts to handle the synthesis process"""
         tmp = 'set_global_assignment -name {0} "quartus_sh:{1}"'
         pre = mod = post = ""
         if self._preflow:
@@ -207,39 +209,42 @@ mrproper:
         return pre + '\n' + mod + '\n' + post + '\n'
 
     def __emit_files(self):
+        """Emit the HDL design files to be added to the project"""
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
         ret = []
-        for f in self.files:
-            if isinstance(f, VHDLFile):
-                line = tmplib.format("VHDL_FILE", f.rel_path(), f.library)
-            elif isinstance(f, SVFile):
+        for file_aux in self.files:
+            if isinstance(file_aux, VHDLFile):
+                line = tmplib.format("VHDL_FILE",
+                                     file_aux.rel_path(), file_aux.library)
+            elif isinstance(file_aux, SVFile):
                 line = tmplib.format(
                     "SYSTEMVERILOG_FILE",
-                    f.rel_path(),
-                    f.library)
-            elif isinstance(f, VerilogFile):
-                line = tmp.format("VERILOG_FILE", f.rel_path())
-            elif isinstance(f, SignalTapFile):
-                line = tmp.format("SIGNALTAP_FILE", f.rel_path())
-            elif isinstance(f, SDCFile):
-                line = tmp.format("SDC_FILE", f.rel_path())
-            elif isinstance(f, QIPFile):
-                line = tmp.format("QIP_FILE", f.rel_path())
-            elif isinstance(f, QSYSFile):
-                line = tmp.format("QSYS_FILE", f.rel_path())
-            elif isinstance(f, DPFFile):
-                line = tmp.format("MISC_FILE", f.rel_path())
-            elif isinstance(f, QSFFile):
-                line = tmp.format("SOURCE_TCL_SCRIPT_FILE", f.rel_path())
-            elif isinstance(f, BSFFile):
-                line = tmp.format("BSF_FILE", f.rel_path())
-            elif isinstance(f, BDFFile):
-                line = tmp.format("BDF_FILE", f.rel_path())
-            elif isinstance(f, TDFFile):
-                line = tmp.format("AHDL_FILE", f.rel_path())
-            elif isinstance(f, GDFFile):
-                line = tmp.format("GDF_FILE", f.rel_path())
+                    file_aux.rel_path(),
+                    file_aux.library)
+            elif isinstance(file_aux, VerilogFile):
+                line = tmp.format("VERILOG_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, SignalTapFile):
+                line = tmp.format("SIGNALTAP_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, SDCFile):
+                line = tmp.format("SDC_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, QIPFile):
+                line = tmp.format("QIP_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, QSYSFile):
+                line = tmp.format("QSYS_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, DPFFile):
+                line = tmp.format("MISC_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, QSFFile):
+                line = tmp.format("SOURCE_TCL_SCRIPT_FILE",
+                                  file_aux.rel_path())
+            elif isinstance(file_aux, BSFFile):
+                line = tmp.format("BSF_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, BDFFile):
+                line = tmp.format("BDF_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, TDFFile):
+                line = tmp.format("AHDL_FILE", file_aux.rel_path())
+            elif isinstance(file_aux, GDFFile):
+                line = tmp.format("GDF_FILE", file_aux.rel_path())
             else:
                 continue
             ret.append(line)
@@ -247,17 +252,22 @@ mrproper:
 
 
     def add_property(self, val):
+        """Add Altera Quartus property to the set of already existing ones"""
         # don't save files (they are unneeded)
         if val.name_type is not None and "_FILE" in val.name_type:
             return
         self.properties.append(val)
 
     def add_files(self, fileset):
-        for f in fileset:
-            self.files.append(f)
+        """Add files to the inner fileset"""
+        for file_aux in fileset:
+            self.files.append(file_aux)
 
     def read(self):
+        """Read properties from an existing Altera Quartus project file"""
+
         def __gather_string(words, first_index):
+            """Funtion that returns a string from the supplied index"""
             i = first_index
             ret = []
             if words[i][0] != '"':
@@ -269,14 +279,14 @@ mrproper:
                         return (' '.join(ret), len(ret))
                     i = i + 1
 
-        f = open(self.filename + '.qsf', "r")
-        lines = [l.strip() for l in f.readlines()]
+        file_aux = open(self.filename + '.qsf', "r")
+        lines = [l.strip() for l in file_aux.readlines()]
         lines = [l for l in lines if l != "" and l[0] != '#']
-        QPP = _QuartusProjectProperty
+        q_prop = _QuartusProjectProperty
         for line in lines:
             words = line.split()
-            command = QPP.t[words[0]]
-            what = name = name_type = from_ = to = section_id = None
+            command = q_prop.PROP_TYPE[words[0]]
+            what = name = name_type = from_ = to_ = section_id = None
             i = 1
             while True:
                 if i >= len(words):
@@ -292,7 +302,7 @@ mrproper:
                     i = i + 1 + add
                     continue
                 elif words[i] == "-to":
-                    to, add = __gather_string(words, i + 1)
+                    to_, add = __gather_string(words, i + 1)
                     i = i + 1 + add
                     continue
                 elif words[i] == "-from":
@@ -303,18 +313,18 @@ mrproper:
                     what = words[i]
                     i = i + 1
                     continue
-            prop = QPP(command=command,
-                       what=what, name=name,
-                       name_type=name_type,
-                       from_=from_,
-                       to=to,
-                       section_id=section_id)
+            prop = q_prop(command=command,
+                          what=what, name=name,
+                          name_type=name_type,
+                          from_=from_,
+                          to_=to_,
+                          section_id=section_id)
 
             self.add_property(prop)
-        f.close()
+        file_aux.close()
 
-    def add_initial_properties(
-            self, syn_device, syn_family, syn_grade, syn_package, syn_top):
+    def add_initial_properties(self, top_mod):
+        """Add initial properties to the Altera Quartus project"""
         import re
         family_names = {
             "^EP2AGX.*$": "Arria II GX",
@@ -324,57 +334,69 @@ mrproper:
             "^5S.*$": "Stratix V",
         }
 
+        syn_device = top_mod.manifest_dict["syn_device"],
+        syn_family = top_mod.manifest_dict["syn_family"],
+        syn_grade = top_mod.manifest_dict["syn_grade"],
+        syn_package = top_mod.manifest_dict["syn_package"],
+        syn_top = top_mod.manifest_dict["syn_top"]
+
         if syn_family is None:
             for key in family_names:
                 if re.match(key, syn_device.upper()):
                     syn_family = family_names[key]
                     logging.debug(
-                        "Auto-guessed syn_family to be %s (%s => %s)" %
-                        (syn_family, syn_device, key))
+                        "Auto-guessed syn_family to be %s (%s => %s)",
+                        syn_family, syn_device, key)
 
         if syn_family is None:
-            logging.error(
-                "Could not auto-guess device family, please specify in Manifest.py using syn_family!")
+            logging.error("Could not auto-guess device family, please "
+                          "specify in Manifest.py using syn_family!")
             sys.exit("\nExiting")
 
         devstring = (syn_device + syn_package + syn_grade).upper()
-        QPP = _QuartusProjectProperty
+        q_prop = _QuartusProjectProperty
         self.add_property(
-            QPP(QPP.SET_GLOBAL_ASSIGNMENT,
+            q_prop(q_prop.SET_GLOBAL_ASSIGNMENT,
                 name_type='FAMILY',
                 name='"' + syn_family + '"'))
         self.add_property(
-            QPP(QPP.SET_GLOBAL_ASSIGNMENT,
+            q_prop(q_prop.SET_GLOBAL_ASSIGNMENT,
                 name_type='DEVICE',
                 name=devstring))
         self.add_property(
-            QPP(QPP.SET_GLOBAL_ASSIGNMENT,
+            q_prop(q_prop.SET_GLOBAL_ASSIGNMENT,
                 name_type='TOP_LEVEL_ENTITY',
                 name=syn_top))
 
 
-class _QuartusProjectProperty:
-    SET_GLOBAL_INSTANCE, SET_INSTANCE_ASSIGNMENT, SET_LOCATION_ASSIGNMENT, SET_GLOBAL_ASSIGNMENT = range(
-        4)
-    t = {"set_global_instance": SET_GLOBAL_INSTANCE,
-         "set_instance_assignment": SET_INSTANCE_ASSIGNMENT,
-         "set_location_assignment": SET_LOCATION_ASSIGNMENT,
-         "set_global_assignment": SET_GLOBAL_ASSIGNMENT}
+class _QuartusProjectProperty(object):
+    """Class that serves as a container for Altera Quartus properties"""
+
+    SET_GLOBAL_INSTANCE = 0
+    SET_INSTANCE_ASSIGNMENT = 1
+    SET_LOCATION_ASSIGNMENT = 2
+    SET_GLOBAL_ASSIGNMENT = 3
+
+    PROP_TYPE = {"set_global_instance": SET_GLOBAL_INSTANCE,
+                 "set_instance_assignment": SET_INSTANCE_ASSIGNMENT,
+                 "set_location_assignment": SET_LOCATION_ASSIGNMENT,
+                 "set_global_assignment": SET_GLOBAL_ASSIGNMENT}
 
     def __init__(self, command, what=None, name=None,
-                 name_type=None, from_=None, to=None, section_id=None):
+                 name_type=None, from_=None, to_=None, section_id=None):
         self.command = command
         self.what = what
         self.name = name
         self.name_type = name_type
         self.from_ = from_
-        self.to = to
+        self.to_ = to_
         self.section_id = section_id
 
     def emit(self):
+        """Emit a formated property from a defined Altera Quartus one"""
         words = []
-        words.append(dict([(b, a) for a, b in self.t.items()])[self.command])
-
+        words.append(dict([(b, a) for a, b in
+                     self.PROP_TYPE.items()])[self.command])
         if self.what is not None:
             words.append(self.what)
         if self.name is not None:
@@ -384,10 +406,11 @@ class _QuartusProjectProperty:
         if self.from_ is not None:
             words.append("-from")
             words.append(self.from_)
-        if self.to is not None:
+        if self.to_ is not None:
             words.append("-to")
-            words.append(self.to)
+            words.append(self.to_)
         if self.section_id is not None:
             words.append("-section_id")
             words.append(self.section_id)
         return ' '.join(words)
+
