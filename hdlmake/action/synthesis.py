@@ -82,6 +82,7 @@ class ActionSynthesis(
         tool_info = tool_object.TOOL_INFO
         path_key = tool_info['id'] + '_path'
         name = tool_info['name']
+        top_module = self.get_top_module()
 
         env = self.env
         env.check_general()
@@ -92,10 +93,19 @@ class ActionSynthesis(
         else:
             tool_path = ""
 
+        tool_ctrl = tool_object.TCL_CONTROLS
+
         logging.info("Generating synthesis makefile for " + name)
-        tool_object.generate_synthesis_makefile(
-            top_mod=self.get_top_module(),
-            tool_path=tool_path)
+        tool_object._print_incl_makefiles(top_module)
+        tool_object._print_syn_top(top_module, tool_path, tool_ctrl)
+        tool_object._print_syn_local()
+        tool_object._print_syn_command(top_module)
+        tool_object._print_syn_build()
+        tool_object._print_clean(tool_object.CLEAN_TARGETS)
+        tool_object._print_syn_phony()
+        # tool_object.generate_synthesis_makefile(
+        #    top_mod=top_module,
+        #    tool_path=tool_path)
         logging.info("Synthesis makefile generated.")
 
     def _write_project_vhd(self, tool, version):

@@ -70,6 +70,37 @@ class ToolISE(ActionMakefile):
 
     SUPPORTED_FILES = [UCFFile, CDCFile, NGCFile]
 
+    CLEAN_TARGETS = {'clean': ["xst xlnx_auto_*_xdb", "iseconfig _xmsgs",
+                               "_ngo", "*.b", "*_summary.html", "*.tcl",
+                               "*.bld", "*.cmd_log", "*.drc", "*.lso", "*.ncd",
+                               "*.ngc", "*.ngd", "*.ngr", "*.pad", "*.par",
+                               "*.pcf", "*.prj", "*.ptwx", "*.stx", "*.syr",
+                               "*.twr", "*.twx", "*.gise", "*.gise", "*.bgn",
+                               "*.unroutes", "*.ut", "*.xpi", "*.xst",
+                               "*.xwbt", "*_envsettings.html", "*_guide.ncd",
+                               "*_map.map", "*_map.mrp", "*_map.ncd",
+                               "*_map.ngm", "*_map.xrpt", "*_ngdbuild.xrpt",
+                               "*_pad.csv", "*_pad.txt", "*_par.xrpt",
+                               "*_summary.xml", "*_usage.xml", "*_xst.xrpt",
+                               "usage_statistics_webtalk.html", "webtalk.log",
+                               "par_usage_statistics.html", "webtalk_pn.xml",
+                               "run_synthesize.tcl", "run_translate.tcl",
+                               "run_map.tcl", "run_par.tcl",
+                               "run_bitstream.tcl"],
+                     'mrproper': ["*.bit", "*.bin", "*.mcs"]}
+
+    TCL_CONTROLS = {'windows_interpreter': 'xtclsh ',
+                    'linux_interpreter': 'xtclsh ',
+                    'open': 'project open $(PROJECT)',
+                    'save': 'project save',
+                    'close': 'project close',
+                    'synthesize': 'process run {Synthesize - XST}',
+                    'translate': 'process run {Translate}',
+                    'map': 'process run {Map}',
+                    'par': 'process run {Place & Route}',
+                    'bitstream': 'process run {Generate Programming File}',
+                    'install_source': '*.bit *.bin'}
+
     def __init__(self):
         super(ToolISE, self).__init__()
         self.props = {}
@@ -115,192 +146,6 @@ class ToolISE(ActionMakefile):
                     xst_output + "Can't determine ISE version")
                 return None
         return ise_version
-
-    def generate_synthesis_makefile(self, top_mod, tool_path):
-        """Generate a Makefile to handle a synthesis Xilinx ISE project"""
-        makefile_tmplt = string.Template("""PROJECT := ${project_name}
-ISE_CRAP := \
-*.b \
-${syn_top}_summary.html \
-*.tcl \
-${syn_top}.bld \
-${syn_top}.cmd_log \
-*.drc \
-${syn_top}.lso \
-*.ncd \
-${syn_top}.ngc \
-${syn_top}.ngd \
-${syn_top}.ngr \
-${syn_top}.pad \
-${syn_top}.par \
-${syn_top}.pcf \
-${syn_top}.prj \
-${syn_top}.ptwx \
-${syn_top}.stx \
-${syn_top}.syr \
-${syn_top}.twr \
-${syn_top}.twx \
-${syn_top}.gise \
-$$(PROJECT).gise \
-${syn_top}.bgn \
-${syn_top}.unroutes \
-${syn_top}.ut \
-${syn_top}.xpi \
-${syn_top}.xst \
-${syn_top}_bitgen.xwbt \
-${syn_top}_envsettings.html \
-${syn_top}_guide.ncd \
-${syn_top}_map.map \
-${syn_top}_map.mrp \
-${syn_top}_map.ncd \
-${syn_top}_map.ngm \
-${syn_top}_map.xrpt \
-${syn_top}_ngdbuild.xrpt \
-${syn_top}_pad.csv \
-${syn_top}_pad.txt \
-${syn_top}_par.xrpt \
-${syn_top}_summary.xml \
-${syn_top}_usage.xml \
-${syn_top}_xst.xrpt \
-usage_statistics_webtalk.html \
-par_usage_statistics.html \
-webtalk.log \
-webtalk_pn.xml \
-run_synthesize.tcl \
-run_translate.tcl \
-run_map.tcl \
-run_par.tcl \
-run_bitstream.tcl
-
-#target for performing local synthesis
-local: __syn_pre_cmd __gen_tcl_bitstream __run_tcl_bitstream __syn_post_cmd
-
-
-__gen_tcl_synthesize:
-\t\techo project open $$(PROJECT) > run_synthesize.tcl
-\t\techo process run {Synthesize - XST} >> run_synthesize.tcl
-
-__gen_tcl_translate:
-\t\techo project open $$(PROJECT) > run_translate.tcl
-\t\techo process run {Translate} >> run_translate.tcl
-
-__gen_tcl_map:
-\t\techo project open $$(PROJECT) > run_map.tcl
-\t\techo process run {Map} >> run_map.tcl
-
-__gen_tcl_par:
-\t\techo project open $$(PROJECT) > run_par.tcl
-\t\techo process run {Place & Route} >> run_par.tcl
-
-__gen_tcl_bitstream:
-\t\techo project open $$(PROJECT) > run_bitstream.tcl
-\t\techo process run {Generate Programming File} >> run_bitstream.tcl
-
-__run_tcl_synthesize:
-\t\t${xtclsh_path} run_synthesize.tcl
-
-__run_tcl_translate:
-\t\t${xtclsh_path} run_translate.tcl
-
-__run_tcl_map:
-\t\t${xtclsh_path} run_map.tcl
-
-__run_tcl_par:
-\t\t${xtclsh_path} run_par.tcl
-
-__run_tcl_bitstream:
-\t\t${xtclsh_path} run_bitstream.tcl
-
-__syn_pre_cmd:
-\t\t${syn_pre_cmd}
-
-__syn_pre_synthesize_cmd:
-\t\t${syn_pre_synthesize_cmd}
-__syn_post_synthesize_cmd:
-\t\t${syn_post_synthesize_cmd}
-
-__syn_pre_translate_cmd:
-\t\t${syn_pre_translate_cmd}
-__syn_post_translate_cmd:
-\t\t${syn_post_translate_cmd}
-
-__syn_pre_map_cmd:
-\t\t${syn_pre_map_cmd}
-__syn_post_map_cmd:
-\t\t${syn_post_map_cmd}
-
-__syn_pre_par_cmd:
-\t\t${syn_pre_par_cmd}
-__syn_post_par_cmd:
-\t\t${syn_post_par_cmd}
-
-__syn_pre_bitstream_cmd:
-\t\t${syn_pre_bitstream_cmd}
-__syn_post_bitstream_cmd:
-\t\t${syn_post_bitstream_cmd}
-
-__syn_post_cmd:
-\t\t${syn_post_cmd}
-
-
-synthesize: __syn_pre_synthesize_cmd __gen_tcl_synthesize __run_tcl_synthesize __syn_post_synthesize_cmd
-
-translate: __syn_pre_translate_cmd __gen_tcl_translate __run_tcl_translate __syn_post_translate_cmd
-
-map: __syn_pre_map_cmd __gen_tcl_map __run_tcl_map __syn_post_map_cmd
-
-par: __syn_pre_par_cmd __gen_tcl_par __run_tcl_par __syn_post_par_cmd
-
-bitstream: __syn_pre_bitstream_cmd __gen_tcl_bitstream __run_tcl_bitstream __syn_post_bitstream_cmd
-
-
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -f $$(ISE_CRAP)
-\t\trm -rf xst xlnx_auto_*_xdb iseconfig _xmsgs _ngo
-
-#target for cleaning final files
-mrproper:
-\t\trm -f *.bit *.bin *.mcs
-
-.PHONY: mrproper clean local
-
-""")
-
-        makefile_text = makefile_tmplt.substitute(
-            syn_top=top_mod.manifest_dict["syn_top"],
-            project_name=top_mod.manifest_dict[
-                "syn_project"],
-            ise_path=tool_path,
-            syn_pre_cmd=top_mod.manifest_dict[
-                "syn_pre_cmd"],
-            syn_post_cmd=top_mod.manifest_dict[
-                "syn_post_cmd"],
-            syn_pre_synthesize_cmd=top_mod.manifest_dict[
-                "syn_pre_synthesize_cmd"],
-            syn_post_synthesize_cmd=top_mod.manifest_dict[
-                "syn_post_synthesize_cmd"],
-            syn_pre_translate_cmd=top_mod.manifest_dict[
-                "syn_pre_translate_cmd"],
-            syn_post_translate_cmd=top_mod.manifest_dict[
-                "syn_post_translate_cmd"],
-            syn_pre_map_cmd=top_mod.manifest_dict[
-                "syn_pre_map_cmd"],
-            syn_post_map_cmd=top_mod.manifest_dict[
-                "syn_post_map_cmd"],
-            syn_pre_par_cmd=top_mod.manifest_dict[
-                "syn_pre_par_cmd"],
-            syn_post_par_cmd=top_mod.manifest_dict[
-                "syn_post_par_cmd"],
-            syn_pre_bitstream_cmd=top_mod.manifest_dict[
-                "syn_pre_bitstream_cmd"],
-            syn_post_bitstream_cmd=top_mod.manifest_dict[
-                "syn_post_bitstream_cmd"],
-            xtclsh_path=os.path.join(tool_path, "xtclsh"))
-        self.write(makefile_text)
-        for file_aux in top_mod.incl_makefiles:
-            if os.path.exists(file_aux):
-                self.write("include %s\n" % file_aux)
 
     class StringBuffer(list):
 
@@ -381,17 +226,17 @@ mrproper:
     def _set_values_from_manifest(self):
         """Add the synthesis properties from the Manifest to the project"""
         top_module = self.top_mod
-        if top_module.manifest_dict["syn_family"] is None:
-            top_module.manifest_dict["syn_family"] = FAMILY_NAMES.get(
+        syn_family = top_module.manifest_dict["syn_family"]
+        if syn_family is None:
+            syn_family = FAMILY_NAMES.get(
                 top_module.manifest_dict["syn_device"][0:4].upper())
-            if top_module.manifest_dict["syn_family"] is None:
+            if syn_family is None:
                 logging.error(
                     "syn_family is not definied in Manifest.py"
                     " and can not be guessed!")
                 quit(-1)
         self.add_property("Device", top_module.manifest_dict["syn_device"])
-        self.add_property("Device Family",
-            top_module.manifest_dict["syn_family"])
+        self.add_property("Device Family", syn_family)
         self.add_property("Speed Grade", top_module.manifest_dict["syn_grade"])
         self.add_property("Package", top_module.manifest_dict["syn_package"])
         self.add_property(

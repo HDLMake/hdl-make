@@ -48,6 +48,22 @@ class ToolLibero(ActionMakefile):
 
     SUPPORTED_FILES = [SDCFile, PDCFile]
 
+    CLEAN_TARGETS = {'clean': ["$(PROJECT)", "run.tcl"],
+                     'mrproper': ["*.pdb", "*.stp"]}
+
+    TCL_CONTROLS = {'windows_interpreter': 'libero SCRIPT:',
+                    'linux_interpreter': 'libero SCRIPT:',
+                    'open': 'open_project -file {$(PROJECT)/$(PROJECT).prjx}',
+                    'save': 'save_project',
+                    'close': 'close_project',
+                    'synthesize': '',
+                    'translate': '',
+                    'map': '',
+                    'par': '',
+                    'bitstream':
+                    'update_and_run_tool -name {GENERATEPROGRAMMINGDATA}',
+                    'install_source': '$(PROJECT)/designer/impl1/$(SYN_TOP).pdb'}
+
     def __init__(self):
         super(ToolLibero, self).__init__()
         self.files = []
@@ -62,65 +78,6 @@ class ToolLibero(ActionMakefile):
     def detect_version(self, path):
         """Get version for Microsemi Libero IDE synthesis"""
         return 'unknown'
-
-    def generate_synthesis_makefile(self, top_mod, tool_path):
-        """Generate the synthesis Makefile for Microsemi Libero IDE"""
-        makefile_tmplt = string.Template("""PROJECT := ${project_name}
-LIBERO_CRAP := \
-run.tcl
-
-#target for performing local synthesis
-local: syn_pre_cmd synthesis syn_post_cmd
-
-synthesis:
-\t\techo "open_project -file {$$(PROJECT)/$$(PROJECT).prjx}" > run.tcl
-\t\techo "update_and_run_tool -name {GENERATEPROGRAMMINGDATA}" >> run.tcl
-\t\techo "save_project" >> run.tcl
-\t\techo "close_project" >> run.tcl
-\t\t${libero_sh_path} SCRIPT:run.tcl
-\t\tcp $$(PROJECT)/designer/impl1/${syn_top}.pdb ${syn_top}.pdb
-
-syn_post_cmd:
-\t\t${syn_post_cmd}
-
-syn_pre_cmd:
-\t\t${syn_pre_cmd}
-
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -f $$(LIBERO_CRAP)
-\t\trm -rf $$(PROJECT)
-
-#target for cleaning final files
-mrproper:
-\t\trm -f *.pdb *.stp
-
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local
-
-""")
-
-        if top_mod.manifest_dict["syn_pre_cmd"]:
-            syn_pre_cmd = top_mod.manifest_dict["syn_pre_cmd"]
-        else:
-            syn_pre_cmd = ''
-
-        if top_mod.manifest_dict["syn_post_cmd"]:
-            syn_post_cmd = top_mod.manifest_dict["syn_post_cmd"]
-        else:
-            syn_post_cmd = ''
-
-        makefile_text = makefile_tmplt.substitute(
-            syn_top=top_mod.manifest_dict["syn_top"],
-            project_name=top_mod.manifest_dict[
-                "syn_project"],
-            libero_path=tool_path,
-            syn_pre_cmd=syn_pre_cmd,
-            syn_post_cmd=syn_post_cmd,
-            libero_sh_path=os.path.join(tool_path, "libero"))
-        self.write(makefile_text)
-        for file_aux in top_mod.incl_makefiles:
-            if os.path.exists(file_aux):
-                self.write("include %s\n" % file_aux)
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):

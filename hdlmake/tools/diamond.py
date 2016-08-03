@@ -47,6 +47,22 @@ class ToolDiamond(ActionMakefile):
 
     SUPPORTED_FILES = [EDFFile, LPFFile]
 
+    CLEAN_TARGETS = {'clean': ["*.sty", "$(PROJECT)", "run.tcl"],
+                     'mrproper': ["*.jed"]}
+
+    TCL_CONTROLS = {'windows_interpreter': 'pnmainc ',
+                    'linux_interpreter': 'diamondc ',
+                    'open': 'prj_project open $(PROJECT).ldf',
+                    'save': 'prj_project save',
+                    'close': 'prj_project close',
+                    'synthesize': '',
+                    'translate': '',
+                    'map': '',
+                    'par': 'prj_run PAR -impl $(PROJECT)',
+                    'bitstream':
+                    'prj_run Export -impl $(PROJECT) -task Bitgen',
+                    'install_source': '$(PROJECT)/$(PROJECT)_$(PROJECT).jed'}
+
     def __init__(self):
         super(ToolDiamond, self).__init__()
         self.files = []
@@ -57,69 +73,6 @@ class ToolDiamond(ActionMakefile):
     def detect_version(self, path):
         """Get version from the Lattice Diamond program"""
         return 'unknown'
-
-    def generate_synthesis_makefile(self, top_mod, tool_path):
-        """Generate a synthesis Makefile for a Lattice Diamond project"""
-        makefile_tmplt = string.Template("""PROJECT := ${project_name}
-DIAMOND_CRAP := \
-$$(PROJECT)1.sty \
-run.tcl
-
-#target for performing local synthesis
-local: syn_pre_cmd synthesis syn_post_cmd
-
-synthesis:
-\t\techo "prj_project open \"$$(PROJECT).ldf\"" > run.tcl
-\t\techo "prj_run PAR -impl $$(PROJECT)" >> run.tcl
-\t\techo "prj_run Export -impl $$(PROJECT) -task Bitgen" >> run.tcl
-\t\techo "prj_project close" >> run.tcl
-\t\t${diamondc_path} run.tcl
-\t\tcp $$(PROJECT)/$$(PROJECT)_$$(PROJECT).jed $$(PROJECT).jed
-
-syn_post_cmd:
-\t\t${syn_post_cmd}
-
-syn_pre_cmd:
-\t\t${syn_pre_cmd}
-
-#target for cleaing all intermediate stuff
-clean:
-\t\trm -f $$(DIAMOND_CRAP)
-\t\trm -rf $$(PROJECT)
-
-#target for cleaning final files
-mrproper:
-\t\trm -f *.jed
-
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local
-
-""")
-        if top_mod.manifest_dict["syn_pre_cmd"]:
-            syn_pre_cmd = top_mod.manifest_dict["syn_pre_cmd"]
-        else:
-            syn_pre_cmd = ''
-
-        if top_mod.manifest_dict["syn_post_cmd"]:
-            syn_post_cmd = top_mod.manifest_dict["syn_post_cmd"]
-        else:
-            syn_post_cmd = ''
-
-        if sys.platform == 'cygwin':
-            bin_name = 'pnmainc'
-        else:
-            bin_name = 'diamondc'
-        makefile_text = makefile_tmplt.substitute(
-            syn_top=top_mod.manifest_dict["syn_top"],
-            project_name=top_mod.manifest_dict[
-                "syn_project"],
-            diamond_path=tool_path,
-            syn_pre_cmd=syn_pre_cmd,
-            syn_post_cmd=syn_post_cmd,
-            diamondc_path=os.path.join(tool_path, bin_name))
-        self.write(makefile_text)
-        for file_aux in top_mod.incl_makefiles:
-            if os.path.exists(file_aux):
-                self.write("include %s\n" % file_aux)
 
     def generate_synthesis_project(self, update=False, tool_version='',
                                    top_mod=None, fileset=None):

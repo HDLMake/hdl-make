@@ -52,6 +52,25 @@ class ToolQuartus(ActionMakefile):
     SUPPORTED_FILES = [SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
                        QSFFile, BSFFile, BDFFile, TDFFile, GDFFile]
 
+    CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "run.tcl", "*.summary",
+                               "*.done", "*.jdi", "*.pin", "*.qws",
+                               "db", "incremental_db"],
+                     'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
+                                  "*.ekp *.jic"]}
+
+    TCL_CONTROLS = {'windows_interpreter': 'quartus -t ',
+                    'linux_interpreter': 'quartus -t ',
+                    'open': 'load_package flow\\n'
+                            'project_open $(PROJECT)',
+                    'save': '',
+                    'close': '',
+                    'synthesize': '',
+                    'translate': '',
+                    'map': '',
+                    'par': '',
+                    'bitstream': 'execute_flow -compile',
+                    'install_source': ''}
+
     def __init__(self):
         self._preflow = None
         self._postmodule = None
@@ -65,76 +84,6 @@ class ToolQuartus(ActionMakefile):
         """Get Altera Quartus version from the binary program"""
         return 'unknown'
 
-    def generate_synthesis_makefile(self, top_mod, tool_path):
-        """Generate the synthesis Makefile for Altera Quartus"""
-        makefile_tmplt = string.Template("""PROJECT := ${project_name}
-QUARTUS_CRAP := \
-$$(PROJECT).asm.rpt \
-$$(PROJECT).done \
-$$(PROJECT).fit.rpt \
-$$(PROJECT).fit.smsg \
-$$(PROJECT).fit.summary \
-$$(PROJECT).flow.rpt \
-$$(PROJECT).jdi \
-$$(PROJECT).map.rpt \
-$$(PROJECT).map.summary \
-$$(PROJECT).pin \
-$$(PROJECT).qws \
-$$(PROJECT).sta.rpt \
-$$(PROJECT).sta.summary \
-run.tcl
-
-#target for performing local synthesis
-local: syn_pre_cmd synthesis syn_post_cmd
-
-synthesis:
-\t\techo "load_package flow" > run.tcl
-\t\techo "project_open $$(PROJECT)" >> run.tcl
-\t\techo "execute_flow -compile" >> run.tcl
-\t\t${quartus_sh_path} -t run.tcl
-
-syn_post_cmd:
-\t\t${syn_post_cmd}
-
-syn_pre_cmd:
-\t\t${syn_pre_cmd}
-
-#target for cleaing all intermediate stuff
-clean:
-\t\trm -f $$(QUARTUS_CRAP)
-\t\trm -rf db incremental_db
-
-#target for cleaning final files
-mrproper:
-\t\trm -f *.sof *.pof *.jam *.jbc *.ekp *.jic
-
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local
-
-""")
-
-        if top_mod.manifest_dict["syn_pre_cmd"]:
-            syn_pre_cmd = top_mod.manifest_dict["syn_pre_cmd"]
-        else:
-            syn_pre_cmd = ''
-
-        if top_mod.manifest_dict["syn_post_cmd"]:
-            syn_post_cmd = top_mod.manifest_dict["syn_post_cmd"]
-        else:
-            syn_post_cmd = ''
-
-        makefile_text = makefile_tmplt.substitute(
-            syn_top=top_mod.manifest_dict["syn_top"],
-            project_name=top_mod.manifest_dict[
-                "syn_project"],
-            quartus_path=tool_path,
-            syn_pre_cmd=syn_pre_cmd,
-            syn_post_cmd=syn_post_cmd,
-            quartus_sh_path=os.path.join(tool_path, "quartus_sh"))
-        self.write(makefile_text)
-        for file_aux in top_mod.incl_makefiles:
-            if os.path.exists(file_aux):
-                self.write("include %s\n" % file_aux)
-
     def _set_tcl_files(self, mod):
         """Method that checks if the TCL files declared by the module
         manifest dictionary exists and if so create them and
@@ -147,7 +96,6 @@ mrproper:
                               " doesn't exist: " + path + ".\nExiting.")
                 quit()
             self._preflow = path
-
         if mod.manifest_dict["quartus_postmodule"] is not None:
             path = path_mod.compose(
                 mod.manifest_dict["quartus_postmodule"], mod.path)
@@ -156,7 +104,6 @@ mrproper:
                               " doesn't exist: " + path + ".\nExiting.")
                 quit()
             self._postmodule = path
-
         if mod.manifest_dict["quartus_postflow"] is not None:
             path = path_mod.compose(
                 mod.manifest_dict["quartus_postflow"], mod.path)
@@ -332,13 +279,11 @@ mrproper:
             "^EP4CGX.*$": "Cyclone IV GX",
             "^5S.*$": "Stratix V",
         }
-
-        syn_device = top_mod.manifest_dict["syn_device"],
-        syn_family = top_mod.manifest_dict["syn_family"],
-        syn_grade = top_mod.manifest_dict["syn_grade"],
-        syn_package = top_mod.manifest_dict["syn_package"],
+        syn_device = top_mod.manifest_dict["syn_device"]
+        syn_family = top_mod.manifest_dict["syn_family"]
+        syn_grade = top_mod.manifest_dict["syn_grade"]
+        syn_package = top_mod.manifest_dict["syn_package"]
         syn_top = top_mod.manifest_dict["syn_top"]
-
         if syn_family is None:
             for key in family_names:
                 if re.match(key, syn_device.upper()):
@@ -346,12 +291,10 @@ mrproper:
                     logging.debug(
                         "Auto-guessed syn_family to be %s (%s => %s)",
                         syn_family, syn_device, key)
-
         if syn_family is None:
             logging.error("Could not auto-guess device family, please "
                           "specify in Manifest.py using syn_family!")
             sys.exit("\nExiting")
-
         devstring = (syn_device + syn_package + syn_grade).upper()
         q_prop = _QuartusProjectProperty
         self.add_property(

@@ -22,6 +22,7 @@
 
 from __future__ import print_function
 import os
+import sys
 import logging
 import platform
 
@@ -161,7 +162,8 @@ def flatten_list(sth):
 
 
 def check_windows():
-    if platform.system() == 'Windows':
+    """Check if we are operating on a Windows filesystem"""
+    if platform.system() == 'Windows' or sys.platform == 'cygwin':
         return True
     else:
         return False

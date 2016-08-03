@@ -50,6 +50,28 @@ class ToolPlanAhead(ActionMakefile):
 
     SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile, XCOFile]
 
+    CLEAN_TARGETS = {'clean': ["planAhead_*", "planAhead.*", "run.tcl",
+                               ".Xil", "$(PROJECT).cache", "$(PROJECT).data",
+                               " $(PROJECT).runs", "$(PROJECT).ppr"],
+                     'mrproper': ["*.bit", "*.bin"]}
+
+    TCL_CONTROLS = {'windows_interpreter': 'planAhead -mode tcl -source ',
+                    'linux_interpreter': 'planAhead -mode tcl -source ',
+                    'open': 'open_project $(PROJECT).ppr',
+                    'save': '',
+                    'close': 'exit',
+                    'synthesize': 'reset_run synth_1\n'
+                                  'launch_runs synth_1\n'
+                                  'wait_on_run synth_1',
+                    'translate': '',
+                    'map': '',
+                    'par': 'reset_run impl_1\n'
+                           'launch_runs impl_1\n'
+                           'wait_on_run impl_1',
+                    'bitstream': 'launch_runs impl_1 -to_step Bitgen\n'
+                                 'wait_on_run impl_1',
+                    'install_source': '$(PROJECT).runs/impl_1/$(SYN_TOP).bit'}
+
     def __init__(self):
         super(ToolPlanAhead, self).__init__()
         self.properties = []
@@ -61,73 +83,6 @@ class ToolPlanAhead(ActionMakefile):
     def detect_version(self, path):
         """Get the Xilinx PlanAhead program version"""
         return 'unknown'
-
-    def generate_synthesis_makefile(self, top_mod, tool_path):
-        """Generate a synthesis Makefile for Xilinx PlanAhead"""
-        makefile_tmplt = string.Template("""PROJECT := ${project_name}
-PLANAHEAD_CRAP := \
-planAhead_* \
-planAhead.* \
-run.tcl
-
-#target for performing local synthesis
-local: syn_pre_cmd synthesis syn_post_cmd
-
-synthesis:
-\t\techo "open_project $$(PROJECT).ppr" > run.tcl
-\t\techo "reset_run synth_1" >> run.tcl
-\t\techo "reset_run impl_1" >> run.tcl
-\t\techo "launch_runs synth_1" >> run.tcl
-\t\techo "wait_on_run synth_1" >> run.tcl
-\t\techo "launch_runs impl_1" >> run.tcl
-\t\techo "wait_on_run impl_1" >> run.tcl
-\t\techo "launch_runs impl_1 -to_step Bitgen" >> run.tcl
-\t\techo "wait_on_run impl_1" >> run.tcl
-\t\techo "exit" >> run.tcl
-\t\t${planahead_sh_path} -mode tcl -source run.tcl
-\t\tcp $$(PROJECT).runs/impl_1/${syn_top}.bit ${syn_top}.bit
-
-syn_post_cmd:
-\t\t${syn_post_cmd}
-
-syn_pre_cmd:
-\t\t${syn_pre_cmd}
-
-#target for cleaning all intermediate stuff
-clean:
-\t\trm -f $$(PLANAHEAD_CRAP)
-\t\trm -rf .Xil $$(PROJECT).cache $$(PROJECT).data $$(PROJECT).runs $$(PROJECT).ppr
-
-#target for cleaning final files
-mrproper:
-\t\trm -f *.bit
-
-.PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis local
-
-""")
-
-        if top_mod.manifest_dict["syn_pre_cmd"]:
-            syn_pre_cmd = top_mod.manifest_dict["syn_pre_cmd"]
-        else:
-            syn_pre_cmd = ''
-
-        if top_mod.manifest_dict["syn_post_cmd"]:
-            syn_post_cmd = top_mod.manifest_dict["syn_post_cmd"]
-        else:
-            syn_post_cmd = ''
-
-        makefile_text = makefile_tmplt.substitute(
-            syn_top=top_mod.manifest_dict["syn_top"],
-            project_name=top_mod.manifest_dict[
-                "syn_project"],
-            planahead_path=tool_path,
-            syn_pre_cmd=syn_pre_cmd,
-            syn_post_cmd=syn_post_cmd,
-            planahead_sh_path=os.path.join(tool_path, "planAhead"))
-        self.write(makefile_text)
-        for file_aux in top_mod.incl_makefiles:
-            if os.path.exists(file_aux):
-                self.write("include %s\n" % file_aux)
 
     def generate_synthesis_project(
             self, update=False, tool_version='', top_mod=None, fileset=None):
@@ -146,7 +101,6 @@ mrproper:
         self.add_files(fileset)
         self.emit()
         self.execute()
-
         logging.info("PlanAhead project file generated.")
 
     def emit(self):
