@@ -78,7 +78,6 @@ class VsimMakefileWriter(ActionMakefile):
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
 
-
     def _print_sim_compilation(self, fileset, top_module):
         """Write a properly formatted Makefile for the simulator.
         The Makefile format is shared, but flags, dependencies, clean rules,

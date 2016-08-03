@@ -42,15 +42,12 @@ class ToolActiveHDL(ActionMakefile):
     CLEAN_TARGETS = {'clean': ["run.command", "library.cfg", "work"],
                      'mrproper': ["*.vcd", "*.asdb"]}
 
-
     def __init__(self):
         super(ToolActiveHDL, self).__init__()
-
 
     def detect_version(self, path):
         """Get the version from the Aldec-HDL binary program"""
         pass
-
 
     def _print_sim_compilation(self, fileset, top_module):
         """Print Makefile compilation target for Aldec Active-HDL simulator"""

@@ -57,7 +57,7 @@ class ToolISim(ActionMakefile):
 
     CLEAN_TARGETS = {'clean': ["./xilinxsim.ini $(LIBS)", "fuse.xmsgs",
                                "fuse.log", "fuseRelaunch.cmd", "isim",
-                               "isim.log", "isim.wdb", "isim_proj", 
+                               "isim.log", "isim.wdb", "isim_proj",
                                "isim_proj.*"],
                      'mrproper': ["*.vcd"]}
 
@@ -91,7 +91,6 @@ XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) +
                      """
 """)
 
-
     def _print_sim_options(self, top_module):
         """Print the Xilinx ISim simulation options in the Makefile"""
         self.writeln("""VHPCOMP_FLAGS := -intstyle default \
@@ -101,7 +100,6 @@ VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
                      self.__get_rid_of_isim_incdirs(
                      top_module.manifest_dict["vlog_opt"]) + """
 """)
-
 
     def _print_sim_compilation(self, fileset, top_module):
         """Print the compile simulation target for Xilinx ISim"""

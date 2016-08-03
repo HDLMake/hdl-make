@@ -69,4 +69,3 @@ class ToolModelsim(VsimMakefileWriter):
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
         super(ToolModelsim, self)._print_sim_options(top_module)
-

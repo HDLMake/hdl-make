@@ -45,7 +45,6 @@ class ToolGHDL(ActionMakefile):
     CLEAN_TARGETS = {'clean': ["*.cf", "*.o", "$(TOP_MODULE)"],
                      'mrproper': ["*.vcd"]}
 
-
     def __init__(self):
         super(ToolGHDL, self).__init__()
 
@@ -63,7 +62,6 @@ class ToolGHDL(ActionMakefile):
             """GHDL_OPT := ${ghdl_opt}\n""")
         self.writeln(ghdl_string.substitute(
             ghdl_opt=ghdl_opt))
-
 
     def _print_sim_compilation(self, fileset, top_module):
         """Print the GDHL simulation compilation target"""

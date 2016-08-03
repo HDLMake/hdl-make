@@ -154,7 +154,6 @@ sim_post_cmd:
         self.writeln(sim_command.substitute(sim_pre_cmd=sim_pre_cmd,
                                             sim_post_cmd=sim_post_cmd))
 
-
     def _print_clean(self, clean_targets):
         """Print the Makefile clean target"""
         if platform.system() == 'Windows':
@@ -174,12 +173,10 @@ sim_post_cmd:
         self.writeln(tmp)
         self.writeln()
 
-
     def _print_sim_phony(self, top_module):
         """Print simulation PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation")
-
 
     def initialize(self):
         """Open the Makefile file and print a header if not initialized"""

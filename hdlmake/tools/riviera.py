@@ -81,7 +81,6 @@ class ToolRiviera(VsimMakefileWriter):
         super(ToolRiviera, self).__init__()
         self.vcom_flags.append("-2008")
 
-
     def detect_version(self, path):
         """Get version from Aldec Riviera-PRO binary program"""
         pass

@@ -53,10 +53,8 @@ class ToolIVerilog(ActionMakefile):
     CLEAN_TARGETS = {'clean': ["run.command", "ivl_vhdl_work"],
                      'mrproper': ["*.vcd", "*.vvp"]}
 
-
     def __init__(self):
         super(ToolIVerilog, self).__init__()
-
 
     def detect_version(self, path):
         """Get version from Icarus Verilog program"""
@@ -68,7 +66,6 @@ class ToolIVerilog(ActionMakefile):
                          close_fds=not is_windows)
         version = iverilog.stdout.readlines()[0].strip()
         return version
-
 
     def _print_sim_compilation(self, fileset, top_module):
         """Generate compile simulation Makefile target for IVerilog"""
@@ -107,4 +104,3 @@ class ToolIVerilog(ActionMakefile):
             """IVERILOG_OPT := ${iverilog_opt}\n""")
         self.writeln(iverilog_string.substitute(
             iverilog_opt=iverilog_opt))
-
