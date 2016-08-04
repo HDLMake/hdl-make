@@ -49,7 +49,7 @@ class ToolActiveHDL(ActionMakefile):
         """Get the version from the Aldec-HDL binary program"""
         pass
 
-    def _print_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self, fileset, top_module):
         """Print Makefile compilation target for Aldec Active-HDL simulator"""
         self.writeln("simulation:")
         self.writeln("\t\techo \"# Active-HDL command file,"

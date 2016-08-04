@@ -52,7 +52,7 @@ class ToolGHDL(ActionMakefile):
         """Get tool version for GHDL"""
         pass
 
-    def _print_sim_options(self, top_module):
+    def makefile_sim_options(self, top_module):
         """Print the GHDL options to the Makefile"""
         if top_module.manifest_dict["ghdl_opt"]:
             ghdl_opt = top_module.manifest_dict["ghdl_opt"]
@@ -63,7 +63,7 @@ class ToolGHDL(ActionMakefile):
         self.writeln(ghdl_string.substitute(
             ghdl_opt=ghdl_opt))
 
-    def _print_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self, fileset, top_module):
         """Print the GDHL simulation compilation target"""
         self.writeln("simulation:")
         self.writeln("\t\t# Analyze sources")

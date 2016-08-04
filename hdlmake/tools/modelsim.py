@@ -59,7 +59,7 @@ class ToolModelsim(VsimMakefileWriter):
         """Get version from the Mentor Modelsim program"""
         pass
 
-    def _print_sim_options(self, top_module):
+    def makefile_sim_options(self, top_module):
         """Print the Modelsim options to the Makefile"""
         if top_module.pool.env["modelsim_path"]:
             modelsim_ini_path = os.path.join(
@@ -68,4 +68,4 @@ class ToolModelsim(VsimMakefileWriter):
         else:
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
-        super(ToolModelsim, self)._print_sim_options(top_module)
+        super(ToolModelsim, self).makefile_sim_options(top_module)

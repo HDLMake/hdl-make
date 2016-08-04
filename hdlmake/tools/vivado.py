@@ -81,7 +81,7 @@ class ToolVivado(ActionMakefile):
         """Get version from Xilinx Vivado binary program"""
         return 'unknown'
 
-    def _print_syn_tcl(self, top_module, tcl_controls):
+    def makefile_syn_tcl(self, top_module, tcl_controls):
         """Create a Xilinx Vivado project"""
         tmp = "set_property {0} {1} [{2}]"
         syn_device = top_module.manifest_dict["syn_device"]
@@ -97,9 +97,9 @@ class ToolVivado(ActionMakefile):
         for prop in properties:
             create_new.append(tmp.format(prop[0], prop[1], prop[2]))
         tcl_controls["create"] = "\n".join(create_new)
-        super(ToolVivado, self)._print_syn_tcl(top_module, tcl_controls)
+        super(ToolVivado, self).makefile_syn_tcl(top_module, tcl_controls)
 
-    def _print_syn_files(self, fileset):
+    def makefile_syn_files(self, fileset):
         """Create a Xilinx Vivado project"""
         self.writeln("define TCL_FILES")
         tmp = "add_files -norecurse {0}"

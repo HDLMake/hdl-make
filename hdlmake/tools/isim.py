@@ -80,7 +80,7 @@ class ToolISim(ActionMakefile):
             return None
         return isim_version
 
-    def _print_sim_top(self, top_module):
+    def makefile_sim_top(self, top_module):
         """Print the top section of the Makefile for Xilinx ISim"""
         self.writeln("""## variables #############################
 PWD := $(shell pwd)
@@ -91,7 +91,7 @@ XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) +
                      """
 """)
 
-    def _print_sim_options(self, top_module):
+    def makefile_sim_options(self, top_module):
         """Print the Xilinx ISim simulation options in the Makefile"""
         self.writeln("""VHPCOMP_FLAGS := -intstyle default \
 -incremental -initfile xilinxsim.ini
@@ -101,7 +101,7 @@ VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
                      top_module.manifest_dict["vlog_opt"]) + """
 """)
 
-    def _print_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self, fileset, top_module):
         """Print the compile simulation target for Xilinx ISim"""
         make_preambule_p2 = """## rules #################################
 simulation: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ) fuse

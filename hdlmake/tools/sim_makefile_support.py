@@ -60,7 +60,7 @@ class VsimMakefileWriter(ActionMakefile):
         self.copy_rules = {}
         super(VsimMakefileWriter, self).__init__()
 
-    def _print_sim_options(self, top_module):
+    def makefile_sim_options(self, top_module):
         """Print the vsim options to the Makefile"""
         self.vlog_flags.append(
             self.__get_rid_of_vsim_incdirs(
@@ -78,7 +78,7 @@ class VsimMakefileWriter(ActionMakefile):
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
 
-    def _print_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self, fileset, top_module):
         """Write a properly formatted Makefile for the simulator.
         The Makefile format is shared, but flags, dependencies, clean rules,
         etc are defined by the specific tool.

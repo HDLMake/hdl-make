@@ -55,7 +55,7 @@ class ActionMakefile(Action):
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 
-    def _print_sim_top(self, top_module):
+    def makefile_sim_top(self, top_module):
         top_parameter = string.Template("""\
 TOP_MODULE := ${top_module}
 PWD := $$(shell pwd)
@@ -63,7 +63,7 @@ PWD := $$(shell pwd)
         self.writeln(top_parameter.substitute(
             top_module=top_module.manifest_dict["sim_top"]))
 
-    def _print_syn_top(self, top_module, tool_path, tool_info):
+    def makefile_syn_top(self, top_module, tool_path, tool_info):
         """Create the top part of the synthesis Makefile"""
         if path_mod.check_windows():
             tcl_interpreter = tool_info["windows_bin"]
@@ -85,7 +85,7 @@ TCL_INTERPRETER := $$(TOOL_PATH)/${tcl_interpreter}
             tool_path=tool_path,
             top_module=top_module.manifest_dict["syn_top"]))
 
-    def _print_syn_tcl(self, top_module, tcl_controls):
+    def makefile_syn_tcl(self, top_module, tcl_controls):
         """Create the Makefile TCL dictionary for the selected tool"""
         tcl_string = string.Template("""\
 
@@ -147,18 +147,18 @@ export TCL_BITSTREAM
             tcl_bitstream=tcl_controls["bitstream"]))
 
 
-    def _print_sim_options(self, top_module):
+    def makefile_sim_options(self, top_module):
         pass
 
-    def _print_sim_local(self, top_module):
+    def makefile_sim_local(self, top_module):
         self.writeln("#target for performing local simulation\n"
                      "local: sim_pre_cmd simulation sim_post_cmd\n")
 
-    def _print_syn_local(self):
+    def makefile_syn_local(self):
         self.writeln("#target for performing local synthesis\n"
                      "local: syn_pre_cmd synthesis syn_post_cmd\n")
 
-    def _print_syn_build(self):
+    def makefile_syn_build(self):
         """Generate a Makefile to handle a synthesis project"""
         self.writeln("""\
 #target for performing local synthesis
@@ -208,7 +208,7 @@ bitstream: tcl_clean tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd run_
 
 """)
 
-    def _print_sim_sources(self, fileset):
+    def makefile_sim_sources(self, fileset):
         from hdlmake.srcfile import VerilogFile, VHDLFile
         self.write("VERILOG_SRC := ")
         for vl in fileset.filter(VerilogFile):
@@ -254,7 +254,7 @@ bitstream: tcl_clean tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd run_
                 " \\\n")
         self.write('\n')
 
-    def _print_syn_command(self, top_module):
+    def makefile_syn_command(self, top_module):
         """Create the Makefile targets for user defined commands"""
         syn_command = string.Template("""\
 # User defined commands
@@ -315,7 +315,7 @@ syn_post_bitstream_cmd:
             syn_post_bitstream_cmd=top_module.manifest_dict[
                 "syn_post_bitstream_cmd"]))
 
-    def _print_sim_command(self, top_module):
+    def makefile_sim_command(self, top_module):
         if top_module.manifest_dict["sim_pre_cmd"]:
             sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
         else:
@@ -352,7 +352,7 @@ sim_post_cmd:
             " " + ' '.join(clean_targets["mrproper"])
         self.writeln(tmp)
 
-    def _print_syn_clean(self, clean_targets):
+    def makefile_syn_clean(self, clean_targets):
         """Print the Makefile clean target for synthesis"""
         self._print_tool_clean(clean_targets)
         self.writeln("\t\t" + path_mod.del_command() +
@@ -361,17 +361,17 @@ sim_post_cmd:
             " tcl_synthesize tcl_translate tcl_map tcl_par tcl_bitstream")
         self._print_tool_mrproper(clean_targets)
 
-    def _print_sim_clean(self, clean_targets):
+    def makefile_sim_clean(self, clean_targets):
         """Print the Makefile clean target for synthesis"""
         self._print_tool_clean(clean_targets)
         self._print_tool_mrproper(clean_targets)
 
-    def _print_sim_phony(self, top_module):
+    def makefile_sim_phony(self, top_module):
         """Print simulation PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation")
 
-    def _print_syn_phony(self):
+    def makefile_syn_phony(self):
         """Print synthesis PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis")

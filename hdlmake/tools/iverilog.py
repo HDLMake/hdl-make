@@ -67,7 +67,7 @@ class ToolIVerilog(ActionMakefile):
         version = iverilog.stdout.readlines()[0].strip()
         return version
 
-    def _print_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self, fileset, top_module):
         """Generate compile simulation Makefile target for IVerilog"""
 
         self.writeln("simulation:")
@@ -94,7 +94,7 @@ class ToolIVerilog(ActionMakefile):
         self.writeln("\t\tiverilog $(IVERILOG_OPT) -s $(TOP_MODULE)"
                      " -o $(TOP_MODULE).vvp -c run.command")
 
-    def _print_sim_options(self, top_module):
+    def makefile_sim_options(self, top_module):
         """Print the IVerilog options to the Makefile"""
         if top_module.manifest_dict["iverilog_opt"]:
             iverilog_opt = top_module.manifest_dict["iverilog_opt"]
