@@ -23,15 +23,15 @@
 
 """Module providing support for Xilinx PlanAhead synthesis"""
 
-from hdlmake.action import ActionMakefile
-from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
+from .xilinx import ToolXilinx
+from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, TCLFile,
                              UCFFile, NGCFile, XMPFile, XCOFile)
 
 
 PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolPlanAhead(ActionMakefile):
+class ToolPlanAhead(ToolXilinx):
 
     """Class providing the interface for Xilinx PlanAhead synthesis"""
 
@@ -71,43 +71,4 @@ class ToolPlanAhead(ActionMakefile):
     def detect_version(self, path):
         """Get the Xilinx PlanAhead program version"""
         return 'unknown'
-
-    def makefile_syn_tcl(self, top_module, tcl_controls):
-        """Create a Xilinx PlanAhead project"""
-        tmp = "set_property {0} {1} [{2}]"
-        syn_device = top_module.manifest_dict["syn_device"]
-        syn_grade = top_module.manifest_dict["syn_grade"]
-        syn_package = top_module.manifest_dict["syn_package"]
-        syn_top = top_module.manifest_dict["syn_top"]
-        create_new = []
-        create_new.append(tcl_controls["create"])
-        properties = [
-            ['part', syn_device + syn_package + syn_grade, 'current_project'],
-            ['target_language', 'VHDL', 'current_project'],
-            ['top', syn_top, 'get_property srcset [current_run]']]
-        for prop in properties:
-            create_new.append(tmp.format(prop[0], prop[1], prop[2]))
-        tcl_controls["create"] = "\n".join(create_new)
-        super(ToolPlanAhead, self).makefile_syn_tcl(top_module, tcl_controls)
-
-    def makefile_syn_files(self, fileset):
-        """Create a Xilinx PlanAhead project"""
-        self.writeln("define TCL_FILES")
-        tmp = "add_files -norecurse {0}"
-        for file_aux in fileset:
-            if (isinstance(file_aux, VHDLFile) or
-                isinstance(file_aux, VerilogFile) or
-                isinstance(file_aux, SVFile) or
-                isinstance(file_aux, UCFFile) or
-                isinstance(file_aux, NGCFile) or
-                isinstance(file_aux, XMPFile) or
-                    isinstance(file_aux, XCOFile)):
-                line = tmp.format(file_aux.rel_path())
-            else:
-                continue
-            self.writeln(line)
-        self.writeln('update_compile_order -fileset sources_1')
-        self.writeln('update_compile_order -fileset sim_1')
-        self.writeln("endef")
-        self.writeln("export TCL_FILES")
 

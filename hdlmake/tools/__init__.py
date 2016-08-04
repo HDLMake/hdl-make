@@ -6,6 +6,7 @@ from .riviera import ToolRiviera
 from .ghdl import ToolGHDL
 from .sim_makefile_support import VsimMakefileWriter
 
+from .xilinx import ToolXilinx
 from .ise import ToolISE
 from .planahead import ToolPlanAhead
 from .vivado import ToolVivado
