@@ -89,7 +89,6 @@ class ToolPlanAhead(ActionMakefile):
         properties = [
             ['part', syn_device + syn_package + syn_grade, 'current_project'],
             ['target_language', 'VHDL', 'current_project'],
-            ['ng.output_hdl_format', 'VHDL', 'get_filesets sim_1'],
             ['top', syn_top, 'get_property srcset [current_run]']]
         for prop in properties:
             create_new.append(tmp.format(prop[0], prop[1], prop[2]))
