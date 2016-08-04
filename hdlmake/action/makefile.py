@@ -63,18 +63,36 @@ PWD := $$(shell pwd)
         self.writeln(top_parameter.substitute(
             top_module=top_module.manifest_dict["sim_top"]))
 
-    def _print_syn_top(self, top_module, tool_path, tcl_controls):
+    def _print_syn_top(self, top_module, tool_path, tool_info):
         """Create the top part of the synthesis Makefile"""
         if path_mod.check_windows():
-            tcl_interpreter = tcl_controls["windows_interpreter"]
+            tcl_interpreter = tool_info["windows_bin"]
         else:
-            tcl_interpreter = tcl_controls["linux_interpreter"]
+            tcl_interpreter = tool_info["linux_bin"]
         top_parameter = string.Template("""\
 TOP_MODULE := ${top_module}
 PWD := $$(shell pwd)
 PROJECT := ${project_name}
+PROJECT_FILE := $$(PROJECT).${project_ext}
 TOOL_PATH := ${tool_path}
 TCL_INTERPRETER := $$(TOOL_PATH)/${tcl_interpreter}
+
+""")
+        self.writeln(top_parameter.substitute(
+            tcl_interpreter=tcl_interpreter,
+            project_name=top_module.manifest_dict["syn_project"],
+            project_ext=tool_info["project_ext"],
+            tool_path=tool_path,
+            top_module=top_module.manifest_dict["syn_top"]))
+
+    def _print_syn_tcl(self, top_module, tcl_controls):
+        """Create the Makefile TCL dictionary for the selected tool"""
+        tcl_string = string.Template("""\
+
+define TCL_CREATE
+${tcl_create}
+endef
+export TCL_CREATE
 
 define TCL_OPEN
 ${tcl_open}
@@ -99,7 +117,7 @@ export TCL_SYNTHESIZE
 define TCL_TRANSLATE
 ${tcl_translate}
 endef
-export TCL_SYNTHESIZE
+export TCL_TRANSLATE
 
 define TCL_MAP
 ${tcl_map}
@@ -117,10 +135,8 @@ endef
 export TCL_BITSTREAM
 
 """)
-        self.writeln(top_parameter.substitute(
-            project_name=top_module.manifest_dict["syn_project"],
-            tool_path=tool_path,
-            tcl_interpreter=tcl_interpreter,
+        self.writeln(tcl_string.substitute(
+            tcl_create=tcl_controls["create"],
             tcl_open=tcl_controls["open"],
             tcl_save=tcl_controls["save"],
             tcl_close=tcl_controls["close"],
@@ -128,8 +144,8 @@ export TCL_BITSTREAM
             tcl_translate=tcl_controls["translate"],
             tcl_map=tcl_controls["map"],
             tcl_par=tcl_controls["par"],
-            tcl_bitstream=tcl_controls["bitstream"],
-            top_module=top_module.manifest_dict["syn_top"]))
+            tcl_bitstream=tcl_controls["bitstream"]))
+
 
     def _print_sim_options(self, top_module):
         pass
@@ -148,8 +164,19 @@ export TCL_BITSTREAM
 #target for performing local synthesis
 synthesis: bitstream
 
+tcl_clean:
+\t\techo "" > run.tcl
+
+ifeq ($(wildcard $(PROJECT_FILE)),)
 tcl_open:
-\t\techo "$$TCL_OPEN" > run.tcl
+\t\t# The project doesn't exist, create
+\t\techo "$$TCL_CREATE" >> run.tcl
+\t\techo "$$TCL_FILES" >> run.tcl
+else
+tcl_open:
+\t\t# The project exists, update
+\t\techo "$$TCL_OPEN" >> run.tcl
+endif
 tcl_save:
 \t\techo "$$TCL_SAVE" >> run.tcl
 tcl_close: tcl_save
@@ -168,15 +195,15 @@ tcl_bitstream: tcl_par
 run_tcl:
 \t\t$(TCL_INTERPRETER)run.tcl
 
-synthesize: tcl_open tcl_synthesize tcl_close syn_pre_synthesize_cmd run_tcl syn_post_synthesize_cmd
+synthesize: tcl_clean tcl_open tcl_synthesize tcl_close syn_pre_synthesize_cmd run_tcl syn_post_synthesize_cmd
 \t\ttouch $@ tcl_synthesize
-translate: tcl_open tcl_translate tcl_close syn_pre_translate_cmd run_tcl syn_post_translate_cmd
+translate: tcl_clean tcl_open tcl_translate tcl_close syn_pre_translate_cmd run_tcl syn_post_translate_cmd
 \t\ttouch $@ tcl_translate tcl_synthesize
-map: tcl_open tcl_map tcl_close syn_pre_map_cmd run_tcl syn_post_map_cmd
+map: tcl_clean tcl_open tcl_map tcl_close syn_pre_map_cmd run_tcl syn_post_map_cmd
 \t\ttouch $@ tcl_map tcl_translate tcl_synthesize
 par: tcl_open tcl_par tcl_close syn_pre_par_cmd run_tcl syn_post_par_cmd
 \t\ttouch $@ tcl_par tcl_map tcl_translate tcl_synthesize
-bitstream: tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd run_tcl syn_post_bitstream_cmd
+bitstream: tcl_clean tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd run_tcl syn_post_bitstream_cmd
 \t\ttouch $@ tcl_bitstream tcl_par tcl_map tcl_translate tcl_synthesize
 
 """)

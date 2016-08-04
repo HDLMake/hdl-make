@@ -125,7 +125,7 @@ def _action_runner(modules_pool):
             modules_pool.simulation_makefile()
         elif top_mod.action == "synthesis":
             modules_pool.synthesis_project()
-            modules_pool.synthesis_makefile()
+            #modules_pool.synthesis_makefile()
         elif top_mod.action == "qsys_hw_tcl_update":
             if not top_mod.manifest_dict["hw_tcl_filename"]:
                 logging.error("'hw_tcl_filename' manifest variable has to be specified. "

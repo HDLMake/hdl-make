@@ -63,51 +63,6 @@ class ActionSynthesis(
             logging.error("Synthesis tool not recognized: %s", tool_name)
         return tool_object
 
-    def _check_synthesis_makefile(self):
-        """Check the manifest contains all the keys for a synthesis makefile"""
-        # NOTE: top_module is not used in synthesis!!
-        if not self.get_top_module().manifest_dict["syn_top"]:
-            logging.error("syn_top variable must be set in the top manifest.")
-            sys.exit("Exiting")
-        if not self.get_top_module().manifest_dict["syn_tool"]:
-            logging.error("syn_tool variable must be set in the top manifest.")
-            sys.exit("Exiting")
-
-    def synthesis_makefile(self):
-        """Generate a synthesis Makefile for the selected tool"""
-        self._check_all_fetched_or_quit()
-        self._check_synthesis_makefile()
-
-        tool_object = self._load_synthesis_tool()
-        tool_info = tool_object.TOOL_INFO
-        path_key = tool_info['id'] + '_path'
-        name = tool_info['name']
-        top_module = self.get_top_module()
-
-        env = self.env
-        env.check_general()
-        env.check_tool(tool_object)
-
-        if env[path_key]:
-            tool_path = env[path_key]
-        else:
-            tool_path = ""
-
-        tool_ctrl = tool_object.TCL_CONTROLS
-
-        logging.info("Generating synthesis makefile for " + name)
-        tool_object._print_incl_makefiles(top_module)
-        tool_object._print_syn_top(top_module, tool_path, tool_ctrl)
-        tool_object._print_syn_local()
-        tool_object._print_syn_command(top_module)
-        tool_object._print_syn_build()
-        tool_object._print_syn_clean(tool_object.CLEAN_TARGETS)
-        tool_object._print_syn_phony()
-        # tool_object.generate_synthesis_makefile(
-        #    top_mod=top_module,
-        #    tool_path=tool_path)
-        logging.info("Synthesis makefile generated.")
-
     def _write_project_vhd(self, tool, version):
         """Create a VHDL file containing a SDB compatible design description"""
         from string import Template
@@ -210,6 +165,7 @@ end sdb_meta_pkg;""")
 
         tool_object = self._load_synthesis_tool()
         tool_info = tool_object.TOOL_INFO
+        tool_ctrl = tool_object.TCL_CONTROLS
         path_key = tool_info['id'] + '_path'
         version_key = tool_info['id'] + '_version'
         name = tool_info['name']
@@ -219,6 +175,13 @@ end sdb_meta_pkg;""")
         env = self.env
         env.check_general()
         env.check_tool(tool_object)
+
+        top_module = self.get_top_module()
+
+        if env[path_key]:
+            tool_path = env[path_key]
+        else:
+            tool_path = ""
 
         if not self.env.options.force:
             if self.env[path_key] is None:
@@ -262,10 +225,13 @@ end sdb_meta_pkg;""")
             fileset.add([sff.new(path=path.rel2abs("project.vhd"),
                                  module=self.get_module_by_path("."))])
 
-        tool_object.generate_synthesis_project(update=update,
-                                               tool_version=self.env[
-                                               version_key],
-                                               top_mod=self.get_top_module(),
-                                               fileset=fileset)
-
+        tool_object._print_incl_makefiles(top_module)
+        tool_object._print_syn_top(top_module, tool_path, tool_info)
+        tool_object._print_syn_tcl(top_module, tool_ctrl)
+        tool_object._print_syn_files(fileset)
+        tool_object._print_syn_local()
+        tool_object._print_syn_command(top_module)
+        tool_object._print_syn_build()
+        tool_object._print_syn_clean(tool_object.CLEAN_TARGETS)
+        tool_object._print_syn_phony()
         logging.info(name + " project file generated.")
