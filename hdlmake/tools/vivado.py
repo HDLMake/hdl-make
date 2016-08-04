@@ -52,7 +52,7 @@ class ToolVivado(ActionMakefile):
     SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile,
                        XCOFile, BDFile, TCLFile]
 
-    CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil",
+    CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log",
                                "$(PROJECT).cache", "$(PROJECT).data",
                                "$(PROJECT).runs", "$(PROJECT_FILE)"],
                      'mrproper': ["*.bit", "*.bin"]}
@@ -76,11 +76,6 @@ class ToolVivado(ActionMakefile):
 
     def __init__(self):
         super(ToolVivado, self).__init__()
-        self.properties = []
-        self.files = []
-        self.filename = None
-        self.header = None
-        self.tclname = 'temporal.tcl'
 
     def detect_version(self, path):
         """Get version from Xilinx Vivado binary program"""

@@ -67,11 +67,6 @@ class ToolPlanAhead(ActionMakefile):
 
     def __init__(self):
         super(ToolPlanAhead, self).__init__()
-        self.properties = []
-        self.files = []
-        #self.filename = None
-        self.header = None
-        self.tclname = 'temporal.tcl'
 
     def detect_version(self, path):
         """Get the Xilinx PlanAhead program version"""
