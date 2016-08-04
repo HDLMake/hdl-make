@@ -23,11 +23,6 @@
 
 """Module providing support for Xilinx PlanAhead synthesis"""
 
-import subprocess
-import sys
-import os
-import logging
-
 from hdlmake.action import ActionMakefile
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                              UCFFile, NGCFile, XMPFile, XCOFile)
