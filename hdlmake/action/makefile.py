@@ -92,42 +92,27 @@ endef
 export TCL_CLOSE
 
 define TCL_SYNTHESIZE
-$$(TCL_OPEN)
 ${tcl_synthesize}
-$$(TCL_SAVE)
-$$(TCL_CLOSE)
 endef
 export TCL_SYNTHESIZE
 
 define TCL_TRANSLATE
-$$(TCL_OPEN)
 ${tcl_translate}
-$$(TCL_SAVE)
-$$(TCL_CLOSE)
 endef
 export TCL_SYNTHESIZE
 
 define TCL_MAP
-$$(TCL_OPEN)
 ${tcl_map}
-$$(TCL_SAVE)
-$$(TCL_CLOSE)
 endef
 export TCL_MAP
 
 define TCL_PAR
-$$(TCL_OPEN)
 ${tcl_par}
-$$(TCL_SAVE)
-$$(TCL_CLOSE)
 endef
 export TCL_PAR
 
 define TCL_BITSTREAM
-$$(TCL_OPEN)
 ${tcl_bitstream}
-$$(TCL_SAVE)
-$$(TCL_CLOSE)
 endef
 export TCL_BITSTREAM
 
@@ -161,49 +146,38 @@ export TCL_BITSTREAM
         """Generate a Makefile to handle a synthesis project"""
         self.writeln("""\
 #target for performing local synthesis
-synthesis: __gen_tcl_bitstream __run_tcl_bitstream
+synthesis: bitstream
 
-__gen_tcl_synthesize:
-\t\techo "$$TCL_SYNTHESIZE" > run_synthesize.tcl
+tcl_open:
+\t\techo "$$TCL_OPEN" > run.tcl
+tcl_save:
+\t\techo "$$TCL_SAVE" >> run.tcl
+tcl_close: tcl_save
+\t\techo "$$TCL_CLOSE" >> run.tcl
+tcl_synthesize:
+\t\techo "$$TCL_SYNTHESIZE" >> run.tcl
+tcl_translate: tcl_synthesize
+\t\techo "$$TCL_TRANSLATE" >> run.tcl
+tcl_map: tcl_translate
+\t\techo "$$TCL_MAP" >> run.tcl
+tcl_par: tcl_map
+\t\techo "$$TCL_PAR" >> run.tcl
+tcl_bitstream: tcl_par
+\t\techo "$$TCL_BITSTREAM" >> run.tcl
 
-__gen_tcl_translate:
-\t\techo "$$TCL_TRANSLATE)" > run_translate.tcl
+run_tcl:
+\t\t$(TCL_INTERPRETER)run.tcl
 
-__gen_tcl_map:
-\t\techo "$$TCL_MAP" > run_map.tcl
-
-__gen_tcl_par:
-\t\techo "$$TCL_PAR" > run_par.tcl
-
-__gen_tcl_bitstream:
-\t\techo "$$TCL_BITSTREAM" > run_bitstream.tcl
-
-
-__run_tcl_synthesize:
-\t\t$(TCL_INTERPRETER)run_synthesize.tcl
-
-__run_tcl_translate:
-\t\t$(TCL_INTERPRETER)run_translate.tcl
-
-__run_tcl_map:
-\t\t$(TCL_INTERPRETER)run_map.tcl
-
-__run_tcl_par:
-\t\t$(TCL_INTERPRETER)run_par.tcl
-
-__run_tcl_bitstream:
-\t\t$(TCL_INTERPRETER)run_bitstream.tcl
-
-
-synthesize: __syn_pre_synthesize_cmd __gen_tcl_synthesize __run_tcl_synthesize __syn_post_synthesize_cmd
-
-translate: __syn_pre_translate_cmd __gen_tcl_translate __run_tcl_translate __syn_post_translate_cmd
-
-map: __syn_pre_map_cmd __gen_tcl_map __run_tcl_map __syn_post_map_cmd
-
-par: __syn_pre_par_cmd __gen_tcl_par __run_tcl_par __syn_post_par_cmd
-
-bitstream: __syn_pre_bitstream_cmd __gen_tcl_bitstream __run_tcl_bitstream __syn_post_bitstream_cmd
+synthesize: tcl_open tcl_synthesize tcl_close syn_pre_synthesize_cmd run_tcl syn_post_synthesize_cmd
+\t\ttouch $@ tcl_synthesize
+translate: tcl_open tcl_translate tcl_close syn_pre_translate_cmd run_tcl syn_post_translate_cmd
+\t\ttouch $@ tcl_translate tcl_synthesize
+map: tcl_open tcl_map tcl_close syn_pre_map_cmd run_tcl syn_post_map_cmd
+\t\ttouch $@ tcl_map tcl_translate tcl_synthesize
+par: tcl_open tcl_par tcl_close syn_pre_par_cmd run_tcl syn_post_par_cmd
+\t\ttouch $@ tcl_par tcl_map tcl_translate tcl_synthesize
+bitstream: tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd run_tcl syn_post_bitstream_cmd
+\t\ttouch $@ tcl_bitstream tcl_par tcl_map tcl_translate tcl_synthesize
 
 """)
 
@@ -262,29 +236,29 @@ syn_pre_cmd:
 syn_post_cmd:
 \t\t${syn_post_cmd}
 
-__syn_pre_synthesize_cmd:
+syn_pre_synthesize_cmd:
 \t\t${syn_pre_synthesize_cmd}
-__syn_post_synthesize_cmd:
+syn_post_synthesize_cmd:
 \t\t${syn_post_synthesize_cmd}
 
-__syn_pre_translate_cmd:
+syn_pre_translate_cmd:
 \t\t${syn_pre_translate_cmd}
-__syn_post_translate_cmd:
+syn_post_translate_cmd:
 \t\t${syn_post_translate_cmd}
 
-__syn_pre_map_cmd:
+syn_pre_map_cmd:
 \t\t${syn_pre_map_cmd}
-__syn_post_map_cmd:
+syn_post_map_cmd:
 \t\t${syn_post_map_cmd}
 
-__syn_pre_par_cmd:
+syn_pre_par_cmd:
 \t\t${syn_pre_par_cmd}
-__syn_post_par_cmd:
+syn_post_par_cmd:
 \t\t${syn_post_par_cmd}
 
-__syn_pre_bitstream_cmd:
+syn_pre_bitstream_cmd:
 \t\t${syn_pre_bitstream_cmd}
-__syn_post_bitstream_cmd:
+syn_post_bitstream_cmd:
 \t\t${syn_post_bitstream_cmd}
 
 """)
@@ -335,24 +309,35 @@ sim_post_cmd:
         self.writeln(sim_command.substitute(sim_pre_cmd=sim_pre_cmd,
                                             sim_post_cmd=sim_post_cmd))
 
-    def _print_clean(self, clean_targets):
-        """Print the Makefile clean target"""
-        if platform.system() == 'Windows':
-            del_command = "rm -rf"
-        else:
-            del_command = "rm -rf"
+    def _print_tool_clean(self, clean_targets):
+        """Print the Makefile target for cleaning intermediate files"""
         self.writeln("#target for cleaning intermediate files")
         self.writeln("clean:")
-        tmp = "\t\t" + del_command + \
+        tmp = "\t\t" + path_mod.del_command() + \
             " $(LIBS) " + ' '.join(clean_targets["clean"])
         self.writeln(tmp)
-        self.writeln()
+
+    def _print_tool_mrproper(self, clean_targets):
+        """Print the Makefile target for cleaning final files"""
         self.writeln("#target for cleaning final files")
         self.writeln("mrproper: clean")
-        tmp = "\t\t" + del_command + \
+        tmp = "\t\t" + path_mod.del_command() + \
             " " + ' '.join(clean_targets["mrproper"])
         self.writeln(tmp)
-        self.writeln()
+
+    def _print_syn_clean(self, clean_targets):
+        """Print the Makefile clean target for synthesis"""
+        self._print_tool_clean(clean_targets)
+        self.writeln("\t\t" + path_mod.del_command() +
+            " synthesize translate map par bitstream")
+        self.writeln("\t\t" + path_mod.del_command() +
+            " tcl_synthesize tcl_translate tcl_map tcl_par tcl_bitstream")
+        self._print_tool_mrproper(clean_targets)
+
+    def _print_sim_clean(self, clean_targets):
+        """Print the Makefile clean target for synthesis"""
+        self._print_tool_clean(clean_targets)
+        self._print_tool_mrproper(clean_targets)
 
     def _print_sim_phony(self, top_module):
         """Print simulation PHONY target list to the Makefile"""

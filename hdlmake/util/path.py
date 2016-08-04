@@ -167,3 +167,10 @@ def check_windows():
         return True
     else:
         return False
+
+def del_command():
+    """Get a string with the delete command"""
+    if check_windows():
+        return "rm -rf"
+    else:
+        return "rm -rf"

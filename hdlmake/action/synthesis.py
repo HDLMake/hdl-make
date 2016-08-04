@@ -101,7 +101,7 @@ class ActionSynthesis(
         tool_object._print_syn_local()
         tool_object._print_syn_command(top_module)
         tool_object._print_syn_build()
-        tool_object._print_clean(tool_object.CLEAN_TARGETS)
+        tool_object._print_syn_clean(tool_object.CLEAN_TARGETS)
         tool_object._print_syn_phony()
         # tool_object.generate_synthesis_makefile(
         #    top_mod=top_module,
