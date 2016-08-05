@@ -24,9 +24,6 @@
 """Module providing the core functionality for writing Makefiles"""
 
 import os
-import sys
-import string
-import platform
 
 from hdlmake.util import path as path_mod
 
