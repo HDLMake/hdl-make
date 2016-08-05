@@ -23,10 +23,6 @@
 
 """Module providing support for Microsemi Libero IDE synthesis"""
 
-import subprocess
-import sys
-import os
-import string
 
 from hdlmake.action import ActionMakefile
 from hdlmake.srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
@@ -42,8 +38,8 @@ class ToolLibero(ActionMakefile):
     TOOL_INFO = {
         'name': 'Libero',
         'id': 'libero',
-        'windows_bin': 'libero',
-        'linux_bin': 'libero',
+        'windows_bin': 'libero SCRIPT:',
+        'linux_bin': 'libero SCRIPT:',
         'project_ext': 'prjx'}
 
     SUPPORTED_FILES = [SDCFile, PDCFile]
@@ -51,107 +47,50 @@ class ToolLibero(ActionMakefile):
     CLEAN_TARGETS = {'clean': ["$(PROJECT)", "run.tcl"],
                      'mrproper': ["*.pdb", "*.stp"]}
 
-    TCL_CONTROLS = {'windows_interpreter': 'libero SCRIPT:',
-                    'linux_interpreter': 'libero SCRIPT:',
-                    'open': 'open_project -file {$(PROJECT)/$(PROJECT).prjx}',
-                    'save': 'save_project',
-                    'close': 'close_project',
-                    'synthesize': '',
-                    'translate': '',
-                    'map': '',
-                    'par': '',
-                    'bitstream':
-                    'update_and_run_tool -name {GENERATEPROGRAMMINGDATA}',
-                    'install_source': '$(PROJECT)/designer/impl1/$(SYN_TOP).pdb'}
+    TCL_CONTROLS = {
+        'create': 'new_project -location {{./{0}}} -name {{{0}}}'
+                  ' -hdl {{VHDL}} -family {{ProASIC3}} -die {{{1}}}'
+                  ' -package {{{2}}} -speed {{{3}}} -die_voltage {{1.5}}',
+        'open': 'open_project -file {$(PROJECT)/$(PROJECT_FILE)}',
+        'save': 'save_project',
+        'close': 'close_project',
+        'synthesize': '',
+        'translate': '',
+        'map': '',
+        'par': '',
+        'bitstream':
+        'update_and_run_tool -name {GENERATEPROGRAMMINGDATA}',
+        'install_source': '$(PROJECT)/designer/impl1/$(SYN_TOP).pdb'}
 
     def __init__(self):
         super(ToolLibero, self).__init__()
-        self.files = []
-        self.filename = None
-        self.syn_device = None
-        self.syn_grade = None
-        self.syn_package = None
-        self.syn_top = None
-        self.header = None
-        self.tclname = 'temporal.tcl'
 
     def detect_version(self, path):
         """Get version for Microsemi Libero IDE synthesis"""
         return 'unknown'
 
-    def generate_synthesis_project(
-            self, update=False, tool_version='', top_mod=None, fileset=None):
-        """Create a Microsemi Libero IDE synthesis project"""
-        self.filename = top_mod.manifest_dict["syn_project"]
-        self.syn_device = top_mod.manifest_dict["syn_device"]
-        self.syn_grade = top_mod.manifest_dict["syn_grade"]
-        self.syn_package = top_mod.manifest_dict["syn_package"]
-        self.syn_top = top_mod.manifest_dict["syn_top"]
+    def makefile_syn_tcl(self, top_module, tcl_controls):
+        """Create a Libero synthesis project by TCL"""
+        syn_project = top_module.manifest_dict["syn_project"]
+        syn_device = top_module.manifest_dict["syn_device"]
+        syn_grade = top_module.manifest_dict["syn_grade"]
+        syn_package = top_module.manifest_dict["syn_package"]
+        create_tmp = tcl_controls["create"]
+        tcl_controls["create"] = create_tmp.format(syn_project,
+                                                   syn_device.upper(),
+                                                   syn_package.upper(),
+                                                   syn_grade)
+        super(ToolLibero, self).makefile_syn_tcl(top_module, tcl_controls)
 
-        if update is True:
-            self.update_project()
-        else:
-            self.create_project()
-        self.add_files(fileset)
-        self.emit()
-        self.execute()
-
-    def emit(self, update=False):
-        """Emit the TCL file that is required to generate the project"""
-        file_aux = open(self.tclname, "w")
-        file_aux.write(self.header + '\n')
-        file_aux.write(self.__emit_files(update=update))
-        file_aux.write('save_project\n')
-        file_aux.write('close_project\n')
-        file_aux.close()
-
-    def execute(self):
-        """Feed the TCL script to Microsemi Libero IDE command interpreter"""
-        tmp = 'libero SCRIPT:{0}'
-        cmd = tmp.format(self.tclname)
-        process_aux = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
-        # But do not wait till Libero finish, start displaying output
-        # immediately ##
-        while True:
-            out = process_aux.stderr.read(1)
-            if out == '' and process_aux.poll() is not None:
-                break
-            if out != '':
-                sys.stdout.write(out)
-                sys.stdout.flush()
-        os.remove(self.tclname)
-
-    def add_files(self, fileset):
-        """Add files to the inner fileset"""
-        for file_aux in fileset:
-            self.files.append(file_aux)
-
-    def create_project(self):
-        """Create a new Microsemi Libero IDE project"""
-        tmp = ('new_project -location {{./{0}}} -name {{{0}}} -hdl'
-               ' {{VHDL}} -family {{ProASIC3}} -die {{{1}}} -package'
-               ' {{{2}}} -speed {{{3}}} -die_voltage {{1.5}}')
-        self.header = tmp.format(
-            self.filename,
-            self.syn_device.upper(),
-            self.syn_package.upper(),
-            self.syn_grade)
-
-    def update_project(self):
-        """Update an existing Microsemi Libero IDE project"""
-        tmp = 'open_project -file {{{0}/{0}.prjx}}'
-        self.header = tmp.format(self.filename)
-
-    def __emit_files(self, update=False):
-        """Emit the supported HDL files that need to be added to the project"""
+    def makefile_syn_files(self, fileset):
+        """Write the files TCL section of the Makefile"""
         link_string = 'create_links {0} {{{1}}}'
-        enable_string = ('organize_tool_files -tool {{{0}}} -file {{{1}}}'
-                         ' -module {{{2}::work}} -input_type {{constraint}}')
         synthesis_constraints = []
         compilation_constraints = []
         ret = []
+        ret.append("define TCL_FILES")
         # First stage: linking files
-        for file_aux in self.files:
+        for file_aux in fileset:
             if (isinstance(file_aux, VHDLFile) or
                     isinstance(file_aux, VerilogFile)):
                 line = link_string.format('-hdl_source', file_aux.rel_path())
@@ -172,7 +111,7 @@ class ToolLibero(ActionMakefile):
             for file_aux in synthesis_constraints:
                 line = line + '-file {' + file_aux.rel_path() + '} '
             line = line + \
-                '-module {' + self.syn_top + '::work} -input_type {constraint}'
+                '-module {$(TOP_MODULE)::work} -input_type {constraint}'
             ret.append(line)
         # Third stage: Organizing / activating compilation constraints (the top
         # module needs to be present!)
@@ -181,9 +120,12 @@ class ToolLibero(ActionMakefile):
             for file_aux in compilation_constraints:
                 line = line + '-file {' + file_aux.rel_path() + '} '
             line = line + \
-                '-module {' + self.syn_top + '::work} -input_type {constraint}'
+                '-module {$(TOP_MODULE)::work} -input_type {constraint}'
             ret.append(line)
         # Fourth stage: set root/top module
-        line = 'set_root -module {' + self.syn_top + '::work}'
+        line = 'set_root -module {$(TOP_MODULE)::work}'
         ret.append(line)
-        return ('\n'.join(ret)) + '\n'
+        ret.append("endef")
+        ret.append("export TCL_FILES")
+        self.writeln('\n'.join(ret))
+
