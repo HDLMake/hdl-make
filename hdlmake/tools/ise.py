@@ -28,17 +28,12 @@ import xml.dom.minidom
 import xml.parsers.expat
 import logging
 import re
-import os
-import sys
-import string
 from subprocess import Popen, PIPE
 
-import hdlmake.new_dep_solver as dep_solver
 from hdlmake.action import ActionMakefile
 from hdlmake.util import path as path_mod
 
-from hdlmake.srcfile import (UCFFile, VHDLFile, VerilogFile, TCLFile,
-                             CDCFile, NGCFile, SourceFileSet)
+from hdlmake.srcfile import (UCFFile, CDCFile, NGCFile)
 
 XML_IMPL = xml.dom.minidom.getDOMImplementation()
 
@@ -76,7 +71,7 @@ class ToolISE(ActionMakefile):
                                "*.ngc", "*.ngd", "*.ngr", "*.pad", "*.par",
                                "*.pcf", "*.prj", "*.ptwx", "*.stx", "*.syr",
                                "*.twr", "*.twx", "*.gise", "*.gise", "*.bgn",
-                               "*.unroutes", "*.ut", "*.xpi", "*.xst","*.xise",
+                               "*.unroutes", "*.ut", "*.xpi", "*.xst", "*.xise",
                                "*.xwbt", "*_envsettings.html", "*_guide.ncd",
                                "*_map.map", "*_map.mrp", "*_map.ncd",
                                "*_map.ngm", "*_map.xrpt", "*_ngdbuild.xrpt",
@@ -102,20 +97,6 @@ class ToolISE(ActionMakefile):
 
     def __init__(self):
         super(ToolISE, self).__init__()
-        self.props = {}
-        self.files = []
-        self.libs = []
-        self.xml_doc = None
-        self.xml_files = []
-        self.xml_props = []
-        self.xml_libs = []
-        self.xml_ise = None
-        self.xml_project = None
-        self.xml_bindings = None
-        self.top_mod = None
-        self.ise = None
-        self.fileset = []
-        self.flist = []
 
     def detect_version(self, path):
         """Method returning a string with the Xilinx ISE version from path"""
@@ -153,7 +134,6 @@ class ToolISE(ActionMakefile):
         syn_device = top_module.manifest_dict["syn_device"]
         syn_grade = top_module.manifest_dict["syn_grade"]
         syn_package = top_module.manifest_dict["syn_package"]
-        syn_top = top_module.manifest_dict["syn_top"]
         syn_family = top_module.manifest_dict["syn_family"]
         if syn_family is None:
             syn_family = FAMILY_NAMES.get(
