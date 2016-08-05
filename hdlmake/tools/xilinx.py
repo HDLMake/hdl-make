@@ -29,7 +29,7 @@ import os
 import string
 import logging
 
-from hdlmake.action import ActionMakefile
+from .make_syn import ToolSyn
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, UCFFile,
                              NGCFile, XMPFile, XCOFile, BDFile, TCLFile)
 
@@ -37,7 +37,7 @@ from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, UCFFile,
 VIVADO_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolXilinx(ActionMakefile):
+class ToolXilinx(ToolSyn):
 
     """Class providing the interface for Xilinx Vivado synthesis"""
 

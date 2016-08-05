@@ -24,13 +24,13 @@
 """Module providing support for Lattice Diamond IDE"""
 
 
-from hdlmake.action import ActionMakefile
+from .make_syn import ToolSyn
 from hdlmake.srcfile import EDFFile, LPFFile
 
 DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolDiamond(ActionMakefile):
+class ToolDiamond(ToolSyn):
 
     """Class providing the interface for Lattice Diamond synthesis"""
 

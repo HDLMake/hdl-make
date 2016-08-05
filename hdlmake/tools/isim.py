@@ -32,7 +32,7 @@ import logging
 import sys
 
 from hdlmake.util import path as path_mod
-from hdlmake.action import ActionMakefile
+from .make_sim import ToolSim
 from hdlmake.srcfile import VerilogFile, VHDLFile
 
 
@@ -43,7 +43,7 @@ ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                       'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
 
-class ToolISim(ActionMakefile):
+class ToolISim(ToolSim):
 
     """Class providing the interface for Xilinx ISim simulator"""
 

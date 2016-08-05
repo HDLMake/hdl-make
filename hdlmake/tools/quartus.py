@@ -27,7 +27,7 @@ import os
 import sys
 import logging
 
-from hdlmake.action import ActionMakefile
+from .make_syn import ToolSyn
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                              SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
@@ -37,7 +37,7 @@ from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
 QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
 
-class ToolQuartus(ActionMakefile):
+class ToolQuartus(ToolSyn):
 
     """Class providing the interface for Altera Quartus synthesis"""
 

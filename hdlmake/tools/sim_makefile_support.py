@@ -27,11 +27,11 @@ import os
 import platform
 import string
 
-from hdlmake.action import ActionMakefile
+from .make_sim import ToolSim
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
 
-class VsimMakefileWriter(ActionMakefile):
+class VsimMakefileWriter(ToolSim):
 
     """A Makefile writer for simulation suitable for vsim based simulators.
 

@@ -24,13 +24,14 @@
 """Module providing support for GHDL simulator"""
 
 import string
-from hdlmake.action import ActionMakefile
+
+from .make_sim import ToolSim
 from hdlmake.srcfile import VHDLFile
 
 GHDL_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolGHDL(ActionMakefile):
+class ToolGHDL(ToolSim):
 
     """Class providing the interface for Lattice Diamond synthesis"""
 

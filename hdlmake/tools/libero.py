@@ -24,14 +24,14 @@
 """Module providing support for Microsemi Libero IDE synthesis"""
 
 
-from hdlmake.action import ActionMakefile
+from .make_syn import ToolSyn
 from hdlmake.srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
 
 
 LIBERO_STANDARD_LIBS = ['ieee', 'std']
 
 
-class ToolLibero(ActionMakefile):
+class ToolLibero(ToolSyn):
 
     """Class providing the interface for Microsemi Libero IDE synthesis"""
 

@@ -27,7 +27,7 @@ from subprocess import Popen, PIPE
 import string
 
 from hdlmake.util import path as path_mod
-from hdlmake.action import ActionMakefile
+from .make_sim import ToolSim
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
 
@@ -38,7 +38,7 @@ IVERILOG_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
                           'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
 
-class ToolIVerilog(ActionMakefile):
+class ToolIVerilog(ToolSim):
 
     """Class providing the interface for Icarus Verilog simulator"""
 

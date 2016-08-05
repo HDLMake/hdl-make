@@ -30,7 +30,7 @@ import logging
 import re
 from subprocess import Popen, PIPE
 
-from hdlmake.action import ActionMakefile
+from .make_syn import ToolSyn
 from hdlmake.util import path as path_mod
 
 from hdlmake.srcfile import (UCFFile, CDCFile, NGCFile)
@@ -52,7 +52,7 @@ ISE_STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
                      'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
 
 
-class ToolISE(ActionMakefile):
+class ToolISE(ToolSyn):
 
     """Class providing the methods to create and build a Xilinx ISE project"""
 
