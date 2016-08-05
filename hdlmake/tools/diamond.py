@@ -37,8 +37,8 @@ class ToolDiamond(ActionMakefile):
     TOOL_INFO = {
         'name': 'Diamond',
         'id': 'diamond',
-        'windows_bin': 'pnmainc',
-        'linux_bin': 'diamondc',
+        'windows_bin': 'pnmainc ',
+        'linux_bin': 'diamondc ',
         'project_ext': 'ldf'}
 
     SUPPORTED_FILES = [EDFFile, LPFFile]
