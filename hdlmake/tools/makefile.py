@@ -26,13 +26,14 @@
 import os
 
 from hdlmake.util import path as path_mod
+from hdlmake.action import Action
 
-
-class ToolMakefile(object):
+class ToolMakefile(Action):
 
     """Class that provides the Makefile writing methods and status"""
 
     def __init__(self, filename=None):
+        super(ToolMakefile, self).__init__()
         self._file = None
         self._initialized = False
         self._tool_info = {}
@@ -49,13 +50,13 @@ class ToolMakefile(object):
         if self._file:
             self._file.close()
 
-    def _print_incl_makefiles(self, top_module):
+    def makefile_includes(self, top_module):
         """Add the included makefiles that need to be previously loaded"""
         for file_aux in top_module.incl_makefiles:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 
-    def _print_tool_clean(self):
+    def makefile_clean(self):
         """Print the Makefile target for cleaning intermediate files"""
         self.writeln("#target for cleaning intermediate files")
         self.writeln("clean:")
@@ -63,7 +64,7 @@ class ToolMakefile(object):
             " $(LIBS) " + ' '.join(self._clean_targets["clean"])
         self.writeln(tmp)
 
-    def _print_tool_mrproper(self):
+    def makefile_mrproper(self):
         """Print the Makefile target for cleaning final files"""
         self.writeln("#target for cleaning final files")
         self.writeln("mrproper: clean")

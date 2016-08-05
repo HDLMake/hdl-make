@@ -22,6 +22,8 @@
 
 """The Action package provides the full set of provided user functionalities"""
 
+from .action import Action
+
 from .check import ActionCheck
 from .core import ActionCore
 from .tree import ActionTree
@@ -30,4 +32,3 @@ from .synthesis import ActionSynthesis
 from .simulation import ActionSimulation
 from .qsys_hw_tcl_update import QsysHwTclUpdate
 
-from .action import Action

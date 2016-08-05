@@ -25,7 +25,6 @@
 from __future__ import print_function
 import os
 import logging
-import platform
 from subprocess import PIPE, Popen
 import sys
 

@@ -213,12 +213,12 @@ syn_post_bitstream_cmd:
 
     def makefile_syn_clean(self):
         """Print the Makefile clean target for synthesis"""
-        self._print_tool_clean()
+        self.makefile_clean()
         self.writeln("\t\t" + path_mod.del_command() +
             " synthesize translate map par bitstream")
         self.writeln("\t\t" + path_mod.del_command() +
             " tcl_synthesize tcl_translate tcl_map tcl_par tcl_bitstream")
-        self._print_tool_mrproper()
+        self.makefile_mrproper()
 
     def makefile_syn_phony(self):
         """Print synthesis PHONY target list to the Makefile"""

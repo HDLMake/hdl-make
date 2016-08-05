@@ -53,8 +53,9 @@ class ActionCore(Action):
     def clean(self):
         """Delete the local copy of the fetched modules"""
         logging.info("Removing fetched modules..")
-        remove_list = [mod_aux for mod_aux in self if
-                       mod_aux.source in [fetch.GIT, fetch.SVN] and mod_aux.isfetched]
+        remove_list = [mod_aux for mod_aux in self
+                       if mod_aux.source in [fetch.GIT, fetch.SVN]
+                       and mod_aux.isfetched]
         remove_list.reverse()  # we will remove modules in backward order
         if len(remove_list):
             for mod_aux in remove_list:

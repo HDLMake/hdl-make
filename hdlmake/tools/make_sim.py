@@ -96,8 +96,8 @@ sim_post_cmd:
 
     def makefile_sim_clean(self):
         """Generic method to write the simulation Makefile user clean target"""
-        self._print_tool_clean()
-        self._print_tool_mrproper()
+        self.makefile_clean()
+        self.makefile_mrproper()
 
     def makefile_sim_phony(self, top_module):
         """Print simulation PHONY target list to the Makefile"""

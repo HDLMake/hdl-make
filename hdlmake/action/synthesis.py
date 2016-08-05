@@ -25,7 +25,6 @@
 from __future__ import print_function
 import logging
 import sys
-import os
 
 from hdlmake.srcfile import SourceFileFactory
 from hdlmake.util import path
@@ -34,9 +33,9 @@ from hdlmake.tools import (
     ToolISE, ToolPlanAhead, ToolVivado,
     ToolQuartus, ToolDiamond, ToolLibero)
 
-from .action import Action
 
-class ActionSynthesis(Action):
+class ActionSynthesis(ToolISE, ToolPlanAhead, ToolVivado,
+                      ToolQuartus, ToolDiamond, ToolLibero):
 
     """Class providing the public synthesis methods for the user"""
 
@@ -67,7 +66,6 @@ class ActionSynthesis(Action):
         from string import Template
         from datetime import date
         import getpass
-
         today = date.today()
         date_string = today.strftime("%Y%m%d")
         template = Template("""library ieee;
@@ -106,7 +104,6 @@ end sdb_meta_pkg;
 
 package body sdb_meta_pkg is
 end sdb_meta_pkg;""")
-
         project_vhd = open("project.vhd", 'w')
         date_std_logic_vector = []
         import re
@@ -118,7 +115,6 @@ end sdb_meta_pkg;""")
         syn_tool_std_logic_vector = []
         for digit in syn_tool_version:
             syn_tool_std_logic_vector.append("{0:04b}".format(int(digit)))
-
         template.substitute(
             repo_url=self.top_module.url,
             syn_module_name=self.top_module.manifest_dict["syn_top"],
@@ -164,24 +160,18 @@ end sdb_meta_pkg;""")
 
         tool_object = self._load_synthesis_tool()
         tool_info = tool_object.TOOL_INFO
-        tool_ctrl = tool_object.TCL_CONTROLS
         path_key = tool_info['id'] + '_path'
         version_key = tool_info['id'] + '_version'
         name = tool_info['name']
         id_value = tool_info['id']
-        ext_value = tool_info['project_ext']
-
         env = self.env
         env.check_general()
         env.check_tool(tool_object)
-
         top_module = self.get_top_module()
-
         if env[path_key]:
             tool_path = env[path_key]
         else:
             tool_path = ""
-
         if not self.env.options.force:
             if self.env[path_key] is None:
                 logging.error("Can't generate the " + name + " project. "
@@ -194,19 +184,8 @@ end sdb_meta_pkg;""")
             sys.exit("Exiting")
         logging.info("Generating project for " + name + " v. %s",
                      env[version_key])
-
-        if (os.path.exists(self.top_module.manifest_dict["syn_project"]) or
-            os.path.exists(self.top_module.manifest_dict["syn_project"] + "."
-                           + ext_value)):
-            logging.info("Existing project detected: updating...")
-            update = True
-        else:
-            logging.info("No previous project: creating a new one...")
-            update = False
-
         top_mod = self.get_top_module()
         fileset = self.build_file_set(top_mod.manifest_dict["syn_top"])
-
         sup_files = self.build_complete_file_set()
         privative_files = []
         for file_aux in sup_files:
@@ -217,14 +196,12 @@ end sdb_meta_pkg;""")
             logging.info("Detected %d supported files that are not parseable",
                          len(privative_files))
             fileset.add(privative_files)
-
         sff = SourceFileFactory()
         if self.env.options.generate_project_vhd:
             self._write_project_vhd(id_value, env[version_key])
             fileset.add([sff.new(path=path.rel2abs("project.vhd"),
                                  module=self.get_module_by_path("."))])
-
-        tool_object._print_incl_makefiles(top_module)
+        tool_object.makefile_includes(top_module)
         tool_object.makefile_syn_top(top_module, tool_path)
         tool_object.makefile_syn_tcl(top_module)
         tool_object.makefile_syn_files(fileset)
