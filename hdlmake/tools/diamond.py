@@ -25,7 +25,7 @@
 
 
 from .make_syn import ToolSyn
-from hdlmake.srcfile import EDFFile, LPFFile
+from hdlmake.srcfile import EDFFile, LPFFile, VHDLFile, VerilogFile
 
 DIAMOND_STANDARD_LIBS = ['ieee', 'std']
 
@@ -42,6 +42,8 @@ class ToolDiamond(ToolSyn):
         'project_ext': 'ldf'}
 
     SUPPORTED_FILES = [EDFFile, LPFFile]
+
+    HDL_FILES = [VHDLFile, VerilogFile]
 
     CLEAN_TARGETS = {'clean': ["*.sty", "$(PROJECT)", "run.tcl"],
                      'mrproper': ["*.jed"]}
@@ -62,6 +64,11 @@ class ToolDiamond(ToolSyn):
 
     def __init__(self):
         super(ToolDiamond, self).__init__()
+        self._tool_info.update(ToolDiamond.TOOL_INFO)
+        self._hdl_files.extend(ToolDiamond.HDL_FILES)
+        self._supported_files.extend(ToolDiamond.SUPPORTED_FILES)
+        self._clean_targets.update(ToolDiamond.CLEAN_TARGETS)
+        self._tcl_controls.update(ToolDiamond.TCL_CONTROLS)
 
     def detect_version(self, path):
         """Get version from the Lattice Diamond program"""

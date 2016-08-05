@@ -33,7 +33,8 @@ from subprocess import Popen, PIPE
 from .make_syn import ToolSyn
 from hdlmake.util import path as path_mod
 
-from hdlmake.srcfile import (UCFFile, CDCFile, NGCFile)
+from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
+                             UCFFile, CDCFile, NGCFile)
 
 XML_IMPL = xml.dom.minidom.getDOMImplementation()
 
@@ -64,6 +65,8 @@ class ToolISE(ToolSyn):
         'project_ext': 'xise'}
 
     SUPPORTED_FILES = [UCFFile, CDCFile, NGCFile]
+
+    HDL_FILES = [VHDLFile, VerilogFile, SVFile]
 
     CLEAN_TARGETS = {'clean': ["xst xlnx_auto_*_xdb", "iseconfig _xmsgs",
                                "_ngo", "*.b", "*_summary.html", "*.tcl",
@@ -97,6 +100,11 @@ class ToolISE(ToolSyn):
 
     def __init__(self):
         super(ToolISE, self).__init__()
+        self._tool_info.update(ToolISE.TOOL_INFO)
+        self._hdl_files.extend(ToolISE.HDL_FILES)
+        self._supported_files.extend(ToolISE.SUPPORTED_FILES)
+        self._clean_targets.update(ToolISE.CLEAN_TARGETS)
+        self._tcl_controls.update(ToolISE.TCL_CONTROLS)
 
     def detect_version(self, path):
         """Method returning a string with the Xilinx ISE version from path"""
@@ -128,7 +136,7 @@ class ToolISE(ToolSyn):
         return ise_version
 
 
-    def makefile_syn_tcl(self, top_module, tcl_controls):
+    def makefile_syn_tcl(self, top_module):
         """Create a Xilinx synthesis project by TCL"""
         tmp = "{0}set {1} {2}"
         syn_device = top_module.manifest_dict["syn_device"]
@@ -144,7 +152,7 @@ class ToolISE(ToolSyn):
                     " and can not be guessed!")
                 quit(-1)
         create_new = []
-        create_new.append(tcl_controls["create"])
+        create_new.append(self._tcl_controls["create"])
         properties = [
             ['project ', 'family', syn_family],
             ['project ', 'device', syn_device],
@@ -156,8 +164,8 @@ class ToolISE(ToolSyn):
             ['', 'compile_directory', '.']]
         for prop in properties:
             create_new.append(tmp.format(prop[0], prop[1], prop[2]))
-        tcl_controls["create"] = "\n".join(create_new)
-        super(ToolISE, self).makefile_syn_tcl(top_module, tcl_controls)
+        self._tcl_controls["create"] = "\n".join(create_new)
+        super(ToolISE, self).makefile_syn_tcl(top_module)
 
     def makefile_syn_files(self, fileset):
         """Write the files TCL section of the Makefile"""

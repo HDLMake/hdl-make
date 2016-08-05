@@ -41,13 +41,16 @@ class ToolGHDL(ToolSim):
         'windows_bin': 'ghdl',
         'linux_bin': 'ghdl'}
 
-    SUPPORTED_FILES = []
+    HDL_FILES = [VHDLFile]
 
     CLEAN_TARGETS = {'clean': ["*.cf", "*.o", "$(TOP_MODULE)"],
                      'mrproper': ["*.vcd"]}
 
     def __init__(self):
         super(ToolGHDL, self).__init__()
+        self._tool_info.update(ToolGHDL.TOOL_INFO)
+        self._hdl_files.extend(ToolGHDL.HDL_FILES)
+        self._clean_targets.update(ToolGHDL.CLEAN_TARGETS)
 
     def detect_version(self, path):
         """Get tool version for GHDL"""

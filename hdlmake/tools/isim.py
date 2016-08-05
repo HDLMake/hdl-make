@@ -53,7 +53,7 @@ class ToolISim(ToolSim):
         'windows_bin': 'isimgui',
         'linux_bin': 'isimgui'}
 
-    SUPPORTED_FILES = []
+    HDL_FILES = [VerilogFile, VHDLFile]
 
     CLEAN_TARGETS = {'clean': ["./xilinxsim.ini $(LIBS)", "fuse.xmsgs",
                                "fuse.log", "fuseRelaunch.cmd", "isim",
@@ -63,6 +63,9 @@ class ToolISim(ToolSim):
 
     def __init__(self):
         super(ToolISim, self).__init__()
+        self._tool_info.update(ToolISim.TOOL_INFO)
+        self._hdl_files.extend(ToolISim.HDL_FILES)
+        self._clean_targets.update(ToolISim.CLEAN_TARGETS)
 
     def detect_version(self, path):
         """Get version from Xilinx ISim simulator program"""

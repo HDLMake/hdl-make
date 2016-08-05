@@ -41,8 +41,6 @@ class ToolModelsim(VsimMakefileWriter):
                  'windows_bin': 'vsim',
                  'linux_bin': 'vsim'}
 
-    SUPPORTED_FILES = []
-
     CLEAN_TARGETS = {'clean': ["./modelsim.ini", "transcript"],
                      'mrproper': ["*.vcd", "*.wlf"]}
 
@@ -54,6 +52,8 @@ class ToolModelsim(VsimMakefileWriter):
         self.copy_rules["modelsim.ini"] = os.path.join(
             "$(MODELSIM_INI_PATH)", "modelsim.ini")
         self.additional_deps.append("modelsim.ini")
+        self._tool_info.update(ToolModelsim.TOOL_INFO)
+        self._clean_targets.update(ToolModelsim.CLEAN_TARGETS)
 
     def detect_version(self, path):
         """Get version from the Mentor Modelsim program"""

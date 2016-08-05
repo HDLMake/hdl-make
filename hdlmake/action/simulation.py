@@ -103,5 +103,5 @@ class ActionSimulation(
         tool_object.makefile_sim_sources(dep_files)
         tool_object.makefile_sim_compilation(dep_files, top_module)
         tool_object.makefile_sim_command(top_module)
-        tool_object.makefile_sim_clean(tool_object.CLEAN_TARGETS)
+        tool_object.makefile_sim_clean()
         tool_object.makefile_sim_phony(top_module)

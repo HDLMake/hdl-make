@@ -40,25 +40,25 @@ class VsimMakefileWriter(ToolSim):
       - Riviera
     """
 
-    def __init__(self):
+    HDL_FILES = [VerilogFile, VHDLFile, SVFile]
 
+    def __init__(self):
+        super(VsimMakefileWriter, self).__init__()
         # additional global flags to pass to every invocation of these commands
         self.vcom_flags = ["-quiet", ]
         self.vsim_flags = []
         self.vlog_flags = ["-quiet", ]
         self.vmap_flags = []
-
         # These are variables that will be set in the makefile
         # The key is the variable name, and the value is the variable value
         self.custom_variables = {}
-
         # Additional sim dependencies (e.g. modelsim.ini)
         self.additional_deps = []
-
         # These are files copied into your working directory by a make rule
         # The key is the filename, the value is the file source path
         self.copy_rules = {}
-        super(VsimMakefileWriter, self).__init__()
+        self._hdl_files.extend(VsimMakefileWriter.HDL_FILES)
+
 
     def makefile_sim_options(self, top_module):
         """Print the vsim options to the Makefile"""
@@ -124,22 +124,25 @@ class VsimMakefileWriter(ToolSim):
             self.write(lib + slash_char + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command,
-                                 lib, "&&", "touch", lib + slash_char + "." + lib, ")"]))
+                                 lib, "&&", "touch", lib + slash_char +
+                                 "." + lib, ")"]))
             self.write(' '.join(["||", del_command, lib, "\n"]))
             self.write('\n\n')
 
         # rules for all _primary.dat files for sv
         for vlog in fileset.filter(VerilogFile):
-            self.write("%s: %s" % (os.path.join(vlog.library, vlog.purename,
-                                                ".%s_%s" % (vlog.purename, vlog.extension())), vlog.rel_path()))
+            self.write("%s: %s" % (os.path.join(
+                vlog.library, vlog.purename,
+                ".%s_%s" % (vlog.purename, vlog.extension())),
+                vlog.rel_path()))
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile
                              in vlog.depends_on if dfile is not vlog]:
                 if dep_file in fileset:
                     name = dep_file.purename
                     extension = dep_file.extension()
-                    self.write(" \\\n" + os.path.join(dep_file.library,
-                                                      name, ".%s_%s" % (name, extension)))
+                    self.write(" \\\n" + os.path.join(
+                        dep_file.library, name, ".%s_%s" % (name, extension)))
                 else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
             self.writeln()
@@ -154,8 +157,9 @@ class VsimMakefileWriter(ToolSim):
             # self.write(incdir)
             # self.writeln(vlog.vlog_opt+" $<")
 
-            compile_template = string.Template("\t\tvlog -work ${library}"
-                                               " $$(VLOG_FLAGS) ${sv_option} $${INCLUDE_DIRS} $$<")
+            compile_template = string.Template(
+                "\t\tvlog -work ${library} $$(VLOG_FLAGS) "
+                "${sv_option} $${INCLUDE_DIRS} $$<")
             compile_line = compile_template.substitute(
                 library=vlog.library, sv_option="-sv"
                 if isinstance(vlog, SVFile) else "")
@@ -169,8 +173,9 @@ class VsimMakefileWriter(ToolSim):
             lib = vhdl.library
             purename = vhdl.purename
             # each .dat depends on corresponding .vhd file
-            self.write("%s: %s" % (os.path.join(lib, purename, "." +
-                                                purename + "_" + vhdl.extension()), vhdl.rel_path()))
+            self.write("%s: %s" % (os.path.join(
+                lib, purename, "." + purename + "_" + vhdl.extension()),
+                vhdl.rel_path()))
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile in vhdl.depends_on
                              if dfile is not vhdl]:

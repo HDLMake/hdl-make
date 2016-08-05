@@ -39,6 +39,11 @@ class ActionMakefile(Action):
     def __init__(self, filename=None):
         self._file = None
         self._initialized = False
+        self._tool_info = {}
+        self._clean_targets = {}
+        self._tcl_controls = {}
+        self._hdl_files = []
+        self._supported_files = []
         if filename:
             self._filename = filename
         else:
@@ -55,20 +60,20 @@ class ActionMakefile(Action):
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 
-    def _print_tool_clean(self, clean_targets):
+    def _print_tool_clean(self):
         """Print the Makefile target for cleaning intermediate files"""
         self.writeln("#target for cleaning intermediate files")
         self.writeln("clean:")
         tmp = "\t\t" + path_mod.del_command() + \
-            " $(LIBS) " + ' '.join(clean_targets["clean"])
+            " $(LIBS) " + ' '.join(self._clean_targets["clean"])
         self.writeln(tmp)
 
-    def _print_tool_mrproper(self, clean_targets):
+    def _print_tool_mrproper(self):
         """Print the Makefile target for cleaning final files"""
         self.writeln("#target for cleaning final files")
         self.writeln("mrproper: clean")
         tmp = "\t\t" + path_mod.del_command() + \
-            " " + ' '.join(clean_targets["mrproper"])
+            " " + ' '.join(self._clean_targets["mrproper"])
         self.writeln(tmp)
 
     def initialize(self):

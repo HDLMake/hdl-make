@@ -72,14 +72,14 @@ class ToolRiviera(VsimMakefileWriter):
         'windows_bin': 'vsim',
         'linux_bin': 'vsim'}
 
-    SUPPORTED_FILES = []
-
     CLEAN_TARGETS = {'clean': ["*.asdb"],
                      'mrproper': ["*.vcd"]}
 
     def __init__(self):
         super(ToolRiviera, self).__init__()
         self.vcom_flags.append("-2008")
+        self._tool_info.update(ToolRiviera.TOOL_INFO)
+        self._clean_targets.update(ToolRiviera.CLEAN_TARGETS)
 
     def detect_version(self, path):
         """Get version from Aldec Riviera-PRO binary program"""

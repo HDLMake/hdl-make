@@ -51,6 +51,8 @@ class ToolQuartus(ToolSyn):
     SUPPORTED_FILES = [SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
                        QSFFile, BSFFile, BDFFile, TDFFile, GDFFile]
 
+    HDL_FILES = [VHDLFile, VerilogFile, SVFile]
+
     CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "run.tcl", "*.summary",
                                "*.done", "*.jdi", "*.pin", "*.qws",
                                "db", "incremental_db"],
@@ -83,6 +85,11 @@ class ToolQuartus(ToolSyn):
 
     def __init__(self):
         super(ToolQuartus, self).__init__()
+        self._tool_info.update(ToolQuartus.TOOL_INFO)
+        self._hdl_files.extend(ToolQuartus.HDL_FILES)
+        self._supported_files.extend(ToolQuartus.SUPPORTED_FILES)
+        self._clean_targets.update(ToolQuartus.CLEAN_TARGETS)
+        self._tcl_controls.update(ToolQuartus.TCL_CONTROLS)
 
     def detect_version(self, path):
         """Get Altera Quartus version from the binary program"""

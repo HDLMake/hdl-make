@@ -48,13 +48,16 @@ class ToolIVerilog(ToolSim):
         'windows_bin': 'iverilog',
         'linux_bin': 'iverilog'}
 
-    SUPPORTED_FILES = []
+    HDL_FILES = [VerilogFile, VHDLFile, SVFile]
 
     CLEAN_TARGETS = {'clean': ["run.command", "ivl_vhdl_work"],
                      'mrproper': ["*.vcd", "*.vvp"]}
 
     def __init__(self):
         super(ToolIVerilog, self).__init__()
+        self._tool_info.update(ToolIVerilog.TOOL_INFO)
+        self._hdl_files.extend(ToolIVerilog.HDL_FILES)
+        self._clean_targets.update(ToolIVerilog.CLEAN_TARGETS)
 
     def detect_version(self, path):
         """Get version from Icarus Verilog program"""

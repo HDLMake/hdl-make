@@ -24,8 +24,7 @@
 """Module providing support for Xilinx PlanAhead synthesis"""
 
 from .xilinx import ToolXilinx
-from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, TCLFile,
-                             UCFFile, NGCFile, XMPFile, XCOFile)
+from hdlmake.srcfile import (UCFFile, NGCFile, XMPFile, XCOFile)
 
 
 PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
@@ -46,27 +45,17 @@ class ToolPlanAhead(ToolXilinx):
 
     CLEAN_TARGETS = {'clean': ["planAhead_*", "planAhead.*", "run.tcl",
                                ".Xil", "$(PROJECT).cache", "$(PROJECT).data",
-                               " $(PROJECT).runs", "$(PROJECT).ppr"],
-                     'mrproper': ["*.bit", "*.bin"]}
+                               " $(PROJECT).runs", "$(PROJECT).ppr"]}
 
-    TCL_CONTROLS = {'create': 'create_project $(PROJECT) ./',
-                    'open': 'open_project ./$(PROJECT).ppr',
-                    'save': '',
-                    'close': 'exit',
-                    'synthesize': 'reset_run synth_1\n'
-                                  'launch_runs synth_1\n'
-                                  'wait_on_run synth_1',
-                    'translate': '',
-                    'map': '',
-                    'par': 'reset_run impl_1\n'
-                           'launch_runs impl_1\n'
-                           'wait_on_run impl_1',
-                    'bitstream': 'launch_runs impl_1 -to_step Bitgen\n'
-                                 'wait_on_run impl_1',
-                    'install_source': '$(PROJECT).runs/impl_1/$(SYN_TOP).bit'}
+    TCL_CONTROLS = {'bitstream': 'launch_runs impl_1 -to_step Bitgen\n'
+                                 'wait_on_run impl_1'}
 
     def __init__(self):
         super(ToolPlanAhead, self).__init__()
+        self._tool_info.update(ToolPlanAhead.TOOL_INFO)
+        self._supported_files.extend(ToolPlanAhead.SUPPORTED_FILES)
+        self._clean_targets.update(ToolPlanAhead.CLEAN_TARGETS)
+        self._tcl_controls.update(ToolPlanAhead.TCL_CONTROLS)
 
     def detect_version(self, path):
         """Get the Xilinx PlanAhead program version"""

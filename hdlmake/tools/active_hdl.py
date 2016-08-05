@@ -37,13 +37,16 @@ class ToolActiveHDL(ToolSim):
         'windows_bin': 'vsimsa',
         'linux_bin': None}
 
-    SUPPORTED_FILES = []
+    HDL_FILES = [VHDLFile, VerilogFile, SVFile]
 
     CLEAN_TARGETS = {'clean': ["run.command", "library.cfg", "work"],
                      'mrproper': ["*.vcd", "*.asdb"]}
 
     def __init__(self):
         super(ToolActiveHDL, self).__init__()
+        self._tool_info.update(ToolActiveHDL.TOOL_INFO)
+        self._hdl_files.extend(ToolActiveHDL.HDL_FILES)
+        self._clean_targets.update(ToolActiveHDL.CLEAN_TARGETS)
 
     def detect_version(self, path):
         """Get the version from the Aldec-HDL binary program"""

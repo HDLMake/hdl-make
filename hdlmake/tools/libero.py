@@ -44,6 +44,8 @@ class ToolLibero(ToolSyn):
 
     SUPPORTED_FILES = [SDCFile, PDCFile]
 
+    HDL_FILES = [VHDLFile, VerilogFile]
+
     CLEAN_TARGETS = {'clean': ["$(PROJECT)", "run.tcl"],
                      'mrproper': ["*.pdb", "*.stp"]}
 
@@ -64,6 +66,11 @@ class ToolLibero(ToolSyn):
 
     def __init__(self):
         super(ToolLibero, self).__init__()
+        self._tool_info.update(ToolLibero.TOOL_INFO)
+        self._hdl_files.extend(ToolLibero.HDL_FILES)
+        self._supported_files.extend(ToolLibero.SUPPORTED_FILES)
+        self._clean_targets.update(ToolLibero.CLEAN_TARGETS)
+        self._tcl_controls.update(ToolLibero.TCL_CONTROLS)
 
     def detect_version(self, path):
         """Get version for Microsemi Libero IDE synthesis"""

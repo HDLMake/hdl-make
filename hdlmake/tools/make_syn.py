@@ -1,26 +1,23 @@
 """Module providing the synthesis functionality for writing Makefiles"""
 
-import os
-import sys
 import string
-import platform
 
 from hdlmake.action import ActionMakefile
 from hdlmake.util import path as path_mod
 
 class ToolSyn(ActionMakefile):
 
-    """Class that provides the Makefile writing methods and status"""
+    """Class that provides the synthesis Makefile writing methods and status"""
 
     def __init__(self):
         super(ToolSyn, self).__init__()
 
-    def makefile_syn_top(self, top_module, tool_path, tool_info):
+    def makefile_syn_top(self, top_module, tool_path):
         """Create the top part of the synthesis Makefile"""
         if path_mod.check_windows():
-            tcl_interpreter = tool_info["windows_bin"]
+            tcl_interpreter = self._tool_info["windows_bin"]
         else:
-            tcl_interpreter = tool_info["linux_bin"]
+            tcl_interpreter = self._tool_info["linux_bin"]
         top_parameter = string.Template("""\
 TOP_MODULE := ${top_module}
 PWD := $$(shell pwd)
@@ -33,11 +30,11 @@ TCL_INTERPRETER := $$(TOOL_PATH)/${tcl_interpreter}
         self.writeln(top_parameter.substitute(
             tcl_interpreter=tcl_interpreter,
             project_name=top_module.manifest_dict["syn_project"],
-            project_ext=tool_info["project_ext"],
+            project_ext=self._tool_info["project_ext"],
             tool_path=tool_path,
             top_module=top_module.manifest_dict["syn_top"]))
 
-    def makefile_syn_tcl(self, top_module, tcl_controls):
+    def makefile_syn_tcl(self, top_module):
         """Create the Makefile TCL dictionary for the selected tool"""
         tcl_string = string.Template("""\
 
@@ -88,22 +85,23 @@ export TCL_BITSTREAM
 
 """)
         self.writeln(tcl_string.substitute(
-            tcl_create=tcl_controls["create"],
-            tcl_open=tcl_controls["open"],
-            tcl_save=tcl_controls["save"],
-            tcl_close=tcl_controls["close"],
-            tcl_synthesize=tcl_controls["synthesize"],
-            tcl_translate=tcl_controls["translate"],
-            tcl_map=tcl_controls["map"],
-            tcl_par=tcl_controls["par"],
-            tcl_bitstream=tcl_controls["bitstream"]))
+            tcl_create=self._tcl_controls["create"],
+            tcl_open=self._tcl_controls["open"],
+            tcl_save=self._tcl_controls["save"],
+            tcl_close=self._tcl_controls["close"],
+            tcl_synthesize=self._tcl_controls["synthesize"],
+            tcl_translate=self._tcl_controls["translate"],
+            tcl_map=self._tcl_controls["map"],
+            tcl_par=self._tcl_controls["par"],
+            tcl_bitstream=self._tcl_controls["bitstream"]))
 
     def makefile_syn_local(self):
+        """Generic method to write the synthesis Makefile local target"""
         self.writeln("#target for performing local synthesis\n"
                      "local: syn_pre_cmd synthesis syn_post_cmd\n")
 
     def makefile_syn_build(self):
-        """Generate a Makefile to handle a synthesis project"""
+        """Generate the synthesis Makefile targets for handling design build"""
         self.writeln("""\
 #target for performing local synthesis
 synthesis: bitstream
@@ -213,14 +211,14 @@ syn_post_bitstream_cmd:
             syn_post_bitstream_cmd=top_module.manifest_dict[
                 "syn_post_bitstream_cmd"]))
 
-    def makefile_syn_clean(self, clean_targets):
+    def makefile_syn_clean(self):
         """Print the Makefile clean target for synthesis"""
-        self._print_tool_clean(clean_targets)
+        self._print_tool_clean()
         self.writeln("\t\t" + path_mod.del_command() +
             " synthesize translate map par bitstream")
         self.writeln("\t\t" + path_mod.del_command() +
             " tcl_synthesize tcl_translate tcl_map tcl_par tcl_bitstream")
-        self._print_tool_mrproper(clean_targets)
+        self._print_tool_mrproper()
 
     def makefile_syn_phony(self):
         """Print synthesis PHONY target list to the Makefile"""
