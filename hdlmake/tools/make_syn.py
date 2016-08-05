@@ -2,10 +2,10 @@
 
 import string
 
-from hdlmake.action import ActionMakefile
+from .makefile import ToolMakefile
 from hdlmake.util import path as path_mod
 
-class ToolSyn(ActionMakefile):
+class ToolSyn(ToolMakefile):
 
     """Class that provides the synthesis Makefile writing methods and status"""
 

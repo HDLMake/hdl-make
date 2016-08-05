@@ -33,10 +33,9 @@ from hdlmake.tools import (
     ToolIVerilog, ToolISim, ToolModelsim,
     ToolActiveHDL, ToolRiviera, ToolGHDL)
 
+from .action import Action
 
-class ActionSimulation(
-    ToolIVerilog, ToolISim, ToolModelsim,
-        ToolActiveHDL, ToolRiviera, ToolGHDL):
+class ActionSimulation(Action):
 
     """This class contains the simulation specific methods"""
 

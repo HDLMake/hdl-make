@@ -3,10 +3,10 @@
 import os
 import string
 
-from hdlmake.action import ActionMakefile
+from .makefile import ToolMakefile
 
 
-class ToolSim(ActionMakefile):
+class ToolSim(ToolMakefile):
 
     """Class that provides the Makefile writing methods and status"""
 

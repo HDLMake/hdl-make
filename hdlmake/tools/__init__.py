@@ -1,5 +1,7 @@
 """Package that provides all the tool specific stuff"""
 
+from .makefile import ToolMakefile
+
 from .iverilog import ToolIVerilog
 from .isim import ToolISim
 from .modelsim import ToolModelsim

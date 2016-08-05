@@ -28,11 +28,10 @@ import sys
 import string
 import platform
 
-from .action import Action
 from hdlmake.util import path as path_mod
 
 
-class ActionMakefile(Action):
+class ToolMakefile(object):
 
     """Class that provides the Makefile writing methods and status"""
 
@@ -48,7 +47,6 @@ class ActionMakefile(Action):
             self._filename = filename
         else:
             self._filename = "Makefile"
-        super(ActionMakefile, self).__init__()
 
     def __del__(self):
         if self._file:
