@@ -76,18 +76,18 @@ class ToolLibero(ToolSyn):
         """Get version for Microsemi Libero IDE synthesis"""
         return 'unknown'
 
-    def makefile_syn_tcl(self, top_module, tcl_controls):
+    def makefile_syn_tcl(self, top_module):
         """Create a Libero synthesis project by TCL"""
         syn_project = top_module.manifest_dict["syn_project"]
         syn_device = top_module.manifest_dict["syn_device"]
         syn_grade = top_module.manifest_dict["syn_grade"]
         syn_package = top_module.manifest_dict["syn_package"]
-        create_tmp = tcl_controls["create"]
-        tcl_controls["create"] = create_tmp.format(syn_project,
+        create_tmp = self._tcl_controls["create"]
+        self._tcl_controls["create"] = create_tmp.format(syn_project,
                                                    syn_device.upper(),
                                                    syn_package.upper(),
                                                    syn_grade)
-        super(ToolLibero, self).makefile_syn_tcl(top_module, tcl_controls)
+        super(ToolLibero, self).makefile_syn_tcl(top_module)
 
     def makefile_syn_files(self, fileset):
         """Write the files TCL section of the Makefile"""

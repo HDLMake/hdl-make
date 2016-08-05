@@ -95,7 +95,7 @@ class ToolQuartus(ToolSyn):
         """Get Altera Quartus version from the binary program"""
         return 'unknown'
 
-    def makefile_syn_tcl(self, top_module, tcl_controls):
+    def makefile_syn_tcl(self, top_module):
         """Add initial properties to the Altera Quartus project"""
         import re
         def _emit_property(command, what=None, name=None, name_type=None,
@@ -145,7 +145,7 @@ class ToolQuartus(ToolSyn):
             sys.exit("\nExiting")
         devstring = (syn_device + syn_package + syn_grade).upper()
         command_list = []
-        command_list.append(tcl_controls["create"])
+        command_list.append(self._tcl_controls["create"])
         command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                    name_type='FAMILY',
                    name='"' + syn_family + '"'))
@@ -191,8 +191,8 @@ class ToolQuartus(ToolSyn):
             command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                                 name_type='POST_FLOW_SCRIPT_FILE',
                                 name=postflow))
-        tcl_controls["create"] = '\n'.join(command_list)
-        super(ToolQuartus, self).makefile_syn_tcl(top_module, tcl_controls)
+        self._tcl_controls["create"] = '\n'.join(command_list)
+        super(ToolQuartus, self).makefile_syn_tcl(top_module)
 
 
     def makefile_syn_files(self, fileset):

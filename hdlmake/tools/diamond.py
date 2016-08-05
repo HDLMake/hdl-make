@@ -74,15 +74,15 @@ class ToolDiamond(ToolSyn):
         """Get version from the Lattice Diamond program"""
         return 'unknown'
 
-    def makefile_syn_tcl(self, top_module, tcl_controls):
+    def makefile_syn_tcl(self, top_module):
         """Create a Diamond synthesis project by TCL"""
         syn_device = top_module.manifest_dict["syn_device"]
         syn_grade = top_module.manifest_dict["syn_grade"]
         syn_package = top_module.manifest_dict["syn_package"]
-        create_tmp = tcl_controls["create"]
+        create_tmp = self._tcl_controls["create"]
         target = syn_device + syn_grade + syn_package
-        tcl_controls["create"] = create_tmp.format(target.upper())
-        super(ToolDiamond, self).makefile_syn_tcl(top_module, tcl_controls)
+        self._tcl_controls["create"] = create_tmp.format(target.upper())
+        super(ToolDiamond, self).makefile_syn_tcl(top_module)
 
     def makefile_syn_files(self, fileset):
         """Write the files TCL section of the Makefile"""
