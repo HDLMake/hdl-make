@@ -23,10 +23,8 @@
 
 """Module providing support for IVerilog (Icarus Verilog) simulator"""
 
-from subprocess import Popen, PIPE
 import string
 
-from hdlmake.util import path as path_mod
 from .make_sim import ToolSim
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
@@ -58,17 +56,6 @@ class ToolIVerilog(ToolSim):
         self._tool_info.update(ToolIVerilog.TOOL_INFO)
         self._hdl_files.extend(ToolIVerilog.HDL_FILES)
         self._clean_targets.update(ToolIVerilog.CLEAN_TARGETS)
-
-    def detect_version(self, path):
-        """Get version from Icarus Verilog program"""
-        is_windows = path_mod.check_windows()
-        iverilog = Popen("iverilog -v 2>/dev/null| awk '{if(NR==1) print $4}'",
-                         shell=True,
-                         stdin=PIPE,
-                         stdout=PIPE,
-                         close_fds=not is_windows)
-        version = iverilog.stdout.readlines()[0].strip()
-        return version
 
     def makefile_sim_compilation(self, fileset, top_module):
         """Generate compile simulation Makefile target for IVerilog"""

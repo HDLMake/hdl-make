@@ -169,8 +169,31 @@ def check_windows():
         return False
 
 def del_command():
-    """Get a string with the delete command"""
+    """Get a string with the O.S. specific delete command"""
     if check_windows():
         return "rm -rf"
     else:
         return "rm -rf"
+
+def copy_command():
+    """Get a string with the O.S. specific copy command"""
+    if check_windows():
+        return "copy"
+    else:
+        return "cp"
+
+def mkdir_command():
+    """Get a string with the O.S. specific mkdir command"""
+    if check_windows():
+        return "mkdir"
+    else:
+        return "mkdir -p"
+
+def slash_char():
+    """Get a string with the O.S. specific path separator"""
+    if check_windows():
+        return "\\"
+    else:
+        return "/"
+
+

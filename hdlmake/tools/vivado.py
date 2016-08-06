@@ -62,7 +62,3 @@ class ToolVivado(ToolXilinx):
         self._clean_targets.update(ToolVivado.CLEAN_TARGETS)
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)
 
-    def detect_version(self, path):
-        """Get version from Xilinx Vivado binary program"""
-        return 'unknown'
-

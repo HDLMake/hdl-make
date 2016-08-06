@@ -57,7 +57,3 @@ class ToolPlanAhead(ToolXilinx):
         self._clean_targets.update(ToolPlanAhead.CLEAN_TARGETS)
         self._tcl_controls.update(ToolPlanAhead.TCL_CONTROLS)
 
-    def detect_version(self, path):
-        """Get the Xilinx PlanAhead program version"""
-        return 'unknown'
-

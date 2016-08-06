@@ -60,10 +60,6 @@ class ToolXilinx(ToolSyn):
         self._clean_targets.update(ToolXilinx.CLEAN_TARGETS)
         self._tcl_controls.update(ToolXilinx.TCL_CONTROLS)
 
-    def detect_version(self, path):
-        """Get version from Xilinx Vivado binary program"""
-        return 'unknown'
-
     def makefile_syn_tcl(self, top_module):
         """Create a Xilinx synthesis project by TCL"""
         tmp = "set_property {0} {1} [{2}]"

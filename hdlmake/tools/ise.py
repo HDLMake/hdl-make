@@ -24,19 +24,12 @@
 """Module providing the classes that are used to handle Xilinx ISE"""
 
 from __future__ import print_function
-import xml.dom.minidom
-import xml.parsers.expat
 import logging
-import re
-from subprocess import Popen, PIPE
 
 from .make_syn import ToolSyn
-from hdlmake.util import path as path_mod
 
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                              UCFFile, CDCFile, NGCFile)
-
-XML_IMPL = xml.dom.minidom.getDOMImplementation()
 
 FAMILY_NAMES = {
     "XC6S": "Spartan6",
@@ -105,36 +98,6 @@ class ToolISE(ToolSyn):
         self._supported_files.extend(ToolISE.SUPPORTED_FILES)
         self._clean_targets.update(ToolISE.CLEAN_TARGETS)
         self._tcl_controls.update(ToolISE.TCL_CONTROLS)
-
-    def detect_version(self, path):
-        """Method returning a string with the Xilinx ISE version from path"""
-        is_windows = path_mod.check_windows()
-        version_pattern = re.compile(
-            r'.*?(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d).*')
-        # First check if we have version in path
-        match = re.match(version_pattern, path)
-        if match:
-            ise_version = "%s.%s" % (
-                match.group('major'),
-                match.group('minor'))
-        else:  # If it is not the case call the "xst -h" to get version
-            xst_output = Popen('xst -h', shell=True, stdin=PIPE,
-                               stdout=PIPE, close_fds=not is_windows)
-            xst_output = xst_output.stdout.readlines()[0]
-            xst_output = xst_output.strip()
-            version_pattern = re.compile(
-                r'Release\s(?P<major>\d|\d\d)[^\d](?P<minor>\d|\d\d)\s.*')
-            match = re.match(version_pattern, xst_output)
-            if match:
-                ise_version = "%s.%s" % (
-                    match.group('major'),
-                    match.group('minor'))
-            else:
-                logging.error("xst output is not in expected format: %s\n",
-                    xst_output + "Can't determine ISE version")
-                return None
-        return ise_version
-
 
     def makefile_syn_tcl(self, top_module):
         """Create a Xilinx synthesis project by TCL"""

@@ -91,10 +91,6 @@ class ToolQuartus(ToolSyn):
         self._clean_targets.update(ToolQuartus.CLEAN_TARGETS)
         self._tcl_controls.update(ToolQuartus.TCL_CONTROLS)
 
-    def detect_version(self, path):
-        """Get Altera Quartus version from the binary program"""
-        return 'unknown'
-
     def makefile_syn_tcl(self, top_module):
         """Add initial properties to the Altera Quartus project"""
         import re
@@ -120,41 +116,47 @@ class ToolQuartus(ToolSyn):
                 words.append("-section_id")
                 words.append(section_id)
             return ' '.join(words)
-        family_names = {
-            "^EP2AGX.*$": "Arria II GX",
-            "^EP3C.*$": "Cyclone III",
-            "^EP4CE.*$": "Cyclone IV E",
-            "^EP4CGX.*$": "Cyclone IV GX",
-            "^5S.*$": "Stratix V",
-        }
-        syn_device = top_module.manifest_dict["syn_device"]
-        syn_family = top_module.manifest_dict["syn_family"]
-        syn_grade = top_module.manifest_dict["syn_grade"]
-        syn_package = top_module.manifest_dict["syn_package"]
-        syn_top = top_module.manifest_dict["syn_top"]
-        if syn_family is None:
-            for key in family_names:
-                if re.match(key, syn_device.upper()):
-                    syn_family = family_names[key]
-                    logging.debug(
-                        "Auto-guessed syn_family to be %s (%s => %s)",
-                        syn_family, syn_device, key)
-        if syn_family is None:
-            logging.error("Could not auto-guess device family, please "
-                          "specify in Manifest.py using syn_family!")
-            sys.exit("\nExiting")
-        devstring = (syn_device + syn_package + syn_grade).upper()
+        def __get_family_string(family=None, device=None):
+            """Function that looks for a existing device family name and
+            try to guess the value from the device string if not defined"""
+            family_names = {
+                "^EP2AGX.*$": "Arria II GX",
+                "^EP3C.*$": "Cyclone III",
+                "^EP4CE.*$": "Cyclone IV E",
+                "^EP4CGX.*$": "Cyclone IV GX",
+                "^5S.*$": "Stratix V"}
+            if family is None:
+                for key in family_names:
+                    if re.match(key, device.upper()):
+                        family = family_names[key]
+                        logging.debug(
+                            "Auto-guessed syn_family to be %s (%s => %s)",
+                            family, device, key)
+            if family is None:
+                logging.error("Could not auto-guess device family, please "
+                              "specify in Manifest.py using syn_family!")
+                sys.exit("\nExiting")
+            return family
+        # Set the core Quartus project properties
+        family_string = __get_family_string(
+            family=top_module.manifest_dict["syn_family"],
+            device=top_module.manifest_dict["syn_device"])
+        device_string = (
+            top_module.manifest_dict["syn_device"] +
+            top_module.manifest_dict["syn_package"] +
+            top_module.manifest_dict["syn_grade"]).upper()
         command_list = []
         command_list.append(self._tcl_controls["create"])
         command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                    name_type='FAMILY',
-                   name='"' + syn_family + '"'))
+                   name='"' + family_string + '"'))
         command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                    name_type='DEVICE',
-                   name=devstring))
+                   name=device_string))
         command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                    name_type='TOP_LEVEL_ENTITY',
-                   name=syn_top))
+                   name=top_module.manifest_dict["syn_top"]))
+        # Insert the Quartus standard control TCL files
         if top_module.manifest_dict["quartus_preflow"] is not None:
             path = path_mod.compose(
                 top_module.manifest_dict["quartus_preflow"], top_module.path)

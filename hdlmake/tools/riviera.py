@@ -81,6 +81,3 @@ class ToolRiviera(VsimMakefileWriter):
         self._tool_info.update(ToolRiviera.TOOL_INFO)
         self._clean_targets.update(ToolRiviera.CLEAN_TARGETS)
 
-    def detect_version(self, path):
-        """Get version from Aldec Riviera-PRO binary program"""
-        pass

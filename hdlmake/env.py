@@ -131,7 +131,6 @@ class Env(dict):
             bin_name = tool_info['linux_bin']
 
         path_key = tool_info['id'] + '_path'
-        version_key = tool_info['id'] + '_version'
         name = tool_info['name']
 
         print("\n### " + name + " tool environment information ###")
@@ -153,9 +152,6 @@ class Env(dict):
                     self[path_key])
             else:
                 print(name + " " + _red("cannnot") + " be found.")
-        if self[path_key] is not None:
-            self[version_key] = info_class.detect_version(self[path_key])
-            print("Detected " + name + " version %s" % self[version_key])
 
     def _report_and_set_hdlmake_var(self, name):
         name = name.upper()
@@ -172,21 +168,6 @@ class Env(dict):
                 name)
             self[name.lower()] = None
             return False
-
-
-    # TODO: TRANSFORM THIS INTO A GENERAL VERSION FORCE/CHECK MECHANISM OR SUPRESS???
-    # def check_env_wrt_manifest(self, verbose=False):
-    # determine ISE version
-    #    if self.top_module:
-    #        if self.top_module.syn_ise_version is not None:
-    #            ise_version = self.top_module.syn_ise_version
-    #            print("ise_version set in the manifest: %s" % ise_version)
-    #            self["ise_version"] = ise_version
-    #        elif self["ise_version"] is not None:
-    #            iv = self["ise_version"]
-    #            print("syn_ise_version not set in the manifest,"
-    #                  " guessed ISE version: %s.%s." % (iv[0], iv[1]))
-
 
 if __name__ == "__main__":
     ec = Env({}, {})

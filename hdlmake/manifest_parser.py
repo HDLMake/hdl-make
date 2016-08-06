@@ -109,12 +109,6 @@ class ManifestParser(ConfigParser):
             help="Project file (.xise, .ise, .qpf)",
             type='')
         self.add_option(
-            'syn_ise_version',
-            default=None,
-            help="Force particular ISE version",
-            type=float)
-        self.add_type('syn_ise_version', type='')
-        self.add_option(
             'syn_pre_cmd',
             default='',
             help="Command to be executed before synthesis: local",

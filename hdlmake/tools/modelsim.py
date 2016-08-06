@@ -55,10 +55,6 @@ class ToolModelsim(VsimMakefileWriter):
         self._tool_info.update(ToolModelsim.TOOL_INFO)
         self._clean_targets.update(ToolModelsim.CLEAN_TARGETS)
 
-    def detect_version(self, path):
-        """Get version from the Mentor Modelsim program"""
-        pass
-
     def makefile_sim_options(self, top_module):
         """Print the Modelsim options to the Makefile"""
         if top_module.pool.env["modelsim_path"]:

@@ -109,9 +109,6 @@ def _action_runner(modules_pool):
     if options.command == "check-env":
         modules_pool.env.check_env(verbose=True)
         quit()
-    elif options.command == "check-manifest":
-        modules_pool.check_manifest()
-        quit()
     elif options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
@@ -174,13 +171,6 @@ def _get_parser():
                                       description="Look for environmental variables specific for HDLMAKE.\n"
                                                   "Hdlmake will examine presence of supported synthesis and simulation"
                                                   "tools.\n")
-    check_manifest = subparsers.add_parser(
-        "check-manifest",
-        help="check manifest for formal correctness")
-    check_manifest.add_argument(
-        "--top",
-        help="indicate path to the top manifest",
-        default=None)
     manifest_help = subparsers.add_parser(
         "manifest-help",
         help="print manifest file variables description")

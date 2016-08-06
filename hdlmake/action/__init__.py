@@ -24,7 +24,6 @@
 
 from .action import Action
 
-from .check import ActionCheck
 from .core import ActionCore
 from .tree import ActionTree
 

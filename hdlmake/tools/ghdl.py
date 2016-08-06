@@ -52,10 +52,6 @@ class ToolGHDL(ToolSim):
         self._hdl_files.extend(ToolGHDL.HDL_FILES)
         self._clean_targets.update(ToolGHDL.CLEAN_TARGETS)
 
-    def detect_version(self, path):
-        """Get tool version for GHDL"""
-        pass
-
     def makefile_sim_options(self, top_module):
         """Print the GHDL options to the Makefile"""
         if top_module.manifest_dict["ghdl_opt"]:

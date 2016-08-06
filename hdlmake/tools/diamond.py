@@ -70,10 +70,6 @@ class ToolDiamond(ToolSyn):
         self._clean_targets.update(ToolDiamond.CLEAN_TARGETS)
         self._tcl_controls.update(ToolDiamond.TCL_CONTROLS)
 
-    def detect_version(self, path):
-        """Get version from the Lattice Diamond program"""
-        return 'unknown'
-
     def makefile_syn_tcl(self, top_module):
         """Create a Diamond synthesis project by TCL"""
         syn_device = top_module.manifest_dict["syn_device"]

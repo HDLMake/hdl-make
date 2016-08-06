@@ -48,10 +48,6 @@ class ToolActiveHDL(ToolSim):
         self._hdl_files.extend(ToolActiveHDL.HDL_FILES)
         self._clean_targets.update(ToolActiveHDL.CLEAN_TARGETS)
 
-    def detect_version(self, path):
-        """Get the version from the Aldec-HDL binary program"""
-        pass
-
     def makefile_sim_compilation(self, fileset, top_module):
         """Print Makefile compilation target for Aldec Active-HDL simulator"""
         self.writeln("simulation:")

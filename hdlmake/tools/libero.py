@@ -72,10 +72,6 @@ class ToolLibero(ToolSyn):
         self._clean_targets.update(ToolLibero.CLEAN_TARGETS)
         self._tcl_controls.update(ToolLibero.TCL_CONTROLS)
 
-    def detect_version(self, path):
-        """Get version for Microsemi Libero IDE synthesis"""
-        return 'unknown'
-
     def makefile_syn_tcl(self, top_module):
         """Create a Libero synthesis project by TCL"""
         syn_project = top_module.manifest_dict["syn_project"]

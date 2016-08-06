@@ -27,11 +27,9 @@
 
 import os
 import os.path
-from subprocess import Popen, PIPE
 import logging
 import sys
 
-from hdlmake.util import path as path_mod
 from .make_sim import ToolSim
 from hdlmake.srcfile import VerilogFile, VHDLFile
 
@@ -67,40 +65,62 @@ class ToolISim(ToolSim):
         self._hdl_files.extend(ToolISim.HDL_FILES)
         self._clean_targets.update(ToolISim.CLEAN_TARGETS)
 
-    def detect_version(self, path):
-        """Get version from Xilinx ISim simulator program"""
-        is_windows = path_mod.check_windows()
-        isim = Popen(
-            "%s --version | awk '{print $2}'" % os.path.join(path, "vlogcomp"),
-            shell=True,
-            close_fds=not is_windows,
-            stdin=PIPE,
-            stdout=PIPE)
-        print os.path.join(path, "vlogcomp")
-        try:
-            isim_version = isim.stdout.readlines()[0].strip()
-        except:
-            return None
-        return isim_version
-
     def makefile_sim_top(self, top_module):
         """Print the top section of the Makefile for Xilinx ISim"""
+        def __get_xilinxsim_ini_dir(env):
+            """Get Xilinx ISim ini simulation file"""
+            if env["isim_path"]:
+                xilinx_dir = str(os.path.join(env["isim_path"], "..", ".."))
+            else:
+                logging.error("Cannot calculate xilinx tools base directory")
+                quit()
+            hdl_language = 'vhdl'  # 'verilog'
+            if sys.platform == 'cygwin':
+                os_prefix = 'nt'
+            else:
+                os_prefix = 'lin'
+            if env["architecture"] == 32:
+                arch_sufix = ''
+            else:
+                arch_sufix = '64'
+            xilinx_ini_path = str(os.path.join(xilinx_dir,
+                                  hdl_language,
+                                  "hdp",
+                                  os_prefix + arch_sufix))
+            # Ensure the path is absolute and normalized
+            return os.path.abspath(xilinx_ini_path)
         self.writeln("""## variables #############################
 PWD := $(shell pwd)
 TOP_MODULE := """ + top_module.manifest_dict["sim_top"] + """
 FUSE_OUTPUT ?= isim_proj
 
-XILINX_INI_PATH := """ + self.__get_xilinxsim_ini_dir(top_module.pool.env) +
+XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir(top_module.pool.env) +
                      """
 """)
 
     def makefile_sim_options(self, top_module):
         """Print the Xilinx ISim simulation options in the Makefile"""
+        def __get_rid_of_isim_incdirs(vlog_opt):
+            """Clean the vlog options from include dirs"""
+            if not vlog_opt:
+                vlog_opt = ""
+            vlogs = vlog_opt.split(' ')
+            ret = []
+            skip = False
+            for vlog_option in vlogs:
+                if skip:
+                    skip = False
+                    continue
+                if not vlog_option.startswith("-i"):
+                    ret.append(vlog_option)
+                else:
+                    skip = True
+            return ' '.join(ret)
         self.writeln("""VHPCOMP_FLAGS := -intstyle default \
 -incremental -initfile xilinxsim.ini
 ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
-                     self.__get_rid_of_isim_incdirs(
+                     __get_rid_of_isim_incdirs(
                      top_module.manifest_dict["vlog_opt"]) + """
 """)
 
@@ -117,9 +137,7 @@ fuse:
 \t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
 
 """
-
         libs = set(f.library for f in fileset)
-
         self.write('LIBS := ')
         self.write(' '.join(libs))
         self.write('\n')
@@ -127,9 +145,7 @@ fuse:
         self.write('LIB_IND := ')
         self.write(' '.join([lib + "/." + lib for lib in libs]))
         self.write('\n')
-
         self.writeln(make_preambule_p2)
-
         # ISim does not have a vmap command to insert additional libraries in
         #.ini file.
         for lib in libs:
@@ -147,11 +163,9 @@ fuse:
                           "xilinxsim.ini) "]))
             self.write(' '.join(["||", "rm -rf", lib, "\n"]))
             self.write('\n')
-
             # Modify xilinxsim.ini file by including the extra local libraries
             # self.write(' '.join(["\t(echo """, lib+"="+lib+"/."+lib, ">>",
             # "${XILINX_INI_PATH}/xilinxsim.ini"]))
-
         # rules for all _primary.dat files for sv
         # incdir = ""
         objs = []
@@ -189,7 +203,6 @@ fuse:
             self.write("\t\t@mkdir -p $(dir $@)")
             self.writeln(" && touch $@ \n\n")
         self.write("\n")
-
         # list rules for all _primary.dat files for vhdl
         for vhdl_file in fileset.filter(VHDLFile):
             lib = vhdl_file.library
@@ -240,42 +253,3 @@ fuse:
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
 
-    def __get_rid_of_isim_incdirs(self, vlog_opt):
-        """Clean the vlog options from include dirs"""
-        if not vlog_opt:
-            vlog_opt = ""
-        vlogs = vlog_opt.split(' ')
-        ret = []
-        skip = False
-        for vlog_option in vlogs:
-            if skip:
-                skip = False
-                continue
-            if not vlog_option.startswith("-i"):
-                ret.append(vlog_option)
-            else:
-                skip = True
-        return ' '.join(ret)
-
-    def __get_xilinxsim_ini_dir(self, env):
-        """Get Xilinx ISim ini simulation file"""
-        if env["isim_path"]:
-            xilinx_dir = str(os.path.join(env["isim_path"], "..", ".."))
-        else:
-            logging.error("Cannot calculate xilinx tools base directory")
-            quit()
-        hdl_language = 'vhdl'  # 'verilog'
-        if sys.platform == 'cygwin':
-            os_prefix = 'nt'
-        else:
-            os_prefix = 'lin'
-        if env["architecture"] == 32:
-            arch_sufix = ''
-        else:
-            arch_sufix = '64'
-        xilinx_ini_path = str(os.path.join(xilinx_dir,
-                              hdl_language,
-                              "hdp",
-                              os_prefix + arch_sufix))
-        # Ensure the path is absolute and normalized
-        return os.path.abspath(xilinx_ini_path)

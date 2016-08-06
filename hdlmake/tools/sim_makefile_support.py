@@ -24,10 +24,10 @@
 """Module providing common stuff for Modelsim, Vsim... like simulators"""
 
 import os
-import platform
 import string
 
 from .make_sim import ToolSim
+from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
 
@@ -59,20 +59,26 @@ class VsimMakefileWriter(ToolSim):
         self.copy_rules = {}
         self._hdl_files.extend(VsimMakefileWriter.HDL_FILES)
 
-
     def makefile_sim_options(self, top_module):
         """Print the vsim options to the Makefile"""
-        self.vlog_flags.append(
-            self.__get_rid_of_vsim_incdirs(
-                top_module.manifest_dict["vlog_opt"]))
+        def __get_rid_of_vsim_incdirs(vlog_opt=""):
+            """Parse the VLOG options and purge the included dirs"""
+            if not vlog_opt:
+                vlog_opt = ""
+            vlogs = vlog_opt.split(' ')
+            ret = []
+            for vlog_aux in vlogs:
+                if not vlog_aux.startswith("+incdir+"):
+                    ret.append(vlog_aux)
+            return ' '.join(ret)
+        self.vlog_flags.append(__get_rid_of_vsim_incdirs(
+            top_module.manifest_dict["vlog_opt"]))
         self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
         self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
         self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
-
         for var, value in self.custom_variables.iteritems():
             self.writeln("%s := %s" % (var, value))
         self.writeln()
-
         self.writeln("VCOM_FLAGS := %s" % (' '.join(self.vcom_flags)))
         self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
@@ -83,29 +89,24 @@ class VsimMakefileWriter(ToolSim):
         The Makefile format is shared, but flags, dependencies, clean rules,
         etc are defined by the specific tool.
         """
-
-        if platform.system() == 'Windows':
-            del_command = "rm -rf"
-            mkdir_command = "mkdir"
-            slash_char = "\\"
-        else:
-            del_command = "rm -rf"
-            mkdir_command = "mkdir -p"
-            slash_char = "/"
-
-        # self.writeln("INCLUDE_DIRS := +incdir+%s" %
-        # ('+'.join(top_module.include_dirs)))
-
+        def __create_copy_rule(name, src):
+            """Get a Makefile rule named name, which depends on src,
+            copying it to the local directory."""
+            rule = """%s: %s
+\t\t%s $< . 2>&1
+""" % (name, src, path_mod.copy_command())
+            return rule
+        #self.writeln("INCLUDE_DIRS := +incdir+%s" %
+        #    ('+'.join(top_module.include_dirs)))
         libs = set(f.library for f in fileset)
-
         self.write('LIBS := ')
         self.write(' '.join(libs))
         self.write('\n')
         # tell how to make libraries
         self.write('LIB_IND := ')
-        self.write(' '.join([lib + slash_char + "." + lib for lib in libs]))
+        self.write(' '.join([lib + path_mod.slash_char() +
+                   "." + lib for lib in libs]))
         self.write('\n')
-
         self.writeln()
         self.writeln(
             "simulation: %s $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ)" %
@@ -116,19 +117,15 @@ class VsimMakefileWriter(ToolSim):
             ' '.join(
                 self.additional_deps))
         self.writeln()
-
         for filename, filesource in self.copy_rules.iteritems():
-            self.write(self.__create_copy_rule(filename, filesource))
-
+            self.write(__create_copy_rule(filename, filesource))
         for lib in libs:
-            self.write(lib + slash_char + "." + lib + ":\n")
+            self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
-            self.write(' '.join(["\t(vlib", lib, "&&", vmap_command,
-                                 lib, "&&", "touch", lib + slash_char +
-                                 "." + lib, ")"]))
-            self.write(' '.join(["||", del_command, lib, "\n"]))
+            self.write(' '.join(["\t(vlib", lib, "&&", vmap_command, lib, "&&",
+                "touch", lib + path_mod.slash_char() + "." + lib, ")"]))
+            self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
             self.write('\n\n')
-
         # rules for all _primary.dat files for sv
         for vlog in fileset.filter(VerilogFile):
             self.write("%s: %s" % (os.path.join(
@@ -146,7 +143,6 @@ class VsimMakefileWriter(ToolSim):
                 else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
             self.writeln()
-
             # self.write("\t\tvlog -work "+vlog.library)
             # self.write(" $(VLOG_FLAGS) ")
             # if isinstance(vl, SVFile):
@@ -156,7 +152,6 @@ class VsimMakefileWriter(ToolSim):
             # incdir += " "
             # self.write(incdir)
             # self.writeln(vlog.vlog_opt+" $<")
-
             compile_template = string.Template(
                 "\t\tvlog -work ${library} $$(VLOG_FLAGS) "
                 "${sv_option} $${INCLUDE_DIRS} $$<")
@@ -164,10 +159,9 @@ class VsimMakefileWriter(ToolSim):
                 library=vlog.library, sv_option="-sv"
                 if isinstance(vlog, SVFile) else "")
             self.writeln(compile_line)
-            self.write("\t\t@" + mkdir_command + " $(dir $@)")
+            self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
             self.writeln(" && touch $@ \n\n")
             self.writeln()
-
         # list rules for all _primary.dat files for vhdl
         for vhdl in fileset.filter(VHDLFile):
             lib = vhdl.library
@@ -189,28 +183,6 @@ class VsimMakefileWriter(ToolSim):
             self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)",
                          vhdl.vcom_opt, "-work", lib, "$< "]))
-            self.writeln("\t\t@" + mkdir_command +
+            self.writeln("\t\t@" + path_mod.mkdir_command() +
                          " $(dir $@) && touch $@ \n\n")
 
-    def __create_copy_rule(self, name, src):
-        """Get a Makefile rule named name, which depends on src, copying it to
-        the local directory."""
-        if platform.system() == 'Windows':
-            copy_command = "copy"
-        else:
-            copy_command = "cp"
-        rule = """%s: %s
-\t\t%s $< . 2>&1
-""" % (name, src, copy_command)
-        return rule
-
-    def __get_rid_of_vsim_incdirs(self, vlog_opt=""):
-        """Parse the VLOG options and purge the included dirs"""
-        if not vlog_opt:
-            vlog_opt = ""
-        vlogs = vlog_opt.split(' ')
-        ret = []
-        for vlog_aux in vlogs:
-            if not vlog_aux.startswith("+incdir+"):
-                ret.append(vlog_aux)
-        return ' '.join(ret)
