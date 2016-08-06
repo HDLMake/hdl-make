@@ -52,10 +52,10 @@ class ToolGHDL(ToolSim):
         self._hdl_files.extend(ToolGHDL.HDL_FILES)
         self._clean_targets.update(ToolGHDL.CLEAN_TARGETS)
 
-    def makefile_sim_options(self, top_module):
+    def makefile_sim_options(self):
         """Print the GHDL options to the Makefile"""
-        if top_module.manifest_dict["ghdl_opt"]:
-            ghdl_opt = top_module.manifest_dict["ghdl_opt"]
+        if self.top_module.manifest_dict["ghdl_opt"]:
+            ghdl_opt = self.top_module.manifest_dict["ghdl_opt"]
         else:
             ghdl_opt = ''
         ghdl_string = string.Template(
@@ -63,8 +63,9 @@ class ToolGHDL(ToolSim):
         self.writeln(ghdl_string.substitute(
             ghdl_opt=ghdl_opt))
 
-    def makefile_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self):
         """Print the GDHL simulation compilation target"""
+        fileset = self.fileset
         self.writeln("simulation:")
         self.writeln("\t\t# Analyze sources")
         for vhdl in fileset.filter(VHDLFile):

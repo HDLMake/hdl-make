@@ -57,8 +57,10 @@ class ToolIVerilog(ToolSim):
         self._hdl_files.extend(ToolIVerilog.HDL_FILES)
         self._clean_targets.update(ToolIVerilog.CLEAN_TARGETS)
 
-    def makefile_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self):
         """Generate compile simulation Makefile target for IVerilog"""
+        fileset = self.fileset
+        top_module = self.top_module
 
         self.writeln("simulation:")
 
@@ -84,8 +86,9 @@ class ToolIVerilog(ToolSim):
         self.writeln("\t\tiverilog $(IVERILOG_OPT) -s $(TOP_MODULE)"
                      " -o $(TOP_MODULE).vvp -c run.command")
 
-    def makefile_sim_options(self, top_module):
+    def makefile_sim_options(self):
         """Print the IVerilog options to the Makefile"""
+        top_module = self.top_module
         if top_module.manifest_dict["iverilog_opt"]:
             iverilog_opt = top_module.manifest_dict["iverilog_opt"]
         else:

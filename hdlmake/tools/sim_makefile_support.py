@@ -59,7 +59,7 @@ class VsimMakefileWriter(ToolSim):
         self.copy_rules = {}
         self._hdl_files.extend(VsimMakefileWriter.HDL_FILES)
 
-    def makefile_sim_options(self, top_module):
+    def makefile_sim_options(self):
         """Print the vsim options to the Makefile"""
         def __get_rid_of_vsim_incdirs(vlog_opt=""):
             """Parse the VLOG options and purge the included dirs"""
@@ -71,6 +71,7 @@ class VsimMakefileWriter(ToolSim):
                 if not vlog_aux.startswith("+incdir+"):
                     ret.append(vlog_aux)
             return ' '.join(ret)
+        top_module = self.top_module
         self.vlog_flags.append(__get_rid_of_vsim_incdirs(
             top_module.manifest_dict["vlog_opt"]))
         self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
@@ -84,7 +85,7 @@ class VsimMakefileWriter(ToolSim):
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
 
-    def makefile_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self):
         """Write a properly formatted Makefile for the simulator.
         The Makefile format is shared, but flags, dependencies, clean rules,
         etc are defined by the specific tool.
@@ -96,6 +97,7 @@ class VsimMakefileWriter(ToolSim):
 \t\t%s $< . 2>&1
 """ % (name, src, path_mod.copy_command())
             return rule
+        fileset = self.fileset
         # self.writeln("INCLUDE_DIRS := +incdir+%s" %
         #    ('+'.join(top_module.include_dirs)))
         libs = set(f.library for f in fileset)
@@ -123,7 +125,8 @@ class VsimMakefileWriter(ToolSim):
             self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command, lib, "&&",
-                                 "touch", lib + path_mod.slash_char() + "." + lib, ")"]))
+                                 "touch", lib + path_mod.slash_char() +
+                                 "." + lib, ")"]))
             self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
             self.write('\n\n')
         # rules for all _primary.dat files for sv

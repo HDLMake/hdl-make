@@ -41,6 +41,8 @@ class ToolMakefile(object):
         self._tcl_controls = {}
         self._hdl_files = []
         self._supported_files = []
+        self.top_module = None
+        self.fileset = None
         if filename:
             self._filename = filename
         else:
@@ -50,9 +52,14 @@ class ToolMakefile(object):
         if self._file:
             self._file.close()
 
-    def makefile_includes(self, top_module):
+    def makefile_setup(self, top_module, fileset):
+        """Set the Makefile configuration"""
+        self.top_module = top_module
+        self.fileset = fileset
+
+    def makefile_includes(self):
         """Add the included makefiles that need to be previously loaded"""
-        for file_aux in top_module.incl_makefiles:
+        for file_aux in self.top_module.incl_makefiles:
             if os.path.exists(file_aux):
                 self.write("include %s\n" % file_aux)
 

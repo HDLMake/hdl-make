@@ -55,8 +55,9 @@ class ToolModelsim(VsimMakefileWriter):
         self._tool_info.update(ToolModelsim.TOOL_INFO)
         self._clean_targets.update(ToolModelsim.CLEAN_TARGETS)
 
-    def makefile_sim_options(self, top_module):
+    def makefile_sim_options(self):
         """Print the Modelsim options to the Makefile"""
+        top_module = self.top_module
         if top_module.pool.env["modelsim_path"]:
             modelsim_ini_path = os.path.join(
                 top_module.pool.env["modelsim_path"],
@@ -64,4 +65,4 @@ class ToolModelsim(VsimMakefileWriter):
         else:
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
-        super(ToolModelsim, self).makefile_sim_options(top_module)
+        super(ToolModelsim, self).makefile_sim_options()

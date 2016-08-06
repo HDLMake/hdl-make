@@ -59,13 +59,13 @@ class ToolXilinx(ToolSyn):
         self._clean_targets.update(ToolXilinx.CLEAN_TARGETS)
         self._tcl_controls.update(ToolXilinx.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self, top_module):
+    def makefile_syn_tcl(self):
         """Create a Xilinx synthesis project by TCL"""
         tmp = "set_property {0} {1} [{2}]"
-        syn_device = top_module.manifest_dict["syn_device"]
-        syn_grade = top_module.manifest_dict["syn_grade"]
-        syn_package = top_module.manifest_dict["syn_package"]
-        syn_top = top_module.manifest_dict["syn_top"]
+        syn_device = self.top_module.manifest_dict["syn_device"]
+        syn_grade = self.top_module.manifest_dict["syn_grade"]
+        syn_package = self.top_module.manifest_dict["syn_package"]
+        syn_top = self.top_module.manifest_dict["syn_top"]
         create_new = []
         create_new.append(self._tcl_controls["create"])
         properties = [
@@ -75,14 +75,14 @@ class ToolXilinx(ToolSyn):
         for prop in properties:
             create_new.append(tmp.format(prop[0], prop[1], prop[2]))
         self._tcl_controls["create"] = "\n".join(create_new)
-        super(ToolXilinx, self).makefile_syn_tcl(top_module)
+        super(ToolXilinx, self).makefile_syn_tcl()
 
-    def makefile_syn_files(self, fileset):
+    def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
         self.writeln("define TCL_FILES")
         tmp = "add_files -norecurse {0}"
         tcl = "source {0}"
-        for file_aux in fileset:
+        for file_aux in self.fileset:
             if isinstance(file_aux, TCLFile):
                 line = tcl.format(file_aux.rel_path())
             else:

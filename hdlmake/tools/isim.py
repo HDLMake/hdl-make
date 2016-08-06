@@ -65,8 +65,9 @@ class ToolISim(ToolSim):
         self._hdl_files.extend(ToolISim.HDL_FILES)
         self._clean_targets.update(ToolISim.CLEAN_TARGETS)
 
-    def makefile_sim_top(self, top_module):
+    def makefile_sim_top(self):
         """Print the top section of the Makefile for Xilinx ISim"""
+        top_module = self.top_module
         def __get_xilinxsim_ini_dir(env):
             """Get Xilinx ISim ini simulation file"""
             if env["isim_path"]:
@@ -98,7 +99,7 @@ XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir(top_module.pool.env) +
                      """
 """)
 
-    def makefile_sim_options(self, top_module):
+    def makefile_sim_options(self):
         """Print the Xilinx ISim simulation options in the Makefile"""
         def __get_rid_of_isim_incdirs(vlog_opt):
             """Clean the vlog options from include dirs"""
@@ -121,11 +122,12 @@ XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir(top_module.pool.env) +
 ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
                      __get_rid_of_isim_incdirs(
-                     top_module.manifest_dict["vlog_opt"]) + """
+                     self.top_module.manifest_dict["vlog_opt"]) + """
 """)
 
-    def makefile_sim_compilation(self, fileset, top_module):
+    def makefile_sim_compilation(self):
         """Print the compile simulation target for Xilinx ISim"""
+        fileset = self.fileset
         make_preambule_p2 = """## rules #################################
 simulation: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ) fuse
 $(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini

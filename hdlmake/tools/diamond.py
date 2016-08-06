@@ -70,21 +70,21 @@ class ToolDiamond(ToolSyn):
         self._clean_targets.update(ToolDiamond.CLEAN_TARGETS)
         self._tcl_controls.update(ToolDiamond.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self, top_module):
+    def makefile_syn_tcl(self):
         """Create a Diamond synthesis project by TCL"""
-        syn_device = top_module.manifest_dict["syn_device"]
-        syn_grade = top_module.manifest_dict["syn_grade"]
-        syn_package = top_module.manifest_dict["syn_package"]
+        syn_device = self.top_module.manifest_dict["syn_device"]
+        syn_grade = self.top_module.manifest_dict["syn_grade"]
+        syn_package = self.top_module.manifest_dict["syn_package"]
         create_tmp = self._tcl_controls["create"]
         target = syn_device + syn_grade + syn_package
         self._tcl_controls["create"] = create_tmp.format(target.upper())
-        super(ToolDiamond, self).makefile_syn_tcl(top_module)
+        super(ToolDiamond, self).makefile_syn_tcl()
 
-    def makefile_syn_files(self, fileset):
+    def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
         hdl = 'prj_src {0} \"{1}\"'
         self.writeln("define TCL_FILES")
-        for file_aux in fileset:
+        for file_aux in self.fileset:
             if isinstance(file_aux, LPFFile):
                 self.writeln(hdl.format('add -exclude', file_aux.rel_path()))
                 self.writeln(hdl.format('enable', file_aux.rel_path()))

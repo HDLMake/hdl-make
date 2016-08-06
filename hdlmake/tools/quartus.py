@@ -90,7 +90,7 @@ class ToolQuartus(ToolSyn):
         self._clean_targets.update(ToolQuartus.CLEAN_TARGETS)
         self._tcl_controls.update(ToolQuartus.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self, top_module):
+    def makefile_syn_tcl(self):
         """Add initial properties to the Altera Quartus project"""
         import re
 
@@ -139,6 +139,7 @@ class ToolQuartus(ToolSyn):
                 sys.exit("\nExiting")
             return family
 
+        top_module = self.top_module
         # Set the core Quartus project properties
         family_string = __get_family_string(
             family=top_module.manifest_dict["syn_family"],
@@ -149,15 +150,18 @@ class ToolQuartus(ToolSyn):
             top_module.manifest_dict["syn_grade"]).upper()
         command_list = []
         command_list.append(self._tcl_controls["create"])
-        command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
-                                           name_type='FAMILY',
-                                           name='"' + family_string + '"'))
-        command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
-                                           name_type='DEVICE',
-                                           name=device_string))
-        command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
-                                           name_type='TOP_LEVEL_ENTITY',
-                                           name=top_module.manifest_dict["syn_top"]))
+        command_list.append(_emit_property(
+            self.SET_GLOBAL_ASSIGNMENT,
+            name_type='FAMILY',
+            name='"' + family_string + '"'))
+        command_list.append(_emit_property(
+            self.SET_GLOBAL_ASSIGNMENT,
+            name_type='DEVICE',
+            name=device_string))
+        command_list.append(_emit_property(
+            self.SET_GLOBAL_ASSIGNMENT,
+            name_type='TOP_LEVEL_ENTITY',
+            name=top_module.manifest_dict["syn_top"]))
         # Insert the Quartus standard control TCL files
         if top_module.manifest_dict["quartus_preflow"] is not None:
             path = path_mod.compose(
@@ -196,15 +200,15 @@ class ToolQuartus(ToolSyn):
                                 name_type='POST_FLOW_SCRIPT_FILE',
                                 name=postflow))
         self._tcl_controls["create"] = '\n'.join(command_list)
-        super(ToolQuartus, self).makefile_syn_tcl(top_module)
+        super(ToolQuartus, self).makefile_syn_tcl()
 
-    def makefile_syn_files(self, fileset):
+    def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
         self.writeln("define TCL_FILES")
         tmp = "set_global_assignment -name {0} {1}"
         tmplib = tmp + " -library {2}"
         ret = []
-        for file_aux in fileset:
+        for file_aux in self.fileset:
             if isinstance(file_aux, VHDLFile):
                 line = tmplib.format("VHDL_FILE",
                                      file_aux.rel_path(), file_aux.library)

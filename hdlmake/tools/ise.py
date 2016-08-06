@@ -99,8 +99,9 @@ class ToolISE(ToolSyn):
         self._clean_targets.update(ToolISE.CLEAN_TARGETS)
         self._tcl_controls.update(ToolISE.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self, top_module):
+    def makefile_syn_tcl(self):
         """Create a Xilinx synthesis project by TCL"""
+        top_module = self.top_module
         tmp = "{0}set {1} {2}"
         syn_device = top_module.manifest_dict["syn_device"]
         syn_grade = top_module.manifest_dict["syn_grade"]
@@ -128,13 +129,13 @@ class ToolISE(ToolSyn):
         for prop in properties:
             create_new.append(tmp.format(prop[0], prop[1], prop[2]))
         self._tcl_controls["create"] = "\n".join(create_new)
-        super(ToolISE, self).makefile_syn_tcl(top_module)
+        super(ToolISE, self).makefile_syn_tcl()
 
-    def makefile_syn_files(self, fileset):
+    def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
         hdl = "xfile add {0}"
         self.writeln("define TCL_FILES")
-        for file_aux in fileset:
+        for file_aux in self.fileset:
             self.writeln(hdl.format(file_aux.rel_path()))
         self.writeln("project set top $(TOP_MODULE)")
         self.writeln("endef")

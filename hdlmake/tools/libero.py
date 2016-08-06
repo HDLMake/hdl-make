@@ -72,20 +72,20 @@ class ToolLibero(ToolSyn):
         self._clean_targets.update(ToolLibero.CLEAN_TARGETS)
         self._tcl_controls.update(ToolLibero.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self, top_module):
+    def makefile_syn_tcl(self):
         """Create a Libero synthesis project by TCL"""
-        syn_project = top_module.manifest_dict["syn_project"]
-        syn_device = top_module.manifest_dict["syn_device"]
-        syn_grade = top_module.manifest_dict["syn_grade"]
-        syn_package = top_module.manifest_dict["syn_package"]
+        syn_project = self.top_module.manifest_dict["syn_project"]
+        syn_device = self.top_module.manifest_dict["syn_device"]
+        syn_grade = self.top_module.manifest_dict["syn_grade"]
+        syn_package = self.top_module.manifest_dict["syn_package"]
         create_tmp = self._tcl_controls["create"]
         self._tcl_controls["create"] = create_tmp.format(syn_project,
                                                          syn_device.upper(),
                                                          syn_package.upper(),
                                                          syn_grade)
-        super(ToolLibero, self).makefile_syn_tcl(top_module)
+        super(ToolLibero, self).makefile_syn_tcl()
 
-    def makefile_syn_files(self, fileset):
+    def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
         link_string = 'create_links {0} {{{1}}}'
         synthesis_constraints = []
@@ -93,7 +93,7 @@ class ToolLibero(ToolSyn):
         ret = []
         ret.append("define TCL_FILES")
         # First stage: linking files
-        for file_aux in fileset:
+        for file_aux in self.fileset:
             if (isinstance(file_aux, VHDLFile) or
                     isinstance(file_aux, VerilogFile)):
                 line = link_string.format('-hdl_source', file_aux.rel_path())

@@ -13,7 +13,7 @@ class ToolSyn(ToolMakefile):
     def __init__(self):
         super(ToolSyn, self).__init__()
 
-    def makefile_syn_top(self, top_module, tool_path):
+    def makefile_syn_top(self, tool_path):
         """Create the top part of the synthesis Makefile"""
         if path_mod.check_windows():
             tcl_interpreter = self._tool_info["windows_bin"]
@@ -30,12 +30,12 @@ TCL_INTERPRETER := $$(TOOL_PATH)/${tcl_interpreter}
 """)
         self.writeln(top_parameter.substitute(
             tcl_interpreter=tcl_interpreter,
-            project_name=top_module.manifest_dict["syn_project"],
+            project_name=self.top_module.manifest_dict["syn_project"],
             project_ext=self._tool_info["project_ext"],
             tool_path=tool_path,
-            top_module=top_module.manifest_dict["syn_top"]))
+            top_module=self.top_module.manifest_dict["syn_top"]))
 
-    def makefile_syn_tcl(self, top_module):
+    def makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
         tcl_string = string.Template("""\
 
@@ -151,7 +151,7 @@ bitstream: tcl_clean tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd run_
 
 """)
 
-    def makefile_syn_command(self, top_module):
+    def makefile_syn_command(self):
         """Create the Makefile targets for user defined commands"""
         syn_command = string.Template("""\
 # User defined commands
@@ -187,29 +187,29 @@ syn_post_bitstream_cmd:
 
 """)
         self.writeln(syn_command.substitute(
-            syn_pre_cmd=top_module.manifest_dict[
+            syn_pre_cmd=self.top_module.manifest_dict[
             "syn_pre_cmd"],
-            syn_post_cmd=top_module.manifest_dict[
+            syn_post_cmd=self.top_module.manifest_dict[
                 "syn_post_cmd"],
-            syn_pre_synthesize_cmd=top_module.manifest_dict[
+            syn_pre_synthesize_cmd=self.top_module.manifest_dict[
                 "syn_pre_synthesize_cmd"],
-            syn_post_synthesize_cmd=top_module.manifest_dict[
+            syn_post_synthesize_cmd=self.top_module.manifest_dict[
                 "syn_post_synthesize_cmd"],
-            syn_pre_translate_cmd=top_module.manifest_dict[
+            syn_pre_translate_cmd=self.top_module.manifest_dict[
                 "syn_pre_translate_cmd"],
-            syn_post_translate_cmd=top_module.manifest_dict[
+            syn_post_translate_cmd=self.top_module.manifest_dict[
                 "syn_post_translate_cmd"],
-            syn_pre_map_cmd=top_module.manifest_dict[
+            syn_pre_map_cmd=self.top_module.manifest_dict[
                 "syn_pre_map_cmd"],
-            syn_post_map_cmd=top_module.manifest_dict[
+            syn_post_map_cmd=self.top_module.manifest_dict[
                 "syn_post_map_cmd"],
-            syn_pre_par_cmd=top_module.manifest_dict[
+            syn_pre_par_cmd=self.top_module.manifest_dict[
                 "syn_pre_par_cmd"],
-            syn_post_par_cmd=top_module.manifest_dict[
+            syn_post_par_cmd=self.top_module.manifest_dict[
                 "syn_post_par_cmd"],
-            syn_pre_bitstream_cmd=top_module.manifest_dict[
+            syn_pre_bitstream_cmd=self.top_module.manifest_dict[
                 "syn_pre_bitstream_cmd"],
-            syn_post_bitstream_cmd=top_module.manifest_dict[
+            syn_post_bitstream_cmd=self.top_module.manifest_dict[
                 "syn_post_bitstream_cmd"]))
 
     def makefile_syn_clean(self):
@@ -217,8 +217,8 @@ syn_post_bitstream_cmd:
         self.makefile_clean()
         self.writeln("\t\t" + path_mod.del_command() +
                      " synthesize translate map par bitstream")
-        self.writeln("\t\t" + path_mod.del_command() +
-                     " tcl_synthesize tcl_translate tcl_map tcl_par tcl_bitstream")
+        self.writeln("\t\t" + path_mod.del_command() + " tcl_synthesize " +
+                     "tcl_translate tcl_map tcl_par tcl_bitstream")
         self.makefile_mrproper()
 
     def makefile_syn_phony(self):

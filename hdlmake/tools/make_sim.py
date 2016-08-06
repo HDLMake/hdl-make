@@ -13,27 +13,28 @@ class ToolSim(ToolMakefile):
     def __init__(self):
         super(ToolSim, self).__init__()
 
-    def makefile_sim_top(self, top_module):
+    def makefile_sim_top(self):
         """Generic method to write the simulation Makefile top section"""
         top_parameter = string.Template("""\
 TOP_MODULE := ${top_module}
 PWD := $$(shell pwd)
 """)
         self.writeln(top_parameter.substitute(
-            top_module=top_module.manifest_dict["sim_top"]))
+            top_module=self.top_module.manifest_dict["sim_top"]))
 
-    def makefile_sim_options(self, top_module):
+    def makefile_sim_options(self):
         """End stub method to write the synthesis Makefile options section"""
         pass
 
-    def makefile_sim_local(self, top_module):
+    def makefile_sim_local(self):
         """Generic method to write the simulation Makefile local target"""
         self.writeln("#target for performing local simulation\n"
                      "local: sim_pre_cmd simulation sim_post_cmd\n")
 
-    def makefile_sim_sources(self, fileset):
+    def makefile_sim_sources(self):
         """Generic method to write the simulation Makefile HDL sources"""
         from hdlmake.srcfile import VerilogFile, VHDLFile
+        fileset = self.fileset
         self.write("VERILOG_SRC := ")
         for vlog in fileset.filter(VerilogFile):
             self.writeln(vlog.rel_path() + " \\")
@@ -75,14 +76,14 @@ PWD := $$(shell pwd)
                 " \\")
         self.writeln()
 
-    def makefile_sim_command(self, top_module):
+    def makefile_sim_command(self):
         """Generic method to write the simulation Makefile user commands"""
-        if top_module.manifest_dict["sim_pre_cmd"]:
-            sim_pre_cmd = top_module.manifest_dict["sim_pre_cmd"]
+        if self.top_module.manifest_dict["sim_pre_cmd"]:
+            sim_pre_cmd = self.top_module.manifest_dict["sim_pre_cmd"]
         else:
             sim_pre_cmd = ''
-        if top_module.manifest_dict["sim_post_cmd"]:
-            sim_post_cmd = top_module.manifest_dict["sim_post_cmd"]
+        if self.top_module.manifest_dict["sim_post_cmd"]:
+            sim_post_cmd = self.top_module.manifest_dict["sim_post_cmd"]
         else:
             sim_post_cmd = ''
         sim_command = string.Template("""# USER SIM COMMANDS
@@ -99,7 +100,7 @@ sim_post_cmd:
         self.makefile_clean()
         self.makefile_mrproper()
 
-    def makefile_sim_phony(self, top_module):
+    def makefile_sim_phony(self):
         """Print simulation PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation")
