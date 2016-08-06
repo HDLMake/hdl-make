@@ -26,9 +26,7 @@ from __future__ import print_function
 import logging
 import sys
 
-from hdlmake.tools import (
-    ToolISE, ToolPlanAhead, ToolVivado,
-    ToolQuartus, ToolDiamond, ToolLibero)
+from hdlmake.tools import WriterSyn
 
 from .action import Action
 
@@ -38,21 +36,22 @@ class ActionSynthesis(Action):
     """Class providing the public synthesis methods for the user"""
 
     def __init__(self, *args):
+        self.syn_writer = WriterSyn()
         super(ActionSynthesis, self).__init__(*args)
 
     def _load_synthesis_tool(self):
         """Returns a tool_object that provides the synthesis tool interface"""
         tool_name = self.get_top_module().manifest_dict["syn_tool"]
-        tool_dict = {"ise": ToolISE,
-                     "planahead": ToolPlanAhead,
-                     "vivado": ToolVivado,
-                     "quartus": ToolQuartus,
-                     "diamond": ToolDiamond,
-                     "libero": ToolLibero}
+        tool_dict = {"ise": self.syn_writer.ise,
+                     "planahead": self.syn_writer.planahead,
+                     "vivado": self.syn_writer.vivado,
+                     "quartus": self.syn_writer.quartus,
+                     "diamond": self.syn_writer.diamond,
+                     "libero": self.syn_writer.libero}
         if not tool_name in tool_dict:
             logging.error("Synthesis tool not recognized: %s", tool_name)
             quit()
-        return tool_dict[tool_name]()
+        return tool_dict[tool_name]
 
     def _check_synthesis_project(self):
         """Check the manifest contains all the keys for a synthesis project"""

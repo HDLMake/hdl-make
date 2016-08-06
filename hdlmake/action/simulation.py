@@ -29,9 +29,7 @@ import sys
 from hdlmake.dep_file import DepFile
 # import hdlmake.new_dep_solver as dep_solver
 
-from hdlmake.tools import (
-    ToolIVerilog, ToolISim, ToolModelsim,
-    ToolActiveHDL, ToolRiviera, ToolGHDL)
+from hdlmake.tools import WriterSim
 
 from .action import Action
 
@@ -40,6 +38,7 @@ class ActionSimulation(Action):
     """This class contains the simulation specific methods"""
 
     def __init__(self, *args):
+        self.sim_writer = WriterSim()
         super(ActionSimulation, self).__init__(*args)
 
     def _check_simulation_makefile(self):
@@ -56,16 +55,16 @@ class ActionSimulation(Action):
         self._check_all_fetched_or_quit()
         self._check_simulation_makefile()
         tool_name = self.get_top_module().manifest_dict["sim_tool"]
-        tool_dict = {"iverilog": ToolIVerilog,
-                     "isim": ToolISim,
-                     "modelsim": ToolModelsim,
-                     "active-hdl": ToolActiveHDL,
-                     "riviera":  ToolRiviera,
-                     "ghdl": ToolGHDL}
+        tool_dict = {"iverilog": self.sim_writer.iverilog,
+                     "isim": self.sim_writer.isim,
+                     "modelsim": self.sim_writer.modelsim,
+                     "active-hdl": self.sim_writer.active_hdl,
+                     "riviera":  self.sim_writer.riviera,
+                     "ghdl": self.sim_writer.ghdl}
         if not tool_name in tool_dict:
             logging.error("Unknown sim_tool: %s", tool_name)
             sys.exit("Exiting")
-        tool_object = tool_dict[tool_name]()
+        tool_object = tool_dict[tool_name]
         tool_info = tool_object.TOOL_INFO
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
