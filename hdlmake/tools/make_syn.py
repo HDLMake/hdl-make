@@ -5,6 +5,7 @@ import string
 from .makefile import ToolMakefile
 from hdlmake.util import path as path_mod
 
+
 class ToolSyn(ToolMakefile):
 
     """Class that provides the synthesis Makefile writing methods and status"""
@@ -215,13 +216,12 @@ syn_post_bitstream_cmd:
         """Print the Makefile clean target for synthesis"""
         self.makefile_clean()
         self.writeln("\t\t" + path_mod.del_command() +
-            " synthesize translate map par bitstream")
+                     " synthesize translate map par bitstream")
         self.writeln("\t\t" + path_mod.del_command() +
-            " tcl_synthesize tcl_translate tcl_map tcl_par tcl_bitstream")
+                     " tcl_synthesize tcl_translate tcl_map tcl_par tcl_bitstream")
         self.makefile_mrproper()
 
     def makefile_syn_phony(self):
         """Print synthesis PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean syn_pre_cmd syn_post_cmd synthesis")
-

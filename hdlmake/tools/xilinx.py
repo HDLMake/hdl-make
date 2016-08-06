@@ -53,7 +53,6 @@ class ToolXilinx(ToolSyn):
                            'wait_on_run impl_1',
                     'install_source': '$(PROJECT).runs/impl_1/$(SYN_TOP).bit'}
 
-
     def __init__(self):
         super(ToolXilinx, self).__init__()
         self._hdl_files.extend(ToolXilinx.HDL_FILES)
@@ -93,5 +92,3 @@ class ToolXilinx(ToolSyn):
         self.writeln('update_compile_order -fileset sim_1')
         self.writeln("endef")
         self.writeln("export TCL_FILES")
-
-

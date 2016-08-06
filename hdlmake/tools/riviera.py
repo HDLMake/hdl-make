@@ -80,4 +80,3 @@ class ToolRiviera(VsimMakefileWriter):
         self.vcom_flags.append("-2008")
         self._tool_info.update(ToolRiviera.TOOL_INFO)
         self._clean_targets.update(ToolRiviera.CLEAN_TARGETS)
-

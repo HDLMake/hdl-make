@@ -103,4 +103,3 @@ sim_post_cmd:
         """Print simulation PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation")
-

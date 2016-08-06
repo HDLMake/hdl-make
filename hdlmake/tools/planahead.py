@@ -56,4 +56,3 @@ class ToolPlanAhead(ToolXilinx):
         self._supported_files.extend(ToolPlanAhead.SUPPORTED_FILES)
         self._clean_targets.update(ToolPlanAhead.CLEAN_TARGETS)
         self._tcl_controls.update(ToolPlanAhead.TCL_CONTROLS)
-

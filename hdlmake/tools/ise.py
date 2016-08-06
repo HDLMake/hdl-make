@@ -139,4 +139,3 @@ class ToolISE(ToolSyn):
         self.writeln("project set top $(TOP_MODULE)")
         self.writeln("endef")
         self.writeln("export TCL_FILES")
-

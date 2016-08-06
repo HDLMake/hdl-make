@@ -80,9 +80,9 @@ class ToolLibero(ToolSyn):
         syn_package = top_module.manifest_dict["syn_package"]
         create_tmp = self._tcl_controls["create"]
         self._tcl_controls["create"] = create_tmp.format(syn_project,
-                                                   syn_device.upper(),
-                                                   syn_package.upper(),
-                                                   syn_grade)
+                                                         syn_device.upper(),
+                                                         syn_package.upper(),
+                                                         syn_grade)
         super(ToolLibero, self).makefile_syn_tcl(top_module)
 
     def makefile_syn_files(self, fileset):
@@ -131,4 +131,3 @@ class ToolLibero(ToolSyn):
         ret.append("endef")
         ret.append("export TCL_FILES")
         self.writeln('\n'.join(ret))
-

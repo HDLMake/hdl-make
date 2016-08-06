@@ -92,4 +92,3 @@ class ToolDiamond(ToolSyn):
                 self.writeln(hdl.format('add', file_aux.rel_path()))
         self.writeln("endef")
         self.writeln("export TCL_FILES")
-

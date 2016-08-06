@@ -96,7 +96,7 @@ class VsimMakefileWriter(ToolSim):
 \t\t%s $< . 2>&1
 """ % (name, src, path_mod.copy_command())
             return rule
-        #self.writeln("INCLUDE_DIRS := +incdir+%s" %
+        # self.writeln("INCLUDE_DIRS := +incdir+%s" %
         #    ('+'.join(top_module.include_dirs)))
         libs = set(f.library for f in fileset)
         self.write('LIBS := ')
@@ -123,7 +123,7 @@ class VsimMakefileWriter(ToolSim):
             self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command, lib, "&&",
-                "touch", lib + path_mod.slash_char() + "." + lib, ")"]))
+                                 "touch", lib + path_mod.slash_char() + "." + lib, ")"]))
             self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
             self.write('\n\n')
         # rules for all _primary.dat files for sv
@@ -185,4 +185,3 @@ class VsimMakefileWriter(ToolSim):
                          vhdl.vcom_opt, "-work", lib, "$< "]))
             self.writeln("\t\t@" + path_mod.mkdir_command() +
                          " $(dir $@) && touch $@ \n\n")
-

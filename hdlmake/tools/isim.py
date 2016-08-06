@@ -252,4 +252,3 @@ fuse:
                     self.write(" \\\n" + os.path.join(dep_file.rel_path()))
             self.write('\n')
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
-

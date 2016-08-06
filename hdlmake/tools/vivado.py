@@ -61,4 +61,3 @@ class ToolVivado(ToolXilinx):
         self._supported_files.extend(ToolVivado.SUPPORTED_FILES)
         self._clean_targets.update(ToolVivado.CLEAN_TARGETS)
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)
-
