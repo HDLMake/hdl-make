@@ -57,45 +57,34 @@ class ActionSimulation(
         self._check_all_fetched_or_quit()
         self._check_simulation_makefile()
         tool_name = self.get_top_module().manifest_dict["sim_tool"]
-
-        if tool_name is "iverilog":
-            tool_object = ToolIVerilog()
-        elif tool_name is "isim":
-            tool_object = ToolISim()
-        elif tool_name is "modelsim":
-            tool_object = ToolModelsim()
-        elif tool_name is "active-hdl":
-            tool_object = ToolActiveHDL()
-        elif tool_name is "riviera":
-            tool_object = ToolRiviera()
-        elif tool_name is "ghdl":
-            tool_object = ToolGHDL()
-
+        tool_dict = {"iverilog": ToolIVerilog,
+                     "isim": ToolISim,
+                     "modelsim": ToolModelsim,
+                     "active-hdl": ToolActiveHDL,
+                     "riviera":  ToolRiviera,
+                     "ghdl": ToolGHDL}
+        if not tool_name in tool_dict:
+            logging.error("Unknown sim_tool: %s", tool_name)
+            sys.exit("Exiting")
+        tool_object = tool_dict[tool_name]()
         tool_info = tool_object.TOOL_INFO
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
         else:
             bin_name = tool_info['linux_bin']
-
         path_key = tool_info['id'] + '_path'
         name = tool_info['name']
-
         self.env.check_tool(tool_object)
         self.env.check_general()
-
         if self.env[path_key] is None and self.env.options.force is not True:
             logging.error("Can't generate a " + name + " makefile. " +
                           bin_name + " not found.")
             sys.exit("Exiting")
-
         logging.info("Generating " + name + " makefile for simulation.")
-
         top_module = self.get_top_module()
-
         fset = self.build_file_set(top_module.manifest_dict["sim_top"])
         dep_files = fset.filter(DepFile)
         # dep_solver.solve(dep_files)
-
         # tool_object.generate_simulation_makefile(dep_files, top_module)
         tool_object.makefile_sim_top(top_module)
         tool_object.makefile_sim_options(top_module)

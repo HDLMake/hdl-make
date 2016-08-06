@@ -42,21 +42,16 @@ class ActionSynthesis(ToolISE, ToolPlanAhead, ToolVivado,
     def _load_synthesis_tool(self):
         """Returns a tool_object that provides the synthesis tool interface"""
         tool_name = self.get_top_module().manifest_dict["syn_tool"]
-        if tool_name is "ise":
-            tool_object = ToolISE()
-        elif tool_name is "planahead":
-            tool_object = ToolPlanAhead()
-        elif tool_name is "vivado":
-            tool_object = ToolVivado()
-        elif tool_name is "quartus":
-            tool_object = ToolQuartus()
-        elif tool_name is "diamond":
-            tool_object = ToolDiamond()
-        elif tool_name is "libero":
-            tool_object = ToolLibero()
-        else:
+        tool_dict = {"ise": ToolISE,
+                     "planahead": ToolPlanAhead,
+                     "vivado": ToolVivado,
+                     "quartus": ToolQuartus,
+                     "diamond": ToolDiamond,
+                     "libero": ToolLibero}
+        if not tool_name in tool_dict:
             logging.error("Synthesis tool not recognized: %s", tool_name)
-        return tool_object
+            quit()
+        return tool_dict[tool_name]()
 
     def _check_synthesis_project(self):
         """Check the manifest contains all the keys for a synthesis project"""
