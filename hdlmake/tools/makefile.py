@@ -26,10 +26,9 @@
 import os
 
 from hdlmake.util import path as path_mod
-from hdlmake.action import Action
 
 
-class ToolMakefile(Action):
+class ToolMakefile(object):
 
     """Class that provides the Makefile writing methods and status"""
 
