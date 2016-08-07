@@ -29,32 +29,6 @@ from .util import path as path_mod
 from .util.configparser import ConfigParser
 
 
-class Manifest(object):
-
-    """This class defines the Manifest object"""
-
-    def __init__(self, path=None, url=None):
-        if not isinstance(path, str):
-            raise ValueError("Path must be an instance of str")
-        if path is None and url is None:
-            raise ValueError(
-                "When creating a manifest a path or an URL must be given")
-        if path is not None and url is None:
-            self.url = path
-        if path_mod.is_abs_path(path):
-            self.path = path
-        else:
-            raise ValueError(
-                "When creating a Manifest, path must be absolute path")
-
-    def __str__(self):
-        return self.url
-
-    def exists(self):
-        """Check if the Manifest path points to an existing directory"""
-        return os.path.exists(self.path)
-
-
 class ManifestParser(ConfigParser):
 
     """This is the class providing HDLMake Manifest parser capabilities"""
@@ -307,16 +281,20 @@ class ManifestParser(ConfigParser):
                         logging.debug("Found manifest for module %s: %s",
                                       path, filename)
                         path_aux = os.path.join(path, filename)
-                        manifest = Manifest(path=os.path.abspath(path_aux))
-                        return manifest
+                        if not isinstance(path_aux, str):
+                            raise ValueError("Path must be an instance of str")
+                        if not path_mod.is_abs_path(path_aux):
+                            raise ValueError(
+                                "Manifest path must be absolute path")
+                        return path_aux
             return None
         manifest = _search_for_manifest(path)
         if manifest is None:
             logging.error("No manifest found in path: %s", path)
             quit()
         else:
-            logging.debug("Parse manifest in: %s", manifest.path)
-            return self.add_config_file(manifest.path)
+            logging.debug("Parse manifest in: %s", manifest)
+            return self.add_config_file(manifest)
 
     def print_help(self):
         """Print the help for the Manifest parser object"""
