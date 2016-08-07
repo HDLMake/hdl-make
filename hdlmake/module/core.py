@@ -142,8 +142,7 @@ class ModuleCore(ModuleConfig):
         Build a Source File Set containing the files indicated by the
         provided list of paths
         """
-        from hdlmake.srcfile import SourceFileFactory, SourceFileSet
-        sff = SourceFileFactory()
+        from hdlmake.srcfile import create_source_file, SourceFileSet
         srcs = SourceFileSet()
         for path_aux in paths:
             if os.path.isdir(path_aux):
@@ -151,11 +150,11 @@ class ModuleCore(ModuleConfig):
                 for f_dir in dir_:
                     f_dir = os.path.join(self.path, path_aux, f_dir)
                     if not os.path.isdir(f_dir):
-                        srcs.add(sff.new(path=f_dir,
-                                         module=self,
-                                         library=self.library))
+                        srcs.add(create_source_file(path=f_dir,
+                                                    module=self,
+                                                    library=self.library))
             else:
-                srcs.add(sff.new(path=path_aux,
+                srcs.add(create_source_file(path=path_aux,
                                  module=self,
                                  library=self.library))
         return srcs

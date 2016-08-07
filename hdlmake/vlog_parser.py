@@ -33,7 +33,7 @@ import logging
 
 from .new_dep_solver import DepParser
 from .dep_file import DepRelation
-from .srcfile import SourceFileFactory
+from hdlmake.srcfile import create_source_file
 
 
 class VerilogPreprocessor(object):
@@ -576,10 +576,8 @@ class VerilogParser(DepParser):
                 dep_file.path + dep_file.library]
             for file_aux in includes:
                 dep_file.depends_on.add(
-                    SourceFileFactory(
-                    ).new(
-                        path=file_aux,
-                        module=dep_file.module))
+                    create_source_file(path=file_aux,
+                                               module=dep_file.module))
             logging.debug("%s has %d includes.",
                           str(dep_file), len(includes))
         except KeyError:
