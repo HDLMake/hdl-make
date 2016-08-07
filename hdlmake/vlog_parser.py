@@ -20,8 +20,10 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# A Verilog preprocessor. Still lots of stuff to be done, but it's already quite useful
-# for calculating dependencies.
+# A Verilog preprocessor. Still lots of stuff to be done,
+# but it's already quite useful for calculating dependencies.
+
+"""This module provides the Verilog parser for HDLMake"""
 
 from __future__ import print_function
 import os
@@ -36,6 +38,8 @@ from .srcfile import SourceFileFactory
 
 class VerilogPreprocessor(object):
 
+    """This class provides the Verilog Preprocessor"""
+
     # Reserved verilog preprocessor keywords. The list is certainly not full
     vpp_keywords = [
         "define",
@@ -48,34 +52,42 @@ class VerilogPreprocessor(object):
         "undef",
         "timescale"]
 
-    # Verilog `define class
-    class VL_Define(object):
+    class VLDefine(object):
+
+        """Class that provides a container for Verilog Defines"""
 
         def __init__(self, name, args, expansion):
             self.name = name
             self.args = args
             self.expansion = expansion
 
-    # Simple binary stack, for nested `ifdefs    evaluation
-    class VL_Stack(object):
+    class VLStack(object):
+
+        """Class that provides a simple binary (true/false) stack
+        for Verilog Defines for nested `ifdefs evaluation"""
 
         def __init__(self):
             self.stack = []
 
-        def push(self, v):
-            self.stack.append(v)
+        def push(self, v_element):
+            """Push element to the stack"""
+            self.stack.append(v_element)
 
         def pop(self):
+            "Pop element from the stack"""
             return self.stack.pop()
 
         def all_true(self):
-            return (len(self.stack) == 0 or all(self.stack))
+            """Returns true if the stack is empty or all the contained
+            elements are True"""
+            return len(self.stack) == 0 or all(self.stack)
 
         def flip(self):
+            """Toggle the following element"""
             self.push(not self.pop())
 
     def __init__(self):
-        self.vpp_stack = self.VL_Stack()
+        self.vpp_stack = self.VLStack()
         self.vlog_file = None
         # List of `include search paths
         self.vpp_searchdir = ["."]
@@ -85,92 +97,99 @@ class VerilogPreprocessor(object):
         self.vpp_filedeps = {}
 
     def _find_macro(self, name):
-        for m in self.vpp_macros:
-            if(m.name == name):
-                return m
+        """Get the Verilog preprocessor macro named 'name'"""
+        for macro_aux in self.vpp_macros:
+            if macro_aux.name == name:
+                return macro_aux
         return None
 
-    def _remove_comment(self, s):
-        def replacer(match):
-            s = match.group(0)
-            if s.startswith('/'):
-                return ""
-            else:
-                return s
-        pattern = re.compile(
-            '//.*?$|/\*.*?\*/|"(?:\\.|[^\\"])*"',
-            re.DOTALL | re.MULTILINE)
-        return re.sub(pattern, replacer, s)
-
-    def _degapize(self, s):
-        lempty = re.compile("^\s*$")
-        cline = None
-        lines = []
-        for l in s.splitlines(False):
-            if re.match(lempty, l) is not None:
-                continue
-            if l.endswith('\\'):
-                if cline is None:
-                    cline = ""
-                cline += l[:len(l) - 1]
-                continue
-            elif cline:
-                l = cline + l
-                cline = None
-            else:
-                cline = None
-            lines.append(l)
-        return lines
-
     def _search_include(self, filename, parent_dir=None):
-#        print("Parent Dir %s" % parent_dir)
+        """Look for the 'filename' Verilog include file in the
+        provided 'parent_dir'. If the directory is not provided, the method
+        will search for the Verilog include in every defined Verilog
+        preprocessor search directory"""
         if parent_dir is not None:
             possible_file = os.path.join(parent_dir, filename)
-            if(os.path.isfile(possible_file)):
+            if os.path.isfile(possible_file):
                 return os.path.abspath(possible_file)
         for searchdir in self.vpp_searchdir:
             probable_file = os.path.join(searchdir, filename)
-            if(os.path.isfile(probable_file)):
+            if os.path.isfile(probable_file):
                 return os.path.abspath(probable_file)
-        logging.error("Can't find %s for %s in any of the include directories: %s"
-                      % (filename, self.vlog_file.file_path, ', '.join(self.vpp_searchdir)))
+        logging.error("Can't find %s for %s in any of the include "
+                      "directories: %s", filename, self.vlog_file.file_path,
+                      ', '.join(self.vpp_searchdir))
         sys.exit("\nExiting")
 
-    def _parse_macro_def(self, m):
-        name = m.group(1)
-        expansion = m.group(3)
-        if(m.group(2)):
-            params = m.group(2).split(",")
+    def _parse_macro_def(self, macro):
+        """Parse the provided 'macro' and, if it's not a reserved keyword,
+        create a new VLDefine instance and add it to the Verilog preprocessor
+        list of macros"""
+        name = macro.group(1)
+        expansion = macro.group(3)
+        if macro.group(2):
+            params = macro.group(2).split(",")
         else:
             params = []
         if name in self.vpp_keywords:
-            raise("Attempt to `define a reserved preprocessor keyword")
-        mdef = self.VL_Define(name, params, expansion)
+            logging.error("Attempt to `define a reserved preprocessor keyword")
+            quit()
+        mdef = self.VLDefine(name, params, expansion)
         self.vpp_macros.append(mdef)
         return mdef
 
     def _preprocess_file(self, file_content, file_name, library):
-        exps = {"include": re.compile("^\s*`include\s+\"(.+)\""),
+        """Preprocess the content of the Verilog file"""
+        def _remove_comment(text):
+            """Function that removes the comments from the Verilog code"""
+            def replacer(match):
+                """Funtion that replace the matching comments"""
+                text = match.group(0)
+                if text.startswith('/'):
+                    return ""
+                else:
+                    return text
+            pattern = re.compile(
+                r'//.*?$|/\*.*?\*/|"(?:\\.|[^\\"])*"',
+                re.DOTALL | re.MULTILINE)
+            return re.sub(pattern, replacer, text)
+        def _degapize(text):
+            """ Remove the not necessary 'gaps', i.e. escaped break lines"""
+            lempty = re.compile(r"^\s*$")
+            cline = None
+            lines = []
+            for line_aux in text.splitlines(False):
+                if re.match(lempty, line_aux) is not None:
+                    continue
+                if line_aux.endswith('\\'):
+                    if cline is None:
+                        cline = ""
+                    cline += line_aux[:len(line_aux) - 1]
+                    continue
+                elif cline:
+                    line_aux = cline + line_aux
+                    cline = None
+                else:
+                    cline = None
+                lines.append(line_aux)
+            return lines
+        exps = {"include": re.compile(r"^\s*`include\s+\"(.+)\""),
                 "define":
-                re.compile("^\s*`define\s+(\w+)(?:\(([\w\s,]*)\))?(.*)"),
+                re.compile(r"^\s*`define\s+(\w+)(?:\(([\w\s,]*)\))?(.*)"),
                 "ifdef_elsif":
-                re.compile("^\s*`(ifdef|ifndef|elsif)\s+(\w+)\s*$"),
-                "endif_else": re.compile("^\s*`(endif|else)\s*$"),
+                re.compile(r"^\s*`(ifdef|ifndef|elsif)\s+(\w+)\s*$"),
+                "endif_else": re.compile(r"^\s*`(endif|else)\s*$"),
                 "begin_protected":
-                re.compile("^\s*`pragma\s*protect\s*begin_protected\s*$"),
-                "end_protected": re.compile("^\s*`pragma\s*protect\s*end_protected\s*$")}
-
-        vl_macro_expand = re.compile("`(\w+)(?:\(([\w\s,]*)\))?")
+                    re.compile(r"^\s*`pragma\s*protect\s*begin_protected\s*$"),
+                "end_protected":
+                    re.compile(r"^\s*`pragma\s*protect\s*end_protected\s*$")}
+        vl_macro_expand = re.compile(r"`(\w+)(?:\(([\w\s,]*)\))?")
         # init dependencies
         self.vpp_filedeps[file_name + library] = []
-
         cur_iter = 0
-
-        logging.debug(
-            "preprocess file %s (of length %d) in library %s" %
-            (file_name, len(file_content), library))
-#        print("BUF '%s'" %buf)
-        buf = self._remove_comment(file_content)
+        logging.debug("preprocess file %s (of length %d) in library %s",
+                      file_name, len(file_content), library)
+        buf = _remove_comment(file_content)
         protected_region = False
         while True:
             new_buf = ""
@@ -178,14 +197,13 @@ class VerilogPreprocessor(object):
             cur_iter += 1
             if cur_iter > 30:
                 raise Exception("Recursion level exceeded. Nested `includes?")
-            for line in self._degapize(buf):
+            for line in _degapize(buf):
                 matches = {}
                 last = None
                 for statement, stmt_regex in exps.iteritems():
                     matches[statement] = re.match(stmt_regex, line)
-                    if(matches[statement]):
+                    if matches[statement]:
                         last = matches[statement]
-
                 if matches["begin_protected"]:
                     protected_region = True
                     continue
@@ -194,33 +212,28 @@ class VerilogPreprocessor(object):
                     continue
                 if protected_region:
                     continue
-
                 if matches["ifdef_elsif"]:
                     cond_true = self._find_macro(last.group(2)) is not None
-                    if(last.group(1) == "ifndef"):
+                    if last.group(1) == "ifndef":
                         cond_true = not cond_true
-    # fixme: support `elsif construct
-                    elif(last.group(1) == "elsif"):
+                    elif last.group(1) == "elsif":
                         self.vpp_stack.pop()
                     self.vpp_stack.push(cond_true)
                     continue
-
                 elif matches["endif_else"]:
-                    if(last.group(1) == "endif"):
+                    if last.group(1) == "endif":
                         self.vpp_stack.pop()
                     else:  # `else
                         self.vpp_stack.flip()
                     continue
-
                 if not self.vpp_stack.all_true():
                     continue
-
                 if matches["include"]:
                     included_file_path = self._search_include(
                         last.group(1), os.path.dirname(file_name))
-                    logging.debug(
-                        "File being parsed %s (library %s) includes %s" %
-                        (file_name, library, included_file_path))
+                    logging.debug("File being parsed %s (library %s) "
+                                  "includes %s",
+                                  file_name, library, included_file_path)
                     line = self._preprocess_file(
                         file_content=open(included_file_path, "r").read(),
                         file_name=included_file_path, library=library)
@@ -235,24 +248,21 @@ class VerilogPreprocessor(object):
                     new_buf += line + '\n'
                     n_expansions += 1
                     continue
-
                 elif matches["define"]:
                     self._parse_macro_def(matches["define"])
-
-# the actual macro expansions (no args/vargs support yet, though)
                 def do_expand(what):
-#                    print("Expand %s" % what.group(1))
+                    """Function to be applied by re.sub to every match of the
+                    vl_macro_expand in the Verilof code -- group() returns
+                    positive matches as indexed plain strings."""
                     if what.group(1) in self.vpp_keywords:
-#                        print("GotReserved")
                         return '`' + what.group(1)
-                    m = self._find_macro(what.group(1))
-                    if m:
-                        return m.expansion
+                    macro = self._find_macro(what.group(1))
+                    if macro:
+                        return macro.expansion
                     else:
-                        logging.error(
-                            "No expansion for macro '`%s' (%s) (%s)" %
-                            (what.group(1), line[:50] if len(line) > 50 else line, file_name))
-
+                        logging.error("No expansion for macro '`%s' (%s) (%s)",
+                                      what.group(1), line[:50]
+                                      if len(line) > 50 else line, file_name)
                 repl_line = re.sub(vl_macro_expand, do_expand, line)
                 new_buf += repl_line + '\n'
                 # if there was any expansion, then keep on iterating
@@ -263,36 +273,41 @@ class VerilogPreprocessor(object):
                 return new_buf
 
     def _define(self, name, expansion):
-        mdef = self.VL_Define(name, [], expansion)
+        """Define a new expansion Verilog macro and add it to the macro
+        collection"""
+        mdef = self.VLDefine(name, [], expansion)
         self.vpp_macros.append(mdef)
 
     def add_path(self, path):
+        """Add a new path to the search directory list so that HDLMake
+        will search for found includes on it"""
         self.vpp_searchdir.append(path)
 
     def preprocess(self, vlog_file):
+        """Assign the provided 'vlog_file' to the associated class property
+        and then preprocess and return the Verilog code"""
         # assert isinstance(vlog_file, VerilogFile)
         # assert isinstance(vlog_file, DepFile)
         self.vlog_file = vlog_file
         file_path = vlog_file.file_path
         buf = open(file_path, "r").read()
-        return self._preprocess_file(file_content=buf, file_name=file_path, library=vlog_file.library)
-
-    def _find_first(self, f, l):
-        x = filter(f, l)
-        if x is not None:
-            return x[0]
-        else:
-            return None
+        return self._preprocess_file(file_content=buf,
+                                     file_name=file_path,
+                                     library=vlog_file.library)
 
     def get_file_deps(self):
+        """Look for all of the defined preprocessor filedeps and return a list
+        containing all of them"""
         deps = []
-        for fs in self.vpp_filedeps.iterkeys():
-            for f in self.vpp_filedeps[fs]:
-                deps.append(f)
+        for filedep_key in self.vpp_filedeps.iterkeys():
+            for filedep in self.vpp_filedeps[filedep_key]:
+                deps.append(filedep)
         return list(set(deps))
 
 
 class VerilogParser(DepParser):
+
+    """Class providing the Verilog Parser functionality"""
 
     reserved_words = ["accept_on",
                       "alias",
@@ -538,134 +553,111 @@ class VerilogParser(DepParser):
     def __init__(self, dep_file):
         DepParser.__init__(self, dep_file)
         self.preprocessor = VerilogPreprocessor()
+        self.preprocessed = False
 
     def add_search_path(self, path):
+        """Add a new candidate path to the Verilog preprocessor list
+        containing the include dir candidates"""
         self.preprocessor.add_path(path)
 
-    # unused?
-    def remove_procedural_blocks(self, buf):
-        buf = buf.replace("(", " ( ")
-        buf = buf.replace(")", " ) ")
-        block_level = 0
-        paren_level = 0
-        buf2 = ""
-
-        for word in buf.split():
-            drop_last = False
-
-            if(word == "begin"):
-                block_level += 1
-            elif (word == "end"):
-                drop_last = True
-                block_level -= 1
-
-            if(block_level > 0 and not drop_last):
-                if (word == "("):
-                    paren_level += 1
-                elif (word == ")"):
-                    paren_level -= 1
-                    drop_last = True
-
-#            print("w %s b %d p %d" % (word, block_level, paren_level))
-            if drop_last:
-                buf2 += ""
-            if not block_level and not paren_level and not drop_last:
-                buf2 += word + " "
-
-        return buf2
-
     def parse(self, dep_file):
-        i = 0
+        """Parse the provided Verilog file and add to its properties
+        all of the detected dependency relations"""
         if dep_file.is_parsed:
             return
-        logging.info("Parsing %s" % dep_file.path)
+        logging.info("Parsing %s", dep_file.path)
         # assert isinstance(dep_file, DepFile), print("unexpected type: " +
         # str(type(dep_file)))
         buf = self.preprocessor.preprocess(dep_file)
         self.preprocessed = buf[:]
-
         # add includes as dependencies
         try:
             includes = self.preprocessor.vpp_filedeps[
                 dep_file.path + dep_file.library]
-            for f in includes:
+            for file_aux in includes:
                 dep_file.depends_on.add(
                     SourceFileFactory(
                     ).new(
-                        path=f,
+                        path=file_aux,
                         module=dep_file.module))
-            logging.debug(
-                "%s has %d includes." %
-                (str(dep_file), len(includes)))
+            logging.debug("%s has %d includes.",
+                          str(dep_file), len(includes))
         except KeyError:
             logging.debug(str(dep_file) + " has no includes.")
-
         # look for packages used inside in file
         # it may generate false dependencies as package in SV can be used by:
         #    import my_package::*;
         # or directly
         #    logic var = my_package::MY_CONST;
-        # The same way constants and others can be imported directly from other modules:
+        # The same way constants and others can be imported directly from
+        # other modules:
         #    logic var = my_other_module::MY_CONST;
         # and HdlMake will anyway create dependency marking my_other_module as
         # requested package
-        import_pattern = re.compile("(\w+) *::(\w+|\\*)")
-
-        def do_imports(s):
-            logging.debug(
-                "file %s imports/uses %s.%s package" %
-                (dep_file.path, dep_file.library, s.group(1)))
+        import_pattern = re.compile(r"(\w+) *::(\w+|\\*)")
+        def do_imports(text):
+            """Function to be applied by re.subn to every match of the
+            import_pattern in the Verilog code -- group() returns positive
+            matches as indexed plain strings. It adds the found USE
+            relations to the file"""
+            logging.debug("file %s imports/uses %s.%s package",
+                          dep_file.path, dep_file.library, text.group(1))
             dep_file.add_relation(
-                DepRelation("%s.%s" %
-                                 (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.PACKAGE))
+                DepRelation("%s.%s" % (dep_file.library, text.group(1)),
+                            DepRelation.USE, DepRelation.PACKAGE))
         re.subn(import_pattern, do_imports, buf)
-
         # packages
         m_inside_package = re.compile(
-            "package\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)endpackage",
+            r"package\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)endpackage",
             re.DOTALL | re.MULTILINE)
-
-        def do_package(s):
-            logging.debug(
-                "found pacakge %s.%s" %
-                (dep_file.library, s.group(1)))
+        def do_package(text):
+            """Function to be applied by re.subn to every match of the
+            m_inside_pattern in the Verilog code -- group() returns positive
+            matches as indexed plain strings. It adds the found PROVIDE
+            relations to the file"""
+            logging.debug("found pacakge %s.%s", dep_file.library,
+                                                 text.group(1))
             dep_file.add_relation(
-                DepRelation("%s.%s" %
-                                 (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.PACKAGE))
+                DepRelation("%s.%s" % (dep_file.library, text.group(1)),
+                            DepRelation.PROVIDE, DepRelation.PACKAGE))
         re.subn(m_inside_package, do_package, buf)
-
         # modules and instatniations
         m_inside_module = re.compile(
-            "(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)(?:endmodule|endinterface)",
+            r"(?:module|interface)\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)"
+            r"(?:endmodule|endinterface)",
             re.DOTALL | re.MULTILINE)
         m_instantiation = re.compile(
-            "(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*",
+            r"(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*",
             re.DOTALL | re.MULTILINE)
-
-        def do_module(s):
-            logging.debug(
-                "found module %s.%s" %
-                (dep_file.library, s.group(1)))
+        def do_module(text):
+            """Function to be applied by re.sub to every match of the
+            m_inside_module in the Verilog code -- group() returns
+            positive  matches as indexed plain strings. It adds the found
+            PROVIDE relations to the file"""
+            logging.debug("found module %s.%s", dep_file.library,
+                                                text.group(1))
             dep_file.add_relation(
-                DepRelation("%s.%s" %
-                                 (dep_file.library, s.group(1)), DepRelation.PROVIDE, DepRelation.MODULE))
-
-            def do_inst(s):
-                mod_name = s.group(1)
-                if(mod_name in self.reserved_words):
+                DepRelation("%s.%s" % (dep_file.library, text.group(1)),
+                            DepRelation.PROVIDE, DepRelation.MODULE))
+            def do_inst(text):
+                """Function to be applied by re.sub to every match of the
+                m_instantiation in the Verilog code -- group() returns positive
+                matches as indexed plain strings. It adds the found USE
+                relations to the file"""
+                mod_name = text.group(1)
+                if mod_name in self.reserved_words:
                     return
-                logging.debug(
-                    "-> instantiates %s.%s as %s" %
-                    (dep_file.library, s.group(1), s.group(2)))
+                logging.debug("-> instantiates %s.%s as %s",
+                              dep_file.library, text.group(1), text.group(2))
                 dep_file.add_relation(
-                    DepRelation("%s.%s" %
-                                     (dep_file.library, s.group(1)), DepRelation.USE, DepRelation.MODULE))
-            re.subn(m_instantiation, do_inst, s.group(2))
+                    DepRelation("%s.%s" % (dep_file.library, text.group(1)),
+                                DepRelation.USE, DepRelation.MODULE))
+            re.subn(m_instantiation, do_inst, text.group(2))
         re.subn(m_inside_module, do_module, buf)
-
         dep_file.add_relation(
             DepRelation(
                 dep_file.path,
                 DepRelation.PROVIDE,
                 DepRelation.INCLUDE))
         dep_file.is_parsed = True
+
