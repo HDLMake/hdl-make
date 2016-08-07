@@ -19,6 +19,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing the Classes used to provide and handle dependable files"""
+
 import os
 import logging
 
@@ -26,6 +28,9 @@ from .util import path as path_mod
 
 
 class DepRelation(object):
+
+    """Class used to create instances representing HDL dependency relations"""
+
     # direction
     PROVIDE = 1
     USE = 2
@@ -50,6 +55,7 @@ class DepRelation(object):
         self.obj_name = obj_name.lower()
 
     def satisfies(self, rel_b):
+        """Check if the current dependency relation matches the provided one"""
         if (rel_b.direction == DepRelation.PROVIDE or
             self.direction == DepRelation.USE):
             return False
@@ -58,11 +64,12 @@ class DepRelation(object):
         return False
 
     def library(self):
+        """If the current relation type is PACKAGE, it returns the base name of
+        the library, e.g. for work.counter it returns work."""
         if self.rel_type == DepRelation.PACKAGE:
             libdotpackage = self.obj_name
             try:
-                lib, package = libdotpackage.split('.')
-                return lib
+                return libdotpackage.split('.')[0]
             except ValueError:
                 return None
         else:
@@ -93,6 +100,8 @@ class DepRelation(object):
 
 class File(object):
 
+    """This is the base class for all of the different files in HDLMake"""
+
     def __init__(self, path, module=None):
         self.path = path
         assert not isinstance(module, basestring)
@@ -100,30 +109,40 @@ class File(object):
 
     @property
     def name(self):
+        """Property defined as a method that gets the basename of the file
+        path, i.e. it strips the path and takes the full file name"""
         return os.path.basename(self.path)
 
     @property
     def purename(self):
+        """Property defined as a method that gets the name of the file
+        and strips put the extension from the file"""
         return os.path.splitext(self.name)[0]
 
     @property
     def dirname(self):
+        """Property defined as a method that gets the name of the directory
+        in which the file is stored"""
         return os.path.dirname(self.path)
 
-    def rel_path(self, dir=None):
-        if dir is None:
-            dir = os.getcwd()
-        return path_mod.relpath(self.path, dir)
+    def rel_path(self, directory=None):
+        """Returns the relative path for the file calculated with (directory)
+        as the origin reference -- if none, it will be defaulted to current
+        folder from which we are launching the program"""
+        if directory is None:
+            directory = os.getcwd()
+        return path_mod.relpath(self.path, directory)
 
     def __str__(self):
         return self.path
 
     def __eq__(self, other):
-        _NOTFOUND = object()
-        v1, v2 = [getattr(obj, "path", _NOTFOUND) for obj in [self, other]]
-        if v1 is _NOTFOUND or v2 is _NOTFOUND:
+        _not_found = object()
+        path_self, path_other = [getattr(obj, "path", _not_found)
+                                 for obj in [self, other]]
+        if path_self is _not_found or path_other is _not_found:
             return False
-        elif v1 != v2:
+        elif path_self != path_other:
             return False
         return True
 
@@ -142,12 +161,15 @@ class File(object):
         return not self.__eq__(other)
 
     def isdir(self):
+        """Check if the defined file path is a directory"""
         return os.path.isdir(self.path)
 
     def show(self):
+        """Print the file path to stdout"""
         print self.path
 
     def extension(self):
+        """Method that gets the extension for the file instance"""
         tmp = self.path.rsplit('.')
         ext = tmp[len(tmp) - 1]
         return ext
@@ -155,19 +177,19 @@ class File(object):
 
 class DepFile(File):
 
+    """Class that serves as base to all those HDL files that can be
+    parsed and solved (Verilog, SystemVerilog, VHDL)"""
+
     def __init__(self, file_path, module):
         from hdlmake.module import Module
         assert isinstance(file_path, basestring)
         assert isinstance(module, Module)
-
         File.__init__(self, path=file_path, module=module)
         self.file_path = file_path
-        self._rels = set()
+        self.rels = set()
         self._inputs = set()
         self._outputs = set()
         self.depends_on = set()
-                              # set of files that the file depends on, items of
-                              # type DepFile
         self.dep_level = None
         self.is_parsed = False
         self.file_path = file_path
@@ -176,13 +198,15 @@ class DepFile(File):
     def parse_if_needed(self):
         """If the HDL file is not parsed yet, do it now!"""
         def _create_parser(dep_file):
-            """Function that returns the appropriated HDL parser for the
-            provided dep_file (VHDL or Verilog)"""
+            """Function that returns a instance of the appropriated HDL parser
+            for the provided dep_file (VHDL or Verilog)"""
             from .vlog_parser import VerilogParser
             from .vhdl_parser import VHDLParser
+            from .srcfile import VHDLFile, VerilogFile, SVFile
             if isinstance(dep_file, VHDLFile):
                 return VHDLParser(dep_file)
-            elif isinstance(dep_file, VerilogFile) or isinstance(dep_file, SVFile):
+            elif (isinstance(dep_file, VerilogFile) or
+                  isinstance(dep_file, SVFile)):
                 verilog_parser = VerilogParser(dep_file)
                 for dir_aux in dep_file.include_paths:
                     verilog_parser.add_search_path(dir_aux)
@@ -191,40 +215,37 @@ class DepFile(File):
                 raise ValueError("Unrecognized file format : %s" %
                                  dep_file.file_path)
         logging.debug("Parse %s if needed!!!", self.file_path)
-        import hdlmake.new_dep_solver
         if not self.is_parsed:
             logging.debug("Not parsed yet, let's go!")
             parser = _create_parser(self)
             parser.parse(self)
 
-    # use proxy template here
-    def __get_rels(self):
-        # self._parse_if_needed()
-        return self._rels
-
-    def __set_rels(self, what):
-        self._rels = what
-
-    rels = property(__get_rels, __set_rels)
-
     def add_relation(self, rel):
-        self._rels.add(rel)
+        """Add a new relation to the set provided by the file"""
+        self.rels.add(rel)
 
     def satisfies(self, rel_b):
+        """Check if any of the file object relations match any of the relations
+        listed in the parameter (rel_b)"""
         assert isinstance(rel_b, DepRelation)
         # self._parse_if_needed()
-        return any(map(lambda x: x.satisfies(rel_b), self.rels))
+        return any([x.satisfies(rel_b) for x in self.rels])
 
     def show_relations(self):
+        """Print the file relations to stdout: can be used for logging"""
         # self._parse_if_needed()
-        for r in self.rels:
-            print str(r)
+        for relation in self.rels:
+            print str(relation)
 
     @property
     def filename(self):
+        """Property defined as a method that checks the basename of the file
+        path in the host, i.e. the name of the last directory on the path"""
         return os.path.basename(self.file_path)
 
     def get_dep_level(self):
+        """Get the dependency level for the file instance, so we can order
+        later the full fileset"""
         if self.dep_level is None:
             if len(self.depends_on) == 0:
                 self.dep_level = 0
