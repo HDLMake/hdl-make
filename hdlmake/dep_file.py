@@ -50,7 +50,8 @@ class DepRelation(object):
         self.obj_name = obj_name.lower()
 
     def satisfies(self, rel_b):
-        if rel_b.direction == DepRelation.PROVIDE or self.direction == DepRelation.USE:
+        if (rel_b.direction == DepRelation.PROVIDE or
+            self.direction == DepRelation.USE):
             return False
         if rel_b.rel_type == self.rel_type and rel_b.obj_name == self.obj_name:
             return True
@@ -75,7 +76,9 @@ class DepRelation(object):
             self.INCLUDE: "include/header",
             self.ARCHITECTURE: "architecture",
             self.MODULE: "module"}
-        return "%s %s '%s'" % (dstr[self.direction], ostr[self.rel_type], self.obj_name)
+        return "%s %s '%s'" % (dstr[self.direction],
+                               ostr[self.rel_type],
+                               self.obj_name)
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -142,7 +145,7 @@ class File(object):
         return os.path.isdir(self.path)
 
     def show(self):
-        print(self.path)
+        print self.path
 
     def extension(self):
         tmp = self.path.rsplit('.')
@@ -171,11 +174,27 @@ class DepFile(File):
         self.include_paths = []
 
     def parse_if_needed(self):
-        logging.debug("Parse %s if needed!!!" % self.file_path)
-        import new_dep_solver
+        """If the HDL file is not parsed yet, do it now!"""
+        def _create_parser(dep_file):
+            """Function that returns the appropriated HDL parser for the
+            provided dep_file (VHDL or Verilog)"""
+            from .vlog_parser import VerilogParser
+            from .vhdl_parser import VHDLParser
+            if isinstance(dep_file, VHDLFile):
+                return VHDLParser(dep_file)
+            elif isinstance(dep_file, VerilogFile) or isinstance(dep_file, SVFile):
+                verilog_parser = VerilogParser(dep_file)
+                for dir_aux in dep_file.include_paths:
+                    verilog_parser.add_search_path(dir_aux)
+                return verilog_parser
+            else:
+                raise ValueError("Unrecognized file format : %s" %
+                                 dep_file.file_path)
+        logging.debug("Parse %s if needed!!!", self.file_path)
+        import hdlmake.new_dep_solver
         if not self.is_parsed:
             logging.debug("Not parsed yet, let's go!")
-            parser = new_dep_solver.create(self)
+            parser = _create_parser(self)
             parser.parse(self)
 
     # use proxy template here
@@ -199,7 +218,7 @@ class DepFile(File):
     def show_relations(self):
         # self._parse_if_needed()
         for r in self.rels:
-            print(str(r))
+            print str(r)
 
     @property
     def filename(self):
@@ -210,7 +229,8 @@ class DepFile(File):
             if len(self.depends_on) == 0:
                 self.dep_level = 0
             else:
-                # set dep_level to a negative value so we can detect if the recusion below brings us back to
+                # set dep_level to a negative value so we can detect
+                # if the recusion below brings us back to
                 # this file in a circular reference, that would otherwise
                 # result in an infinite loop.
                 self.dep_level = -1
@@ -218,7 +238,8 @@ class DepFile(File):
                 self.dep_level = 1 + \
                     max([dep.get_dep_level() for dep in self.depends_on])
         elif self.dep_level < 0:
-                logging.warning(
-                    "Probably run into a circular reference of file dependencies. It appears %s depends on itself, indirectly via atleast one other file." %
-                    self.file_path)
+            logging.warning("Probably run into a circular reference of file "
+                            "dependencies. It appears %s depends on itself, "
+                            "indirectly via atleast one other file.",
+                            self.file_path)
         return self.dep_level

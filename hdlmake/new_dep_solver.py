@@ -41,24 +41,6 @@ class DepParser(object):
         """Base dummy interface method for the HDL parse execution"""
         raise
 
-
-def create(dep_file):
-    """Function that returns the appropriated HDL parser for the
-    provided dep_file (VHDL or Verilog)"""
-    from .vlog_parser import VerilogParser
-    from .vhdl_parser import VHDLParser
-    if isinstance(dep_file, VHDLFile):
-        return VHDLParser(dep_file)
-    elif isinstance(dep_file, VerilogFile) or isinstance(dep_file, SVFile):
-        verilog_parser = VerilogParser(dep_file)
-        for dir_aux in dep_file.include_paths:
-            verilog_parser.add_search_path(dir_aux)
-        return verilog_parser
-    else:
-        raise ValueError("Unrecognized file format : %s" %
-                         dep_file.file_path)
-
-
 def solve(fileset):
     """Function that Parses and Solves the provided HDL fileset. Note
        that it doesn't return a new fileset, but modifies the original one"""
