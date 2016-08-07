@@ -20,6 +20,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing the HDLMake Manifest and its associated parser"""
+
 import os
 import logging
 
@@ -27,7 +29,9 @@ from .util import path as path_mod
 from .util.configparser import ConfigParser
 
 
-class Manifest:
+class Manifest(object):
+
+    """This class defines the Manifest object"""
 
     def __init__(self, path=None, url=None):
         if not isinstance(path, str):
@@ -47,10 +51,13 @@ class Manifest:
         return self.url
 
     def exists(self):
+        """Check if the Manifest path points to an existing directory"""
         return os.path.exists(self.path)
 
 
 class ManifestParser(ConfigParser):
+
+    """This is the class providing HDLMake Manifest parser capabilities"""
 
     def __init__(self):
         ConfigParser.__init__(
@@ -71,7 +78,6 @@ class ManifestParser(ConfigParser):
             default='',
             help="Command to be executed after fetch",
             type='')
-
         self.add_delimiter()
         self.add_option(
             'syn_tool',
@@ -168,14 +174,12 @@ class ManifestParser(ConfigParser):
             default='',
             help="Command to be executed after synthesis: local",
             type='')
-
         self.add_delimiter()
         self.add_option(
             'top_module',
             default=None,
             help="Top level entity for synthesis and simulation",
             type='')
-
         self.add_delimiter()
         self.add_option(
             'quartus_preflow',
@@ -192,7 +196,6 @@ class ManifestParser(ConfigParser):
             default=None,
             help="Quartus post-flow script file",
             type='')
-
         self.add_delimiter()
         self.add_option(
             'include_dirs',
@@ -200,9 +203,7 @@ class ManifestParser(ConfigParser):
             help="Include dirs for Verilog sources",
             type=[])
         self.add_type('include_dirs', type="")
-
         self.add_delimiter()
-
         self.add_option(
             'sim_top',
             default=None,
@@ -243,7 +244,6 @@ class ManifestParser(ConfigParser):
             default="",
             help="Additional options for vmap",
             type='')
-
         self.add_delimiter()
         self.add_option(
             'iverilog_opt',
@@ -255,37 +255,31 @@ class ManifestParser(ConfigParser):
             default="",
             help="Additional options for GHDL",
             type='')
-
         self.add_delimiter()
-
         self.add_option(
             'modules',
             default={},
             help="List of local modules",
             type={})
-        self.add_option(
-            'action',
-            default='',
-            help="What is the action that should be taken (simulation/synthesis)",
-            type='')
-
         self.add_allowed_key('modules', key="svn")
         self.add_allowed_key('modules', key="git")
         self.add_allowed_key('modules', key="local")
-
+        self.add_option(
+            'action',
+            default='',
+            help="What is the action that should be taken if "
+                 "HDLMake is run in auto mode (simulation/synthesis)",
+            type='')
         # self.add_delimiter()
         self.add_option('library', default="work",
-                        help="Destination library for module's VHDL files", type="")
+                        help="Destination library for module's VHDL files",
+                        type="")
         self.add_option(
             'files',
             default=[],
             help="List of files from the current module",
             type='')
         self.add_type('files', type=[])
-        # self.add_option('root', default=None, type='', help="Root catalog for
-        # local modules")
-
-        # Adding option for including makefile snippets
         self.add_option(
             'incl_makefiles',
             default=[],
@@ -294,7 +288,29 @@ class ManifestParser(ConfigParser):
         self.add_type('incl_makefiles', type='')
 
     def add_manifest(self, path):
-        manifest = self._search_for_manifest(path)
+        """Add to configuration the Manifest at directory (path) if exists"""
+        def _search_for_manifest(path):
+            """
+            Look for manifest in the given folder and create a Manifest object
+            """
+            logging.debug("Looking for manifest in " + path)
+            dir_files = os.listdir(path)
+            if "manifest.py" in dir_files and "Manifest.py" in dir_files:
+                logging.error(
+                    "Both manifest.py and Manifest.py" +
+                    "found in the module directory: %s",
+                    path)
+                quit()
+            for filename in dir_files:
+                if filename == "manifest.py" or filename == "Manifest.py":
+                    if not os.path.isdir(filename):
+                        logging.debug("Found manifest for module %s: %s",
+                                      path, filename)
+                        path_aux = os.path.join(path, filename)
+                        manifest = Manifest(path=os.path.abspath(path_aux))
+                        return manifest
+            return None
+        manifest = _search_for_manifest(path)
         if manifest is None:
             logging.error("No manifest found in path: %s", path)
             quit()
@@ -303,50 +319,27 @@ class ManifestParser(ConfigParser):
             return self.add_config_file(manifest.path)
 
     def print_help(self):
+        """Print the help for the Manifest parser object"""
         self.help()
 
     def search_for_package(self):
         """
-        Reads a file and looks for package clase. Returns list of packages' names
-        from the file
+        Reads a file and looks for package clase. Returns list of packages'
+        names from the file
         """
         import re
-        f = open(self.config_file, "r")
+        file_aux = open(self.config_file, "r")
         try:
-            text = f.readlines()
+            text = file_aux.readlines()
         except UnicodeDecodeError:
             return []
-
         package_pattern = re.compile(
             "^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*$")
-
         ret = []
         for line in text:
-            m = re.match(package_pattern, line)
-            if m is not None:
-                ret.append(m.group(1))
-
-        f.close()
+            match_aux = re.match(package_pattern, line)
+            if match_aux is not None:
+                ret.append(match_aux.group(1))
+        file_aux.close()
         self.package = ret
 
-    def _search_for_manifest(self, path):
-        """
-        Look for manifest in the given folder
-        """
-        logging.debug("Looking for manifest in " + path)
-        dir_files = os.listdir(path)
-        if "manifest.py" in dir_files and "Manifest.py" in dir_files:
-            logging.error(
-                "Both manifest.py and Manifest.py" +
-                "found in the module directory: %s",
-                self.path)
-            sys.exit("\nExiting")
-        for filename in dir_files:
-            if filename == "manifest.py" or filename == "Manifest.py":
-                if not os.path.isdir(filename):
-                    logging.debug("Found manifest for module %s: %s",
-                                  path, filename)
-                    path_aux = os.path.join(path, filename)
-                    manifest = Manifest(path=os.path.abspath(path_aux))
-                    return manifest
-        return None
