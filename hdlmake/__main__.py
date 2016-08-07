@@ -20,10 +20,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""This is the entry point for HDLMake working in command line app mode"""
 
 from __future__ import print_function
 import os
-import importlib
 import argparse
 import logging
 import sys
@@ -73,7 +73,8 @@ def main():
     # Set the module_pool environment by providing the options: this is a must!
     modules_pool.set_environment(options)
 
-    # Now, we add the first module, the one from which we are launching the program:
+    # Now, we add the first module, the one from which we are launching
+    #  the program:
     # Note that we are asking for not processing the manifest and specifying
     # that there is not a parent module.
     # 1- Hdlmake create a new Module() object
@@ -99,13 +100,9 @@ def main():
 
 
 def _action_runner(modules_pool):
-
-    #
-    # DECODE THE COMMANDS/ACTIONS HERE  #
-    #
+    """Funtion that decodes and executed the action selected by the user"""
     top_mod = modules_pool.get_top_module()
     options = modules_pool.env.options
-
     if options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
@@ -113,7 +110,8 @@ def _action_runner(modules_pool):
         logging.info("Running automatic flow.")
         if not top_mod.action:
             logging.error("`action' manifest variable has to be specified. "
-                          "Otherwise hdlmake doesn't know how to handle the project.")
+                          "Otherwise hdlmake doesn't know how to handle the "
+                          "project.")
             quit()
         if top_mod.action == "simulation":
             modules_pool.simulation_makefile()
@@ -122,8 +120,9 @@ def _action_runner(modules_pool):
             # modules_pool.synthesis_makefile()
         elif top_mod.action == "qsys_hw_tcl_update":
             if not top_mod.manifest_dict["hw_tcl_filename"]:
-                logging.error("'hw_tcl_filename' manifest variable has to be specified. "
-                              "Otherwise hdlmake doesn't know which file to update.")
+                logging.error("'hw_tcl_filename' manifest variable has to be "
+                              "specified. Otherwise hdlmake doesn't know which"
+                              " file to update.")
                 quit()
             modules_pool.qsys_hw_tcl_update()
     elif options.command == "make-simulation":
@@ -150,7 +149,6 @@ def _get_parser():
     """This is the parser function, where options and commands are defined.
     Here, we make the next processes:
     """
-
     usage = """hdlmake [command] [options]"""
     description = """Version %s\n
         To see optional arguments for particular command type:
@@ -162,7 +160,6 @@ def _get_parser():
                                      usage=usage,
                                      description=description)
     subparsers = parser.add_subparsers(title="commands", dest="command")
-
     manifest_help = subparsers.add_parser(
         "manifest-help",
         help="print manifest file variables description")
@@ -172,13 +169,13 @@ def _get_parser():
     make_synthesis = subparsers.add_parser(
         "make-synthesis",
         help="generate synthesis makefile")
-
     fetch = subparsers.add_parser(
         "fetch",
         help="fetch and/or update remote modules listed in Manifest")
     clean = subparsers.add_parser(
         "clean",
-        help="remove all modules fetched for direct and indirect children of this module")
+        help="remove all modules fetched for direct and indirect "
+             "children of this module")
     listmod = subparsers.add_parser(
         "list-mods",
         help="List all modules together with their files")
@@ -204,14 +201,6 @@ def _get_parser():
         default=None)
     # listfiles.add_argument("--reverse", help="reverse the order for the list
     # of files", dest="reverse", default=False, action="store_true")
-    merge_cores = subparsers.add_parser(
-        "merge-cores",
-        help="Merges entire synthesizable content of an project into a pair of VHDL/Verilog files")
-    merge_cores.add_argument(
-        "--dest",
-        help="name for output merged file",
-        dest="dest",
-        default=None)
     synthesis_proj = subparsers.add_parser(
         "project",
         help="create/update a project for the appropriated tool")
@@ -228,7 +217,9 @@ def _get_parser():
         "--graphviz",
         dest="graphviz",
         default=None,
-        help="Activate graphviz and specify the program to be used to plot the graph (twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, circo, neato, acyclic, nop, gvpr, dot, sfdp)")
+        help="Activate graphviz and specify the program to be used to plot "
+             "the graph (twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, "
+             "circo, neato, acyclic, nop, gvpr, dot, sfdp)")
     tree.add_argument(
         "--web",
         help="Edit the tree hierarchy in a web browser",
@@ -251,7 +242,6 @@ def _get_parser():
         "--condition",
         dest="condition",
         required=True)
-
     auto = subparsers.add_parser(
         "auto",
         help="default action for hdlmake. Run when no args are given")
@@ -263,54 +253,43 @@ def _get_parser():
         " " +
         __version__)
     auto.add_argument(
-        "--force",
-        help="force hdlmake to generate the makefile, even if the specified tool is missing",
-        default=False,
-        action="store_true")
-    auto.add_argument(
         "--noprune",
         help="prevent hdlmake from pruning unneeded files",
         default=False,
         action="store_true")
-
-    parser.add_argument("--py", dest="arbitrary_code",
-                        default="", help="add arbitrary code when evaluation all manifests")
-
-    parser.add_argument("--log", dest="log",
-                        default="info", help="set logging level (one of debug, info, warning, error, critical)")
     parser.add_argument(
-        "--generate-project-vhd", help="generate project.vhd file with a meta package describing the project",
-        dest="generate_project_vhd", default=False, action="store_true")
+        "--py",
+        dest="arbitrary_code",
+        default="",
+        help="add arbitrary code when evaluation all manifests")
+    parser.add_argument(
+        "--log",
+        dest="log",
+        default="info",
+        help="set logging level: debug, info, warning, error, critical")
     parser.add_argument(
         "--force",
-        help="force hdlmake to generate the makefile, even if the specified tool is missing",
+        help="force hdlmake to generate the makefile, "
+             "even if the specified tool is missing",
         default=False,
         action="store_true")
-
     return parser
 
 
-def _get_options(sys, parser):
+def _get_options(sys_aux, parser):
+    """Function that decodes and set the provided command user options"""
     options = None
-    if len(sys.argv[1:]) == 0:
-            options = parser.parse_args(['auto'])
-
-    elif len(sys.argv[1:]) == 1:
-        if sys.argv[1] == "_conditioncheck":
-            options = condition_check.parse_args(sys.argv[2:])
-            env = Env(options)
-            CheckCondition(modules_pool=None,
-                           options=options,
-                           env=env).run()
-            quit()
-        elif sys.argv[1] == "--help" or sys.argv[1] == "-h":
-            options = parser.parse_args(sys.argv[1:])
-        elif sys.argv[1].startswith('-'):
-            options = parser.parse_args(["auto"] + sys.argv[1:])
+    if len(sys_aux.argv[1:]) == 0:
+        options = parser.parse_args(['auto'])
+    elif len(sys_aux.argv[1:]) == 1:
+        if sys_aux.argv[1] == "--help" or sys_aux.argv[1] == "-h":
+            options = parser.parse_args(sys_aux.argv[1:])
+        elif sys_aux.argv[1].startswith('-'):
+            options = parser.parse_args(["auto"] + sys_aux.argv[1:])
         else:
-            options = parser.parse_args(sys.argv[1:])
+            options = parser.parse_args(sys_aux.argv[1:])
     else:
-        options = parser.parse_args(sys.argv[1:])
+        options = parser.parse_args(sys_aux.argv[1:])
     return options
 
 
