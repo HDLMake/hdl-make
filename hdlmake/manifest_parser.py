@@ -322,24 +322,3 @@ class ManifestParser(ConfigParser):
         """Print the help for the Manifest parser object"""
         self.help()
 
-    def search_for_package(self):
-        """
-        Reads a file and looks for package clase. Returns list of packages'
-        names from the file
-        """
-        import re
-        file_aux = open(self.config_file, "r")
-        try:
-            text = file_aux.readlines()
-        except UnicodeDecodeError:
-            return []
-        package_pattern = re.compile(
-            "^[ \t]*package[ \t]+([^ \t]+)[ \t]+is[ \t]*$")
-        ret = []
-        for line in text:
-            match_aux = re.match(package_pattern, line)
-            if match_aux is not None:
-                ret.append(match_aux.group(1))
-        file_aux.close()
-        self.package = ret
-
