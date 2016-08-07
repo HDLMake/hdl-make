@@ -106,10 +106,7 @@ def _action_runner(modules_pool):
     top_mod = modules_pool.get_top_module()
     options = modules_pool.env.options
 
-    if options.command == "check-env":
-        modules_pool.env.check_env(verbose=True)
-        quit()
-    elif options.command == "manifest-help":
+    if options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
     elif options.command == "auto":
@@ -166,11 +163,6 @@ def _get_parser():
                                      description=description)
     subparsers = parser.add_subparsers(title="commands", dest="command")
 
-    check_env = subparsers.add_parser("check-env",
-                                      help="check environment for HDLMAKE-related settings",
-                                      description="Look for environmental variables specific for HDLMAKE.\n"
-                                                  "Hdlmake will examine presence of supported synthesis and simulation"
-                                                  "tools.\n")
     manifest_help = subparsers.add_parser(
         "manifest-help",
         help="print manifest file variables description")
@@ -307,7 +299,6 @@ def _get_options(sys, parser):
         if sys.argv[1] == "_conditioncheck":
             options = condition_check.parse_args(sys.argv[2:])
             env = Env(options)
-            env.check_env()
             CheckCondition(modules_pool=None,
                            options=options,
                            env=env).run()

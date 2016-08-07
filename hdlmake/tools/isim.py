@@ -31,6 +31,7 @@ import logging
 import sys
 
 from .make_sim import ToolSim
+from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile
 
 
@@ -80,7 +81,7 @@ class ToolISim(ToolSim):
                 os_prefix = 'nt'
             else:
                 os_prefix = 'lin'
-            if env["architecture"] == 32:
+            if path_mod.architecture() == 32:
                 arch_sufix = ''
             else:
                 arch_sufix = '64'

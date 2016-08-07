@@ -86,7 +86,6 @@ class ActionSynthesis(Action):
         path_key = tool_info['id'] + '_path'
         name = tool_info['name']
         env = self.env
-        env.check_general()
         env.check_tool(tool_object)
         top_module = self.get_top_module()
         if env[path_key]:

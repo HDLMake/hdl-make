@@ -21,154 +21,93 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Package providing the bridge with the Host O.S. environment"""
+
 from __future__ import print_function
 import os
 import sys
-import platform
-from subprocess import Popen, PIPE
 import os.path
 import logging
 
-from .util import path
-from .util.termcolor import colored
-
-
-_plain_print = print
-
-
-class _PrintClass(object):
-
-    def __init__(self):
-        self.verbose = None
-
-    def set_verbose(self, verbose):
-        self.verbose = verbose
-
-    def __call__(self, *args, **kwargs):
-        if self.verbose:
-            _plain_print(*args, **kwargs)
-
-print = _PrintClass()
-_64bit_architecture = sys.maxsize > 2 ** 32
-
-
-def _green(text):
-    return colored(text, 'green')
-
-
-def _red(text):
-    return colored(text, 'red')
+from .util import path as path_mod
 
 
 class Env(dict):
 
-    # def __init__(self, options, top_module=None):
+    """The Env (Environment) is a dictionary containing the environmental
+    variables related with HDLMake for a proper use in the Python code"""
+
     def __init__(self, options):
         dict.__init__(self)
         self.options = options
-        # self.top_module = top_module
-
-    def check_env(self, verbose=True):
-        print.set_verbose(verbose)
-        # Check and determine general environment
-        self.check_general()
-
-    def _get(self, name):
-        assert not name.startswith("HDLMAKE_")
-        assert isinstance(name, basestring)
-        name = name.upper()
-        return os.environ.get("HDLMAKE_%s" % name)
-
-    def _get_path(self, name):
-        if platform.system() == 'Windows':
-            which_cmd = "where"
-        else:
-            which_cmd = "which"
-        location = os.popen(
-            which_cmd + " %s" %
-            name).read().split('\n', 1)[0].strip()
-        logging.debug("location for %s: %s" % (name, location))
-        return os.path.dirname(location)
-
-    def _is_in_path(self, name, path=None):
-        if path is not None:
-            return os.path.exists(os.path.join(path, name))
-        else:
-            assert isinstance(name, basestring)
-            path = self._get_path(name)
-            return len(path) > 0
-
-    def _check_in_system_path(self, name):
-        path = self._get_path(name)
-        if path:
-            return True
-        else:
-            return False
-
-    def check_general(self):
-        self["architecture"] = 64 if _64bit_architecture else 32
-        self["platform"] = sys.platform
-        print("Architecture: %s" % self["architecture"])
-        print("Platform: %s" % self["platform"])
-
-        # general
-        print("### General variabless ###")
-        self._report_and_set_hdlmake_var("coredir")
-        if self["coredir"] is not None:
-            print(
-                "All modules will be fetched to %s" %
-                path.rel2abs(self["coredir"]))
-        else:
-            print(
-                "'fetchto' variables in the manifests will be respected when fetching.")
 
     def check_tool(self, info_class):
-
+        """Check if the binary is available in the O.S. environment"""
+        def _get_path(name):
+            """Get the directory in which the tool binary is at Host"""
+            location = os.popen(
+                path_mod.which_cmd() + " %s" %
+                name).read().split('\n', 1)[0].strip()
+            logging.debug("location for %s: %s", name, location)
+            return os.path.dirname(location)
+        def _is_in_path(name, path=None):
+            """Check if the directory is in the system path"""
+            if path is not None:
+                return os.path.exists(os.path.join(path, name))
+            else:
+                assert isinstance(name, basestring)
+                path = _get_path(name)
+                return len(path) > 0
+        def _check_in_system_path(name):
+            """Check if if in the system path exists a file named (name)"""
+            path = _get_path(name)
+            if path:
+                return True
+            else:
+                return False
         tool_info = info_class.TOOL_INFO
         if sys.platform == 'cygwin':
             bin_name = tool_info['windows_bin']
         else:
             bin_name = tool_info['linux_bin']
-
         path_key = tool_info['id'] + '_path'
         name = tool_info['name']
-
-        print("\n### " + name + " tool environment information ###")
+        logging.debug("Checking if " + name + " tool is available on PATH")
         self._report_and_set_hdlmake_var(path_key)
         if self[path_key] is not None:
-            if self._is_in_path(bin_name, self[path_key]):
-                print(
-                    name + " " + _green("found") + " under HDLMAKE_" + path_key.upper() + ": %s" %
-                    self[path_key])
+            if _is_in_path(bin_name, self[path_key]):
+                logging.info("%s found under HDLMAKE_%s: %s",
+                             name, path_key.upper(), self[path_key])
             else:
-                print(
-                    name + " " + _red("NOT found") + " under HDLMAKE_" + path_key.upper() + ": %s" %
-                    self[path_key])
+                logging.warning("%s NOT found under HDLMAKE_%s: %s",
+                                name, path_key.upper(), self[path_key])
         else:
-            if self._check_in_system_path(bin_name):
-                self[path_key] = self._get_path(bin_name)
-                print(
-                    name + " " + _green("found") + " in system path: %s" %
-                    self[path_key])
+            if _check_in_system_path(bin_name):
+                self[path_key] = _get_path(bin_name)
+                logging.info("%s found in system PATH: %s",
+                             name, self[path_key])
             else:
-                print(name + " " + _red("cannnot") + " be found.")
+                logging.warning("%s cannnot be found in system PATH", name)
 
     def _report_and_set_hdlmake_var(self, name):
+        """Create a new entry in the Env dictionary and initialize the value
+        to the obtained from the O.S. environmental variable if defined"""
+        def _get(name):
+            """Ask the Host O.S. for the value of an HDLMAKE_(name)
+            environmental variable"""
+            assert not name.startswith("HDLMAKE_")
+            assert isinstance(name, basestring)
+            name = name.upper()
+            return os.environ.get("HDLMAKE_%s" % name)
         name = name.upper()
-        val = self._get(name)
+        val = _get(name)
         if val:
-            print(
-                ("Environmental variable HDLMAKE_%s " + _green("is set:") + ' "%s".') %
-                (name, val))
+            logging.debug('Environmental variable HDLMAKE_%s is set: "%s".',
+                          name, val)
             self[name.lower()] = val
             return True
         else:
-            print(
-                ("Environmental variable HDLMAKE_%s " + _red("is not set.")) %
-                name)
+            logging.warning("Environmental variable HDLMAKE_%s is not set.",
+                            name)
             self[name.lower()] = None
             return False
-
-if __name__ == "__main__":
-    ec = Env({}, {})
-    ec.check()

@@ -73,7 +73,6 @@ class ActionSimulation(Action):
         path_key = tool_info['id'] + '_path'
         name = tool_info['name']
         self.env.check_tool(tool_object)
-        self.env.check_general()
         if self.env[path_key] is None and self.env.options.force is not True:
             logging.error("Can't generate a " + name + " makefile. " +
                           bin_name + " not found.")

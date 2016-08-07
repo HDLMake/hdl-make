@@ -193,9 +193,22 @@ def mkdir_command():
         return "mkdir -p"
 
 
+def which_cmd():
+    """Get a string with the O.S. specific which command"""
+    if check_windows():
+        return "where"
+    else:
+        return "which"
+
+
 def slash_char():
     """Get a string with the O.S. specific path separator"""
     if check_windows():
         return "\\"
     else:
         return "/"
+
+def architecture():
+    """Get a string with the O.S. bus width"""
+    return 64 if sys.maxsize > 2 ** 32 else 32
+
