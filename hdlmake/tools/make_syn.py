@@ -25,7 +25,10 @@ PWD := $$(shell pwd)
 PROJECT := ${project_name}
 PROJECT_FILE := $$(PROJECT).${project_ext}
 TOOL_PATH := ${tool_path}
-TCL_INTERPRETER := $$(TOOL_PATH)/${tcl_interpreter}
+TCL_INTERPRETER := ${tcl_interpreter}
+ifneq ($$(strip $$(TOOL_PATH)),)
+TCL_INTERPRETER := $$(TOOL_PATH)/$$(TCL_INTERPRETER)
+endif
 
 """)
         self.writeln(top_parameter.substitute(
