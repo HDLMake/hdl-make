@@ -20,6 +20,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""This package provides the functions and classes to parse and solve
+ HDLMake filesets"""
 
 from __future__ import print_function
 import logging
@@ -30,34 +32,36 @@ from .srcfile import VHDLFile, VerilogFile, SVFile
 
 class DepParser(object):
 
+    """Base Class for the different HDL parsers (VHDL and Verilog)"""
+
     def __init__(self, dep_file):
         self.dep_file = dep_file
 
     def parse(self, dep_file):
+        """Base dummy interface method for the HDL parse execution"""
         raise
 
 
-class ParserFactory(object):
-
-    def create(self, dep_file):
-        import re
-        from .vlog_parser import VerilogParser
-        from .vhdl_parser import VHDLParser
-
-        if isinstance(dep_file, VHDLFile):
-            return VHDLParser(dep_file)
-        elif isinstance(dep_file, VerilogFile) or isinstance(dep_file, SVFile):
-            vp = VerilogParser(dep_file)
-            for d in dep_file.include_paths:
-                vp.add_search_path(d)
-            return vp
-        else:
-            raise ValueError(
-                "Unrecognized file format : %s" %
-                dep_file.file_path)
+def create(dep_file):
+    """Function that returns the appropriated HDL parser for the
+    provided dep_file (VHDL or Verilog)"""
+    from .vlog_parser import VerilogParser
+    from .vhdl_parser import VHDLParser
+    if isinstance(dep_file, VHDLFile):
+        return VHDLParser(dep_file)
+    elif isinstance(dep_file, VerilogFile) or isinstance(dep_file, SVFile):
+        verilog_parser = VerilogParser(dep_file)
+        for dir_aux in dep_file.include_paths:
+            verilog_parser.add_search_path(dir_aux)
+        return verilog_parser
+    else:
+        raise ValueError("Unrecognized file format : %s" %
+                         dep_file.file_path)
 
 
 def solve(fileset):
+    """Function that Parses and Solves the provided HDL fileset. Note
+       that it doesn't return a new fileset, but modifies the original one"""
     from .srcfile import SourceFileSet
     from .dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
@@ -65,13 +69,12 @@ def solve(fileset):
     # print(fileset)
     # print(fset)
     not_satisfied = 0
-    logging.debug(
-        "PARSE BEGIN: Here, we will parse all the files in the fileset: no parsing should be done beyond this point")
+    logging.debug("PARSE BEGIN: Here, we will parse all the files in the "
+                  "fileset: no parsing should be done beyond this point")
     for investigated_file in fset:
-        logging.debug("INVESTIGATED FILE: %s" % investigated_file)
+        logging.debug("INVESTIGATED FILE: %s", investigated_file)
         investigated_file.parse_if_needed()
     logging.debug("PARSE END: now the parsing is done")
-
     logging.debug("SOLVE BEGIN")
     for investigated_file in fset:
         # logging.info("INVESTIGATED FILE: %s" % investigated_file)
@@ -92,24 +95,24 @@ def solve(fileset):
                         "Relation %s satisfied by multpiple (%d) files: %s",
                         str(rel),
                         len(satisfied_by),
-                        '\n'.join([file.path for file in list(satisfied_by)]))
+                        '\n'.join([file_aux.path for
+                                   file_aux in list(satisfied_by)]))
                 elif len(satisfied_by) == 0:
                     logging.warning(
-                        "Relation %s in %s not satisfied by any source file" %
-                        (str(rel), investigated_file.name))
+                        "Relation %s in %s not satisfied by any source file",
+                        str(rel), investigated_file.name)
                     not_satisfied += 1
     logging.debug("SOLVE END")
-
     if not_satisfied != 0:
         logging.warning(
-            "Dependencies solved, but %d relations were not satisfied" %
+            "Dependencies solved, but %d relations were not satisfied",
             not_satisfied)
     else:
         logging.info(
             "Dependencies solved, all of the relations weres satisfied!")
 
 
-def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):
+def make_dependency_sorted_list(fileset, reverse=False):
     """Sort files in order of dependency.
     Files with no dependencies first.
     All files that another depends on will be earlier in the list."""
@@ -126,10 +129,10 @@ def make_dependency_sorted_list(fileset, purge_unused=True, reverse=False):
 
 
 def make_dependency_set(fileset, top_level_entity):
-    logging.info(
-        "Create a set of all files required to build the named top_level_entity.")
-    from srcfile import SourceFileSet
-    from dep_file import DepRelation
+    """Create the set of all files required to build the named
+     top_level_entity."""
+    from hdlmake.srcfile import SourceFileSet
+    from hdlmake.dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
     # Find the file that provides the named top level entity
@@ -142,15 +145,15 @@ def make_dependency_set(fileset, top_level_entity):
     top_file = None
     for chk_file in fset:
         for rel in chk_file.rels:
-            if ((rel == top_rel_vhdl) or (rel == top_rel_vlog)):
+            if (rel == top_rel_vhdl) or (rel == top_rel_vlog):
                 top_file = chk_file
                 break
         if top_file:
             break
     if top_file is None:
-        logging.critical(
-            'Could not find a top level file that provides the top_module="%s". Continuing with the full file set.' %
-            top_level_entity)
+        logging.critical('Could not find a top level file that provides the '
+                         'top_module="%s". Continuing with the full file set.',
+                         top_level_entity)
         return fileset
     # Collect only the files that the top level entity is dependant on, by
     # walking the dependancy tree.
@@ -164,9 +167,8 @@ def make_dependency_set(fileset, top_level_entity):
     except KeyError:
         # no files left
         pass
-    logging.info(
-        "Found %d files as dependancies of %s." %
-        (len(dep_file_set), top_level_entity))
+    logging.info("Found %d files as dependancies of %s.",
+                 len(dep_file_set), top_level_entity)
     # for dep_file in dep_file_set:
     #    logging.info("\t" + str(dep_file))
     return dep_file_set

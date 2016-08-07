@@ -172,10 +172,10 @@ class DepFile(File):
 
     def parse_if_needed(self):
         logging.debug("Parse %s if needed!!!" % self.file_path)
-        from .new_dep_solver import ParserFactory
+        import new_dep_solver
         if not self.is_parsed:
             logging.debug("Not parsed yet, let's go!")
-            parser = ParserFactory().create(self)
+            parser = new_dep_solver.create(self)
             parser.parse(self)
 
     # use proxy template here
