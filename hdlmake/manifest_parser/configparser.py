@@ -169,6 +169,20 @@ types:[<type 'int'>]
             """Add a new supported type for the option's value"""
             self.types.append(type(type_obj))
 
+        def add_key(self, key):
+            """Add a new dict key. Note that this is only allowed when
+            the option's value is a dict!!"""
+            if not isinstance(key, str):
+                raise ValueError("Allowed key must be a string")
+            try:
+                self.keys.append(key)
+            except AttributeError:
+                if type(dict()) not in self.types:
+                    raise RuntimeError(
+                        "Allowing a key makes sense for dictionaries only")
+                self.keys = [key]
+            self.keys.append(key)
+
 
     def __init__(self, description=None):
         if description is not None:
@@ -182,7 +196,6 @@ types:[<type 'int'>]
 
     def __setitem__(self, name, value):
         if name in self.__names():
-            #filter(lambda x: x.name == name, self.options)[0] = value
             for option_x in self.options:
                 if option_x.name == name:
                     option_x = value
@@ -236,8 +249,8 @@ types:[<type 'int'>]
         self.options.append(None)
 
     def add_allowed_key(self, name, key):
-        """Grab the specified option from parser's list and add a new type.
-        Note that this is only allowed when the option's value is a dict"""
+        """Grab the specified option from parser's list and add a new dict key.
+        Note that this is only allowed when the option's value is a dict!!"""
         if not isinstance(key, str):
             raise ValueError("Allowed key must be a string")
         try:
@@ -248,6 +261,8 @@ types:[<type 'int'>]
                     "Allowing a key makes sense for dictionaries only")
             self[name].allowed_keys = [key]
         self[name].allowed_keys.append(key)
+
+        self[name].add_key(key)
 
     def add_config_file(self, config_file):
         """Add the Manifest to be processed by the parser"""
@@ -271,27 +286,9 @@ types:[<type 'int'>]
         empty object in the parser's option instance list"""
         return [o.name for o in self.options if o is not None]
 
-    def parse(self, extra_context=None):
-        """Parse the stored manifest plus arbitrary code"""
-        assert isinstance(extra_context, dict) or extra_context is None
-
-        # These HDLMake keys must not be inherited from parent module
-        key_purge_list = ["modules", "files", "include_dirs",
-                          "inc_makefiles", "library"]
-        for key_to_be_deleted in key_purge_list:
-            extra_context.pop(key_to_be_deleted, None)
-        # Load the Manifest.py file content in a local variable
-        if self.config_file is not None:
-            with open(self.config_file, "r") as config_file:
-                content = config_file.readlines()
-                content = ''.join(content)
-        else:
-            content = ''
-        # Now, grab the options coming from Manifest.py plus arbitrary_code:
-        # - extra_context as global variables.
-        # - options as local variables.
+    def __parser_runner(self, content, extra_context):
+        """method that acts as an 'exec' wraper to run the Python code"""
         options = {}
-        content = self.prefix_code + '\n' + content + '\n' + self.sufix_code
         try:
             with stdout_io() as stdout_aux:
                 exec(content, extra_context, options)
@@ -314,6 +311,35 @@ types:[<type 'int'>]
             logging.error(content)
             print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
             raise
+        return options
+
+    def __read_config_content(self):
+        """Load the Manifest.py file content in a local variable and return
+        the obtained value as a string"""
+        if self.config_file is not None:
+            with open(self.config_file, "r") as config_file:
+                content = config_file.readlines()
+                content = ''.join(content)
+        else:
+            content = ''
+        return content
+
+    def parse(self, extra_context=None):
+        """Parse the stored manifest plus arbitrary code"""
+        assert isinstance(extra_context, dict) or extra_context is None
+
+        # These HDLMake keys must not be inherited from parent module
+        key_purge_list = ["modules", "files", "include_dirs",
+                          "inc_makefiles", "library"]
+        for key_to_be_deleted in key_purge_list:
+            extra_context.pop(key_to_be_deleted, None)
+        # Load the Manifest.py file content in a local variable
+        content = self.__read_config_content()
+        # Now, grab the options coming from Manifest.py plus arbitrary_code:
+        # - extra_context as global variables.
+        # - options as local variables.
+        content = self.prefix_code + '\n' + content + '\n' + self.sufix_code
+        options = self.__parser_runner(content, extra_context)
         # Checkheck the options that were defined in the local context
         ret = {}
         for opt_name, val in list(options.items()):
