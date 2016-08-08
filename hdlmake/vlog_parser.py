@@ -154,7 +154,8 @@ class VerilogPreprocessor(object):
                 re.DOTALL | re.MULTILINE)
             return re.sub(pattern, replacer, text)
         def _degapize(text):
-            """ Remove the not necessary 'gaps', i.e. escaped break lines"""
+            """ Create a list in which the verilog sentences are
+            stored in an ordered way -- and without empty 'gaps'"""
             lempty = re.compile(r"^\s*$")
             cline = None
             lines = []
@@ -625,7 +626,7 @@ class VerilogParser(DepParser):
             r"(?:endmodule|endinterface)",
             re.DOTALL | re.MULTILINE)
         m_instantiation = re.compile(
-            r"(?:\A|\\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*",
+            r"(?:\A|\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*",
             re.DOTALL | re.MULTILINE)
         def do_module(text):
             """Function to be applied by re.sub to every match of the
