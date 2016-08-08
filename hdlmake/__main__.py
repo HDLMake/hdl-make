@@ -199,8 +199,12 @@ def _get_parser():
         help="set delimitier for the list of files",
         dest="delimiter",
         default=None)
-    # listfiles.add_argument("--reverse", help="reverse the order for the list
-    # of files", dest="reverse", default=False, action="store_true")
+    listfiles.add_argument(
+        "--reverse",
+        help="reverse the order for the list of files",
+        dest="reverse",
+        default=False,
+        action="store_true")
     synthesis_proj = subparsers.add_parser(
         "project",
         help="create/update a project for the appropriated tool")
@@ -258,10 +262,15 @@ def _get_parser():
         default=False,
         action="store_true")
     parser.add_argument(
-        "--py",
-        dest="arbitrary_code",
+        "--prefix",
+        dest="prefix_code",
         default="",
-        help="add arbitrary code when evaluation all manifests")
+        help="Arbitrary python code to be executed just before the Manifest")
+    parser.add_argument(
+        "--sufix",
+        dest="sufix_code",
+        default="",
+        help="Arbitrary python code to be executed just after the Manifest")
     parser.add_argument(
         "--log",
         dest="log",

@@ -19,15 +19,20 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Module providing the parser for HDLMake Manifest.py files"""
+
 from __future__ import print_function
 import logging
+import os
 import sys
 import StringIO
 import contextlib
 
 
 @contextlib.contextmanager
-def stdoutIO(stdout=None):
+def stdout_io(stdout=None):
+    """This is a function used to grab the stdout from
+    the executed Manifest.py files"""
     old = sys.stdout
     if stdout is None:
         stdout = StringIO.StringIO()
@@ -50,7 +55,8 @@ class ConfigParser(object):
     >>> p.add_option("fetchto", type='')
     >>> p.add_config_file("test.py")
     >>> p.parse()
-    {'modules': {'svn': 'path/to/svn', 'local': '/path/to/local'}, 'fetchto': '..'}
+    {'modules': {'svn': 'path/to/svn', 'local': '/path/to/local'}, \
+'fetchto': '..'}
 
     Case2: Default value and lack of a variable
     >>> f = open("test.py", "w")
@@ -99,8 +105,10 @@ class ConfigParser(object):
     Traceback (most recent call last):
         File "<stdin>", line 1, in <module>
         File "configparser.py", line 110, in parse
-        raise RuntimeError("Given option: "+str(type(val))+" doesn't match specified types:"+str(opt.types))
-    RuntimeError: Given option: <type 'str'> doesn't match specified types:[<type 'int'>]
+        raise RuntimeError("Given option: "+str(type(val))+" doesn't match \
+specified types:"+str(opt.types))
+    RuntimeError: Given option: <type 'str'> doesn't match specified \
+types:[<type 'int'>]
 
     Case6:
     >>> f = open("test.py","w")
@@ -125,7 +133,8 @@ class ConfigParser(object):
     Traceback (most recent call last):
         File "<stdin>", line 1, in <module>
         File "configparser.py", line 184, in parse
-        raise RuntimeError("Encountered unallowed key: " +key+ " for options '"+opt_name+"'")
+        raise RuntimeError("Encountered unallowed key: " +key+ " for options \
+'"+opt_name+"'")
     RuntimeError: Encountered unallowed key: kot for options 'a'
 
     Cleanup:
@@ -133,7 +142,10 @@ class ConfigParser(object):
     >>> os.remove("test.py")
     """
 
-    class Option:
+    class Option(object):
+
+        """This subclass provides instances acting as a convenient storage
+        for Manifest.py options"""
 
         def __init__(self, name, **others):
             self.name = name
@@ -154,7 +166,9 @@ class ConfigParser(object):
                     raise ValueError("Option not recognized: " + key)
 
         def add_type(self, type_obj):
+            """Add a new supported type for the option's value"""
             self.types.append(type(type_obj))
+
 
     def __init__(self, description=None):
         if description is not None:
@@ -162,22 +176,28 @@ class ConfigParser(object):
                 raise ValueError("Description should be a string!")
         self.description = description
         self.options = []
-        self.arbitrary_code = ""
+        self.prefix_code = ""
+        self.sufix_code = ""
         self.config_file = None
 
     def __setitem__(self, name, value):
         if name in self.__names():
-            filter(lambda x: x.name == name, self.options)[0] = value
+            #filter(lambda x: x.name == name, self.options)[0] = value
+            for option_x in self.options:
+                if option_x.name == name:
+                    option_x = value
         else:
             self.options.append(value)
 
     def __getitem__(self, name):
         if name in self.__names():
-            return [x for x in self.options if x is not None and x.name == name][0]
+            return [x for x in self.options
+                    if x is not None and x.name == name][0]
         else:
             raise RuntimeError("No such option as " + str(name))
 
     def help(self):
+        """A method that prints the Manifest help to Host O.S. stdout"""
         print("Variables with special meaning for Hdlmake:")
         for opt in self.options:
             if opt is None:
@@ -200,19 +220,24 @@ class ConfigParser(object):
             print(line)
 
     def add_option(self, name, **others):
+        """Add a new Option object and add it to the parser's option list"""
         if name in self.__names():
             raise ValueError("Option already added: " + name)
         self.options.append(ConfigParser.Option(name, **others))
 
-    def add_type(self, name, type):
+    def add_type(self, name, type_new):
+        """Grab the specified option from parser's list and add a new type"""
         if name not in self.__names():
             raise RuntimeError("Can't add type to a non-existing option")
-        self[name].add_type(type)
+        self[name].add_type(type_new)
 
     def add_delimiter(self):
+        """Append an empty element in the parser's options list"""
         self.options.append(None)
 
     def add_allowed_key(self, name, key):
+        """Grab the specified option from parser's list and add a new type.
+        Note that this is only allowed when the option's value is a dict"""
         if not isinstance(key, str):
             raise ValueError("Allowed key must be a string")
         try:
@@ -222,72 +247,55 @@ class ConfigParser(object):
                 raise RuntimeError(
                     "Allowing a key makes sense for dictionaries only")
             self[name].allowed_keys = [key]
-
         self[name].allowed_keys.append(key)
 
     def add_config_file(self, config_file):
+        """Add the Manifest to be processed by the parser"""
         if self.config_file is not None:
             raise RuntimeError("Config file should be added only once")
-
-        import os
         if not os.path.exists(config_file):
             raise RuntimeError("Config file doesn't exists: " + config_file)
         self.config_file = config_file
         return
 
-    def add_arbitrary_code(self, code):
-        self.arbitrary_code += code + '\n'
+    def add_prefix_code(self, code):
+        """Add the arbitrary Python to be executed just before the Manifest"""
+        self.prefix_code += code + '\n'
+
+    def add_sufix_code(self, code):
+        """Add the arbitrary Python to be executed just after the Manifest"""
+        self.prefix_code += code + '\n'
 
     def __names(self):
+        """A method that returns a list containing the name for every non
+        empty object in the parser's option instance list"""
         return [o.name for o in self.options if o is not None]
 
-    def parse(self, verbose=False, extra_context=None):
-
+    def parse(self, extra_context=None):
+        """Parse the stored manifest plus arbitrary code"""
         assert isinstance(extra_context, dict) or extra_context is None
 
-        # These hdlmake keys wont be inherited
+        # These HDLMake keys must not be inherited from parent module
         key_purge_list = ["modules", "files", "include_dirs",
                           "inc_makefiles", "library"]
         for key_to_be_deleted in key_purge_list:
             extra_context.pop(key_to_be_deleted, None)
-
-        options = {}
-        ret = {}
-
+        # Load the Manifest.py file content in a local variable
         if self.config_file is not None:
             with open(self.config_file, "r") as config_file:
                 content = config_file.readlines()
                 content = ''.join(content)
         else:
             content = ''
-        content = self.arbitrary_code + '\n' + content
-
-        # now the trick:
-        # I take the arbitrary code and parse it
-        # the values are not important, but thanks to it I can check
-        # if a variable came from the arbitrary code.
-        # This is important because in the manifests only certain group
-        # of variables is allowed. In arbitrary code all of them can be used.
-        arbitrary_options = {}
-        import sys
+        # Now, grab the options coming from Manifest.py plus arbitrary_code:
+        # - extra_context as global variables.
+        # - options as local variables.
+        options = {}
+        content = self.prefix_code + '\n' + content + '\n' + self.sufix_code
         try:
-            with stdoutIO() as s:
-                exec(self.arbitrary_code, extra_context, arbitrary_options)
-            printed = s.getvalue()
-            if printed:
-                print(printed)
-        except SyntaxError as e:
-            logging.error("Invalid syntax in the arbitraty code:\n" + str(e))
-            quit()
-        except:
-            logging.error("Unexpected error while parsing arbitrary code:")
-            print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
-            quit()
-
-        try:
-            with stdoutIO() as s:
+            with stdout_io() as stdout_aux:
                 exec(content, extra_context, options)
-            printed = s.getvalue()
+            printed = stdout_aux.getvalue()
             if len(printed) > 0:
                 logging.info(
                     "The manifest inside " +
@@ -295,50 +303,54 @@ class ConfigParser(object):
                     " tried to print something:")
                 for line in printed.split('\n'):
                     print("> " + line)
-            # print "out:", s.getvalue()
-        except SyntaxError as e:
-            logging.error(
-                "Invalid syntax in the manifest file " + self.config_file + ":\n" + str(e))
+        except SyntaxError as error_syntax:
+            logging.error("Invalid syntax in the manifest file " +
+                          self.config_file + ":\n" + str(error_syntax))
             logging.error(content)
             quit()
         except:
-            logging.error(
-                "Encountered unexpected error while parsing " +
-                self.config_file)
+            logging.error("Encountered unexpected error while parsing " +
+                          self.config_file)
             logging.error(content)
             print(str(sys.exc_info()[0]) + ':' + str(sys.exc_info()[1]))
             raise
-
-        for opt_name, val in list(options.items()):  # check delivered options
+        # Checkheck the options that were defined in the local context
+        ret = {}
+        for opt_name, val in list(options.items()):
+            # Manifest variables starting with __(name) will be ignored,
+            # so won't be inherited by the childrens of the module using this
+            # parser.
             if opt_name.startswith('__'):
                 continue
+            # Only if the option is not one of the meaningful set for HDLMake,
+            # create a new entry in the dictionary to be returned and pass...
+            # we won't check the unknown option, but will pass it to the
+            # children modules' Manifest
             if opt_name not in self.__names():
-                if opt_name in arbitrary_options:
-                    continue  # finish processing of this variable here
-                else:
-                    ret[opt_name] = val
-                    logging.debug(
-                        "New custom variable found: %s (=%s).\n" %
-                        (opt_name, val))
-                    continue
+                ret[opt_name] = val
+                logging.debug("New variable found: %s (=%s).", opt_name, val)
+                continue
+            # If we are here, is because this is a meaningful option,
+            # e.g. syn_top, modules, files... grab the option instance!
             opt = self[opt_name]
             if type(val) not in opt.types:
                 raise RuntimeError(
-                    "Given option: %s doesn't match specified types: %s" %
+                    "Given option (%s) doesn't match specified types: (%s)" %
                     (str(type(val)), str(opt.types)))
             ret[opt_name] = val
-#            print("Opt_name ", opt_name)
+            # Thi is only for the options of the dictionary class:
             if isinstance(val, type(dict())):
                 try:
                     for key in val:
                         if key not in self[opt_name].allowed_keys:
-                            raise RuntimeError(
-                                "Encountered unallowed key: %s for option '%s'" %
-                                (key, opt_name))
-                except AttributeError:  # no allowed_keys member - don't perform any check
+                            raise RuntimeError("Encountered unallowed key: "
+                                               "%s for option '%s'" %
+                                               (key, opt_name))
+                except AttributeError:  # no allowed_keys member - don't check
                     pass
-
-        for opt in self.options:  # set values for not listed items with defaults
+        # Set the default values for those values that were not produced
+        # by the Python exec operation.
+        for opt in self.options:
             try:
                 if opt.name not in ret:
                     ret[opt.name] = opt.default
@@ -348,6 +360,7 @@ class ConfigParser(object):
 
 
 def _test():
+    """This funtion provides an embedded test for the Manifest parser"""
     import doctest
     doctest.testmod()
 

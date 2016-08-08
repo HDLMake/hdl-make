@@ -69,9 +69,9 @@ class ManifestParser(ConfigParser):
             'type': {}}]
         self.add_option_list(general_options)
         self.add_delimiter()
-        self.add_type('include_dirs', type="")
-        self.add_type('incl_makefiles', type='')
-        self.add_type('files', type=[])
+        self.add_type('include_dirs', type_new="")
+        self.add_type('incl_makefiles', type_new='')
+        self.add_type('files', type_new=[])
         self.add_allowed_key('modules', key="svn")
         self.add_allowed_key('modules', key="git")
         self.add_allowed_key('modules', key="local")
