@@ -187,8 +187,6 @@ class DepFile(File):
         File.__init__(self, path=file_path, module=module)
         self.file_path = file_path
         self.rels = set()
-        self._inputs = set()
-        self._outputs = set()
         self.depends_on = set()
         self.dep_level = None
         self.is_parsed = False

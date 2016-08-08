@@ -27,7 +27,6 @@ from __future__ import print_function
 import logging
 
 from .dep_file import DepFile
-from .srcfile import VHDLFile, VerilogFile, SVFile
 
 
 class DepParser(object):
