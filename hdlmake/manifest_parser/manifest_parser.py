@@ -25,8 +25,8 @@
 import os
 import logging
 
-from .util import path as path_mod
-from .util.configparser import ConfigParser
+from hdlmake.util import path as path_mod
+from .configparser import ConfigParser
 
 
 class ManifestParser(ConfigParser):
