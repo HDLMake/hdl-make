@@ -33,7 +33,7 @@ import logging
 
 from hdlmake.util import path as path_mod
 from hdlmake.manifest_parser import ManifestParser
-from hdlmake.module import ModuleContent
+from .content import ModuleContent
 
 
 class ModuleArgs(object):
@@ -150,7 +150,7 @@ class Module(ModuleContent):
                         self.path, dir_)
                 if not os.path.exists(dir_):
                     logging.warning(self.path +
-                                    " has an unexisting include directory: " + dir_)
+                        " has an unexisting include directory: " + dir_)
         return include_dirs
 
     def parse_manifest(self):

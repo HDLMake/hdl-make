@@ -2,9 +2,9 @@
 from files to required submodules"""
 
 import logging
-from .core import ModuleCore
 from hdlmake import fetch
 from hdlmake.util import path as path_mod
+from .core import ModuleCore
 
 
 class ModuleContent(ModuleCore):
