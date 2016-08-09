@@ -19,58 +19,56 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module providing the stuff for handling SVN repositories"""
+
 import os
 import logging
-import platform
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
-from hdlmake.util import path
+from hdlmake.util import path as path_utils
 from .fetcher import Fetcher
 
 
 class Svn(Fetcher):
 
+    """This class provides the SVN fetcher instances, that are
+    used to fetch and handle SVN repositories"""
+
     def __init__(self):
         pass
 
     def fetch(self, module):
-
+        """Get the code from the remote SVN repository"""
         fetchto = module.fetchto()
         if not os.path.exists(fetchto):
             os.mkdir(fetchto)
-
         cur_dir = module.pool.top_module.path
         os.chdir(fetchto)
-
-        basename = path.svn_basename(module.url)
+        basename = path_utils.svn_basename(module.url)
         mod_path = os.path.join(fetchto, basename)
-
         cmd = "svn checkout {0} " + module.basename
         if module.revision:
             cmd = cmd.format(module.url + '@' + module.revision)
         else:
             cmd = cmd.format(module.url)
-
         success = True
-
-        logging.info("Checking out module %s" % mod_path)
+        logging.info("Checking out module %s", mod_path)
         logging.debug(cmd)
         if os.system(cmd) != 0:
             success = False
         os.chdir(cur_dir)
-
         module.isfetched = True
         module.path = os.path.join(fetchto, module.basename)
         return success
 
     @staticmethod
-    def check_revision_number(path):
+    def check_id(path):
+        """Get the revision number for the SVN repository at path"""
         cur_dir = os.getcwd()
         revision = None
         stderr = TemporaryFile()
-
         try:
-            is_windows = path.check_windows()
+            is_windows = path_utils.check_windows()
             os.chdir(path)
             svn_cmd = "svn info 2>/dev/null | awk '{if(NR == 5) {print $2}}'"
             svn_out = Popen(
@@ -83,9 +81,8 @@ class Svn(Fetcher):
             errmsg = stderr.readlines()
             if errmsg:
                 logging.debug(
-                    "svn error message (in %s): %s" %
-                    (path, '\n'.join(errmsg)))
-
+                    "svn error message (in %s): %s",
+                    path, '\n'.join(errmsg))
             try:
                 revision = svn_out.stdout.readlines()[0].strip()
             except IndexError:
