@@ -19,11 +19,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module providing the BackendFactory, a mechanism to create fetchers"""
+
 import logging
 from .constants import (LOCAL)
 
 
 class BackendFactory(object):
+
+    """Class providing instances that can be used to build fetchers
+    for the required source origin (Local, Git, SVN)"""
 
     def __init__(self):
         self.backend_table = {}
@@ -33,6 +38,7 @@ class BackendFactory(object):
         self.backend_table[backend_id] = backend
 
     def get_backend(self, module):
+        """Get the appropriated source origin backend for the given module"""
         try:
             if module.source != LOCAL:
                 logging.info("Investigating module: " + str(module) +
@@ -45,5 +51,5 @@ class BackendFactory(object):
             for backend_id in self.backend_table.iterkeys():
                 error_string += "\t%d" % (backend_id)
             logging.error(error_string)
-            raise  # this is serious enough we should let the exception keep going
+            raise
         return backend
