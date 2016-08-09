@@ -21,6 +21,13 @@
 
 """Module providing the base class for the different code fetchers"""
 
+import os
+from hdlmake.util import path as path_utils
+import logging
+from tempfile import TemporaryFile
+from subprocess import Popen, PIPE
+
+
 class Fetcher(object):
 
     """Base class for the code fetcher objects"""
@@ -30,8 +37,33 @@ class Fetcher(object):
         pass
 
     @staticmethod
-    def check_id(path):
-        """Stub method, this must return a string with the version identifier
-        for the selected fetcher (revision, commit...)"""
-        pass
+    def check_id(path, command):
+        """Use the provided command to get the specific ID from
+        the repository at path"""
+        cur_dir = os.getcwd()
+        identifier = None
+        stderr = TemporaryFile()
+        try:
+            is_windows = path_utils.check_windows()
+            os.chdir(path)
+            command_out = Popen(
+                command,
+                shell=True,
+                stdin=PIPE,
+                stdout=PIPE,
+                stderr=stderr,
+                close_fds=not is_windows)
+            errmsg = stderr.readlines()
+            if errmsg:
+                logging.debug(
+                    "ID error message (in %s): %s",
+                    path, '\n'.join(errmsg))
+            try:
+                identifier = command_out.stdout.readlines()[0].strip()
+            except IndexError:
+                pass
+        finally:
+            os.chdir(cur_dir)
+            stderr.close()
+        return identifier
 

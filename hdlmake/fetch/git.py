@@ -24,7 +24,6 @@
 import os
 from hdlmake.util import path as path_utils
 import logging
-from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
 from .constants import GIT
 from .fetcher import Fetcher
@@ -99,31 +98,8 @@ class Git(Fetcher):
         return success
 
     @staticmethod
-    def check_id(path):
-        """Get the commit id for the Git repository at path"""
-        cur_dir = os.getcwd()
-        commit = None
-        stderr = TemporaryFile()
-        try:
-            is_windows = path_utils.check_windows()
-            os.chdir(path)
-            git_cmd = 'git log -1 --format="%H" | cut -c1-32'
-            git_out = Popen(git_cmd,
-                            shell=True,
-                            stdin=PIPE,
-                            stdout=PIPE,
-                            stderr=stderr,
-                            close_fds=not is_windows)
-            errmsg = stderr.readlines()
-            if errmsg:
-                logging.debug(
-                    "git error message (in %s): %s",
-                    path, '\n'.join(errmsg))
-            try:
-                commit = git_out.stdout.readlines()[0].strip()
-            except IndexError:
-                pass
-        finally:
-            os.chdir(cur_dir)
-            stderr.close()
-        return commit
+    def check_git_commit(path):
+        """Get the revision number for the Git repository at path"""
+        git_cmd = 'git log -1 --format="%H" | cut -c1-32'
+        return Fetcher.check_id(path, git_cmd)
+

@@ -35,7 +35,7 @@ class Local(Fetcher):
         pass
 
     @staticmethod
-    def check_id(path):
-        """Get the ID for Local sources"""
+    def check_md5sum(path):
+        """Get the ID for Local sources... maybe sha256 or md5sum?"""
         pass
 
