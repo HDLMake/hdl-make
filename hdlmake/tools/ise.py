@@ -57,6 +57,10 @@ class ToolISE(ToolSyn):
         'linux_bin': 'xtclsh ',
         'project_ext': 'xise'}
 
+    STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
+                     'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
+
+
     SUPPORTED_FILES = [UCFFile, CDCFile, NGCFile]
 
     HDL_FILES = [VHDLFile, VerilogFile, SVFile]

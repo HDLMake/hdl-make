@@ -27,8 +27,6 @@
 from .make_syn import ToolSyn
 from hdlmake.srcfile import EDFFile, LPFFile, VHDLFile, VerilogFile
 
-DIAMOND_STANDARD_LIBS = ['ieee', 'std']
-
 
 class ToolDiamond(ToolSyn):
 
@@ -42,6 +40,8 @@ class ToolDiamond(ToolSyn):
         'project_ext': 'ldf'}
 
     SUPPORTED_FILES = [EDFFile, LPFFile]
+
+    STANDARD_LIBS = ['ieee', 'std']
 
     HDL_FILES = [VHDLFile, VerilogFile]
 

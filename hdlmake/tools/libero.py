@@ -28,9 +28,6 @@ from .make_syn import ToolSyn
 from hdlmake.srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
 
 
-LIBERO_STANDARD_LIBS = ['ieee', 'std']
-
-
 class ToolLibero(ToolSyn):
 
     """Class providing the interface for Microsemi Libero IDE synthesis"""
@@ -41,6 +38,8 @@ class ToolLibero(ToolSyn):
         'windows_bin': 'libero SCRIPT:',
         'linux_bin': 'libero SCRIPT:',
         'project_ext': 'prjx'}
+
+    STANDARD_LIBS = ['ieee', 'std']
 
     SUPPORTED_FILES = [SDCFile, PDCFile]
 

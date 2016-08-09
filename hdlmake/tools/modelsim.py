@@ -29,9 +29,6 @@ import os
 from .sim_makefile_support import VsimMakefileWriter
 
 
-MODELSIM_STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
-
-
 class ToolModelsim(VsimMakefileWriter):
 
     """Class providing the interface for Mentor Modelsim simulator"""
@@ -40,6 +37,8 @@ class ToolModelsim(VsimMakefileWriter):
                  'id': 'modelsim',
                  'windows_bin': 'vsim',
                  'linux_bin': 'vsim'}
+
+    STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
 
     CLEAN_TARGETS = {'clean': ["./modelsim.ini", "transcript"],
                      'mrproper': ["*.vcd", "*.wlf"]}

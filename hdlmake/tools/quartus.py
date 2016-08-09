@@ -34,9 +34,6 @@ from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                              QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
 
 
-QUARTUS_STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
-
-
 class ToolQuartus(ToolSyn):
 
     """Class providing the interface for Altera Quartus synthesis"""
@@ -47,6 +44,8 @@ class ToolQuartus(ToolSyn):
         'windows_bin': 'quartus -t ',
         'linux_bin': 'quartus -t ',
         'project_ext': 'qsf'}
+
+    STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
     SUPPORTED_FILES = [SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
                        QSFFile, BSFFile, BDFFile, TDFFile, GDFFile]

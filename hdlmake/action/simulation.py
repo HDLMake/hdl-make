@@ -79,7 +79,8 @@ class ActionSimulation(Action):
             sys.exit("Exiting")
         logging.info("Generating " + name + " makefile for simulation.")
         top_module = self.get_top_module()
-        fset = self.build_file_set(top_module.manifest_dict["sim_top"])
+        fset = self.build_file_set(top_module.manifest_dict["sim_top"],
+                                   standard_libs=tool_object.STANDARD_LIBS)
         dep_files = fset.filter(DepFile)
         # dep_solver.solve(dep_files)
         # tool_object.generate_simulation_makefile(dep_files, top_module)

@@ -28,8 +28,6 @@ import string
 from .make_sim import ToolSim
 from hdlmake.srcfile import VHDLFile
 
-GHDL_STANDARD_LIBS = ['ieee', 'std']
-
 
 class ToolGHDL(ToolSim):
 
@@ -40,6 +38,8 @@ class ToolGHDL(ToolSim):
         'id': 'ghdl',
         'windows_bin': 'ghdl',
         'linux_bin': 'ghdl'}
+
+    STANDARD_LIBS = ['ieee', 'std']
 
     HDL_FILES = [VHDLFile]
 

@@ -29,9 +29,6 @@ from hdlmake.srcfile import (UCFFile, NGCFile, XMPFile,
                              XCOFile, BDFile, TCLFile)
 
 
-VIVADO_STANDARD_LIBS = ['ieee', 'std']
-
-
 class ToolVivado(ToolXilinx):
 
     """Class providing the interface for Xilinx Vivado synthesis"""
@@ -43,6 +40,8 @@ class ToolVivado(ToolXilinx):
         'linux_bin': 'vivado ',
         'project_ext': 'xpr'
     }
+
+    STANDARD_LIBS = ['ieee', 'std']
 
     SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile,
                        XCOFile, BDFile, TCLFile]

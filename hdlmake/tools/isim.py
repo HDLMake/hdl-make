@@ -35,13 +35,6 @@ from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile
 
 
-ISIM_STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
-                      'simprim', 'unisim', 'unimacro', 'aim', 'cpld',
-                      'pls', 'xilinxcorelib', 'aim_ver', 'cpld_ver',
-                      'simprims_ver', 'unisims_ver', 'uni9000_ver',
-                      'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
-
-
 class ToolISim(ToolSim):
 
     """Class providing the interface for Xilinx ISim simulator"""
@@ -51,6 +44,12 @@ class ToolISim(ToolSim):
         'id': 'isim',
         'windows_bin': 'isimgui',
         'linux_bin': 'isimgui'}
+
+    STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
+                     'simprim', 'unisim', 'unimacro', 'aim', 'cpld',
+                     'pls', 'xilinxcorelib', 'aim_ver', 'cpld_ver',
+                     'simprims_ver', 'unisims_ver', 'uni9000_ver',
+                     'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
     HDL_FILES = [VerilogFile, VHDLFile]
 

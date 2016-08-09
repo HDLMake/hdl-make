@@ -40,7 +40,7 @@ class DepParser(object):
         """Base dummy interface method for the HDL parse execution"""
         raise
 
-def solve(fileset):
+def solve(fileset, standard_libs=None):
     """Function that Parses and Solves the provided HDL fileset. Note
        that it doesn't return a new fileset, but modifies the original one"""
     from .srcfile import SourceFileSet
@@ -79,10 +79,20 @@ def solve(fileset):
                         '\n'.join([file_aux.path for
                                    file_aux in list(satisfied_by)]))
                 elif len(satisfied_by) == 0:
-                    logging.warning(
-                        "Relation %s in %s not satisfied by any source file",
-                        str(rel), investigated_file.name)
-                    not_satisfied += 1
+                    # if relation is a USE PACKAGE, check against provided standard dlibs
+                    required_lib = rel.obj_name.split('.')[0]
+                    if (not standard_libs is None and
+                        required_lib in standard_libs and
+                        rel.direction is DepRelation.USE and
+                        rel.rel_type is DepRelation.PACKAGE):
+                        logging.debug("Not satisfied relation %s in %s will be covered "
+                                     "by the target compiler standard libs.",
+                                     str(rel), investigated_file.name )
+                    else:
+                        logging.warning(
+                            "Relation %s in %s not satisfied by any source file",
+                            str(rel), investigated_file.name)
+                        not_satisfied += 1
     logging.debug("SOLVE END")
     if not_satisfied != 0:
         logging.warning(
@@ -90,7 +100,7 @@ def solve(fileset):
             not_satisfied)
     else:
         logging.info(
-            "Dependencies solved, all of the relations weres satisfied!")
+            "Dependencies solved, all of the relations were satisfied!")
 
 
 def make_dependency_sorted_list(fileset, reverse=False):

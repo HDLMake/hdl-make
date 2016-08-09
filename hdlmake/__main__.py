@@ -205,9 +205,6 @@ def _get_parser():
         dest="reverse",
         default=False,
         action="store_true")
-    synthesis_proj = subparsers.add_parser(
-        "project",
-        help="create/update a project for the appropriated tool")
     tree = subparsers.add_parser(
         "tree",
         help="generate a module hierarchy tree")

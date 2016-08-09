@@ -93,7 +93,8 @@ class ActionSynthesis(Action):
         else:
             tool_path = ""
         top_mod = self.get_top_module()
-        fileset = self.build_file_set(top_mod.manifest_dict["syn_top"])
+        fileset = self.build_file_set(top_mod.manifest_dict["syn_top"],
+                                      standard_libs=tool_object.STANDARD_LIBS)
         sup_files = self.build_complete_file_set()
         privative_files = []
         for file_aux in sup_files:

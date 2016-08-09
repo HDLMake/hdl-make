@@ -72,6 +72,8 @@ class ToolRiviera(VsimMakefileWriter):
         'windows_bin': 'vsim',
         'linux_bin': 'vsim'}
 
+    STANDARD_LIBS = RIVIERA_STANDARD_LIBS
+
     CLEAN_TARGETS = {'clean': ["*.asdb"],
                      'mrproper': ["*.vcd"]}
 

@@ -37,6 +37,8 @@ class ToolActiveHDL(ToolSim):
         'windows_bin': 'vsimsa',
         'linux_bin': None}
 
+    STANDARD_LIBS = ['ieee', 'std']
+
     HDL_FILES = [VHDLFile, VerilogFile, SVFile]
 
     CLEAN_TARGETS = {'clean': ["run.command", "library.cfg", "work"],

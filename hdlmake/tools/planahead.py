@@ -27,9 +27,6 @@ from .xilinx import ToolXilinx
 from hdlmake.srcfile import (UCFFile, NGCFile, XMPFile, XCOFile)
 
 
-PLANAHEAD_STANDARD_LIBS = ['ieee', 'std']
-
-
 class ToolPlanAhead(ToolXilinx):
 
     """Class providing the interface for Xilinx PlanAhead synthesis"""
@@ -40,6 +37,9 @@ class ToolPlanAhead(ToolXilinx):
         'windows_bin': 'planAhead -mode tcl -source ',
         'linux_bin': 'planAhead -mode tcl -source ',
         'project_ext': 'ppr'}
+
+    STANDARD_LIBS = ['ieee', 'ieee_proposed', 'simprims', 'std',
+                     'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
 
     SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile, XCOFile]
 

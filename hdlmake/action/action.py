@@ -116,12 +116,12 @@ class Action(list):
         logging.debug("End build complete file set")
         return all_manifested_files
 
-    def build_file_set(self, top_entity=None):
+    def build_file_set(self, top_entity=None, standard_libs=None):
         """Build file set with only those files required by the top entity"""
         logging.debug("Begin build file set for %s", top_entity)
         all_files = self.build_complete_file_set()
         if not self._deps_solved:
-            dep_solver.solve(all_files)
+            dep_solver.solve(all_files, standard_libs=standard_libs)
             self._deps_solved = True
         from hdlmake.srcfile import SourceFileSet
         source_files = SourceFileSet()
