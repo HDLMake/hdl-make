@@ -4,6 +4,7 @@ import os
 import string
 
 from .makefile import ToolMakefile
+from hdlmake.util import path as path_mod
 
 
 class ToolSim(ToolMakefile):
@@ -75,6 +76,34 @@ PWD := $$(shell pwd)
                     )) +
                 " \\")
         self.writeln()
+
+    def makefile_sim_dep_files(self, compilation_command):
+        """Print dummy targets to handle file dependencies"""
+        fileset = self.fileset
+        for file_aux in fileset:
+            if any(isinstance(file_aux, file_type)
+                   for file_type in self._hdl_files):
+                self.write("%s: %s" % (os.path.join(
+                    file_aux.library, file_aux.purename,
+                    ".%s_%s" % (file_aux.purename, file_aux.extension())),
+                    file_aux.rel_path()))
+                # list dependencies, do not include the target file
+                for dep_file in [dfile for dfile in file_aux.depends_on
+                                 if dfile is not file_aux]:
+                    if dep_file in fileset:
+                        name = dep_file.purename
+                        extension = dep_file.extension()
+                        self.write(" \\\n" + os.path.join(
+                            dep_file.library, name, ".%s_%s" %
+                            (name, extension)))
+                    else:
+                        # the file is included -> we depend directly on it
+                        self.write(" \\\n" + dep_file.rel_path())
+                self.writeln()
+                self.writeln("\t\t" + compilation_command)
+                self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
+                self.writeln(" && touch $@ \n")
+                self.writeln()
 
     def makefile_sim_command(self):
         """Generic method to write the simulation Makefile user commands"""
