@@ -19,7 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
-from .constants import (GIT, SVN, LOCAL, fetch_type_lookup)
+"""This package provides stuff to handle local and remote repositories"""
+
+from .constants import (GIT, SVN, LOCAL, FETCH_TYPE_LOOKUP)
 from .git import Git
 from .svn import Svn
 from .backend_factory import BackendFactory

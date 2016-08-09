@@ -19,8 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module providing the base class for the different code fetchers"""
 
 class Fetcher(object):
 
+    """Base class for the code fetcher objects"""
+
     def fetch(self, module):
+        """Stub method, this must be implemented by the code fetcher"""
         pass

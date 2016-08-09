@@ -22,6 +22,9 @@
 # Note that the order here is important. The constants must be
 # defined first! If they are not, there will likely be an obscure error
 # when doing the imports within the imports that come afterwards.
+
+"""Module providing the constants required for the fetch process"""
+
 GIT = 1
 SVN = 2
 LOCAL = 3
@@ -35,7 +38,7 @@ from .backend_factory import BackendFactory
 
 # Initialize an instance of BackendFactory which will be made publicly
 # available
-fetch_type_lookup = BackendFactory()
-fetch_type_lookup.register_backend(GIT, Git)
-fetch_type_lookup.register_backend(SVN, Svn)
-fetch_type_lookup.register_backend(LOCAL, Local)
+FETCH_TYPE_LOOKUP = BackendFactory()
+FETCH_TYPE_LOOKUP.register_backend(GIT, Git)
+FETCH_TYPE_LOOKUP.register_backend(SVN, Svn)
+FETCH_TYPE_LOOKUP.register_backend(LOCAL, Local)
