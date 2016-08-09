@@ -19,13 +19,23 @@
 # You should have received a copy of the GNU General Public License
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Module providing the fetcher for local HDLMake modules"""
+
 from .fetcher import Fetcher
 
 
 class Local(Fetcher):
+
+    """This class provides the Local fetcher instances"""
 
     def __init__(self):
         pass
 
     def fetch(self, module):
         pass
+
+    @staticmethod
+    def check_id(path):
+        """Get the ID for Local sources"""
+        pass
+

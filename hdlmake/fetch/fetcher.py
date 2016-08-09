@@ -28,3 +28,10 @@ class Fetcher(object):
     def fetch(self, module):
         """Stub method, this must be implemented by the code fetcher"""
         pass
+
+    @staticmethod
+    def check_id(path):
+        """Stub method, this must return a string with the version identifier
+        for the selected fetcher (revision, commit...)"""
+        pass
+
