@@ -71,7 +71,7 @@ class ToolIVerilog(ToolSim):
         self.writeln('\n')
         for file_aux in fileset:
             if any(isinstance(file_aux, file_type)
-                   for file_type in [VerilogFile, SVFile, VHDLFile]):
+                   for file_type in self._hdl_files):
                 self.write("%s: %s" % (os.path.join(
                     file_aux.library, file_aux.purename,
                     ".%s_%s" % (file_aux.purename, file_aux.extension())),
