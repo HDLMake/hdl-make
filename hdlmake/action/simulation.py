@@ -66,17 +66,8 @@ class ActionSimulation(Action):
             sys.exit("Exiting")
         tool_object = tool_dict[tool_name]
         tool_info = tool_object.TOOL_INFO
-        if sys.platform == 'cygwin':
-            bin_name = tool_info['windows_bin']
-        else:
-            bin_name = tool_info['linux_bin']
-        path_key = tool_info['id'] + '_path'
         name = tool_info['name']
         self.env.check_tool(tool_object)
-        if self.env[path_key] is None and self.env.options.force is not True:
-            logging.error("Can't generate a " + name + " makefile. " +
-                          bin_name + " not found.")
-            sys.exit("Exiting")
         logging.info("Generating " + name + " makefile for simulation.")
         top_module = self.get_top_module()
         fset = self.build_file_set(top_module.manifest_dict["sim_top"],

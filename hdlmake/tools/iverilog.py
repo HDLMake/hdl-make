@@ -39,11 +39,7 @@ class ToolIVerilog(ToolSim):
         'windows_bin': 'iverilog',
         'linux_bin': 'iverilog'}
 
-    STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',
-                     'simprim', 'unisim', 'unimacro', 'aim', 'cpld',
-                     'pls', 'xilinxcorelib', 'aim_ver', 'cpld_ver',
-                     'simprims_ver', 'unisims_ver', 'uni9000_ver',
-                     'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
+    STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys']
 
     HDL_FILES = [VerilogFile, VHDLFile, SVFile]
 

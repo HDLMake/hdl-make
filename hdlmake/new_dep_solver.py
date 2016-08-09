@@ -38,7 +38,7 @@ class DepParser(object):
 
     def parse(self, dep_file):
         """Base dummy interface method for the HDL parse execution"""
-        raise
+        pass
 
 def solve(fileset, standard_libs=None):
     """Function that Parses and Solves the provided HDL fileset. Note
