@@ -23,15 +23,17 @@
 
 """Module providing support for GHDL simulator"""
 
+import os
 import string
 
 from .make_sim import ToolSim
+from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VHDLFile
 
 
 class ToolGHDL(ToolSim):
 
-    """Class providing the interface for Lattice Diamond synthesis"""
+    """Class providing the interface for GHDL simulator"""
 
     TOOL_INFO = {
         'name': 'GHDL',
@@ -66,11 +68,31 @@ class ToolGHDL(ToolSim):
     def makefile_sim_compilation(self):
         """Print the GDHL simulation compilation target"""
         fileset = self.fileset
-        self.writeln("simulation:")
-        self.writeln("\t\t# Analyze sources")
-        for vhdl in fileset.filter(VHDLFile):
-            self.writeln("\t\tghdl -a " + vhdl.rel_path())
-        self.writeln()
-        self.writeln("\t\t# Elaborate design")
+        self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
         self.writeln("\t\tghdl -e $(TOP_MODULE)")
-        self.writeln()
+        self.writeln('\n')
+        for file_aux in fileset:
+            if any(isinstance(file_aux, file_type)
+                   for file_type in self._hdl_files):
+                self.write("%s: %s" % (os.path.join(
+                    file_aux.library, file_aux.purename,
+                    ".%s_%s" % (file_aux.purename, file_aux.extension())),
+                    file_aux.rel_path()))
+                # list dependencies, do not include the target file
+                for dep_file in [dfile for dfile in file_aux.depends_on
+                                 if dfile is not file_aux]:
+                    if dep_file in fileset:
+                        name = dep_file.purename
+                        extension = dep_file.extension()
+                        self.write(" \\\n" + os.path.join(
+                            dep_file.library, name, ".%s_%s" %
+                            (name, extension)))
+                    else:
+                        # the file is included -> we depend directly on it
+                        self.write(" \\\n" + dep_file.rel_path())
+                self.writeln()
+                self.writeln("\t\tghdl -a $<")
+                self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
+                self.writeln(" && touch $@ \n")
+                self.writeln()
+
