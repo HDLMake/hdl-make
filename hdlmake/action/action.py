@@ -155,7 +155,7 @@ class Action(list):
             """Fetch the given module from the remote origin"""
             new_modules = []
             logging.debug("Fetching module: %s", str(module))
-            backend = fetch.fetch_type_lookup.get_backend(module)
+            backend = fetch.FETCH_TYPE_LOOKUP.get_backend(module)
             fetcher = backend()
             result = fetcher.fetch(module)
             if result is False:
