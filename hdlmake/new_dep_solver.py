@@ -79,19 +79,21 @@ def solve(fileset, standard_libs=None):
                         '\n'.join([file_aux.path for
                                    file_aux in list(satisfied_by)]))
                 elif len(satisfied_by) == 0:
-                    # if relation is a USE PACKAGE, check against provided standard dlibs
+                    # if relation is a USE PACKAGE, check against
+                    # the standard libs provided by the tool HDL compiler
                     required_lib = rel.obj_name.split('.')[0]
                     if (not standard_libs is None and
                         required_lib in standard_libs and
                         rel.direction is DepRelation.USE and
                         rel.rel_type is DepRelation.PACKAGE):
-                        logging.debug("Not satisfied relation %s in %s will be covered "
-                                     "by the target compiler standard libs.",
-                                     str(rel), investigated_file.name )
+                        logging.debug("Not satisfied relation %s in %s will "
+                                      "be covered by the target compiler "
+                                      "standard libs.",
+                                      str(rel), investigated_file.name)
                     else:
-                        logging.warning(
-                            "Relation %s in %s not satisfied by any source file",
-                            str(rel), investigated_file.name)
+                        logging.warning("Relation %s in %s not satisfied by "
+                                        "any source file",
+                                        str(rel), investigated_file.name)
                         not_satisfied += 1
     logging.debug("SOLVE END")
     if not_satisfied != 0:
@@ -110,8 +112,8 @@ def make_dependency_sorted_list(fileset, reverse=False):
     dependable = [f for f in fileset if isinstance(f, DepFile)]
     non_dependable = [f for f in fileset if not isinstance(f, DepFile)]
     dependable.sort(key=lambda f: f.file_path.lower())
-                    # Not necessary, but will tend to group files more nicely
-                    # in the output.
+    # Not necessary, but will tend to group files more nicely
+    # in the output.
     dependable.sort(key=DepFile.get_dep_level)
     sorted_list = non_dependable + dependable
     if reverse:
