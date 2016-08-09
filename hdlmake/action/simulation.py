@@ -60,7 +60,8 @@ class ActionSimulation(Action):
                      "modelsim": self.sim_writer.modelsim,
                      "active-hdl": self.sim_writer.active_hdl,
                      "riviera":  self.sim_writer.riviera,
-                     "ghdl": self.sim_writer.ghdl}
+                     "ghdl": self.sim_writer.ghdl,
+                     "vivado": self.sim_writer.vivado}
         if not tool_name in tool_dict:
             logging.error("Unknown sim_tool: %s", tool_name)
             sys.exit("Exiting")

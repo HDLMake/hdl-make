@@ -20,6 +20,7 @@ class WriterSim(object):
         self.active_hdl = ToolActiveHDL()
         self.riviera = ToolRiviera()
         self.ghdl = ToolGHDL()
+        self.vivado = ToolVivado()
 
 class WriterSyn(object):
 

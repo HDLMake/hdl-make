@@ -25,11 +25,12 @@
 
 
 from .xilinx import ToolXilinx
+from .make_sim import ToolSim
 from hdlmake.srcfile import (UCFFile, NGCFile, XMPFile,
                              XCOFile, BDFile, TCLFile)
 
 
-class ToolVivado(ToolXilinx):
+class ToolVivado(ToolXilinx, ToolSim):
 
     """Class providing the interface for Xilinx Vivado synthesis"""
 
@@ -46,13 +47,17 @@ class ToolVivado(ToolXilinx):
     SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile,
                        XCOFile, BDFile, TCLFile]
 
-    CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log",
-                               "$(PROJECT).cache", "$(PROJECT).data",
+    CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
+                               "$(PROJECT).cache", "$(PROJECT).data", "work",
                                "$(PROJECT).runs", "$(PROJECT_FILE)"]}
 
     TCL_CONTROLS = {'bitstream': 'launch_runs impl_1 -to_step write_bitstream'
                                  '\n'
                                  'wait_on_run impl_1'}
+
+    SIMULATOR_CONTROLS = {'vlog': 'xvlog $<',
+                          'vhdl': 'xvhdl $<',
+                          'compiler': 'xelab $(TOP_MODULE) -s $(TOP_MODULE)'}
 
     def __init__(self):
         super(ToolVivado, self).__init__()
@@ -60,3 +65,13 @@ class ToolVivado(ToolXilinx):
         self._supported_files.extend(ToolVivado.SUPPORTED_FILES)
         self._clean_targets.update(ToolVivado.CLEAN_TARGETS)
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)
+
+
+    def makefile_sim_compilation(self):
+        """Generate compile simulation Makefile target for Vivado Simulator"""
+        self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
+        self.writeln("\t\t" + ToolVivado.SIMULATOR_CONTROLS['compiler'])
+        self.writeln()
+        self.makefile_sim_dep_files(ToolVivado.SIMULATOR_CONTROLS['vhdl'])
+
+
