@@ -20,6 +20,8 @@
 # along with Hdlmake.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""This module provides a set of functions that are commonly used in HDLMake"""
+
 from __future__ import print_function
 import os
 import sys
@@ -29,17 +31,9 @@ import platform
 
 def url_parse(url):
     """
-    Check if link to a repo seems to be correct. Filter revision number and branch
+    Check if link to a repo seems to be correct. Filter revision
+    number and branch
     """
-    """url_pat = re.compile("[ \t]*([^ \t]+?)[ \t]*(::)?([^ \t@]+)?(@[ \t]*(.+))?[ \t]*")
-    url_match = re.match(url_pat, url)
-    if url_match is None:
-        print("Not a correct repo url: {0}. Skipping".format(url))
-    url_clean = url_match.group(1)
-    if url_match.group(3) is not None: #there is a branch
-      branch = url_match.group(3)
-    if url_match.group(5) is not None: #there is a revision given
-      rev = url_match.group(5)"""
     url_clean, branch, rev = None, None, None
     if "@@" in url:
         url_clean, rev = url.split("@@")
@@ -55,7 +49,6 @@ def url_basename(url):
     """
     Get basename from an url
     """
-
     if url.endswith(".git"):
         parts = url[:-4].split("/")
     elif url[-1] == '/':
@@ -67,6 +60,9 @@ def url_basename(url):
 
 
 def svn_basename(url):
+    """
+    Get basename from an SVN url
+    """
     words = url.split('//')
     try:
         words = words[1].split('/')
@@ -75,43 +71,52 @@ def svn_basename(url):
         return None
 
 
-def pathsplit(p, rest=None):
+def pathsplit(path, rest=None):
+    """
+    Split the provided path and return as a tuple
+    """
     if rest is None:
         rest = []
-    (h, t) = os.path.split(p)
-    if len(h) < 1:
-        return [t] + rest
-    if len(t) < 1:
-        return [h] + rest
-    return pathsplit(h, [t] + rest)
+    (head, tail) = os.path.split(path)
+    if len(head) < 1:
+        return [tail] + rest
+    if len(tail) < 1:
+        return [head] + rest
+    return pathsplit(head, [tail] + rest)
 
 
-def commonpath(l1, l2, common=None):
+def commonpath(path1, path2, common=None):
+    """
+    Return the common path for the provided paths
+    """
     if common is None:
         common = []
-    if len(l1) < 1:
-        return (common, l1, l2)
-    if len(l2) < 1:
-        return (common, l1, l2)
-    if l1[0] != l2[0]:
-        return (common, l1, l2)
-    return commonpath(l1[1:], l2[1:], common + [l1[0]])
+    if len(path1) < 1:
+        return (common, path1, path2)
+    if len(path2) < 1:
+        return (common, path1, path2)
+    if path1[0] != path2[0]:
+        return (common, path1, path2)
+    return commonpath(path1[1:], path2[1:], common + [path1[0]])
 
 
 def is_rel_path(path):
+    """Check if the given path is relative"""
     return not os.path.isabs(path)
 
 
 def is_abs_path(path):
+    """Check if the given path is absolute"""
     return os.path.isabs(path)
 
 
-def relpath(p1, p2=None):
-    if p2 is None:
-        p2 = os.getcwd()
-    if p1 == p2:
+def relpath(path1, path2=None):
+    """Return the relative path of one path with respect to the other"""
+    if path2 is None:
+        path2 = os.getcwd()
+    if path1 == path2:
         return '.'
-    return os.path.relpath(p1, p2)
+    return os.path.relpath(path1, path2)
 
 
 def rel2abs(path, base=None):
