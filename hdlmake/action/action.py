@@ -73,11 +73,11 @@ class Action(list):
 
         return new_module
 
-    def _check_all_fetched_or_quit(self):
+    def check_all_fetched_or_quit(self):
         """Check if every module in the pool is fetched"""
         if not self.is_everything_fetched():
             logging.error(
-                "Fetching must be done before makefile generation.\n"
+                "Fetching must be done before continuing.\n"
                 "The following modules remains unfetched:\n"
                 "%s",
                 "\n".join([str(m) for m in self if not m.isfetched])

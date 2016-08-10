@@ -131,7 +131,7 @@ class ActionCore(Action):
 
     def merge_cores(self):
         """Merge the design into a single VHDL and a single Verilog file"""
-        self._check_all_fetched_or_quit()
+        self.check_all_fetched_or_quit()
         logging.info("Merging all cores into one source file per language.")
         flist = self.build_file_set()
         base = self.env.options.dest

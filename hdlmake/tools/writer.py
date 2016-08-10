@@ -39,8 +39,8 @@ class WriterSim(object):
 
     def simulation_makefile(self):
         """Execute the simulation action"""
-        self.pool._check_all_fetched_or_quit()
         self._check_simulation_makefile()
+        self.pool.check_all_fetched_or_quit()
         tool_name = self.pool.get_top_module().manifest_dict["sim_tool"]
         tool_dict = {"iverilog": self.iverilog,
                      "isim": self.isim,
@@ -129,8 +129,8 @@ class WriterSyn(object):
 
     def synthesis_project(self):
         """Generate a project for the specific synthesis tool"""
-        self.pool._check_all_fetched_or_quit()
         self._check_synthesis_project()
+        self.pool.check_all_fetched_or_quit()
         tool_object = self._load_synthesis_tool()
         tool_info = tool_object.TOOL_INFO
         path_key = tool_info['id'] + '_path'
