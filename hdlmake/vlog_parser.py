@@ -153,6 +153,7 @@ class VerilogPreprocessor(object):
                 r'//.*?$|/\*.*?\*/|"(?:\\.|[^\\"])*"',
                 re.DOTALL | re.MULTILINE)
             return re.sub(pattern, replacer, text)
+
         def _degapize(text):
             """ Create a list in which the verilog sentences are
             stored in an ordered way -- and without empty 'gaps'"""
@@ -181,9 +182,9 @@ class VerilogPreprocessor(object):
                 re.compile(r"^\s*`(ifdef|ifndef|elsif)\s+(\w+)\s*$"),
                 "endif_else": re.compile(r"^\s*`(endif|else)\s*$"),
                 "begin_protected":
-                    re.compile(r"^\s*`pragma\s*protect\s*begin_protected\s*$"),
+                re.compile(r"^\s*`pragma\s*protect\s*begin_protected\s*$"),
                 "end_protected":
-                    re.compile(r"^\s*`pragma\s*protect\s*end_protected\s*$")}
+                re.compile(r"^\s*`pragma\s*protect\s*end_protected\s*$")}
         vl_macro_expand = re.compile(r"`(\w+)(?:\(([\w\s,]*)\))?")
         # init dependencies
         self.vpp_filedeps[file_name + library] = []
@@ -251,6 +252,7 @@ class VerilogPreprocessor(object):
                     continue
                 elif matches["define"]:
                     self._parse_macro_def(matches["define"])
+
                 def do_expand(what):
                     """Function to be applied by re.sub to every match of the
                     vl_macro_expand in the Verilof code -- group() returns
@@ -578,7 +580,7 @@ class VerilogParser(DepParser):
             for file_aux in includes:
                 dep_file.depends_on.add(
                     create_source_file(path=file_aux,
-                                               module=dep_file.module))
+                                       module=dep_file.module))
             logging.debug("%s has %d includes.",
                           str(dep_file), len(includes))
         except KeyError:
@@ -594,6 +596,7 @@ class VerilogParser(DepParser):
         # and HdlMake will anyway create dependency marking my_other_module as
         # requested package
         import_pattern = re.compile(r"(\w+) *::(\w+|\\*)")
+
         def do_imports(text):
             """Function to be applied by re.subn to every match of the
             import_pattern in the Verilog code -- group() returns positive
@@ -609,13 +612,14 @@ class VerilogParser(DepParser):
         m_inside_package = re.compile(
             r"package\s+(\w+)\s*(?:\(.*?\))?\s*(.+?)endpackage",
             re.DOTALL | re.MULTILINE)
+
         def do_package(text):
             """Function to be applied by re.subn to every match of the
             m_inside_pattern in the Verilog code -- group() returns positive
             matches as indexed plain strings. It adds the found PROVIDE
             relations to the file"""
             logging.debug("found pacakge %s.%s", dep_file.library,
-                                                 text.group(1))
+                          text.group(1))
             dep_file.add_relation(
                 DepRelation("%s.%s" % (dep_file.library, text.group(1)),
                             DepRelation.PROVIDE, DepRelation.PACKAGE))
@@ -628,16 +632,18 @@ class VerilogParser(DepParser):
         m_instantiation = re.compile(
             r"(?:\A|\s*)\s*(\w+)\s+(?:#\s*\(.*?\)\s*)?(\w+)\s*\(.*?\)\s*",
             re.DOTALL | re.MULTILINE)
+
         def do_module(text):
             """Function to be applied by re.sub to every match of the
             m_inside_module in the Verilog code -- group() returns
             positive  matches as indexed plain strings. It adds the found
             PROVIDE relations to the file"""
             logging.debug("found module %s.%s", dep_file.library,
-                                                text.group(1))
+                          text.group(1))
             dep_file.add_relation(
                 DepRelation("%s.%s" % (dep_file.library, text.group(1)),
                             DepRelation.PROVIDE, DepRelation.MODULE))
+
             def do_inst(text):
                 """Function to be applied by re.sub to every match of the
                 m_instantiation in the Verilog code -- group() returns positive
@@ -659,4 +665,3 @@ class VerilogParser(DepParser):
                 DepRelation.PROVIDE,
                 DepRelation.INCLUDE))
         dep_file.is_parsed = True
-
