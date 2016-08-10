@@ -57,7 +57,7 @@ class DepRelation(object):
     def satisfies(self, rel_b):
         """Check if the current dependency relation matches the provided one"""
         if (rel_b.direction == DepRelation.PROVIDE or
-            self.direction == DepRelation.USE):
+                self.direction == DepRelation.USE):
             return False
         if rel_b.rel_type == self.rel_type and rel_b.obj_name == self.obj_name:
             return True
