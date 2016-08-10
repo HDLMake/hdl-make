@@ -35,7 +35,7 @@ class VHDLParser(DepParser):
 
     def __init__(self, dep_file):
         DepParser.__init__(self, dep_file)
-        #self.preprocessor = VHDLPreprocessor()
+        # self.preprocessor = VHDLPreprocessor()
 
     def parse(self, dep_file):
         """Parse the provided VHDL file and add the detected relations to it"""
@@ -43,6 +43,7 @@ class VHDLParser(DepParser):
         if dep_file.is_parsed:
             return
         logging.info("Parsing %s", dep_file.path)
+
         def _preprocess(vhdl_file):
             """Preprocess the supplied VHDL file instance"""
             def _preprocess_file(file_content, file_name, library):
@@ -52,8 +53,9 @@ class VHDLParser(DepParser):
                     pattern = re.compile('--.*?$|".?"',
                                          re.DOTALL | re.MULTILINE)
                     return re.sub(pattern, "", text)
-                logging.debug("preprocess file %s (of length %d) in library %s",
-                              file_name, len(file_content), library)
+                logging.debug(
+                    "preprocess file %s (of length %d) in library %s",
+                    file_name, len(file_content), library)
                 return _remove_comments_and_strings(file_content)
             file_path = vhdl_file.file_path
             buf = open(file_path, "r").read()
@@ -65,6 +67,7 @@ class VHDLParser(DepParser):
         use_pattern = re.compile(
             r"^\s*use\s+(\w+)\s*\.\s*(\w+)",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_use(text):
             """Function to be applied by re.sub to every match of the
             use_pattern in the VHDL code -- group() returns positive matches
@@ -82,8 +85,8 @@ class VHDLParser(DepParser):
                               text.group(1), text.group(2))
                 dep_file.add_relation(
                     DepRelation("%s.%s" % (text.group(1), text.group(2)),
-                    DepRelation.USE,
-                    DepRelation.PACKAGE))
+                                DepRelation.USE,
+                                DepRelation.PACKAGE))
             return "<hdlmake use_pattern %s.%s>" % (text.group(1),
                                                     text.group(2))
         buf = re.sub(use_pattern, do_use, buf)
@@ -92,6 +95,7 @@ class VHDLParser(DepParser):
             r"^\s*entity\s+(?P<name>\w+)\s+is\s+(?:port|generic|end)"
             r".*?(?P=name)\s*;",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_entity(text):
             """Function to be applied by re.sub to every match of the
             entity_pattern in the VHDL code -- group() returns positive matches
@@ -110,6 +114,7 @@ class VHDLParser(DepParser):
         architecture_pattern = re.compile(
             r"^\s*architecture\s+(\w+)\s+of\s+(\w+)\s+is",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_architecture(text):
             """Function to be applied by re.sub to every match of the
             architecture_pattern in the VHDL code -- group() returns positive
@@ -132,13 +137,14 @@ class VHDLParser(DepParser):
         package_pattern = re.compile(
             r"^\s*package\s+(\w+)\s+is",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_package(text):
             """Function to be applied by re.sub to every match of the
-            package_pattern in the VHDL code -- group() returns positive matches
-            as indexed plain strings. It adds the found PROVIDE relations to
-            the file"""
+            package_pattern in the VHDL code -- group() returns positive
+            matches as indexed plain strings. It adds the found PROVIDE
+            relations to the file"""
             logging.debug("found package %s.%s", dep_file.library,
-                                                 text.group(1))
+                          text.group(1))
             dep_file.add_relation(
                 DepRelation("%s.%s" % (dep_file.library, text.group(1)),
                             DepRelation.PROVIDE,
@@ -150,6 +156,7 @@ class VHDLParser(DepParser):
         component_pattern = re.compile(
             r"^\s*component\s+(\w+).*?end\s+component.*?;",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_component(text):
             """Function to be applied by re.sub to every match of the
             component_pattern in the VHDL code -- group() returns positive
@@ -162,10 +169,12 @@ class VHDLParser(DepParser):
         record_pattern = re.compile(
             r"^\s*type\s+(\w+)\s+is\s+record.*?end\s+record.*?;",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_record(text):
             """Function to be applied by re.sub to every match of the
             record_pattern in the VHDL code -- group() returns positive matches
-            as indexed plain strings. It doesn't add any relation to the file"""
+            as indexed plain strings. It doesn't add any relation to the
+            file"""
             logging.debug("found record declaration %s", text.group(1))
             return "<hdlmake record %s>" % text.group(1)
         buf = re.sub(record_pattern, do_record, buf)
@@ -173,6 +182,7 @@ class VHDLParser(DepParser):
         function_pattern = re.compile(
             r"^\s*function\s+(\w+).*?return.*?(?:is|;)",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_function(text):
             """Function to be applied by re.sub to every match of the
             funtion_pattern in the VHDL code -- group() returns positive
@@ -187,6 +197,7 @@ class VHDLParser(DepParser):
             r"^\s*(\w+)\s*\:\s*(\w+)\s*(?:port\s+map.*?;"
             r"|generic\s+map.*?;|\s*;)",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_instance(text):
             """Function to be applied by re.sub to every match of the
             instance_pattern in the VHDL code -- group() returns positive
@@ -205,6 +216,7 @@ class VHDLParser(DepParser):
             r"^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port"
             r"\s+map.*?;|generic\s+map.*?;|\s*;)",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_instance_from_library(text):
             """Function to be applied by re.sub to every match of the
             instance_from_library_pattern in the VHDL code -- group()
@@ -232,6 +244,7 @@ class VHDLParser(DepParser):
         library_pattern = re.compile(
             r"^\s*library\s*(\w+)\s*;",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
         def do_library(text):
             """Function to be applied by re.sub to every match of the
             library_pattern in the VHDL code -- group() returns positive
