@@ -46,17 +46,24 @@ class ToolIVerilog(ToolSim):
     CLEAN_TARGETS = {'clean': ["run.command", "ivl_vhdl_work", "work"],
                      'mrproper': ["*.vcd", "*.vvp"]}
 
+    SIMULATOR_CONTROLS = {'vlog': 'echo $< >> run.command',
+                          'vhdl': 'echo $< >> run.command',
+                          'compiler': 'iverilog $(IVERILOG_OPT) '
+                                      '-s $(TOP_MODULE) '
+                                      '-o $(TOP_MODULE).vvp '
+                                      '-c run.command'}
+
     def __init__(self):
         super(ToolIVerilog, self).__init__()
         self._tool_info.update(ToolIVerilog.TOOL_INFO)
         self._hdl_files.extend(ToolIVerilog.HDL_FILES)
         self._clean_targets.update(ToolIVerilog.CLEAN_TARGETS)
+        self._simulator_controls.update(ToolIVerilog.SIMULATOR_CONTROLS)
 
     def makefile_sim_compilation(self):
         """Generate compile simulation Makefile target for IVerilog"""
         self.writeln("simulation: include_dirs $(VERILOG_OBJ) $(VHDL_OBJ)")
-        self.writeln("\t\tiverilog $(IVERILOG_OPT) -s $(TOP_MODULE)"
-                     " -o $(TOP_MODULE).vvp -c run.command")
+        self.writeln("\t\t" + self._simulator_controls['compiler'])
         self.writeln()
         self.writeln("include_dirs:")
         self.writeln("\t\techo \"# IVerilog command file,"
@@ -66,8 +73,7 @@ class ToolIVerilog(ToolSim):
         for inc in top_module.get_include_dirs_list():
             self.writeln("\t\techo \"+incdir+" + inc + "\" >> run.command")
         self.writeln('\n')
-        compilation_command = "echo $< >> run.command"
-        self.makefile_sim_dep_files(compilation_command)
+        self.makefile_sim_dep_files()
 
     def makefile_sim_options(self):
         """Print the IVerilog options to the Makefile"""

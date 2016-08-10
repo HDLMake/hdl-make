@@ -5,7 +5,7 @@ import string
 
 from .makefile import ToolMakefile
 from hdlmake.util import path as path_mod
-
+from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
 class ToolSim(ToolMakefile):
 
@@ -13,6 +13,7 @@ class ToolSim(ToolMakefile):
 
     def __init__(self):
         super(ToolSim, self).__init__()
+        self._simulator_controls = {}
 
     def makefile_sim_top(self):
         """Generic method to write the simulation Makefile top section"""
@@ -34,7 +35,6 @@ PWD := $$(shell pwd)
 
     def makefile_sim_sources(self):
         """Generic method to write the simulation Makefile HDL sources"""
-        from hdlmake.srcfile import VerilogFile, VHDLFile
         fileset = self.fileset
         self.write("VERILOG_SRC := ")
         for vlog in fileset.filter(VerilogFile):
@@ -77,7 +77,7 @@ PWD := $$(shell pwd)
                 " \\")
         self.writeln()
 
-    def makefile_sim_dep_files(self, compilation_command):
+    def makefile_sim_dep_files(self):
         """Print dummy targets to handle file dependencies"""
         fileset = self.fileset
         for file_aux in fileset:
@@ -100,7 +100,12 @@ PWD := $$(shell pwd)
                         # the file is included -> we depend directly on it
                         self.write(" \\\n" + dep_file.rel_path())
                 self.writeln()
-                self.writeln("\t\t" + compilation_command)
+                if isinstance(file_aux, VHDLFile):
+                    command_key = 'vhdl'
+                elif (isinstance(file_aux, VerilogFile) or
+                      isinstance(file_aux, SVFile)):
+                    command_key = 'vlog'
+                self.writeln("\t\t" + self._simulator_controls[command_key])
                 self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
                 self.writeln(" && touch $@ \n")
                 self.writeln()

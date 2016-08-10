@@ -57,7 +57,8 @@ class ToolVivado(ToolXilinx, ToolSim):
 
     SIMULATOR_CONTROLS = {'vlog': 'xvlog $<',
                           'vhdl': 'xvhdl $<',
-                          'compiler': 'xelab $(TOP_MODULE) -s $(TOP_MODULE)'}
+                          'compiler': 'xelab -debug all $(TOP_MODULE) '
+                                      '-s $(TOP_MODULE)'}
 
     def __init__(self):
         super(ToolVivado, self).__init__()
@@ -65,6 +66,7 @@ class ToolVivado(ToolXilinx, ToolSim):
         self._supported_files.extend(ToolVivado.SUPPORTED_FILES)
         self._clean_targets.update(ToolVivado.CLEAN_TARGETS)
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)
+        self._simulator_controls.update(ToolVivado.SIMULATOR_CONTROLS)
 
 
     def makefile_sim_compilation(self):
@@ -72,6 +74,6 @@ class ToolVivado(ToolXilinx, ToolSim):
         self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
         self.writeln("\t\t" + ToolVivado.SIMULATOR_CONTROLS['compiler'])
         self.writeln()
-        self.makefile_sim_dep_files(ToolVivado.SIMULATOR_CONTROLS['vhdl'])
+        self.makefile_sim_dep_files()
 
 

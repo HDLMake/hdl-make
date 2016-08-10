@@ -46,11 +46,16 @@ class ToolGHDL(ToolSim):
     CLEAN_TARGETS = {'clean': ["*.cf", "*.o", "$(TOP_MODULE)", "work"],
                      'mrproper': ["*.vcd"]}
 
+    SIMULATOR_CONTROLS = {'vlog': None,
+                          'vhdl': 'ghdl -a $<',
+                          'compiler': 'ghdl -e $(TOP_MODULE)'}
+
     def __init__(self):
         super(ToolGHDL, self).__init__()
         self._tool_info.update(ToolGHDL.TOOL_INFO)
         self._hdl_files.extend(ToolGHDL.HDL_FILES)
         self._clean_targets.update(ToolGHDL.CLEAN_TARGETS)
+        self._simulator_controls.update(ToolGHDL.SIMULATOR_CONTROLS)
 
     def makefile_sim_options(self):
         """Print the GHDL options to the Makefile"""
@@ -66,7 +71,7 @@ class ToolGHDL(ToolSim):
     def makefile_sim_compilation(self):
         """Print the GDHL simulation compilation target"""
         self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
-        self.writeln("\t\tghdl -e $(TOP_MODULE)")
+        self.writeln("\t\t" + self._simulator_controls['compiler'])
         self.writeln('\n')
-        self.makefile_sim_dep_files("ghdl -a $<")
+        self.makefile_sim_dep_files()
 
