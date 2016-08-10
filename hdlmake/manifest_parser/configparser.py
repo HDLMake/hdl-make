@@ -183,7 +183,6 @@ types:[<type 'int'>]
                 self.keys = [key]
             self.keys.append(key)
 
-
     def __init__(self, description=None):
         if description is not None:
             if not isinstance(description, str):
