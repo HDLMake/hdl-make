@@ -68,6 +68,7 @@ class ToolLibero(ToolSyn):
         self._tool_info.update(ToolLibero.TOOL_INFO)
         self._hdl_files.extend(ToolLibero.HDL_FILES)
         self._supported_files.extend(ToolLibero.SUPPORTED_FILES)
+        self._standard_libs.extend(ToolLibero.STANDARD_LIBS)
         self._clean_targets.update(ToolLibero.CLEAN_TARGETS)
         self._tcl_controls.update(ToolLibero.TCL_CONTROLS)
 

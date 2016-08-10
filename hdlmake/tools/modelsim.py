@@ -53,6 +53,7 @@ class ToolModelsim(VsimMakefileWriter):
         self.additional_deps.append("modelsim.ini")
         self._tool_info.update(ToolModelsim.TOOL_INFO)
         self._clean_targets.update(ToolModelsim.CLEAN_TARGETS)
+        self._standard_libs.extend(ToolModelsim.STANDARD_LIBS)
 
     def makefile_sim_options(self):
         """Print the Modelsim options to the Makefile"""

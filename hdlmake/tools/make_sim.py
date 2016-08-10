@@ -1,11 +1,24 @@
 """Module providing the simulation functionality for writing Makefiles"""
 
 import os
+import sys
 import string
+import logging
 
 from .makefile import ToolMakefile
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
+from hdlmake.dep_file import DepFile
+
+
+def _check_simulation_manifest(manifest_dict):
+    """Check if the simulation keys are provided by the top manifest"""
+    if not manifest_dict["sim_top"]:
+        logging.error("sim_top variable must be set in the top manifest.")
+        sys.exit("Exiting")
+    if not manifest_dict["sim_tool"]:
+        logging.error("sim_tool variable must be set in the top manifest.")
+        sys.exit("Exiting")
 
 
 class ToolSim(ToolMakefile):
@@ -15,6 +28,30 @@ class ToolSim(ToolMakefile):
     def __init__(self):
         super(ToolSim, self).__init__()
         self._simulator_controls = {}
+
+    def simulation_makefile(self, pool):
+        """Execute the simulation action"""
+        _check_simulation_manifest(pool.top_module.manifest_dict)
+        pool.check_all_fetched_or_quit()
+        pool.env.check_tool(self)
+        logging.info("Generating " + self._tool_info['name'] +
+                     " makefile for simulation.")
+        top_module = pool.get_top_module()
+        fset = pool.build_file_set(
+            top_module.manifest_dict["sim_top"],
+            standard_libs=self._standard_libs)
+        # Filter the not parseable files!
+        dep_files = fset.filter(DepFile)
+        # dep_solver.solve(dep_files)
+        self.makefile_setup(top_module, dep_files)
+        self.makefile_sim_top()
+        self.makefile_sim_options()
+        self.makefile_sim_local()
+        self.makefile_sim_sources()
+        self.makefile_sim_compilation()
+        self.makefile_sim_command()
+        self.makefile_sim_clean()
+        self.makefile_sim_phony()
 
     def makefile_sim_top(self):
         """Generic method to write the simulation Makefile top section"""
@@ -26,7 +63,12 @@ PWD := $$(shell pwd)
             top_module=self.top_module.manifest_dict["sim_top"]))
 
     def makefile_sim_options(self):
-        """End stub method to write the synthesis Makefile options section"""
+        """End stub method to write the simulation Makefile options section"""
+        pass
+
+    def makefile_sim_compilation(self):
+        """End stub method to write the simulation Makefile compilation
+        section"""
         pass
 
     def makefile_sim_local(self):

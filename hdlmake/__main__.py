@@ -34,8 +34,6 @@ from .module_pool import ModulePool
 from . import fetch as fetch_mod
 from ._version import __version__
 
-from .tools import WriterSim, WriterSyn
-
 
 def main():
     """This is the main function, where HDLMake starts.
@@ -101,6 +99,39 @@ def main():
     _action_runner(modules_pool)
 
 
+def _load_tool(modules_pool):
+    """Funtion that checks the provided module_pool and generate an
+    initialized instance of the the appropriated tool class"""
+    from hdlmake.tools import (ToolIVerilog, ToolISim, ToolModelsim,
+                               ToolActiveHDL, ToolRiviera, ToolGHDL,
+                               ToolISE, ToolPlanAhead, ToolVivado,
+                               ToolQuartus, ToolDiamond, ToolLibero)
+    available_tools = {'iverilog': ToolIVerilog,
+                       'isim': ToolISim,
+                       'modelsim':  ToolModelsim,
+                       'active_hdl': ToolActiveHDL,
+                       'riviera':  ToolRiviera,
+                       'ghdl': ToolGHDL,
+                       'ise': ToolISE,
+                       'planahead':  ToolPlanAhead,
+                       'vivado': ToolVivado,
+                       'quartus': ToolQuartus,
+                       'diamond': ToolDiamond,
+                       'libero': ToolLibero}
+    manifest_dict = modules_pool.get_top_module().manifest_dict
+    if manifest_dict['action'] is 'simulation':
+        tool_name = manifest_dict['sim_tool']
+    elif manifest_dict['action'] is 'synthesis':
+        tool_name = manifest_dict['syn_tool']
+    else:
+        logging.error("Unknown action: %s", tool_name)
+    if tool_name in available_tools:
+        return available_tools[tool_name]()
+    else:
+        logging.error("Unknown tool: %s", tool_name)
+        quit()
+
+
 def _action_runner(modules_pool):
     """Funtion that decodes and executed the action selected by the user"""
     top_mod = modules_pool.get_top_module()
@@ -116,11 +147,11 @@ def _action_runner(modules_pool):
                           "project.")
             quit()
         if top_mod.action == "simulation":
-            sim_writer = WriterSim(modules_pool)
-            sim_writer.simulation_makefile()
+            sim_writer = _load_tool(modules_pool)
+            sim_writer.simulation_makefile(modules_pool)
         elif top_mod.action == "synthesis":
-            syn_writer = WriterSyn(modules_pool)
-            syn_writer.synthesis_project()
+            syn_writer = _load_tool(modules_pool)
+            syn_writer.synthesis_project(modules_pool)
             # modules_pool.synthesis_makefile()
         elif top_mod.action == "qsys_hw_tcl_update":
             if not top_mod.manifest_dict["hw_tcl_filename"]:
@@ -130,11 +161,11 @@ def _action_runner(modules_pool):
                 quit()
             modules_pool.qsys_hw_tcl_update()
     elif options.command == "make-simulation":
-        sim_writer = WriterSim(modules_pool)
-        sim_writer.simulation_makefile()
+        sim_writer = _load_tool(modules_pool)
+        sim_writer.simulation_makefile(modules_pool)
     elif options.command == "make-synthesis":
-        syn_writer = WriterSyn(modules_pool)
-        syn_writer.synthesis_project()
+        syn_writer = _load_tool(modules_pool)
+        syn_writer.synthesis_project(modules_pool)
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":

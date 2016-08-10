@@ -57,6 +57,7 @@ class ToolIVerilog(ToolSim):
         super(ToolIVerilog, self).__init__()
         self._tool_info.update(ToolIVerilog.TOOL_INFO)
         self._hdl_files.extend(ToolIVerilog.HDL_FILES)
+        self._standard_libs.extend(ToolIVerilog.STANDARD_LIBS)
         self._clean_targets.update(ToolIVerilog.CLEAN_TARGETS)
         self._simulator_controls.update(ToolIVerilog.SIMULATOR_CONTROLS)
 

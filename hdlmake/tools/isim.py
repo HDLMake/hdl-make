@@ -63,6 +63,7 @@ class ToolISim(ToolSim):
         super(ToolISim, self).__init__()
         self._tool_info.update(ToolISim.TOOL_INFO)
         self._hdl_files.extend(ToolISim.HDL_FILES)
+        self._standard_libs.extend(ToolISim.STANDARD_LIBS)
         self._clean_targets.update(ToolISim.CLEAN_TARGETS)
 
     def makefile_sim_top(self):

@@ -100,6 +100,7 @@ class ToolISE(ToolSyn):
         self._tool_info.update(ToolISE.TOOL_INFO)
         self._hdl_files.extend(ToolISE.HDL_FILES)
         self._supported_files.extend(ToolISE.SUPPORTED_FILES)
+        self._standard_libs.extend(ToolISE.STANDARD_LIBS)
         self._clean_targets.update(ToolISE.CLEAN_TARGETS)
         self._tcl_controls.update(ToolISE.TCL_CONTROLS)
 

@@ -28,9 +28,6 @@ from .make_syn import ToolSyn
 from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, TCLFile
 
 
-VIVADO_STANDARD_LIBS = ['ieee', 'std']
-
-
 class ToolXilinx(ToolSyn):
 
     """Class providing the interface for Xilinx Vivado synthesis"""

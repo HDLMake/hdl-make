@@ -86,6 +86,7 @@ class ToolQuartus(ToolSyn):
         self._tool_info.update(ToolQuartus.TOOL_INFO)
         self._hdl_files.extend(ToolQuartus.HDL_FILES)
         self._supported_files.extend(ToolQuartus.SUPPORTED_FILES)
+        self._standard_libs.extend(ToolQuartus.STANDARD_LIBS)
         self._clean_targets.update(ToolQuartus.CLEAN_TARGETS)
         self._tcl_controls.update(ToolQuartus.TCL_CONTROLS)
 

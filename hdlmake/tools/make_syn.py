@@ -1,9 +1,34 @@
 """Module providing the synthesis functionality for writing Makefiles"""
 
+import sys
+import logging
 import string
 
 from .makefile import ToolMakefile
 from hdlmake.util import path as path_mod
+
+
+def _check_synthesis_manifest(manifest_dict):
+    """Check the manifest contains all the keys for a synthesis project"""
+    if not manifest_dict["syn_tool"]:
+        logging.error(
+           "syn_tool variable must be set in the top manifest.")
+        sys.exit("Exiting")
+    if not manifest_dict["syn_device"]:
+        logging.error(
+            "syn_device variable must be set in the top manifest.")
+        sys.exit("Exiting")
+    if not manifest_dict["syn_grade"]:
+        logging.error(
+            "syn_grade variable must be set in the top manifest.")
+        sys.exit("Exiting")
+    if not manifest_dict["syn_package"]:
+        logging.error(
+            "syn_package variable must be set in the top manifest.")
+        sys.exit("Exiting")
+    if not manifest_dict["syn_top"]:
+        logging.error(
+            "syn_top variable must be set in the top manifest.")
 
 
 class ToolSyn(ToolMakefile):
@@ -12,6 +37,45 @@ class ToolSyn(ToolMakefile):
 
     def __init__(self):
         super(ToolSyn, self).__init__()
+
+    def synthesis_project(self, pool):
+        """Generate a project for the specific synthesis tool"""
+        _check_synthesis_manifest(pool.top_module.manifest_dict)
+        pool.check_all_fetched_or_quit()
+        tool_info = self._tool_info
+        path_key = tool_info['id'] + '_path'
+        name = tool_info['name']
+        env = pool.env
+        env.check_tool(self)
+        top_module = pool.get_top_module()
+        if env[path_key]:
+            tool_path = env[path_key]
+        else:
+            tool_path = ""
+        fileset = pool.build_file_set(
+            top_module.manifest_dict["syn_top"],
+            standard_libs=self._standard_libs)
+        sup_files = pool.build_complete_file_set()
+        privative_files = []
+        for file_aux in sup_files:
+            if any(isinstance(file_aux, file_type)
+                   for file_type in self._supported_files):
+                privative_files.append(file_aux)
+        if len(privative_files) > 0:
+            logging.info("Detected %d supported files that are not parseable",
+                         len(privative_files))
+            fileset.add(privative_files)
+        self.makefile_setup(top_module, fileset)
+        self.makefile_includes()
+        self.makefile_syn_top(tool_path)
+        self.makefile_syn_tcl()
+        self.makefile_syn_files()
+        self.makefile_syn_local()
+        self.makefile_syn_command()
+        self.makefile_syn_build()
+        self.makefile_syn_clean()
+        self.makefile_syn_phony()
+        logging.info(name + " project file generated.")
 
     def makefile_syn_top(self, tool_path):
         """Create the top part of the synthesis Makefile"""
@@ -98,6 +162,10 @@ export TCL_BITSTREAM
             tcl_map=self._tcl_controls["map"],
             tcl_par=self._tcl_controls["par"],
             tcl_bitstream=self._tcl_controls["bitstream"]))
+
+    def makefile_syn_files(self):
+        """End stub method to write the synthesis files section"""
+        pass
 
     def makefile_syn_local(self):
         """Generic method to write the synthesis Makefile local target"""

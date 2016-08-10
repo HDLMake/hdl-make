@@ -41,6 +41,7 @@ class ToolMakefile(object):
         self._tcl_controls = {}
         self._hdl_files = []
         self._supported_files = []
+        self._standard_libs = []
         self.top_module = None
         self.fileset = None
         if filename:

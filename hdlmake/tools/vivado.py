@@ -64,6 +64,7 @@ class ToolVivado(ToolXilinx, ToolSim):
         super(ToolVivado, self).__init__()
         self._tool_info.update(ToolVivado.TOOL_INFO)
         self._supported_files.extend(ToolVivado.SUPPORTED_FILES)
+        self._standard_libs.extend(ToolVivado.STANDARD_LIBS)
         self._clean_targets.update(ToolVivado.CLEAN_TARGETS)
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)
         self._simulator_controls.update(ToolVivado.SIMULATOR_CONTROLS)
