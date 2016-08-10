@@ -50,6 +50,7 @@ class Env(dict):
                 name).read().split('\n', 1)[0].strip()
             logging.debug("location for %s: %s", name, location)
             return os.path.dirname(location)
+
         def _is_in_path(name, path=None):
             """Check if the directory is in the system path"""
             if path is not None:
@@ -58,6 +59,7 @@ class Env(dict):
                 assert isinstance(name, basestring)
                 path = _get_path(name)
                 return len(path) > 0
+
         def _check_in_system_path(name):
             """Check if if in the system path exists a file named (name)"""
             path = _get_path(name)
