@@ -22,6 +22,7 @@ class WriterSim(object):
         self.ghdl = ToolGHDL()
         self.vivado = ToolVivado()
 
+
 class WriterSyn(object):
 
     """Class that is in charge of writing synthesis Makefiles"""
@@ -33,5 +34,3 @@ class WriterSyn(object):
         self.quartus = ToolQuartus()
         self.diamond = ToolDiamond()
         self.libero = ToolLibero()
-
-

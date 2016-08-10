@@ -68,6 +68,7 @@ class ToolISim(ToolSim):
     def makefile_sim_top(self):
         """Print the top section of the Makefile for Xilinx ISim"""
         top_module = self.top_module
+
         def __get_xilinxsim_ini_dir(env):
             """Get Xilinx ISim ini simulation file"""
             if env["isim_path"]:
@@ -122,7 +123,7 @@ XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir(top_module.pool.env) +
 ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
                      __get_rid_of_isim_incdirs(
-                     self.top_module.manifest_dict["vlog_opt"]) + """
+                         self.top_module.manifest_dict["vlog_opt"]) + """
 """)
 
     def makefile_sim_compilation(self):

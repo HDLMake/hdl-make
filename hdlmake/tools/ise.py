@@ -60,7 +60,6 @@ class ToolISE(ToolSyn):
     STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
                      'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
 
-
     SUPPORTED_FILES = [UCFFile, CDCFile, NGCFile]
 
     HDL_FILES = [VHDLFile, VerilogFile, SVFile]
@@ -71,8 +70,9 @@ class ToolISE(ToolSyn):
                                "*.ngc", "*.ngd", "*.ngr", "*.pad", "*.par",
                                "*.pcf", "*.prj", "*.ptwx", "*.stx", "*.syr",
                                "*.twr", "*.twx", "*.gise", "*.gise", "*.bgn",
-                               "*.unroutes", "*.ut", "*.xpi", "*.xst", "*.xise",
-                               "*.xwbt", "*_envsettings.html", "*_guide.ncd",
+                               "*.unroutes", "*.ut", "*.xpi", "*.xst",
+                               "*.xise", "*.xwbt",
+                               "*_envsettings.html", "*_guide.ncd",
                                "*_map.map", "*_map.mrp", "*_map.ncd",
                                "*_map.ngm", "*_map.xrpt", "*_ngdbuild.xrpt",
                                "*_pad.csv", "*_pad.txt", "*_par.xrpt",

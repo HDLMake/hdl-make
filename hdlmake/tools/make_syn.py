@@ -141,15 +141,19 @@ tcl_bitstream: tcl_par
 run_tcl:
 \t\t$(TCL_INTERPRETER)run.tcl
 
-synthesize: tcl_clean tcl_open tcl_synthesize tcl_close syn_pre_synthesize_cmd run_tcl syn_post_synthesize_cmd
+synthesize: tcl_clean tcl_open tcl_synthesize tcl_close \
+syn_pre_synthesize_cmd run_tcl syn_post_synthesize_cmd
 \t\ttouch $@ tcl_synthesize
-translate: tcl_clean tcl_open tcl_translate tcl_close syn_pre_translate_cmd run_tcl syn_post_translate_cmd
+translate: tcl_clean tcl_open tcl_translate tcl_close syn_pre_translate_cmd \
+run_tcl syn_post_translate_cmd
 \t\ttouch $@ tcl_translate tcl_synthesize
-map: tcl_clean tcl_open tcl_map tcl_close syn_pre_map_cmd run_tcl syn_post_map_cmd
+map: tcl_clean tcl_open tcl_map tcl_close syn_pre_map_cmd run_tcl \
+syn_post_map_cmd
 \t\ttouch $@ tcl_map tcl_translate tcl_synthesize
 par: tcl_open tcl_par tcl_close syn_pre_par_cmd run_tcl syn_post_par_cmd
 \t\ttouch $@ tcl_par tcl_map tcl_translate tcl_synthesize
-bitstream: tcl_clean tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd run_tcl syn_post_bitstream_cmd
+bitstream: tcl_clean tcl_open tcl_bitstream tcl_close syn_pre_bitstream_cmd \
+run_tcl syn_post_bitstream_cmd
 \t\ttouch $@ tcl_bitstream tcl_par tcl_map tcl_translate tcl_synthesize
 
 """)
@@ -191,7 +195,7 @@ syn_post_bitstream_cmd:
 """)
         self.writeln(syn_command.substitute(
             syn_pre_cmd=self.top_module.manifest_dict[
-            "syn_pre_cmd"],
+                "syn_pre_cmd"],
             syn_post_cmd=self.top_module.manifest_dict[
                 "syn_post_cmd"],
             syn_pre_synthesize_cmd=self.top_module.manifest_dict[

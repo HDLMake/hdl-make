@@ -68,12 +68,9 @@ class ToolVivado(ToolXilinx, ToolSim):
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)
         self._simulator_controls.update(ToolVivado.SIMULATOR_CONTROLS)
 
-
     def makefile_sim_compilation(self):
         """Generate compile simulation Makefile target for Vivado Simulator"""
         self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
         self.writeln("\t\t" + ToolVivado.SIMULATOR_CONTROLS['compiler'])
         self.writeln()
         self.makefile_sim_dep_files()
-
-

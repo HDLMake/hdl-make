@@ -7,6 +7,7 @@ from .makefile import ToolMakefile
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 
+
 class ToolSim(ToolMakefile):
 
     """Class that provides the Makefile writing methods and status"""

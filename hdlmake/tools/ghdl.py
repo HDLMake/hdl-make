@@ -74,4 +74,3 @@ class ToolGHDL(ToolSim):
         self.writeln("\t\t" + self._simulator_controls['compiler'])
         self.writeln('\n')
         self.makefile_sim_dep_files()
-

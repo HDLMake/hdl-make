@@ -29,8 +29,8 @@ import logging
 
 from .make_syn import ToolSyn
 from hdlmake.util import path as path_mod
-from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
-                             SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
+from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, DPFFile,
+                             SignalTapFile, SDCFile, QIPFile, QSYSFile,
                              QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
 
 
@@ -176,7 +176,8 @@ class ToolQuartus(ToolSyn):
                                 name=preflow))
         if top_module.manifest_dict["quartus_postmodule"] is not None:
             path = path_mod.compose(
-                top_module.manifest_dict["quartus_postmodule"], top_module.path)
+                top_module.manifest_dict["quartus_postmodule"],
+                top_module.path)
             if not os.path.exists(path):
                 logging.error("quartus_postmodule file listed in "
                               + top_module.path + " doesn't exist: "
