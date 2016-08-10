@@ -148,12 +148,12 @@ class Module(ModuleContent):
             # Analyze included dirs and report if any issue is found
             for dir_ in include_dirs:
                 if path_mod.is_abs_path(dir_):
-                    logging.warning(
-                        "%s contains absolute path to an include directory: %s",
-                        self.path, dir_)
+                    logging.warning("%s contains absolute path to an include "
+                                    "directory: %s", self.path, dir_)
                 if not os.path.exists(dir_):
                     logging.warning(self.path +
-                        " has an unexisting include directory: " + dir_)
+                                    " has an unexisting include directory: " +
+                                    dir_)
         return include_dirs
 
     def parse_manifest(self):
