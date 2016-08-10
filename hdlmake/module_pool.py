@@ -24,14 +24,12 @@
 """This is the Python module providing the container for the HDL Modules"""
 
 from .action import (ActionCore,
-                     ActionTree, ActionSimulation,
-                     ActionSynthesis,
+                     ActionTree,
                      QsysHwTclUpdate)
 
 
 class ModulePool(ActionCore,
-                 ActionTree, ActionSimulation,
-                 ActionSynthesis,
+                 ActionTree,
                  QsysHwTclUpdate):
 
     """
@@ -42,6 +40,4 @@ class ModulePool(ActionCore,
     def __init__(self, *args):
         ActionCore.__init__(self, *args)
         ActionTree.__init__(self, *args)
-        ActionSimulation.__init__(self, *args)
-        ActionSynthesis.__init__(self, *args)
         QsysHwTclUpdate.__init__(self, *args)

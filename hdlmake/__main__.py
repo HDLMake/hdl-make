@@ -34,6 +34,8 @@ from .module_pool import ModulePool
 from . import fetch as fetch_mod
 from ._version import __version__
 
+from .tools import WriterSim, WriterSyn
+
 
 def main():
     """This is the main function, where HDLMake starts.
@@ -114,9 +116,11 @@ def _action_runner(modules_pool):
                           "project.")
             quit()
         if top_mod.action == "simulation":
-            modules_pool.simulation_makefile()
+            sim_writer = WriterSim(modules_pool)
+            sim_writer.simulation_makefile()
         elif top_mod.action == "synthesis":
-            modules_pool.synthesis_project()
+            syn_writer = WriterSyn(modules_pool)
+            syn_writer.synthesis_project()
             # modules_pool.synthesis_makefile()
         elif top_mod.action == "qsys_hw_tcl_update":
             if not top_mod.manifest_dict["hw_tcl_filename"]:
@@ -126,9 +130,11 @@ def _action_runner(modules_pool):
                 quit()
             modules_pool.qsys_hw_tcl_update()
     elif options.command == "make-simulation":
-        modules_pool.simulation_makefile()
+        sim_writer = WriterSim(modules_pool)
+        sim_writer.simulation_makefile()
     elif options.command == "make-synthesis":
-        modules_pool.synthesis_makefile()
+         syn_writer = WriterSyn(modules_pool)
+         syn_writer.synthesis_project()
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":
