@@ -40,6 +40,7 @@ class DepParser(object):
         """Base dummy interface method for the HDL parse execution"""
         pass
 
+
 def solve(fileset, standard_libs=None):
     """Function that Parses and Solves the provided HDL fileset. Note
        that it doesn't return a new fileset, but modifies the original one"""
@@ -85,7 +86,7 @@ def solve(fileset, standard_libs=None):
                     if (not standard_libs is None and
                         required_lib in standard_libs and
                         rel.direction is DepRelation.USE and
-                        rel.rel_type is DepRelation.PACKAGE):
+                            rel.rel_type is DepRelation.PACKAGE):
                         logging.debug("Not satisfied relation %s in %s will "
                                       "be covered by the target compiler "
                                       "standard libs.",
