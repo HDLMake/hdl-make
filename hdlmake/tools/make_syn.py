@@ -12,7 +12,7 @@ def _check_synthesis_manifest(manifest_dict):
     """Check the manifest contains all the keys for a synthesis project"""
     if not manifest_dict["syn_tool"]:
         logging.error(
-           "syn_tool variable must be set in the top manifest.")
+            "syn_tool variable must be set in the top manifest.")
         sys.exit("Exiting")
     if not manifest_dict["syn_device"]:
         logging.error(
