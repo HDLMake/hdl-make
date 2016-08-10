@@ -213,7 +213,7 @@ def slash_char():
     else:
         return "/"
 
+
 def architecture():
     """Get a string with the O.S. bus width"""
     return 64 if sys.maxsize > 2 ** 32 else 32
-
