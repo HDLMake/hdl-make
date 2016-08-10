@@ -144,6 +144,11 @@ class ModuleCore(ModuleConfig):
         """
         from hdlmake.srcfile import create_source_file, SourceFileSet
         srcs = SourceFileSet()
+        # Check if this is the top module and grab the include_dirs
+        if self.parent is None:
+            include_dirs = self.manifest_dict['include_dirs']
+        else:
+            include_dirs = self.top_module.manifest_dict['include_dirs']
         for path_aux in paths:
             if os.path.isdir(path_aux):
                 dir_ = os.listdir(path_aux)
@@ -152,9 +157,11 @@ class ModuleCore(ModuleConfig):
                     if not os.path.isdir(f_dir):
                         srcs.add(create_source_file(path=f_dir,
                                                     module=self,
-                                                    library=self.library))
+                                                    library=self.library,
+                                                    include_dirs=include_dirs))
             else:
                 srcs.add(create_source_file(path=path_aux,
                                  module=self,
-                                 library=self.library))
+                                 library=self.library,
+                                 include_dirs=include_dirs))
         return srcs

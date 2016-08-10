@@ -119,11 +119,14 @@ class Module(ModuleContent):
         self._set_simulation_options()
 
     def _set_simulation_options(self):
-        """This set the simulation option for all the files in the Module"""
-        from hdlmake.srcfile import VerilogFile, VHDLFile
+        """This set the simulation option for all the files in the Module."""
+        from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
         include_dirs_list = self.get_include_dirs_list()
         for file_aux in self.files:
             if isinstance(file_aux, VerilogFile):
+                file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
+                file_aux.include_dirs = include_dirs_list
+            elif isinstance(file_aux, SVFile):
                 file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
                 file_aux.include_dirs = include_dirs_list
             elif isinstance(file_aux, VHDLFile):
@@ -139,7 +142,7 @@ class Module(ModuleContent):
                     self.path, self.manifest_dict["include_dirs"])
                 include_dirs.append(dir_list)
             else:
-                dir_list = [path_mod.compose(self.path, x) for
+                dir_list = [path_mod.compose(x, self.path) for
                             x in self.manifest_dict["include_dirs"]]
                 include_dirs.extend(dir_list)
             # Analyze included dirs and report if any issue is found
