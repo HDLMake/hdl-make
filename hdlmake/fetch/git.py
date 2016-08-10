@@ -102,4 +102,3 @@ class Git(Fetcher):
         """Get the revision number for the Git repository at path"""
         git_cmd = 'git log -1 --format="%H" | cut -c1-32'
         return Fetcher.check_id(path, git_cmd)
-

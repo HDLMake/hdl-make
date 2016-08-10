@@ -64,4 +64,3 @@ class Svn(Fetcher):
         """Get the revision number for the SVN repository at path"""
         svn_cmd = "svn info 2>/dev/null | awk '{if(NR == 5) {print $2}}'"
         return Fetcher.check_id(path, svn_cmd)
-

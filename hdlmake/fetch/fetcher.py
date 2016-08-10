@@ -66,4 +66,3 @@ class Fetcher(object):
             os.chdir(cur_dir)
             stderr.close()
         return identifier
-

@@ -38,4 +38,3 @@ class Local(Fetcher):
     def check_md5sum(path):
         """Get the ID for Local sources... maybe sha256 or md5sum?"""
         pass
-
