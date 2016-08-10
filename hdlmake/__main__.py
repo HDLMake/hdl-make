@@ -133,8 +133,8 @@ def _action_runner(modules_pool):
         sim_writer = WriterSim(modules_pool)
         sim_writer.simulation_makefile()
     elif options.command == "make-synthesis":
-         syn_writer = WriterSyn(modules_pool)
-         syn_writer.synthesis_project()
+        syn_writer = WriterSyn(modules_pool)
+        syn_writer.synthesis_project()
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":
