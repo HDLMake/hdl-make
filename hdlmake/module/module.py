@@ -186,8 +186,10 @@ PARSE START: %s
 
         manifest_parser = ManifestParser()
 
-        # manifest_parser.add_arbitrary_code(
-        #    self.pool.top_module.options.arbitrary_code)
+        manifest_parser.add_prefix_code(
+            self.pool.env.options.prefix_code)
+        manifest_parser.add_sufix_code(
+            self.pool.env.options.sufix_code)
 
         manifest_parser.add_manifest(self.path)
 
