@@ -161,7 +161,7 @@ class ModuleCore(ModuleConfig):
                                                     include_dirs=include_dirs))
             else:
                 srcs.add(create_source_file(path=path_aux,
-                                 module=self,
-                                 library=self.library,
-                                 include_dirs=include_dirs))
+                                            module=self,
+                                            library=self.library,
+                                            include_dirs=include_dirs))
         return srcs
