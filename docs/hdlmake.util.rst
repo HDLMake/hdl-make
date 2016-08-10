@@ -4,14 +4,6 @@ hdlmake.util package
 Submodules
 ----------
 
-hdlmake.util.configparser module
---------------------------------
-
-.. automodule:: hdlmake.util.configparser
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 hdlmake.util.path module
 ------------------------
 

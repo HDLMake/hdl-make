@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    hdlmake.tools.aldec
+    hdlmake.tools.active_hdl
     hdlmake.tools.common
     hdlmake.tools.diamond
     hdlmake.tools.ghdl

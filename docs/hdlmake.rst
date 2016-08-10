@@ -22,18 +22,10 @@ hdlmake.dep_file module
     :undoc-members:
     :show-inheritance:
 
-hdlmake.dep_solver module
+hdlmake.new_dep_solver module
 -------------------------
 
-.. automodule:: hdlmake.dep_solver
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-hdlmake.dependable_file module
-------------------------------
-
-.. automodule:: hdlmake.dependable_file
+.. automodule:: hdlmake.new_dep_solver
     :members:
     :undoc-members:
     :show-inheritance:
@@ -42,22 +34,6 @@ hdlmake.env module
 ------------------
 
 .. automodule:: hdlmake.env
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-hdlmake.global_mod module
--------------------------
-
-.. automodule:: hdlmake.global_mod
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-hdlmake.makefile_writer module
-------------------------------
-
-.. automodule:: hdlmake.makefile_writer
     :members:
     :undoc-members:
     :show-inheritance:
@@ -82,14 +58,6 @@ hdlmake.module_pool module
 --------------------------
 
 .. automodule:: hdlmake.module_pool
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-hdlmake.new_dep_solver module
------------------------------
-
-.. automodule:: hdlmake.new_dep_solver
     :members:
     :undoc-members:
     :show-inheritance:
