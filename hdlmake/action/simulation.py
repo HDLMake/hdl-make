@@ -33,6 +33,7 @@ from hdlmake.tools import WriterSim
 
 from .action import Action
 
+
 class ActionSimulation(Action):
 
     """This class contains the simulation specific methods"""
@@ -59,7 +60,7 @@ class ActionSimulation(Action):
                      "isim": self.sim_writer.isim,
                      "modelsim": self.sim_writer.modelsim,
                      "active-hdl": self.sim_writer.active_hdl,
-                     "riviera":  self.sim_writer.riviera,
+                     "riviera": self.sim_writer.riviera,
                      "ghdl": self.sim_writer.ghdl,
                      "vivado": self.sim_writer.vivado}
         if not tool_name in tool_dict:
