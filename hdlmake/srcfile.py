@@ -281,7 +281,7 @@ class SourceFileSet(set):
 
 
 def create_source_file(path, module, library=None,
-        vcom_opt=None, vlog_opt=None, include_dirs=None):
+                       vcom_opt=None, vlog_opt=None, include_dirs=None):
     """Function that analyzes the given arguments and returns a new HDL source
     file of the appropriated type"""
     if path is None or path == "":
