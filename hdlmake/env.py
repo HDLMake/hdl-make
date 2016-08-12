@@ -67,8 +67,8 @@ class Env(dict):
                 return True
             else:
                 return False
-        tool_info = info_class.TOOL_INFO
-        if sys.platform == 'cygwin':
+        tool_info = info_class._tool_info
+        if path_mod.check_windows():
             bin_name = tool_info['windows_bin']
         else:
             bin_name = tool_info['linux_bin']

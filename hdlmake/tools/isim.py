@@ -78,7 +78,7 @@ class ToolISim(ToolSim):
                 logging.error("Cannot calculate xilinx tools base directory")
                 quit()
             hdl_language = 'vhdl'  # 'verilog'
-            if sys.platform == 'cygwin':
+            if path_mod.check_windows():
                 os_prefix = 'nt'
             else:
                 os_prefix = 'lin'
