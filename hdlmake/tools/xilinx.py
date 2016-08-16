@@ -24,6 +24,7 @@
 """Module providing generic support for Xilinx synthesis tools"""
 
 
+from __future__ import absolute_import
 from .make_syn import ToolSyn
 from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, TCLFile
 

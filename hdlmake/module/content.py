@@ -1,10 +1,12 @@
 """This provides the stuff related with the HDLMake module,
 from files to required submodules"""
 
+from __future__ import absolute_import
 import logging
 from hdlmake import fetch
 from hdlmake.util import path as path_mod
 from .core import ModuleCore
+import six
 
 
 class ModuleContent(ModuleCore):
@@ -104,7 +106,7 @@ class ModuleContent(ModuleCore):
         """Get the extra makefiles defined in the HDLMake module"""
         # Included Makefiles
         included_makefiles_aux = []
-        if isinstance(self.manifest_dict["incl_makefiles"], basestring):
+        if isinstance(self.manifest_dict["incl_makefiles"], six.string_types):
             included_makefiles_aux.append(self.manifest_dict["incl_makefiles"])
         else:  # list
             included_makefiles_aux = self.manifest_dict["incl_makefiles"][:]

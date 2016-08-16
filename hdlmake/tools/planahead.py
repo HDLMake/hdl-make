@@ -23,6 +23,7 @@
 
 """Module providing support for Xilinx PlanAhead synthesis"""
 
+from __future__ import absolute_import
 from .xilinx import ToolXilinx
 from hdlmake.srcfile import (UCFFile, NGCFile, XMPFile, XCOFile)
 

@@ -23,6 +23,7 @@
 NOTE: This module is provided by the SKA telescope collaboration
 and need a rework to fully fit into the HDLMake structure. """
 
+from __future__ import absolute_import
 import hdlmake.new_dep_solver as dep_solver
 import os
 import shutil

@@ -22,6 +22,7 @@
 
 """Module providing the HDLMake Manifest and its associated parser"""
 
+from __future__ import absolute_import
 import os
 import logging
 

@@ -21,8 +21,10 @@
 
 """Module providing the BackendFactory, a mechanism to create fetchers"""
 
+from __future__ import absolute_import
 import logging
 from .constants import (LOCAL)
+import six
 
 
 class BackendFactory(object):
@@ -48,7 +50,7 @@ class BackendFactory(object):
             error_string = "No registered backend found for module: " +\
                 str(module) + "\n" +\
                 "Registered backends are:\n"
-            for backend_id in self.backend_table.iterkeys():
+            for backend_id in six.iterkeys(self.backend_table):
                 error_string += "\t%d" % (backend_id)
             logging.error(error_string)
             raise

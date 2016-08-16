@@ -21,10 +21,13 @@
 
 """Module providing the Classes used to provide and handle dependable files"""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import logging
 
 from .util import path as path_mod
+import six
 
 
 class DepRelation(object):
@@ -104,7 +107,7 @@ class File(object):
 
     def __init__(self, path, module=None):
         self.path = path
-        assert not isinstance(module, basestring)
+        assert not isinstance(module, six.string_types)
         self.module = module
 
     @property
@@ -166,7 +169,7 @@ class File(object):
 
     def show(self):
         """Print the file path to stdout"""
-        print self.path
+        print(self.path)
 
     def extension(self):
         """Method that gets the extension for the file instance"""
@@ -182,7 +185,7 @@ class DepFile(File):
 
     def __init__(self, file_path, module):
         from hdlmake.module import Module
-        assert isinstance(file_path, basestring)
+        assert isinstance(file_path, six.string_types)
         assert isinstance(module, Module)
         File.__init__(self, path=file_path, module=module)
         self.file_path = file_path
@@ -233,7 +236,7 @@ class DepFile(File):
         """Print the file relations to stdout: can be used for logging"""
         # self._parse_if_needed()
         for relation in self.rels:
-            print str(relation)
+            print(str(relation))
 
     @property
     def filename(self):

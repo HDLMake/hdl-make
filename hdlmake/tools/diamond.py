@@ -24,6 +24,7 @@
 """Module providing support for Lattice Diamond IDE"""
 
 
+from __future__ import absolute_import
 from .make_syn import ToolSyn
 from hdlmake.srcfile import EDFFile, LPFFile, VHDLFile, VerilogFile
 

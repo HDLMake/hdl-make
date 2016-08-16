@@ -24,12 +24,14 @@
 representing the different possible files and file extensions"""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import logging
 
 from .module import Module
 from .util import path as path_mod
 from .dep_file import DepFile, File
+import six
 
 
 class SourceFile(DepFile):
@@ -40,7 +42,7 @@ class SourceFile(DepFile):
     cur_index = 0
 
     def __init__(self, path, module, library):
-        assert isinstance(path, basestring)
+        assert isinstance(path, six.string_types)
         assert isinstance(module, Module)
         self.library = library
         if not library:

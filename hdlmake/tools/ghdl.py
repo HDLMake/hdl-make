@@ -23,6 +23,7 @@
 
 """Module providing support for GHDL simulator"""
 
+from __future__ import absolute_import
 import string
 
 from .make_sim import ToolSim

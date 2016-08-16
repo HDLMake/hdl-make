@@ -26,6 +26,7 @@
 """This module provides the Verilog parser for HDLMake"""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -34,6 +35,7 @@ import logging
 from .new_dep_solver import DepParser
 from .dep_file import DepRelation
 from hdlmake.srcfile import create_source_file
+import six
 
 
 class VerilogPreprocessor(object):
@@ -202,7 +204,7 @@ class VerilogPreprocessor(object):
             for line in _degapize(buf):
                 matches = {}
                 last = None
-                for statement, stmt_regex in exps.iteritems():
+                for statement, stmt_regex in six.iteritems(exps):
                     matches[statement] = re.match(stmt_regex, line)
                     if matches[statement]:
                         last = matches[statement]
@@ -302,7 +304,7 @@ class VerilogPreprocessor(object):
         """Look for all of the defined preprocessor filedeps and return a list
         containing all of them"""
         deps = []
-        for filedep_key in self.vpp_filedeps.iterkeys():
+        for filedep_key in six.iterkeys(self.vpp_filedeps):
             for filedep in self.vpp_filedeps[filedep_key]:
                 deps.append(filedep)
         return list(set(deps))

@@ -24,6 +24,7 @@
 """Module providing support for Microsemi Libero IDE synthesis"""
 
 
+from __future__ import absolute_import
 from .make_syn import ToolSyn
 from hdlmake.srcfile import VHDLFile, VerilogFile, SDCFile, PDCFile
 

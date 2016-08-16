@@ -21,6 +21,7 @@
 
 """Module providing the stuff for handling Git repositories"""
 
+from __future__ import absolute_import
 import os
 from hdlmake.util import path as path_utils
 import logging

@@ -23,6 +23,7 @@
 
 """Module providing the core functionality for writing Makefiles"""
 
+from __future__ import absolute_import
 import os
 
 from hdlmake.util import path as path_mod

@@ -24,6 +24,7 @@
 """Module providing support for Xilinx Vivado synthesis"""
 
 
+from __future__ import absolute_import
 from .xilinx import ToolXilinx
 from .make_sim import ToolSim
 from hdlmake.srcfile import (UCFFile, NGCFile, XMPFile,

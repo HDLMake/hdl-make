@@ -28,12 +28,14 @@ specific parent modules providing specific methods and attributes.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import logging
 
 from hdlmake.util import path as path_mod
 from hdlmake.manifest_parser import ManifestParser
 from .content import ModuleContent
+import six
 
 
 class ModuleArgs(object):
@@ -137,7 +139,7 @@ class Module(ModuleContent):
         # Include dirs
         include_dirs = []
         if self.manifest_dict["include_dirs"] is not None:
-            if isinstance(self.manifest_dict["include_dirs"], basestring):
+            if isinstance(self.manifest_dict["include_dirs"], six.string_types):
                 dir_list = path_mod.compose(
                     self.path, self.manifest_dict["include_dirs"])
                 include_dirs.append(dir_list)

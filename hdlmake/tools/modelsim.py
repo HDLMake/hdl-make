@@ -24,6 +24,7 @@
 """Module providing support for Mentor Modelsim simulation"""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 
 from .sim_makefile_support import VsimMakefileWriter

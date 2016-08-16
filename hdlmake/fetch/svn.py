@@ -21,6 +21,7 @@
 
 """Module providing the stuff for handling SVN repositories"""
 
+from __future__ import absolute_import
 import os
 import logging
 from hdlmake.util import path as path_utils

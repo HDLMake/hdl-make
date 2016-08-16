@@ -21,6 +21,7 @@
 
 """Module providing graph funtionalities to HDLMake"""
 
+from __future__ import absolute_import
 from hdlmake.util import path
 
 import logging

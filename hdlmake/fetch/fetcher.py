@@ -21,6 +21,7 @@
 
 """Module providing the base class for the different code fetchers"""
 
+from __future__ import absolute_import
 import os
 from hdlmake.util import path as path_utils
 import logging

@@ -21,6 +21,8 @@
 
 """This module provides the core actions to the pool"""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import logging
 import os
 import os.path
@@ -80,12 +82,12 @@ class ActionCore(Action):
             delimiter = "\n"
         else:
             delimiter = self.env.options.delimiter
-        print delimiter.join(files_str)
+        print(delimiter.join(files_str))
 
     def _print_comment(self, message):
         """Private method that prints a message to stdout if not terse"""
         if not self.env.options.terse:
-            print message
+            print(message)
 
     def _print_file_list(self, file_list):
         """Print file list to standard out"""
@@ -93,8 +95,8 @@ class ActionCore(Action):
             self._print_comment("# * This module has no files")
         else:
             for file_aux in file_list:
-                print "%s\t%s" % (
-                    path_mod.relpath(file_aux.path), "file")
+                print("%s\t%s" % (
+                    path_mod.relpath(file_aux.path), "file"))
 
     def list_modules(self):
         """List the modules that are contained by the pool"""
@@ -122,8 +124,8 @@ class ActionCore(Action):
                                         % mod_aux.parent.url)
                 else:
                     self._print_comment("# * This is the root module")
-                print "%s\t%s" % (path_mod.relpath(mod_aux.path),
-                                  _convert_to_source_name(mod_aux.source))
+                print("%s\t%s" % (path_mod.relpath(mod_aux.path),
+                                  _convert_to_source_name(mod_aux.source)))
                 if self.env.options.withfiles:
                     self._print_file_list(mod_aux.files)
                 self._print_comment("# MODULE END -> %s" % mod_aux.url)

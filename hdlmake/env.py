@@ -24,12 +24,14 @@
 """Package providing the bridge with the Host O.S. environment"""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import os.path
 import logging
 
 from .util import path as path_mod
+import six
 
 
 class Env(dict):
@@ -56,7 +58,7 @@ class Env(dict):
             if path is not None:
                 return os.path.exists(os.path.join(path, name))
             else:
-                assert isinstance(name, basestring)
+                assert isinstance(name, six.string_types)
                 path = _get_path(name)
                 return len(path) > 0
 
@@ -98,7 +100,7 @@ class Env(dict):
             """Ask the Host O.S. for the value of an HDLMAKE_(name)
             environmental variable"""
             assert not name.startswith("HDLMAKE_")
-            assert isinstance(name, basestring)
+            assert isinstance(name, six.string_types)
             name = name.upper()
             return os.environ.get("HDLMAKE_%s" % name)
         name = name.upper()

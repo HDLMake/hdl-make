@@ -23,6 +23,7 @@
 
 """Module providing support for Aldec Active-HDL simulator"""
 
+from __future__ import absolute_import
 from .make_sim import ToolSim
 from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile
 

@@ -23,6 +23,7 @@
 
 """Module providing the VHDL parser capabilities"""
 
+from __future__ import absolute_import
 import logging
 import re
 

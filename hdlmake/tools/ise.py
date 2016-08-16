@@ -24,6 +24,7 @@
 """Module providing the classes that are used to handle Xilinx ISE"""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import logging
 
 from .make_syn import ToolSyn

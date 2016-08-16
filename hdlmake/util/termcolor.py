@@ -24,7 +24,10 @@
 """ANSII Color formatting for output in terminal."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
+from six.moves import range
+from six.moves import zip
 
 
 __ALL__ = ['colored', 'cprint']

@@ -23,6 +23,7 @@
 """This is the entry point for HDLMake working in command line app mode"""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import argparse
 import logging

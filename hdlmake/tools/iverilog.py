@@ -23,6 +23,7 @@
 
 """Module providing support for IVerilog (Icarus Verilog) simulator"""
 
+from __future__ import absolute_import
 import string
 
 from .make_sim import ToolSim

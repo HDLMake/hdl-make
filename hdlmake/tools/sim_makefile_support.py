@@ -23,12 +23,14 @@
 
 """Module providing common stuff for Modelsim, Vsim... like simulators"""
 
+from __future__ import absolute_import
 import os
 import string
 
 from .make_sim import ToolSim
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
+import six
 
 
 class VsimMakefileWriter(ToolSim):
@@ -77,7 +79,7 @@ class VsimMakefileWriter(ToolSim):
         self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
         self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
         self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
-        for var, value in self.custom_variables.iteritems():
+        for var, value in six.iteritems(self.custom_variables):
             self.writeln("%s := %s" % (var, value))
         self.writeln()
         self.writeln("VCOM_FLAGS := %s" % (' '.join(self.vcom_flags)))
@@ -119,7 +121,7 @@ class VsimMakefileWriter(ToolSim):
             ' '.join(
                 self.additional_deps))
         self.writeln()
-        for filename, filesource in self.copy_rules.iteritems():
+        for filename, filesource in six.iteritems(self.copy_rules):
             self.write(__create_copy_rule(filename, filesource))
         for lib in libs:
             self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
