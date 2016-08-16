@@ -78,7 +78,7 @@ class Module(ModuleContent):
         self.module_args = module_args
 
     def __str__(self):
-        return self.url
+        return self.module_args.url
 
     @property
     def is_fetched_to(self):
