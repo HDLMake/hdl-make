@@ -26,7 +26,10 @@ from __future__ import absolute_import
 import logging
 import os
 import sys
-import StringIO
+if not sys.version[0] is "2":
+    from io import StringIO
+else:
+    from StringIO import StringIO
 import contextlib
 
 
@@ -36,7 +39,7 @@ def stdout_io(stdout=None):
     the executed Manifest.py files"""
     old = sys.stdout
     if stdout is None:
-        stdout = StringIO.StringIO()
+        stdout = StringIO()
     sys.stdout = stdout
     yield stdout
     sys.stdout = old
