@@ -29,7 +29,6 @@ from __future__ import absolute_import
 import os
 import os.path
 import logging
-import sys
 
 from .make_sim import ToolSim
 from hdlmake.util import path as path_mod
