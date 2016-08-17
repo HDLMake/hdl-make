@@ -194,10 +194,6 @@ class Action(list):
         env = Env(options)
         self.env = env
 
-    def get_fetchable_modules(self):
-        """Get list with the remote modules, i.e. those that can be fetched"""
-        return [m for m in self if m.source != fetch.LOCAL]
-
     def __str__(self):
         """Cast the module list as a list of strings"""
         return str([str(m) for m in self])
