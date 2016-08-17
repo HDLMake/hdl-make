@@ -63,10 +63,12 @@ class VHDLFile(SourceFile):
 
     def __init__(self, path, module, library=None, vcom_opt=None):
         SourceFile.__init__(self, path=path, module=module, library=library)
+        from hdlmake.vhdl_parser import VHDLParser
         if not vcom_opt:
             self.vcom_opt = ""
         else:
             self.vcom_opt = vcom_opt
+        self.parser = VHDLParser(self)
 
     def _check_encryption(self):
         """Check if the VHDL is encrypted (in Xilinx toolchain)"""
@@ -86,6 +88,7 @@ class VerilogFile(SourceFile):
     def __init__(self, path, module, library=None,
                  vlog_opt=None, include_dirs=None):
         SourceFile.__init__(self, path=path, module=module, library=library)
+        from hdlmake.vlog_parser import VerilogParser
         if not vlog_opt:
             self.vlog_opt = ""
         else:
@@ -94,6 +97,9 @@ class VerilogFile(SourceFile):
         if include_dirs:
             self.include_dirs.extend(include_dirs)
         self.include_dirs.append(path_mod.relpath(self.dirname))
+        self.parser = VerilogParser(self)
+        for dir_aux in self.include_paths:
+            self.parser.add_search_path(dir_aux)
 
 
 class SVFile(VerilogFile):

@@ -196,31 +196,6 @@ class DepFile(File):
         self.file_path = file_path
         self.include_paths = []
 
-    def parse_if_needed(self):
-        """If the HDL file is not parsed yet, do it now!"""
-        def _create_parser(dep_file):
-            """Function that returns a instance of the appropriated HDL parser
-            for the provided dep_file (VHDL or Verilog)"""
-            from .vlog_parser import VerilogParser
-            from .vhdl_parser import VHDLParser
-            from .srcfile import VHDLFile, VerilogFile, SVFile
-            if isinstance(dep_file, VHDLFile):
-                return VHDLParser(dep_file)
-            elif (isinstance(dep_file, VerilogFile) or
-                  isinstance(dep_file, SVFile)):
-                verilog_parser = VerilogParser(dep_file)
-                for dir_aux in dep_file.include_paths:
-                    verilog_parser.add_search_path(dir_aux)
-                return verilog_parser
-            else:
-                raise ValueError("Unrecognized file format : %s" %
-                                 dep_file.file_path)
-        logging.debug("Parse %s if needed!!!", self.file_path)
-        if not self.is_parsed:
-            logging.debug("Not parsed yet, let's go!")
-            parser = _create_parser(self)
-            parser.parse(self)
-
     def add_relation(self, rel):
         """Add a new relation to the set provided by the file"""
         self.rels.add(rel)

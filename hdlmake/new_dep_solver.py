@@ -56,7 +56,9 @@ def solve(fileset, standard_libs=None):
                   "fileset: no parsing should be done beyond this point")
     for investigated_file in fset:
         logging.debug("INVESTIGATED FILE: %s", investigated_file)
-        investigated_file.parse_if_needed()
+        if not investigated_file.is_parsed:
+            logging.debug("Not parsed yet, let's go!")
+            investigated_file.parser.parse(investigated_file)
     logging.debug("PARSE END: now the parsing is done")
     logging.debug("SOLVE BEGIN")
     for investigated_file in fset:
