@@ -244,6 +244,11 @@ def _get_parser():
         dest="reverse",
         default=False,
         action="store_true")
+    listfiles.add_argument(
+        "--top",
+        help="print only those files required to build 'top'",
+        dest="top",
+        default=None)
     tree = subparsers.add_parser(
         "tree",
         help="generate a module hierarchy tree")

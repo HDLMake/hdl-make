@@ -114,7 +114,7 @@ class ActionCore(Action):
         for mod_aux in unfetched_modules:
             logging.warning(
                 "List incomplete, module %s has not been fetched!", mod_aux)
-        file_set = self.build_file_set()
+        file_set = self.build_file_set(top_entity=self.env.options.top)
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [file_aux.path for file_aux in file_list]
         if self.env.options.delimiter is None:
