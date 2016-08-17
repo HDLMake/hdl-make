@@ -143,7 +143,6 @@ def _load_sim_tool(modules_pool):
         quit()
 
 
-
 def _auto_pilot(modules_pool):
     """Scan the design to select and run the automatic flow"""
     top_mod = modules_pool.get_top_module()
