@@ -30,9 +30,6 @@ from subprocess import PIPE, Popen
 import sys
 
 from hdlmake.util import path as path_mod
-from hdlmake.env import Env
-
-
 from hdlmake import new_dep_solver as dep_solver
 
 
@@ -187,11 +184,6 @@ class Action(list):
                 return url
         finally:
             os.chdir(cwd)
-
-    def set_environment(self, options):
-        """Initialize the module pool environment from the provided options"""
-        env = Env(options)
-        self.env = env
 
     def __str__(self):
         """Cast the module list as a list of strings"""

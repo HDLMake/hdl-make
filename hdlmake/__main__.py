@@ -32,6 +32,7 @@ import sys
 from .util.termcolor import colored
 from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
+from .env import Env
 from . import fetch as fetch_mod
 from ._version import __version__
 
@@ -72,7 +73,7 @@ def main():
     modules_pool = ModulePool()
 
     # Set the module_pool environment by providing the options: this is a must!
-    modules_pool.set_environment(options)
+    modules_pool.env = Env(options)
 
     # Now, we add the first module, the one from which we are launching
     #  the program:
