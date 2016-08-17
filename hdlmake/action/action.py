@@ -131,14 +131,6 @@ class Action(list):
         """Get the Top module from the pool"""
         return self.top_module
 
-    def get_module_by_path(self, path):
-        """Get instance of Module being stored at a given location"""
-        path = path_mod.rel2abs(path)
-        for module in self:
-            if module.path == path:
-                return module
-        return None
-
     def _add(self, new_module):
         """Add the given new module if this is not already in the pool"""
         from hdlmake.module import Module
