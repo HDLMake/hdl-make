@@ -117,6 +117,8 @@ class ActionCore(Action):
         file_set = self.build_file_set(top_entity=self.env.options.top)
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [file_aux.path for file_aux in file_list]
+        if self.env.options.reverse is True:
+            files_str.reverse()
         if self.env.options.delimiter is None:
             delimiter = "\n"
         else:
