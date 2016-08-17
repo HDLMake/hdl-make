@@ -30,7 +30,6 @@ from subprocess import PIPE, Popen
 import sys
 
 from hdlmake.util import path as path_mod
-from hdlmake import fetch
 from hdlmake.env import Env
 
 
