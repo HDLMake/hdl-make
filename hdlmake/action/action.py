@@ -76,7 +76,8 @@ class Action(list):
 
     def check_all_fetched_or_quit(self):
         """Check if every module in the pool is fetched"""
-        if not self.is_everything_fetched():
+
+        if not len([m for m in self if not m.isfetched]) == 0:
             logging.error(
                 "Fetching must be done before continuing.\n"
                 "The following modules remains unfetched:\n"
@@ -141,51 +142,6 @@ class Action(list):
             if module.path == path:
                 return module
         return None
-
-    def is_everything_fetched(self):
-        """Check if every module is already fetched"""
-        if len([m for m in self if not m.isfetched]) == 0:
-            return True
-        else:
-            return False
-
-    def fetch_all(self):
-        """Fetch all the modules declared in the design"""
-
-        def fetch_module(module):
-            """Fetch the given module from the remote origin"""
-            new_modules = []
-            logging.debug("Fetching module: %s", str(module))
-            backend = fetch.FETCH_TYPE_LOOKUP.get_backend(module)
-            fetcher = backend()
-            result = fetcher.fetch(module)
-            if result is False:
-                logging.error("Unable to fetch module %s", str(module.url))
-                sys.exit("Exiting")
-            module.parse_manifest()
-            new_modules.extend(module.local)
-            new_modules.extend(module.svn)
-            new_modules.extend(module.git)
-            return new_modules
-
-        fetch_queue = [m for m in self]
-
-        while len(fetch_queue) > 0:
-            cur_mod = fetch_queue.pop()
-            new_modules = []
-            if cur_mod.isfetched:
-                new_modules = cur_mod.submodules()
-            else:
-                new_modules = fetch_module(cur_mod)
-            for mod in new_modules:
-                if not mod.isfetched:
-                    logging.debug("Appended to fetch queue: "
-                                  + str(mod.url))
-                    self._add(mod)
-                    fetch_queue.append(mod)
-                else:
-                    logging.debug("NOT appended to fetch queue: "
-                                  + str(mod.url))
 
     def _add(self, new_module):
         """Add the given new module if this is not already in the pool"""
