@@ -55,6 +55,8 @@ class SourceFile(DepFile):
         return hash(self.path + self.library)
 
 
+# SOURCE FILES
+
 class VHDLFile(SourceFile):
 
     """This is the class providing the generic VHDL file"""
@@ -99,13 +101,17 @@ class SVFile(VerilogFile):
     pass
 
 
-class UCFFile(File):
-    """This is the class providing the User Constraint Guide file"""
-    pass
-
+# TCL COMMAND FILE
 
 class TCLFile(File):
     """This is the class providing the Tool Command Language file"""
+    pass
+
+
+# XILINX FILES
+
+class UCFFile(File):
+    """This is the class providing the User Constraint Guide file"""
     pass
 
 
@@ -117,31 +123,6 @@ class XISEFile(File):
 class CDCFile(File):
     """This is the class providing the Xilinx ChipScope Definition
     and Connection file"""
-    pass
-
-
-class SignalTapFile(File):
-    """This is the class providing the Altera Signal Tap Language file"""
-    pass
-
-
-class SDCFile(File):
-    """Synopsys Design Constraints"""
-    pass
-
-
-class QIPFile(File):
-    """This is the class providing the Altera Quartus IP file"""
-    pass
-
-
-class QSYSFile(File):
-    """Qsys - Altera's System Integration Tool"""
-    pass
-
-
-class DPFFile(File):
-    """This is the class providing Altera Quartus Design Protocol File"""
     pass
 
 
@@ -175,6 +156,28 @@ class NGCFile(File):
     pass
 
 
+XILINX_FILE_DICT = {
+    'xise': XISEFile,
+    'ise': XISEFile,
+    'ngc': NGCFile,
+    'ucf': UCFFile,
+    'cdc': CDCFile,
+    'xmp': XMPFile,
+    'ppr': PPRFile,
+    'xpr': XPRFile,
+    'bd': BDFile,
+    'xco': XCOFile}
+
+
+# SYNOPSYS FILES
+
+class SDCFile(File):
+    """Synopsys Design Constraints"""
+    pass
+
+
+# LATTICE FILES
+
 class LDFFile(File):
     """Lattice Diamond Project File"""
     pass
@@ -190,13 +193,47 @@ class EDFFile(File):
     pass
 
 
+LATTICE_FILE_DICT = {
+    'ldf': LDFFile,
+    'lpf': LPFFile,
+    'edf': EDFFile,
+    'edif': EDFFile,
+    'edi': EDFFile,
+    'edn': EDFFile}
+
+
+# MICROSEMI/ACTEL FILES
+
 class PDCFile(File):
     """Physical Design Constraints"""
     pass
 
 
+MICROSEMI_FILE_DICT = {
+    'pdc': PDCFile}
+
+
+# OHR FILES
+
 class WBGenFile(File):
     """Wishbone generator file"""
+    pass
+
+
+# INTEL/ALTERA FILES
+
+class QIPFile(File):
+    """This is the class providing the Altera Quartus IP file"""
+    pass
+
+
+class QSYSFile(File):
+    """Qsys - Altera's System Integration Tool"""
+    pass
+
+
+class DPFFile(File):
+    """This is the class providing Altera Quartus Design Protocol File"""
     pass
 
 
@@ -223,6 +260,23 @@ class TDFFile(File):
 class GDFFile(File):
     """Quartus Graphic Design File"""
     pass
+
+
+class SignalTapFile(File):
+    """This is the class providing the Altera Signal Tap Language file"""
+    pass
+
+
+ALTERA_FILE_DICT = {
+    'stp': SignalTapFile,
+    'qip': QIPFile,
+    'qsys': QSYSFile,
+    'dpf': DPFFile,
+    'qsf': QSFFile,
+    'bsf': BSFFile,
+    'bdf': BDFFile,
+    'tdf': TDFFile,
+    'gdf': GDFFile}
 
 
 class SourceFileSet(set):
@@ -312,54 +366,18 @@ def create_source_file(path, module, library=None,
                           library=library,
                           vlog_opt=vlog_opt,
                           include_dirs=include_dirs)
-    elif extension == 'ngc':
-        new_file = NGCFile(path=path, module=module)
-    elif extension == 'ucf':
-        new_file = UCFFile(path=path, module=module)
-    elif extension == 'cdc':
-        new_file = CDCFile(path=path, module=module)
     elif extension == 'wb':
         new_file = WBGenFile(path=path, module=module)
     elif extension == 'tcl':
         new_file = TCLFile(path=path, module=module)
-    elif extension == 'xise' or extension == 'ise':
-        new_file = XISEFile(path=path, module=module)
-    elif extension == 'stp':
-        new_file = SignalTapFile(path=path, module=module)
     elif extension == 'sdc':
         new_file = SDCFile(path=path, module=module)
-    elif extension == 'qip':
-        new_file = QIPFile(path=path, module=module)
-    elif extension == 'qsys':
-        new_file = QSYSFile(path=path, module=module)
-    elif extension == 'dpf':
-        new_file = DPFFile(path=path, module=module)
-    elif extension == 'xmp':
-        new_file = XMPFile(path=path, module=module)
-    elif extension == 'ppr':
-        new_file = PPRFile(path=path, module=module)
-    elif extension == 'xpr':
-        new_file = XPRFile(path=path, module=module)
-    elif extension == 'bd':
-        new_file = BDFile(path=path, module=module)
-    elif extension == 'xco':
-        new_file = XCOFile(path=path, module=module)
-    elif extension == 'ldf':
-        new_file = LDFFile(path=path, module=module)
-    elif extension == 'lpf':
-        new_file = LPFFile(path=path, module=module)
-    elif extension in ['edf', 'edif', 'edi', 'edn']:
-        new_file = EDFFile(path=path, module=module)
-    elif extension == 'pdc':
-        new_file = PDCFile(path=path, module=module)
-    elif extension == 'qsf':
-        new_file = QSFFile(path=path, module=module)
-    elif extension == 'bsf':
-        new_file = BSFFile(path=path, module=module)
-    elif extension == 'bdf':
-        new_file = BDFFile(path=path, module=module)
-    elif extension == 'tdf':
-        new_file = TDFFile(path=path, module=module)
-    elif extension == 'gdf':
-        new_file = GDFFile(path=path, module=module)
+    elif extension in XILINX_FILE_DICT:
+        new_file = XILINX_FILE_DICT[extension](path=path, module=module)
+    elif extension in ALTERA_FILE_DICT:
+        new_file = ALTERA_FILE_DICT[extension](path=path, module=module)
+    elif extension in LATTICE_FILE_DICT:
+        new_file = LATTICE_FILE_DICT[extension](path=path, module=module)
+    elif extension in MICROSEMI_FILE_DICT:
+        new_file = MICROSEMI_FILE_DICT[extension](path=path, module=module)
     return new_file
