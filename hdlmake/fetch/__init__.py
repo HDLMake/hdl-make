@@ -21,7 +21,7 @@
 
 """This package provides stuff to handle local and remote repositories"""
 
-from .constants import (GIT, SVN, LOCAL, FETCH_TYPE_LOOKUP)
+from .constants import (GIT, SVN, LOCAL)
 from .git import Git
 from .svn import Svn
-from .backend_factory import BackendFactory
+from .local import Local

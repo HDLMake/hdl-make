@@ -34,6 +34,8 @@ import hdlmake.new_dep_solver as dep_solver
 from hdlmake.util import path as path_mod
 from hdlmake.srcfile import VerilogFile, VHDLFile, NGCFile
 from hdlmake.vlog_parser import VerilogPreprocessor
+from hdlmake.fetch import Svn, Git, Local
+from hdlmake.fetch import SVN, GIT, LOCAL
 from .action import Action
 
 
@@ -43,6 +45,9 @@ class ActionCore(Action):
 
     def __init__(self, *args):
         super(ActionCore, self).__init__(*args)
+        self.git_backend = Git()
+        self.svn_backend = Svn()
+        self.local_backend = Local()
 
     def _fetch_all(self):
         """Fetch all the modules declared in the design"""
@@ -51,9 +56,12 @@ class ActionCore(Action):
             """Fetch the given module from the remote origin"""
             new_modules = []
             logging.debug("Fetching module: %s", str(module))
-            backend = fetch.FETCH_TYPE_LOOKUP.get_backend(module)
-            fetcher = backend()
-            result = fetcher.fetch(module)
+            if module.source is SVN:
+                result = self.svn_backend.fetch(module)
+            elif module.source is GIT:
+                result = self.git_backend.fetch(module)
+            elif module.source is LOCAL:
+                result = self.local_backend.fetch(module)
             if result is False:
                 logging.error("Unable to fetch module %s", str(module.url))
                 sys.exit("Exiting")

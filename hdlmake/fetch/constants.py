@@ -28,17 +28,3 @@
 GIT = 1
 SVN = 2
 LOCAL = 3
-
-
-from .svn import Svn
-from .git import Git
-from .local import Local
-from .backend_factory import BackendFactory
-
-
-# Initialize an instance of BackendFactory which will be made publicly
-# available
-FETCH_TYPE_LOOKUP = BackendFactory()
-FETCH_TYPE_LOOKUP.register_backend(GIT, Git)
-FETCH_TYPE_LOOKUP.register_backend(SVN, Svn)
-FETCH_TYPE_LOOKUP.register_backend(LOCAL, Local)
