@@ -25,6 +25,8 @@
 
 from __future__ import absolute_import
 import os
+import logging
+import six
 
 from hdlmake.util import path as path_mod
 
@@ -58,6 +60,57 @@ class ToolMakefile(object):
         """Set the Makefile configuration"""
         self.top_module = top_module
         self.fileset = fileset
+
+    def makefile_check_tool(self, path_key):
+        """Check if the binary is available in the O.S. environment"""
+        def _get_path(name):
+            """Get the directory in which the tool binary is at Host"""
+            location = os.popen(
+                path_mod.which_cmd() + " %s" %
+                name).read().split('\n', 1)[0].strip()
+            logging.debug("location for %s: %s", name, location)
+            return os.path.dirname(location)
+
+        def _is_in_path(name, path=None):
+            """Check if the directory is in the system path"""
+            if path is not None:
+                return os.path.exists(os.path.join(path, name))
+            else:
+                assert isinstance(name, six.string_types)
+                path = _get_path(name)
+                return len(path) > 0
+
+        def _check_in_system_path(name):
+            """Check if if in the system path exists a file named (name)"""
+            path = _get_path(name)
+            if path:
+                return True
+            else:
+                return False
+        tool_info = self._tool_info
+        if path_mod.check_windows():
+            bin_name = tool_info['windows_bin']
+        else:
+            bin_name = tool_info['linux_bin']
+        name = tool_info['name']
+        logging.debug("Checking if " + name + " tool is available on PATH")
+        if self.top_module.manifest_dict[path_key] is not None:
+            if _is_in_path(bin_name, self.top_module.manifest_dict[path_key]):
+                logging.info("%s found under HDLMAKE_%s: %s",
+                             name, path_key.upper(),
+                             self.top_module.manifest_dict[path_key])
+            else:
+                logging.warning("%s NOT found under HDLMAKE_%s: %s",
+                                name, path_key.upper(),
+                                self.top_module.manifest_dict[path_key])
+        else:
+            if _check_in_system_path(bin_name):
+                self.top_module.manifest_dict[path_key] = _get_path(bin_name)
+                logging.info("%s found in system PATH: %s",
+                             name, self.top_module.manifest_dict[path_key])
+            else:
+                logging.warning("%s cannnot be found in system PATH", name)
+
 
     def makefile_includes(self):
         """Add the included makefiles that need to be previously loaded"""

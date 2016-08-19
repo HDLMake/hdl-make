@@ -43,16 +43,7 @@ class ToolSyn(ToolMakefile):
         """Generate a project for the specific synthesis tool"""
         _check_synthesis_manifest(pool.top_module.manifest_dict)
         pool.check_all_fetched_or_quit()
-        tool_info = self._tool_info
-        path_key = tool_info['id'] + '_path'
-        name = tool_info['name']
-        env = pool.env
-        env.check_tool(self)
         top_module = pool.get_top_module()
-        if env[path_key]:
-            tool_path = env[path_key]
-        else:
-            tool_path = ""
         fileset = pool.build_file_set(
             top_module.manifest_dict["syn_top"],
             standard_libs=self._standard_libs)
@@ -67,8 +58,9 @@ class ToolSyn(ToolMakefile):
                          len(privative_files))
             fileset.add(privative_files)
         self.makefile_setup(top_module, fileset)
+        self.makefile_check_tool('syn_path')
         self.makefile_includes()
-        self.makefile_syn_top(tool_path)
+        self.makefile_syn_top()
         self.makefile_syn_tcl()
         self.makefile_syn_files()
         self.makefile_syn_local()
@@ -76,9 +68,9 @@ class ToolSyn(ToolMakefile):
         self.makefile_syn_build()
         self.makefile_syn_clean()
         self.makefile_syn_phony()
-        logging.info(name + " project file generated.")
+        logging.info(self._tool_info['name'] + " project file generated.")
 
-    def makefile_syn_top(self, tool_path):
+    def makefile_syn_top(self):
         """Create the top part of the synthesis Makefile"""
         if path_mod.check_windows():
             tcl_interpreter = self._tool_info["windows_bin"]
@@ -100,7 +92,7 @@ endif
             tcl_interpreter=tcl_interpreter,
             project_name=self.top_module.manifest_dict["syn_project"],
             project_ext=self._tool_info["project_ext"],
-            tool_path=tool_path,
+            tool_path=self.top_module.manifest_dict["syn_path"],
             top_module=self.top_module.manifest_dict["syn_top"]))
 
     def makefile_syn_tcl(self):

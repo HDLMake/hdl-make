@@ -34,9 +34,6 @@ class ToolSim(ToolMakefile):
         """Execute the simulation action"""
         _check_simulation_manifest(pool.top_module.manifest_dict)
         pool.check_all_fetched_or_quit()
-        pool.env.check_tool(self)
-        logging.info("Generating " + self._tool_info['name'] +
-                     " makefile for simulation.")
         top_module = pool.get_top_module()
         fset = pool.build_file_set(
             top_module.manifest_dict["sim_top"],
@@ -45,6 +42,7 @@ class ToolSim(ToolMakefile):
         dep_files = fset.filter(DepFile)
         # dep_solver.solve(dep_files)
         self.makefile_setup(top_module, dep_files)
+        self.makefile_check_tool('sim_path')
         self.makefile_sim_top()
         self.makefile_sim_options()
         self.makefile_sim_local()

@@ -59,9 +59,9 @@ class ToolModelsim(VsimMakefileWriter):
     def makefile_sim_options(self):
         """Print the Modelsim options to the Makefile"""
         top_module = self.top_module
-        if top_module.pool.env["modelsim_path"]:
+        if top_module.manifest_dict["sim_path"]:
             modelsim_ini_path = os.path.join(
-                top_module.pool.env["modelsim_path"],
+                top_module.manifest_dict["sim_path"],
                 "..")
         else:
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
