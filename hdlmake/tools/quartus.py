@@ -42,8 +42,8 @@ class ToolQuartus(ToolSyn):
     TOOL_INFO = {
         'name': 'Quartus',
         'id': 'quartus',
-        'windows_bin': 'quartus -t ',
-        'linux_bin': 'quartus -t ',
+        'windows_bin': 'quartus',
+        'linux_bin': 'quartus',
         'project_ext': 'qsf'}
 
     STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
@@ -59,9 +59,9 @@ class ToolQuartus(ToolSyn):
                      'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
                                   "*.ekp", "*.jic", "*.qsf", "*.qpf"]}
 
-    TCL_CONTROLS = {'create': 'load_package flow\\n'
+    TCL_CONTROLS = {'create': ' -t load_package flow\\n'
                               'project_new $(PROJECT)',
-                    'open': 'load_package flow\\n'
+                    'open': ' -t load_package flow\\n'
                             'project_open $(PROJECT)',
                     'save': '',
                     'close': '',
@@ -69,7 +69,7 @@ class ToolQuartus(ToolSyn):
                     'translate': '',
                     'map': '',
                     'par': '',
-                    'bitstream': 'execute_flow -compile',
+                    'bitstream': ' -t execute_flow -compile',
                     'install_source': ''}
 
     SET_GLOBAL_INSTANCE = 0
@@ -96,7 +96,7 @@ class ToolQuartus(ToolSyn):
         import re
 
         def _emit_property(command, what=None, name=None, name_type=None,
-                           from_=None, to_=None, section_id=None):
+                           from_=None, to_=None, section_id=None, tag_=None):
             """Emit a formated property for Altera Quartus TCL"""
             words = []
             words.append(dict([(b, a) for a, b in
@@ -110,6 +110,9 @@ class ToolQuartus(ToolSyn):
             if from_ is not None:
                 words.append("-from")
                 words.append(from_)
+            if tag_ is not None:
+                words.append("-tag")
+                words.append(to_)
             if to_ is not None:
                 words.append("-to")
                 words.append(to_)
@@ -126,6 +129,7 @@ class ToolQuartus(ToolSyn):
                 "^EP3C.*$": "Cyclone III",
                 "^EP4CE.*$": "Cyclone IV E",
                 "^EP4CGX.*$": "Cyclone IV GX",
+                "^5A.*$": "Arria V",
                 "^5S.*$": "Stratix V"}
             if family is None:
                 for key in family_names:
