@@ -35,12 +35,13 @@ class _QuartusProjectProperty:
          "set_location_assignment": SET_LOCATION_ASSIGNMENT,
          "set_global_assignment": SET_GLOBAL_ASSIGNMENT}
 
-    def __init__(self, command, what=None, name=None, name_type=None, from_=None, to=None, section_id=None):
+    def __init__(self, command, what=None, name=None, name_type=None, from_=None, tag_=None, to=None, section_id=None):
         self.command = command
         self.what = what
         self.name = name
         self.name_type = name_type
         self.from_ = from_
+        self.tag_ = tag_
         self.to = to
         self.section_id = section_id
 
@@ -63,6 +64,9 @@ class _QuartusProjectProperty:
         if self.section_id is not None:
             words.append("-section_id")
             words.append(self.section_id)
+        if self.tag_ is not None:
+            words.append("-tag")
+            words.append(self.tag)
         return ' '.join(words)
 
 
@@ -146,7 +150,7 @@ class QuartusProject:
         for line in lines:
             words = line.split()
             command = QPP.t[words[0]]
-            what = name = name_type = from_ = to = section_id = None
+            what = name = name_type = from_ = tag_ = to = section_id = None
             i = 1
             while True:
                 if i >= len(words):
@@ -169,6 +173,10 @@ class QuartusProject:
                     from_, add = __gather_string(words, i+1)
                     i = i+2
                     continue
+                elif words[i] == "-tag":
+                    tag_, add = __gather_string(words, i+1)
+                    i = i+2
+                    continue
                 else:
                     what = words[i]
                     i = i+1
@@ -177,6 +185,7 @@ class QuartusProject:
                        what=what, name=name,
                        name_type=name_type,
                        from_=from_,
+                       tag_=tag_,
                        to=to,
                        section_id=section_id)
 
