@@ -200,7 +200,7 @@ tcl_bitstream: tcl_par
 \t\techo "$$TCL_BITSTREAM" >> run.tcl
 
 run_tcl:
-\t\t$(TCL_INTERPRETER)run.tcl
+\t\t$(TCL_INTERPRETER) run.tcl
 
 synthesize: tcl_clean tcl_open tcl_synthesize tcl_close \
 syn_pre_synthesize_cmd run_tcl syn_post_synthesize_cmd

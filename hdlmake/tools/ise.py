@@ -54,8 +54,8 @@ class ToolISE(ToolSyn):
     TOOL_INFO = {
         'name': 'ISE',
         'id': 'ise',
-        'windows_bin': 'xtclsh ',
-        'linux_bin': 'xtclsh ',
+        'windows_bin': 'xtclsh',
+        'linux_bin': 'xtclsh',
         'project_ext': 'xise'}
 
     STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',

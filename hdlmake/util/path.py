@@ -200,12 +200,12 @@ def mkdir_command():
 
 
 def which(filename):
-    """docstring for which"""
+    """Implement the which function and return the paths as a string list"""
     locations = os.environ.get("PATH").split(os.pathsep)
     candidates = []
     for location in locations:
         candidate = os.path.join(location, filename)
-        if os.path.isfile(candidate):
+        if os.path.isfile(candidate.split()[0]):
             candidates.append(candidate)
     return candidates
 
