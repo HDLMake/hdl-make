@@ -70,10 +70,11 @@ class ToolISim(ToolSim):
         """Print the top section of the Makefile for Xilinx ISim"""
         top_module = self.top_module
 
-        def __get_xilinxsim_ini_dir(env):
+        def __get_xilinxsim_ini_dir():
             """Get Xilinx ISim ini simulation file"""
-            if env["isim_path"]:
-                xilinx_dir = str(os.path.join(env["isim_path"], "..", ".."))
+            if top_module.manifest_dict["sim_path"]:
+                xilinx_dir = str(os.path.join(
+                    top_module.manifest_dict["sim_path"], "..", ".."))
             else:
                 logging.error("Cannot calculate xilinx tools base directory")
                 quit()
@@ -97,7 +98,7 @@ PWD := $(shell pwd)
 TOP_MODULE := """ + top_module.manifest_dict["sim_top"] + """
 FUSE_OUTPUT ?= isim_proj
 
-XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir(top_module.pool.env) +
+XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir() +
                      """
 """)
 
