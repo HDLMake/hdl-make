@@ -199,6 +199,16 @@ def mkdir_command():
         return "mkdir -p"
 
 
+def which(filename):
+    """docstring for which"""
+    locations = os.environ.get("PATH").split(os.pathsep)
+    candidates = []
+    for location in locations:
+        candidate = os.path.join(location, filename)
+        if os.path.isfile(candidate):
+            candidates.append(candidate)
+    return candidates
+
 def which_cmd():
     """Get a string with the O.S. specific which command"""
     if check_windows():

@@ -65,11 +65,12 @@ class ToolMakefile(object):
         """Check if the binary is available in the O.S. environment"""
         def _get_path(name):
             """Get the directory in which the tool binary is at Host"""
-            location = os.popen(
-                path_mod.which_cmd() + " %s" %
-                name).read().split('\n', 1)[0].strip()
-            logging.debug("location for %s: %s", name, location)
-            return os.path.dirname(location)
+            locations = path_mod.which(name)
+            if len(locations) == 0 :
+              return
+
+            logging.debug("location for %s: %s", name, locations[0])
+            return os.path.dirname(locations[0])
 
         def _is_in_path(name, path=None):
             """Check if the directory is in the system path"""
