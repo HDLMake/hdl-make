@@ -66,9 +66,8 @@ class ToolMakefile(object):
         def _get_path(name):
             """Get the directory in which the tool binary is at Host"""
             locations = path_mod.which(name)
-            if len(locations) == 0 :
-              return
-
+            if len(locations) == 0:
+                return
             logging.debug("location for %s: %s", name, locations[0])
             return os.path.dirname(locations[0])
 
@@ -111,7 +110,6 @@ class ToolMakefile(object):
                              name, self.top_module.manifest_dict[path_key])
             else:
                 logging.warning("%s cannnot be found in system PATH", name)
-
 
     def makefile_includes(self):
         """Add the included makefiles that need to be previously loaded"""

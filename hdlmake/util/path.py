@@ -209,6 +209,7 @@ def which(filename):
             candidates.append(candidate)
     return candidates
 
+
 def which_cmd():
     """Get a string with the O.S. specific which command"""
     if check_windows():
