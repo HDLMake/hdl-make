@@ -27,7 +27,7 @@
 from __future__ import absolute_import
 from .xilinx import ToolXilinx
 from .make_sim import ToolSim
-from hdlmake.srcfile import (UCFFile, NGCFile, XMPFile,
+from hdlmake.srcfile import (XDCFile, XCIFile, NGCFile, XMPFile,
                              XCOFile, BDFile, TCLFile)
 
 
@@ -45,7 +45,7 @@ class ToolVivado(ToolXilinx, ToolSim):
 
     STANDARD_LIBS = ['ieee', 'std']
 
-    SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile,
+    SUPPORTED_FILES = [XDCFile, XCIFile, NGCFile, XMPFile,
                        XCOFile, BDFile, TCLFile]
 
     CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",

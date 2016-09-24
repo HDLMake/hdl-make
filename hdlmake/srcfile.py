@@ -162,6 +162,16 @@ class NGCFile(File):
     pass
 
 
+class XDCFile(File):
+    """Xilinx Design Constraint File"""
+    pass
+
+
+class XCIFile(File):
+    """Xilinx Core IP File"""
+    pass
+
+
 XILINX_FILE_DICT = {
     'xise': XISEFile,
     'ise': XISEFile,
@@ -172,7 +182,9 @@ XILINX_FILE_DICT = {
     'ppr': PPRFile,
     'xpr': XPRFile,
     'bd': BDFile,
-    'xco': XCOFile}
+    'xco': XCOFile,
+    'xdc': XDCFile,
+    'xci': XCIFile}
 
 
 # SYNOPSYS FILES
