@@ -38,8 +38,8 @@ class ToolVivado(ToolXilinx, ToolSim):
     TOOL_INFO = {
         'name': 'vivado',
         'id': 'vivado',
-        'windows_bin': 'vivado',
-        'linux_bin': 'vivado',
+        'windows_bin': 'vivado -mode tcl -source',
+        'linux_bin': 'vivado -mode tcl -source',
         'project_ext': 'xpr'
     }
 
@@ -50,7 +50,8 @@ class ToolVivado(ToolXilinx, ToolSim):
 
     CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
-                               "$(PROJECT).runs", "$(PROJECT_FILE)"]}
+                               "$(PROJECT).runs", "$(PROJECT).hw",
+                               "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"]}
 
     TCL_CONTROLS = {'bitstream': 'launch_runs impl_1 -to_step write_bitstream'
                                  '\n'
