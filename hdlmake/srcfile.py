@@ -182,6 +182,16 @@ class RAMFile(File):
     pass
 
 
+class VHOFile(File):
+    """Xilinx VHDL Template File"""
+    pass
+
+
+class VEOFile(File):
+    """Xilinx Verilog Template File"""
+    pass
+
+
 class XCIFile(File):
     """Xilinx Core IP File"""
     pass
@@ -202,6 +212,8 @@ XILINX_FILE_DICT = {
     'coe': COEFile,
     'mif': MIFFile,
     'ram': RAMFile,
+    'vho': VHOFile,
+    'veo': VEOFile,
     'xci': XCIFile}
 
 

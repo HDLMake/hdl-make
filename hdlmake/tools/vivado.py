@@ -29,7 +29,7 @@ from .xilinx import ToolXilinx
 from .make_sim import ToolSim
 from hdlmake.srcfile import (XDCFile, XCIFile, NGCFile, XMPFile,
                              XCOFile, COEFile, BDFile, TCLFile,
-                             MIFFile, RAMFile)
+                             MIFFile, RAMFile, VHOFile, VEOFile)
 
 
 class ToolVivado(ToolXilinx, ToolSim):
@@ -48,7 +48,7 @@ class ToolVivado(ToolXilinx, ToolSim):
 
     SUPPORTED_FILES = [XDCFile, XCIFile, NGCFile, XMPFile,
                        XCOFile, COEFile, BDFile, TCLFile,
-                       MIFFile, RAMFile]
+                       MIFFile, RAMFile, VHOFile, VEOFile]
 
     CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
