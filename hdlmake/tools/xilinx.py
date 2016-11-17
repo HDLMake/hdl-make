@@ -80,12 +80,13 @@ class ToolXilinx(ToolSyn):
         self.writeln("define TCL_FILES")
         tmp = "add_files -norecurse {0}"
         tcl = "source {0}"
+        hack = "set_property IS_GLOBAL_INCLUDE 1 [get_files {0}]"
         for file_aux in self.fileset:
             if isinstance(file_aux, TCLFile):
-                line = tcl.format(file_aux.rel_path())
+                self.writeln(tcl.format(file_aux.rel_path()))
             else:
-                line = tmp.format(file_aux.rel_path())
-            self.writeln(line)
+                self.writeln(tmp.format(file_aux.rel_path()))
+                self.writeln(hack.format(file_aux.rel_path()))
         self.writeln('update_compile_order -fileset sources_1')
         self.writeln('update_compile_order -fileset sim_1')
         self.writeln("endef")
