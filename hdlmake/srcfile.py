@@ -167,6 +167,16 @@ class XDCFile(File):
     pass
 
 
+class COEFile(File):
+    """Xilinx Coefficient File"""
+    pass
+
+
+class MIFFile(File):
+    """Xilinx Memory Initialization File"""
+    pass
+
+
 class XCIFile(File):
     """Xilinx Core IP File"""
     pass
@@ -184,6 +194,8 @@ XILINX_FILE_DICT = {
     'bd': BDFile,
     'xco': XCOFile,
     'xdc': XDCFile,
+    'coe': COEFile,
+    'mif': MIFFile,
     'xci': XCIFile}
 
 
