@@ -177,6 +177,11 @@ class MIFFile(File):
     pass
 
 
+class RAMFile(File):
+    """Xilinx RAM  File"""
+    pass
+
+
 class XCIFile(File):
     """Xilinx Core IP File"""
     pass
@@ -196,6 +201,7 @@ XILINX_FILE_DICT = {
     'xdc': XDCFile,
     'coe': COEFile,
     'mif': MIFFile,
+    'ram': RAMFile,
     'xci': XCIFile}
 
 
