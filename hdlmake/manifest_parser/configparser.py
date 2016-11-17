@@ -308,6 +308,11 @@ types:[<type 'int'>]
                           self.config_file + ":\n" + str(error_syntax))
             logging.error(content)
             quit()
+        except SystemExit as error_exit:
+            logging.error("Exit requested by the manifest file " +
+                          self.config_file + ":\n" + str(error_exit))
+            logging.error(content)
+            quit()
         except:
             logging.error("Encountered unexpected error while parsing " +
                           self.config_file)
