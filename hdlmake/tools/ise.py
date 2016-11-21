@@ -128,7 +128,7 @@ class ToolISE(ToolSyn):
             ['project ', 'device', syn_device],
             ['project ', 'package', syn_package],
             ['project ', 'speed', syn_grade],
-            ['project ', '"Manual Implementation Compile Order"', '"true"'],
+            ['project ', '"Manual Implementation Compile Order"', '"false"'],
             ['project ', '"Auto Implementation Top"', '"false"'],
             ['project ', '"Create Binary Configuration File"', '"true"'],
             ['', 'compile_directory', '.']]
