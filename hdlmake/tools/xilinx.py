@@ -27,6 +27,7 @@
 from __future__ import absolute_import
 from .make_syn import ToolSyn
 from hdlmake.srcfile import VHDLFile, VerilogFile, SVFile, TCLFile
+import logging
 
 
 class ToolXilinx(ToolSyn):
@@ -59,20 +60,53 @@ class ToolXilinx(ToolSyn):
 
     def makefile_syn_tcl(self):
         """Create a Xilinx synthesis project by TCL"""
-        tmp = "set_property {0} {1} [{2}]"
+        prop_val = 'set_property "{0}" "{1}" [{2}]'
+        prop_opt = 'set_property -name {{{0}}} -value {{{1}}} -objects [{2}]'
         syn_device = self.top_module.manifest_dict["syn_device"]
         syn_grade = self.top_module.manifest_dict["syn_grade"]
         syn_package = self.top_module.manifest_dict["syn_package"]
         syn_top = self.top_module.manifest_dict["syn_top"]
+        syn_properties = self.top_module.manifest_dict["syn_properties"]
         create_new = []
         create_new.append(self._tcl_controls["create"])
+        synthesize_new = []
+        par_new = []
         properties = [
             ['part', syn_device + syn_package + syn_grade, 'current_project'],
             ['target_language', 'VHDL', 'current_project'],
             ['top', syn_top, 'get_property srcset [current_run]']]
+        if not syn_properties is None:
+            properties.extend(syn_properties)
         for prop in properties:
-            create_new.append(tmp.format(prop[0], prop[1], prop[2]))
+            if len(prop) > 1:
+                tmp = prop_val
+                name_list = prop[0].split()
+                if len(name_list) == 2:
+                    if name_list[1] == "options":
+                        tmp = prop_opt
+                    else:
+                        logging.error('Unknown project property: %s', prop[0])
+                if len(prop) == 2:
+                    name_hierarchy = name_list[0].split(".")
+                    if name_hierarchy[0] == "steps":
+                        if name_hierarchy[1] == "synth_design":
+                            synthesize_new.append(tmp.format(
+                                prop[0], prop[1], 'get_runs synth_1'))
+                        else:
+                            par_new.append(tmp.format(
+                                prop[0], prop[1], 'get_runs impl_1'))
+                    else:
+                        create_new.append(tmp.format(
+                            prop[0], prop[1], 'current_project'))
+                elif len(prop) == 3:
+                    create_new.append(tmp.format(prop[0], prop[1], prop[2]))
+                else:
+                    logging.error('Unknown project property: %s', prop[0])
+        synthesize_new.append(self._tcl_controls["synthesize"])
+        par_new.append(self._tcl_controls["par"])
         self._tcl_controls["create"] = "\n".join(create_new)
+        self._tcl_controls["synthesize"] = "\n".join(synthesize_new)
+        self._tcl_controls["par"] = "\n".join(par_new)
         super(ToolXilinx, self).makefile_syn_tcl()
 
     def makefile_syn_files(self):
