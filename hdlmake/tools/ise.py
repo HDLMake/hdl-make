@@ -107,15 +107,14 @@ class ToolISE(ToolSyn):
 
     def makefile_syn_tcl(self):
         """Create a Xilinx synthesis project by TCL"""
-        top_module = self.top_module
         tmp = "{0}set {1} {2}"
-        syn_device = top_module.manifest_dict["syn_device"]
-        syn_grade = top_module.manifest_dict["syn_grade"]
-        syn_package = top_module.manifest_dict["syn_package"]
-        syn_family = top_module.manifest_dict["syn_family"]
+        syn_device = self.manifest_dict["syn_device"]
+        syn_grade = self.manifest_dict["syn_grade"]
+        syn_package = self.manifest_dict["syn_package"]
+        syn_family = self.manifest_dict.get("syn_family", None)
         if syn_family is None:
             syn_family = FAMILY_NAMES.get(
-                top_module.manifest_dict["syn_device"][0:4].upper())
+                self.manifest_dict["syn_device"][0:4].upper())
             if syn_family is None:
                 logging.error(
                     "syn_family is not definied in Manifest.py"
