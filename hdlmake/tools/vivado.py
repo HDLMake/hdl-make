@@ -52,8 +52,9 @@ class ToolVivado(ToolXilinx, ToolSim):
 
     CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
-                               "$(PROJECT).runs", "$(PROJECT).hw",
-                               "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"]}
+                               "$(PROJECT).runs", "$(PROJECT).hw", "xsim.dir",
+                               "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"],
+                     'mrproper': ["*.wdb"]}
 
     TCL_CONTROLS = {'bitstream': 'launch_runs impl_1 -to_step write_bitstream'
                                  '\n'
