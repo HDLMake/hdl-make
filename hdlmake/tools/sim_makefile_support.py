@@ -73,12 +73,11 @@ class VsimMakefileWriter(ToolSim):
                 if not vlog_aux.startswith("+incdir+"):
                     ret.append(vlog_aux)
             return ' '.join(ret)
-        top_module = self.top_module
         self.vlog_flags.append(__get_rid_of_vsim_incdirs(
-            top_module.manifest_dict["vlog_opt"]))
-        self.vcom_flags.append(top_module.manifest_dict["vcom_opt"])
-        self.vmap_flags.append(top_module.manifest_dict["vmap_opt"])
-        self.vsim_flags.append(top_module.manifest_dict["vsim_opt"])
+            self.manifest_dict.get("vlog_opt", '')))
+        self.vcom_flags.append(self.manifest_dict.get("vcom_opt", ''))
+        self.vmap_flags.append(self.manifest_dict.get("vmap_opt", ''))
+        self.vsim_flags.append(self.manifest_dict.get("vsim_opt", ''))
         for var, value in six.iteritems(self.custom_variables):
             self.writeln("%s := %s" % (var, value))
         self.writeln()
