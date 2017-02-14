@@ -32,16 +32,24 @@ class ToolSim(ToolMakefile):
 
     def simulation_makefile(self, pool):
         """Execute the simulation action"""
-        _check_simulation_manifest(pool.top_module.manifest_dict)
         pool.check_all_fetched_or_quit()
-        top_module = pool.get_top_module()
+        manifest_project_dict = {}
+        for mod in pool:
+            manifest_project_dict.update(mod.manifest_dict)
+            if 'fetchto' in mod.manifest_dict:
+                self.repo_list.append(
+                    os.path.abspath(
+                        os.path.join(
+                            mod.path,
+                            mod.manifest_dict['fetchto'])))
+        _check_simulation_manifest(manifest_project_dict)
         fset = pool.build_file_set(
-            top_module.manifest_dict["sim_top"],
+            manifest_project_dict.get("sim_top"),
             standard_libs=self._standard_libs)
         # Filter the not parseable files!
         dep_files = fset.filter(DepFile)
         # dep_solver.solve(dep_files)
-        self.makefile_setup(top_module, dep_files)
+        self.makefile_setup(manifest_project_dict, dep_files)
         self.makefile_check_tool('sim_path')
         self.makefile_sim_top()
         self.makefile_sim_options()
@@ -59,7 +67,7 @@ TOP_MODULE := ${top_module}
 PWD := $$(shell pwd)
 """)
         self.writeln(top_parameter.substitute(
-            top_module=self.top_module.manifest_dict["sim_top"]))
+            top_module=self.manifest_dict["sim_top"]))
 
     def makefile_sim_options(self):
         """End stub method to write the simulation Makefile options section"""
@@ -154,14 +162,8 @@ PWD := $$(shell pwd)
 
     def makefile_sim_command(self):
         """Generic method to write the simulation Makefile user commands"""
-        if self.top_module.manifest_dict["sim_pre_cmd"]:
-            sim_pre_cmd = self.top_module.manifest_dict["sim_pre_cmd"]
-        else:
-            sim_pre_cmd = ''
-        if self.top_module.manifest_dict["sim_post_cmd"]:
-            sim_post_cmd = self.top_module.manifest_dict["sim_post_cmd"]
-        else:
-            sim_post_cmd = ''
+        sim_pre_cmd = self.manifest_dict.get("sim_pre_cmd", '')
+        sim_post_cmd = self.manifest_dict.get("sim_post_cmd", '')
         sim_command = string.Template("""# USER SIM COMMANDS
 sim_pre_cmd:
 \t\t${sim_pre_cmd}

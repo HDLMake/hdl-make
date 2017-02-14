@@ -61,10 +61,7 @@ class ToolGHDL(ToolSim):
 
     def makefile_sim_options(self):
         """Print the GHDL options to the Makefile"""
-        if self.top_module.manifest_dict["ghdl_opt"]:
-            ghdl_opt = self.top_module.manifest_dict["ghdl_opt"]
-        else:
-            ghdl_opt = ''
+        ghdl_opt = self.manifest_dict.get("ghdl_opt", '')
         ghdl_string = string.Template(
             """GHDL_OPT := ${ghdl_opt}\n""")
         self.writeln(ghdl_string.substitute(

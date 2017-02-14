@@ -34,7 +34,7 @@ class ModuleContent(ModuleCore):
         """Process the files instantiated by the HDLMake module"""
         from hdlmake.srcfile import SourceFileSet
         # HDL files provided by the module
-        if self.manifest_dict["files"] == []:
+        if "files" not in self.manifest_dict:
             self.files = SourceFileSet()
             try:
                 logging.debug("No files in the manifest at %s",
