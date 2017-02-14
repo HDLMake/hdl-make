@@ -68,13 +68,12 @@ class ToolISim(ToolSim):
 
     def makefile_sim_top(self):
         """Print the top section of the Makefile for Xilinx ISim"""
-        top_module = self.top_module
 
         def __get_xilinxsim_ini_dir():
             """Get Xilinx ISim ini simulation file"""
-            if top_module.manifest_dict["sim_path"]:
+            if "sim_path" in self.manifest_dict:
                 xilinx_dir = str(os.path.join(
-                    top_module.manifest_dict["sim_path"], "..", ".."))
+                    self.manifest_dict["sim_path"], "..", ".."))
             else:
                 logging.error("Cannot calculate xilinx tools base directory")
                 quit()
@@ -95,7 +94,7 @@ class ToolISim(ToolSim):
             return os.path.abspath(xilinx_ini_path)
         self.writeln("""## variables #############################
 PWD := $(shell pwd)
-TOP_MODULE := """ + top_module.manifest_dict["sim_top"] + """
+TOP_MODULE := """ + self.manifest_dict.get("sim_top", '') + """
 FUSE_OUTPUT ?= isim_proj
 
 XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir() +
@@ -125,7 +124,7 @@ XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir() +
 ISIM_FLAGS :=
 VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
                      __get_rid_of_isim_incdirs(
-                         self.top_module.manifest_dict["vlog_opt"]) + """
+                         self.manifest_dict.get("vlog_opt", '')) + """
 """)
 
     def makefile_sim_compilation(self):
