@@ -62,18 +62,20 @@ class ToolXilinx(ToolSyn):
         """Create a Xilinx synthesis project by TCL"""
         prop_val = 'set_property "{0}" "{1}" [{2}]'
         prop_opt = 'set_property -name {{{0}}} -value {{{1}}} -objects [{2}]'
-        syn_device = self.top_module.manifest_dict["syn_device"]
-        syn_grade = self.top_module.manifest_dict["syn_grade"]
-        syn_package = self.top_module.manifest_dict["syn_package"]
-        syn_top = self.top_module.manifest_dict["syn_top"]
-        syn_properties = self.top_module.manifest_dict["syn_properties"]
+        syn_device = self.manifest_dict["syn_device"]
+        syn_grade = self.manifest_dict["syn_grade"]
+        syn_package = self.manifest_dict["syn_package"]
+        syn_top = self.manifest_dict["syn_top"]
+        syn_properties = self.manifest_dict["syn_properties"]
         create_new = []
         create_new.append(self._tcl_controls["create"])
         synthesize_new = []
         par_new = []
+        repo_string = '{' + " ".join(self.repo_list) + '}'
         properties = [
             ['part', syn_device + syn_package + syn_grade, 'current_project'],
             ['target_language', 'VHDL', 'current_project'],
+            ['ip_repo_paths', repo_string, 'current_project'],
             ['top', syn_top, 'get_property srcset [current_run]']]
         if not syn_properties is None:
             properties.extend(syn_properties)

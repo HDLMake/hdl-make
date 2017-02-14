@@ -92,11 +92,16 @@ class ActionCore(Action):
 
     def fetch(self):
         """Fetch the missing required modules from their remote origin"""
-        top_module = self.get_top_module()
         logging.info("Fetching needed modules.")
-        os.system(top_module.manifest_dict["fetch_pre_cmd"])
+        for mod in self:
+            if mod.isfetched:
+                if 'fetch_pre_cmd' in mod.manifest_dict:
+                    os.system(mod.manifest_dict.get("fetch_pre_cmd", ''))
         self._fetch_all()
-        os.system(top_module.manifest_dict["fetch_post_cmd"])
+        for mod in self:
+            if mod.isfetched:
+                if 'fetch_post_cmd' in mod.manifest_dict:
+                    os.system(mod.manifest_dict.get("fetch_post_cmd", ''))
         logging.info("All modules fetched.")
 
     def clean(self):

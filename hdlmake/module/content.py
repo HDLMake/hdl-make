@@ -51,64 +51,68 @@ class ModuleContent(ModuleCore):
 
     def _process_manifest_modules(self):
         """Process the submodules required by the HDLMake module"""
-        if self.manifest_dict["fetchto"] is not None:
+        if ("fetchto" in self.manifest_dict and
+                self.manifest_dict["fetchto"] is not None):
             fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"],
                                        self.path)
         else:
             fetchto = self.fetchto()
 
         # Process required modules
-        if "local" in self.manifest_dict["modules"]:
-            local_paths = path_mod.flatten_list(
-                self.manifest_dict["modules"]["local"])
-            local_mods = []
-            for path in local_paths:
-                if path_mod.is_abs_path(path):
-                    logging.error("Found an absolute path (" + path +
-                                  ") in a manifest(" + self.path + ")")
-                    quit()
-                path = path_mod.rel2abs(path, self.path)
-                local_mods.append(self.pool.new_module(parent=self,
-                                                       url=path,
-                                                       source=fetch.LOCAL,
-                                                       fetchto=fetchto))
-            self.local = local_mods
-        else:
-            self.local = []
+        if "modules" in self.manifest_dict:
 
-        if "svn" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["svn"] = path_mod.flatten_list(
-                self.manifest_dict["modules"]["svn"])
-            svn_mods = []
-            for url in self.manifest_dict["modules"]["svn"]:
-                svn_mods.append(self.pool.new_module(parent=self,
-                                                     url=url,
-                                                     source=fetch.SVN,
-                                                     fetchto=fetchto))
-            self.svn = svn_mods
-        else:
-            self.svn = []
+            if "local" in self.manifest_dict["modules"]:
+                local_paths = path_mod.flatten_list(
+                    self.manifest_dict["modules"]["local"])
+                local_mods = []
+                for path in local_paths:
+                    if path_mod.is_abs_path(path):
+                        logging.error("Found an absolute path (" + path +
+                                      ") in a manifest(" + self.path + ")")
+                        quit()
+                    path = path_mod.rel2abs(path, self.path)
+                    local_mods.append(self.pool.new_module(parent=self,
+                                                           url=path,
+                                                           source=fetch.LOCAL,
+                                                           fetchto=fetchto))
+                self.local = local_mods
+            else:
+                self.local = []
 
-        if "git" in self.manifest_dict["modules"]:
-            self.manifest_dict["modules"]["git"] = path_mod.flatten_list(
-                self.manifest_dict["modules"]["git"])
-            git_mods = []
-            for url in self.manifest_dict["modules"]["git"]:
-                git_mods.append(self.pool.new_module(parent=self,
-                                                     url=url,
-                                                     source=fetch.GIT,
-                                                     fetchto=fetchto))
-            self.git = git_mods
-        else:
-            self.git = []
+            if "svn" in self.manifest_dict["modules"]:
+                self.manifest_dict["modules"]["svn"] = path_mod.flatten_list(
+                    self.manifest_dict["modules"]["svn"])
+                svn_mods = []
+                for url in self.manifest_dict["modules"]["svn"]:
+                    svn_mods.append(self.pool.new_module(parent=self,
+                                                         url=url,
+                                                         source=fetch.SVN,
+                                                         fetchto=fetchto))
+                self.svn = svn_mods
+            else:
+                self.svn = []
+
+            if "git" in self.manifest_dict["modules"]:
+                self.manifest_dict["modules"]["git"] = path_mod.flatten_list(
+                    self.manifest_dict["modules"]["git"])
+                git_mods = []
+                for url in self.manifest_dict["modules"]["git"]:
+                    git_mods.append(self.pool.new_module(parent=self,
+                                                         url=url,
+                                                         source=fetch.GIT,
+                                                         fetchto=fetchto))
+                self.git = git_mods
+            else:
+                self.git = []
 
     def _process_manifest_makefiles(self):
         """Get the extra makefiles defined in the HDLMake module"""
         # Included Makefiles
         included_makefiles_aux = []
-        if isinstance(self.manifest_dict["incl_makefiles"], six.string_types):
-            included_makefiles_aux.append(self.manifest_dict["incl_makefiles"])
-        else:  # list
-            included_makefiles_aux = self.manifest_dict["incl_makefiles"][:]
+        if "incl_makefiles" in self.manifest_dict:
+            if isinstance(self.manifest_dict["incl_makefiles"], six.string_types):
+                included_makefiles_aux.append(self.manifest_dict["incl_makefiles"])
+            else:  # list
+                included_makefiles_aux = self.manifest_dict["incl_makefiles"][:]
         makefiles_paths = self._make_list_of_paths(included_makefiles_aux)
         self.incl_makefiles.extend(makefiles_paths)

@@ -112,13 +112,14 @@ def _load_syn_tool(modules_pool):
                        'quartus': ToolQuartus,
                        'diamond': ToolDiamond,
                        'libero': ToolLibero}
-    manifest_dict = modules_pool.get_top_module().manifest_dict
-    tool_name = manifest_dict['syn_tool']
-    if tool_name in available_tools:
-        return available_tools[tool_name]()
-    else:
-        logging.error("Unknown synthesis tool: %s", tool_name)
-        quit()
+    for mod in modules_pool:
+        if 'syn_tool' in mod.manifest_dict:
+            tool_name = mod.manifest_dict['syn_tool']
+            if tool_name in available_tools:
+                logging.debug("Tool to be used found: %s", tool_name)
+                return available_tools[tool_name]()
+    logging.error("Unknown synthesis tool: %s", tool_name)
+    quit()
 
 
 def _load_sim_tool(modules_pool):
@@ -145,21 +146,27 @@ def _load_sim_tool(modules_pool):
 
 def _auto_pilot(modules_pool):
     """Scan the design to select and run the automatic flow"""
+    for mod in modules_pool:
+        print(mod.action)
+        if mod.action is not None:
+            action = mod.action
+            logging.debug("Action to be executed found: %s", action)
+            break
     top_mod = modules_pool.get_top_module()
     logging.info("Running automatic flow.")
-    if not top_mod.action:
+    if not action:
         logging.error("`action' manifest variable has to be specified. "
                       "Otherwise hdlmake doesn't know how to handle the "
                       "project.")
         quit()
-    if top_mod.action == "simulation":
+    if action == "simulation":
         sim_writer = _load_sim_tool(modules_pool)
         sim_writer.simulation_makefile(modules_pool)
-    elif top_mod.action == "synthesis":
+    elif action == "synthesis":
         syn_writer = _load_syn_tool(modules_pool)
         syn_writer.synthesis_project(modules_pool)
         # modules_pool.synthesis_makefile()
-    elif top_mod.action == "qsys_hw_tcl_update":
+    elif action == "qsys_hw_tcl_update":
         if not top_mod.manifest_dict["hw_tcl_filename"]:
             logging.error("'hw_tcl_filename' manifest variable has to be "
                           "specified. Otherwise hdlmake doesn't know which"

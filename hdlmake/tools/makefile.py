@@ -45,7 +45,7 @@ class ToolMakefile(object):
         self._hdl_files = []
         self._supported_files = []
         self._standard_libs = []
-        self.top_module = None
+        self.repo_list = []
         self.fileset = None
         if filename:
             self._filename = filename
@@ -56,9 +56,9 @@ class ToolMakefile(object):
         if self._file:
             self._file.close()
 
-    def makefile_setup(self, top_module, fileset):
+    def makefile_setup(self, manifest_project_dict, fileset):
         """Set the Makefile configuration"""
-        self.top_module = top_module
+        self.manifest_dict = manifest_project_dict
         self.fileset = fileset
 
     def makefile_check_tool(self, path_key):
@@ -94,28 +94,31 @@ class ToolMakefile(object):
             bin_name = tool_info['linux_bin']
         name = tool_info['name']
         logging.debug("Checking if " + name + " tool is available on PATH")
-        if self.top_module.manifest_dict[path_key] is not None:
-            if _is_in_path(bin_name, self.top_module.manifest_dict[path_key]):
+        if path_key in self.manifest_dict:
+            if _is_in_path(bin_name, self.manifest_dict[path_key]):
                 logging.info("%s found under HDLMAKE_%s: %s",
                              name, path_key.upper(),
-                             self.top_module.manifest_dict[path_key])
+                             self.manifest_dict[path_key])
             else:
                 logging.warning("%s NOT found under HDLMAKE_%s: %s",
                                 name, path_key.upper(),
-                                self.top_module.manifest_dict[path_key])
+                                self.manifest_dict[path_key])
+                self.manifest_dict[path_key] = ''
         else:
             if _check_in_system_path(bin_name):
-                self.top_module.manifest_dict[path_key] = _get_path(bin_name)
+                self.manifest_dict[path_key] = _get_path(bin_name)
                 logging.info("%s found in system PATH: %s",
-                             name, self.top_module.manifest_dict[path_key])
+                             name, self.manifest_dict[path_key])
             else:
                 logging.warning("%s cannnot be found in system PATH", name)
+                self.manifest_dict[path_key] = ''
 
     def makefile_includes(self):
         """Add the included makefiles that need to be previously loaded"""
-        for file_aux in self.top_module.incl_makefiles:
-            if os.path.exists(file_aux):
-                self.write("include %s\n" % file_aux)
+        #for file_aux in self.top_module.incl_makefiles:
+        #    if os.path.exists(file_aux):
+        #        self.write("include %s\n" % file_aux)
+        pass
 
     def makefile_clean(self):
         """Print the Makefile target for cleaning intermediate files"""

@@ -126,19 +126,28 @@ class Module(ModuleContent):
         include_dirs_list = self.get_include_dirs_list()
         for file_aux in self.files:
             if isinstance(file_aux, VerilogFile):
-                file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
+                if "vsim_opt" in self.manifest_dict:
+                    file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
+                else:
+                    file_aux.vsim_opt = ''
                 file_aux.include_dirs = include_dirs_list
             elif isinstance(file_aux, SVFile):
-                file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
+                if "vsim_opt" in self.manifest_dict:
+                    file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
+                else:
+                    file_aux.vsim_opt = ''
                 file_aux.include_dirs = include_dirs_list
             elif isinstance(file_aux, VHDLFile):
-                file_aux.vcom_opt = self.manifest_dict["vcom_opt"]
+                if "vcom_opt" in self.manifest_dict:
+                    file_aux.vcom_opt = self.manifest_dict["vcom_opt"]
+                else:
+                    file_aux.vcom_opt = ''
 
     def get_include_dirs_list(self):
         """Private method that processes the included directory list"""
         # Include dirs
         include_dirs = []
-        if self.manifest_dict["include_dirs"] is not None:
+        if "include_dirs" in self.manifest_dict:
             if isinstance(self.manifest_dict["include_dirs"],
                           six.string_types):
                 dir_list = path_mod.compose(

@@ -384,12 +384,12 @@ types:[<type 'int'>]
                     pass
         # Set the default values for those values that were not produced
         # by the Python exec operation.
-        for opt in self.options:
-            try:
-                if opt.name not in ret:
-                    ret[opt.name] = opt.default
-            except AttributeError:  # no default value in the option
-                pass
+        #for opt in self.options:
+        #    try:
+        #        if opt.name not in ret:
+        #            ret[opt.name] = opt.default
+        #    except AttributeError:  # no default value in the option
+        #        pass
         return ret
 
 

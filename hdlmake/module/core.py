@@ -135,8 +135,10 @@ class ModuleCore(ModuleConfig):
         # if "top_module" in self.manifest_dict:
         #    self.top_module = self.manifest_dict["top_module"]
         # Libraries
-        self.library = self.manifest_dict["library"]
-        self.action = self.manifest_dict["action"].lower()
+        if "library" in self.manifest_dict:
+            self.library = self.manifest_dict["library"]
+        if "action" in self.manifest_dict:
+            self.action = self.manifest_dict["action"].lower()
 
     def _create_file_list_from_paths(self, paths):
         """
@@ -147,9 +149,15 @@ class ModuleCore(ModuleConfig):
         srcs = SourceFileSet()
         # Check if this is the top module and grab the include_dirs
         if self.parent is None:
-            include_dirs = self.manifest_dict['include_dirs']
+            if 'include_dirs' in self.manifest_dict:
+                include_dirs = self.manifest_dict['include_dirs']
+            else:
+                include_dirs = []
         else:
-            include_dirs = self.top_module.manifest_dict['include_dirs']
+            if 'include_dirs' in self.manifest_dict:
+                include_dirs = self.top_module.manifest_dict['include_dirs']
+            else:
+                include_dirs = []
         for path_aux in paths:
             if os.path.isdir(path_aux):
                 dir_ = os.listdir(path_aux)

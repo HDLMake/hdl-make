@@ -1,7 +1,7 @@
 """Module providing the synthesis functionality for writing Makefiles"""
 
 from __future__ import absolute_import
-import sys
+import os, sys
 import logging
 import string
 
@@ -41,11 +41,20 @@ class ToolSyn(ToolMakefile):
 
     def synthesis_project(self, pool):
         """Generate a project for the specific synthesis tool"""
-        _check_synthesis_manifest(pool.top_module.manifest_dict)
         pool.check_all_fetched_or_quit()
+        manifest_project_dict = {}
+        for mod in pool:
+            manifest_project_dict.update(mod.manifest_dict)
+            if 'fetchto' in mod.manifest_dict:
+                self.repo_list.append(
+                    os.path.abspath(
+                        os.path.join(
+                            mod.path,
+                            mod.manifest_dict['fetchto'])))
+        _check_synthesis_manifest(manifest_project_dict)
         top_module = pool.get_top_module()
         fileset = pool.build_file_set(
-            top_module.manifest_dict["syn_top"],
+            manifest_project_dict["syn_top"],
             standard_libs=self._standard_libs)
         sup_files = pool.build_complete_file_set()
         privative_files = []
@@ -57,7 +66,7 @@ class ToolSyn(ToolMakefile):
             logging.info("Detected %d supported files that are not parseable",
                          len(privative_files))
             fileset.add(privative_files)
-        self.makefile_setup(top_module, fileset)
+        self.makefile_setup(manifest_project_dict, fileset)
         self.makefile_check_tool('syn_path')
         self.makefile_includes()
         self.makefile_syn_top()
@@ -90,10 +99,10 @@ endif
 """)
         self.writeln(top_parameter.substitute(
             tcl_interpreter=tcl_interpreter,
-            project_name=self.top_module.manifest_dict["syn_project"],
+            project_name=self.manifest_dict["syn_project"],
             project_ext=self._tool_info["project_ext"],
-            tool_path=self.top_module.manifest_dict["syn_path"],
-            top_module=self.top_module.manifest_dict["syn_top"]))
+            tool_path=self.manifest_dict["syn_path"],
+            top_module=self.manifest_dict["syn_top"]))
 
     def makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
@@ -255,30 +264,30 @@ syn_post_bitstream_cmd:
 
 """)
         self.writeln(syn_command.substitute(
-            syn_pre_cmd=self.top_module.manifest_dict[
-                "syn_pre_cmd"],
-            syn_post_cmd=self.top_module.manifest_dict[
-                "syn_post_cmd"],
-            syn_pre_synthesize_cmd=self.top_module.manifest_dict[
-                "syn_pre_synthesize_cmd"],
-            syn_post_synthesize_cmd=self.top_module.manifest_dict[
-                "syn_post_synthesize_cmd"],
-            syn_pre_translate_cmd=self.top_module.manifest_dict[
-                "syn_pre_translate_cmd"],
-            syn_post_translate_cmd=self.top_module.manifest_dict[
-                "syn_post_translate_cmd"],
-            syn_pre_map_cmd=self.top_module.manifest_dict[
-                "syn_pre_map_cmd"],
-            syn_post_map_cmd=self.top_module.manifest_dict[
-                "syn_post_map_cmd"],
-            syn_pre_par_cmd=self.top_module.manifest_dict[
-                "syn_pre_par_cmd"],
-            syn_post_par_cmd=self.top_module.manifest_dict[
-                "syn_post_par_cmd"],
-            syn_pre_bitstream_cmd=self.top_module.manifest_dict[
-                "syn_pre_bitstream_cmd"],
-            syn_post_bitstream_cmd=self.top_module.manifest_dict[
-                "syn_post_bitstream_cmd"]))
+            syn_pre_cmd=self.manifest_dict.get(
+                "syn_pre_cmd", ''),
+            syn_post_cmd=self.manifest_dict.get(
+                "syn_post_cmd", ''),
+            syn_pre_synthesize_cmd=self.manifest_dict.get(
+                "syn_pre_synthesize_cmd", ''),
+            syn_post_synthesize_cmd=self.manifest_dict.get(
+                "syn_post_synthesize_cmd", ''),
+            syn_pre_translate_cmd=self.manifest_dict.get(
+                "syn_pre_translate_cmd", ''),
+            syn_post_translate_cmd=self.manifest_dict.get(
+                "syn_post_translate_cmd", ''),
+            syn_pre_map_cmd=self.manifest_dict.get(
+                "syn_pre_map_cmd", ''),
+            syn_post_map_cmd=self.manifest_dict.get(
+                "syn_post_map_cmd", ''),
+            syn_pre_par_cmd=self.manifest_dict.get(
+                "syn_pre_par_cmd", ''),
+            syn_post_par_cmd=self.manifest_dict.get(
+                "syn_post_par_cmd", ''),
+            syn_pre_bitstream_cmd=self.manifest_dict.get(
+                "syn_pre_bitstream_cmd", ''),
+            syn_post_bitstream_cmd=self.manifest_dict.get(
+                "syn_post_bitstream_cmd", '')))
 
     def makefile_syn_clean(self):
         """Print the Makefile clean target for synthesis"""
