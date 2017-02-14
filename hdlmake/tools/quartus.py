@@ -43,7 +43,7 @@ class ToolQuartus(ToolSyn):
         'name': 'Quartus',
         'id': 'quartus',
         'windows_bin': 'quartus',
-        'linux_bin': 'quartus',
+        'linux_bin': 'quartus_sh -t',
         'project_ext': 'qsf'}
 
     STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
@@ -59,9 +59,9 @@ class ToolQuartus(ToolSyn):
                      'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
                                   "*.ekp", "*.jic", "*.qsf", "*.qpf"]}
 
-    TCL_CONTROLS = {'create': ' -t load_package flow\\n'
+    TCL_CONTROLS = {'create': 'load_package flow\\n'
                               'project_new $(PROJECT)',
-                    'open': ' -t load_package flow\\n'
+                    'open': 'load_package flow\\n'
                             'project_open $(PROJECT)',
                     'save': '',
                     'close': '',
@@ -69,7 +69,7 @@ class ToolQuartus(ToolSyn):
                     'translate': '',
                     'map': '',
                     'par': '',
-                    'bitstream': ' -t execute_flow -compile',
+                    'bitstream': 'execute_flow -compile',
                     'install_source': ''}
 
     SET_GLOBAL_INSTANCE = 0
@@ -144,15 +144,14 @@ class ToolQuartus(ToolSyn):
                 sys.exit("\nExiting")
             return family
 
-        top_module = self.top_module
         # Set the core Quartus project properties
         family_string = __get_family_string(
-            family=top_module.manifest_dict["syn_family"],
-            device=top_module.manifest_dict["syn_device"])
+            family=self.manifest_dict.get("syn_family", None),
+            device=self.manifest_dict.get("syn_device", ''))
         device_string = (
-            top_module.manifest_dict["syn_device"] +
-            top_module.manifest_dict["syn_package"] +
-            top_module.manifest_dict["syn_grade"]).upper()
+            self.manifest_dict["syn_device"] +
+            self.manifest_dict["syn_package"] +
+            self.manifest_dict["syn_grade"]).upper()
         command_list = []
         command_list.append(self._tcl_controls["create"])
         command_list.append(_emit_property(
@@ -166,39 +165,39 @@ class ToolQuartus(ToolSyn):
         command_list.append(_emit_property(
             self.SET_GLOBAL_ASSIGNMENT,
             name_type='TOP_LEVEL_ENTITY',
-            name=top_module.manifest_dict["syn_top"]))
+            name=self.manifest_dict["syn_top"]))
         # Insert the Quartus standard control TCL files
-        if top_module.manifest_dict["quartus_preflow"] is not None:
+        if "quartus_preflow" in self.manifest_dict:
             path = path_mod.compose(
-                top_module.manifest_dict["quartus_preflow"], top_module.path)
+                self.manifest_dict["quartus_preflow"], os.getcwd())
             if not os.path.exists(path):
                 logging.error("quartus_preflow file listed in "
-                              + top_module.path + " doesn't exist: "
+                              + os.getcwd() + " doesn't exist: "
                               + path + ".\nExiting.")
                 quit()
             preflow = '"' + 'quartus_sh:' + path + '"'
             command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                                 name_type='PRE_FLOW_SCRIPT_FILE',
                                 name=preflow))
-        if top_module.manifest_dict["quartus_postmodule"] is not None:
+        if "quartus_postmodule" in self.manifest_dict:
             path = path_mod.compose(
-                top_module.manifest_dict["quartus_postmodule"],
-                top_module.path)
+                self.manifest_dict["quartus_postmodule"],
+                os.getcwd())
             if not os.path.exists(path):
                 logging.error("quartus_postmodule file listed in "
-                              + top_module.path + " doesn't exist: "
+                              + os.getcwd() + " doesn't exist: "
                               + path + ".\nExiting.")
                 quit()
             postmodule = '"' + 'quartus_sh:' + path + '"'
             command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                                 name_type='POST_MODULE_SCRIPT_FILE',
                                 name=postmodule))
-        if top_module.manifest_dict["quartus_postflow"] is not None:
+        if "quartus_postflow" in self.manifest_dict:
             path = path_mod.compose(
-                top_module.manifest_dict["quartus_postflow"], top_module.path)
+                self.manifest_dict["quartus_postflow"], os.getcwd())
             if not os.path.exists(path):
                 logging.error("quartus_postflow file listed in "
-                              + top_module.path + " doesn't exist: "
+                              + os.getcwd() + " doesn't exist: "
                               + path + ".\nExiting.")
                 quit()
             postflow = '"' + 'quartus_sh:' + path + '"'
