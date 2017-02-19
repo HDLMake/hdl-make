@@ -294,7 +294,11 @@ types:[<type 'int'>]
         options = {}
         try:
             with stdout_io() as stdout_aux:
+                root_path = os.getcwd()
+                exec_path = os.path.dirname(self.config_file)
+                os.chdir(exec_path)
                 exec(content, extra_context, options)
+                os.chdir(root_path)
             printed = stdout_aux.getvalue()
             if len(printed) > 0:
                 logging.info(
