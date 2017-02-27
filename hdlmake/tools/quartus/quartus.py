@@ -136,7 +136,8 @@ mrproper:
 
 
     def generate_remote_synthesis_makefile(self, files, name, cwd, user, server):
-        logging.info("Remote Quartus wrapper")
+        pass
+        #logging.info("Remote Quartus wrapper")
         
 
 
@@ -274,6 +275,7 @@ mrproper:
         import re
         family_names = {
             "^EP2AGX.*$": "Arria II GX",
+            "^5A.*$": "Arria V",
             "^EP3C.*$": "Cyclone III"
         }
 
