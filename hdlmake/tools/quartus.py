@@ -44,7 +44,7 @@ class ToolQuartus(ToolSyn):
         'id': 'quartus',
         'windows_bin': 'quartus',
         'linux_bin': 'quartus_sh -t',
-        'project_ext': 'qsf'}
+        'project_ext': 'qpf'}
 
     STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
@@ -55,9 +55,9 @@ class ToolQuartus(ToolSyn):
 
     CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "run.tcl", "*.summary",
                                "*.done", "*.jdi", "*.pin", "*.qws",
-                               "db", "incremental_db"],
+                               "db", "incremental_db", "*.qsf", "*.qpf"],
                      'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
-                                  "*.ekp", "*.jic", "*.qsf", "*.qpf"]}
+                                  "*.ekp", "*.jic"]}
 
     TCL_CONTROLS = {'create': 'load_package flow\\n'
                               'project_new $(PROJECT)',
