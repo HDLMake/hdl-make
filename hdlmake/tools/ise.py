@@ -79,10 +79,7 @@ class ToolISE(ToolSyn):
                                "*_pad.csv", "*_pad.txt", "*_par.xrpt",
                                "*_summary.xml", "*_usage.xml", "*_xst.xrpt",
                                "usage_statistics_webtalk.html", "webtalk.log",
-                               "par_usage_statistics.html", "webtalk_pn.xml",
-                               "run_synthesize.tcl", "run_translate.tcl",
-                               "run_map.tcl", "run_par.tcl",
-                               "run_bitstream.tcl"],
+                               "par_usage_statistics.html", "webtalk_pn.xml"],
                      'mrproper': ["*.bit", "*.bin", "*.mcs"]}
 
     TCL_CONTROLS = {'create': 'project new $(PROJECT_FILE)',
