@@ -176,63 +176,75 @@ export TCL_BITSTREAM
     def makefile_syn_build(self):
         """Generate the synthesis Makefile targets for handling design build"""
         self.writeln("""\
-project:
-\t\techo "$$TCL_CREATE" > run.tcl
-\t\techo "$$TCL_FILES" >> run.tcl
-\t\techo "$$TCL_SAVE" >> run.tcl
-\t\techo "$$TCL_CLOSE" >> run.tcl
+project.tcl:
+\t\techo "$$TCL_CREATE" > $@
+\t\techo "$$TCL_FILES" >> $@
+\t\techo "$$TCL_SAVE" >> $@
+\t\techo "$$TCL_CLOSE" >> $@
+
+project: project.tcl
 \t\t$(SYN_PRE_PROJECT_CMD)
-\t\t$(TCL_INTERPRETER) run.tcl
+\t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_PROJECT_CMD)
 \t\ttouch $@
 
-synthesize: project
-\t\techo "$$TCL_OPEN" > run.tcl
-\t\techo "$$TCL_SYNTHESIZE" >> run.tcl
-\t\techo "$$TCL_SAVE" >> run.tcl
-\t\techo "$$TCL_CLOSE" >> run.tcl
+synthesize.tcl:
+\t\techo "$$TCL_OPEN" > $@
+\t\techo "$$TCL_SYNTHESIZE" >> $@
+\t\techo "$$TCL_SAVE" >> $@
+\t\techo "$$TCL_CLOSE" >> $@
+
+synthesize: project synthesize.tcl
 \t\t$(SYN_PRE_SYNTHESIZE_CMD)
-\t\t$(TCL_INTERPRETER) run.tcl
+\t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_SYNTHESIZE_CMD)
 \t\ttouch $@
 
-translate: synthesize
-\t\techo "$$TCL_OPEN" > run.tcl
-\t\techo "$$TCL_TRANSLATE" >> run.tcl
-\t\techo "$$TCL_SAVE" >> run.tcl
-\t\techo "$$TCL_CLOSE" >> run.tcl
+translate.tcl:
+\t\techo "$$TCL_OPEN" > $@
+\t\techo "$$TCL_TRANSLATE" >> $@
+\t\techo "$$TCL_SAVE" >> $@
+\t\techo "$$TCL_CLOSE" >> $@
+
+translate: synthesize translate.tcl
 \t\t$(SYN_PRE_TRANSLATE_CMD)
-\t\t$(TCL_INTERPRETER) run.tcl
+\t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_TRANSLATE_CMD)
 \t\ttouch $@
 
-map: translate
-\t\techo "$$TCL_OPEN" > run.tcl
-\t\techo "$$TCL_MAP" >> run.tcl
-\t\techo "$$TCL_SAVE" >> run.tcl
-\t\techo "$$TCL_CLOSE" >> run.tcl
+map.tcl:
+\t\techo "$$TCL_OPEN" > $@
+\t\techo "$$TCL_MAP" >> $@
+\t\techo "$$TCL_SAVE" >> $@
+\t\techo "$$TCL_CLOSE" >> $@
+
+map: translate map.tcl
 \t\t$(SYN_PRE_MAP_CMD)
-\t\t$(TCL_INTERPRETER) run.tcl
+\t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_MAP_CMD)
 \t\ttouch $@
 
-par: map
-\t\techo "$$TCL_OPEN" > run.tcl
-\t\techo "$$TCL_PAR" >> run.tcl
-\t\techo "$$TCL_SAVE" >> run.tcl
-\t\techo "$$TCL_CLOSE" >> run.tcl
+par.tcl:
+\t\techo "$$TCL_OPEN" > $@
+\t\techo "$$TCL_PAR" >> $@
+\t\techo "$$TCL_SAVE" >> $@
+\t\techo "$$TCL_CLOSE" >> $@
+
+par: map par.tcl
 \t\t$(SYN_PRE_PAR_CMD)
-\t\t$(TCL_INTERPRETER) run.tcl
+\t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_PAR_CMD)
 \t\ttouch $@
 
-bitstream: par
-\t\techo "$$TCL_OPEN" > run.tcl
-\t\techo "$$TCL_BITSTREAM" >> run.tcl
-\t\techo "$$TCL_SAVE" >> run.tcl
-\t\techo "$$TCL_CLOSE" >> run.tcl
+bitstream.tcl:
+\t\techo "$$TCL_OPEN" > $@
+\t\techo "$$TCL_BITSTREAM" >> $@
+\t\techo "$$TCL_SAVE" >> $@
+\t\techo "$$TCL_CLOSE" >> $@
+
+bitstream: par bitstream.tcl
 \t\t$(SYN_PRE_BITSTREAM_CMD)
-\t\t$(TCL_INTERPRETER) run.tcl
+\t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_BITSTREAM_CMD)
 \t\ttouch $@
 
