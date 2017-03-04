@@ -55,7 +55,8 @@ class ToolQuartus(ToolSyn):
 
     CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "run.tcl", "*.summary",
                                "*.done", "*.jdi", "*.pin", "*.qws",
-                               "db", "incremental_db", "*.qsf", "*.qpf"],
+                               "db", "incremental_db", "$(PROJECT).qsf",
+                               "*.qpf"],
                      'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
                                   "*.ekp", "*.jic"]}
 
