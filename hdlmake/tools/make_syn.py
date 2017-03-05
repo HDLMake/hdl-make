@@ -99,7 +99,8 @@ endif
 """)
         self.writeln(top_parameter.substitute(
             tcl_interpreter=tcl_interpreter,
-            project_name=self.manifest_dict["syn_project"],
+            project_name=os.path.splitext(
+            self.manifest_dict["syn_project"])[0],
             project_ext=self._tool_info["project_ext"],
             tool_path=self.manifest_dict["syn_path"],
             top_module=self.manifest_dict["syn_top"]))
