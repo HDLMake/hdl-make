@@ -77,7 +77,7 @@ class ToolSyn(ToolMakefile):
         self.makefile_syn_build()
         self.makefile_syn_clean()
         self.makefile_syn_phony()
-        logging.info(self._tool_info['name'] + " project file generated.")
+        logging.info(self._tool_info['name'] + " synthesis makefile generated.")
 
     def makefile_syn_top(self):
         """Create the top part of the synthesis Makefile"""
