@@ -82,15 +82,24 @@ class ToolISE(ToolSyn):
                                "par_usage_statistics.html", "webtalk_pn.xml"],
                      'mrproper': ["*.bit", "*.bin", "*.mcs"]}
 
+    _ISE_RUN = '''
+set process {{{0}}}
+process run $$process
+set result [process get $$process status]
+if {{ $$result == "errors" }} {{
+    puts "$$process failed"
+    exit 1
+}}'''
+
     TCL_CONTROLS = {'create': 'project new $(PROJECT_FILE)',
                     'open': 'project open $(PROJECT_FILE)',
                     'save': 'project save',
                     'close': 'project close',
-                    'synthesize': 'process run {Synthesize - XST}',
-                    'translate': 'process run {Translate}',
-                    'map': 'process run {Map}',
-                    'par': 'process run {Place & Route}',
-                    'bitstream': 'process run {Generate Programming File}',
+                    'synthesize': _ISE_RUN.format('Synthesize - XST'),
+                    'translate': _ISE_RUN.format('Translate'),
+                    'map': _ISE_RUN.format('Map'),
+                    'par': _ISE_RUN.format('Place & Route'),
+                    'bitstream': _ISE_RUN.format('Generate Programming File'),
                     'install_source': '*.bit *.bin'}
 
     def __init__(self):
@@ -114,7 +123,7 @@ class ToolISE(ToolSyn):
                 self.manifest_dict["syn_device"][0:4].upper())
             if syn_family is None:
                 logging.error(
-                    "syn_family is not definied in Manifest.py"
+                    "syn_family is not defined in Manifest.py"
                     " and can not be guessed!")
                 quit(-1)
         create_new = []
