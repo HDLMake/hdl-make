@@ -38,7 +38,7 @@ class ToolXilinx(ToolSyn):
 
     CLEAN_TARGETS = {'mrproper': ["*.bit", "*.bin"]}
 
-    _XILINX_RUN = '''
+    _XILINX_RUN = '''\
 reset_run {0}
 launch_runs {0}
 wait_on_run {0}
