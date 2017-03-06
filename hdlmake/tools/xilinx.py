@@ -38,18 +38,25 @@ class ToolXilinx(ToolSyn):
 
     CLEAN_TARGETS = {'mrproper': ["*.bit", "*.bin"]}
 
+    _XILINX_RUN = '''
+reset_run {0}
+launch_runs {0}
+wait_on_run {0}
+set result [get_property STATUS [get_runs {0}]]
+set keyword [lindex [split $$result " "] end]
+if {{ $$keyword != "Complete!" }} {{
+    puts "{0} failed"
+    exit 1
+}}'''
+
     TCL_CONTROLS = {'create': 'create_project $(PROJECT) ./',
                     'open': 'open_project $(PROJECT_FILE)',
                     'save': '',
                     'close': 'exit',
-                    'synthesize': 'reset_run synth_1\n'
-                                  'launch_runs synth_1\n'
-                                  'wait_on_run synth_1',
+                    'synthesize': _XILINX_RUN.format("synth_1"),
                     'translate': '',
                     'map': '',
-                    'par': 'reset_run impl_1\n'
-                           'launch_runs impl_1\n'
-                           'wait_on_run impl_1',
+                    'par': _XILINX_RUN.format("impl_1"),
                     'install_source': '$(PROJECT).runs/impl_1/$(SYN_TOP).bit'}
 
     def __init__(self):
