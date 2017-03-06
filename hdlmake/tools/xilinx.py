@@ -66,17 +66,18 @@ class ToolXilinx(ToolSyn):
         syn_grade = self.manifest_dict["syn_grade"]
         syn_package = self.manifest_dict["syn_package"]
         syn_top = self.manifest_dict["syn_top"]
-        syn_properties = self.manifest_dict["syn_properties"]
+        syn_properties = self.manifest_dict.get("syn_properties")
         create_new = []
         create_new.append(self._tcl_controls["create"])
         synthesize_new = []
         par_new = []
-        repo_string = '{' + " ".join(self.repo_list) + '}'
         properties = [
             ['part', syn_device + syn_package + syn_grade, 'current_project'],
             ['target_language', 'VHDL', 'current_project'],
-            ['ip_repo_paths', repo_string, 'current_project'],
             ['top', syn_top, 'get_property srcset [current_run]']]
+        if not self.repo_list == []:
+            repo_string = '{' + " ".join(self.repo_list) + '}'
+            properties.append(['ip_repo_paths', repo_string, 'current_fileset'])
         if not syn_properties is None:
             properties.extend(syn_properties)
         for prop in properties:
