@@ -108,7 +108,6 @@ endif
     def makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
         tcl_string = string.Template("""\
-
 define TCL_CREATE
 ${tcl_create}
 endef
@@ -128,42 +127,21 @@ define TCL_CLOSE
 ${tcl_close}
 endef
 export TCL_CLOSE
-
-define TCL_SYNTHESIZE
-${tcl_synthesize}
-endef
-export TCL_SYNTHESIZE
-
-define TCL_TRANSLATE
-${tcl_translate}
-endef
-export TCL_TRANSLATE
-
-define TCL_MAP
-${tcl_map}
-endef
-export TCL_MAP
-
-define TCL_PAR
-${tcl_par}
-endef
-export TCL_PAR
-
-define TCL_BITSTREAM
-${tcl_bitstream}
-endef
-export TCL_BITSTREAM
 """)
         self.writeln(tcl_string.substitute(
             tcl_create=self._tcl_controls["create"],
             tcl_open=self._tcl_controls["open"],
             tcl_save=self._tcl_controls["save"],
-            tcl_close=self._tcl_controls["close"],
-            tcl_synthesize=self._tcl_controls["synthesize"],
-            tcl_translate=self._tcl_controls["translate"],
-            tcl_map=self._tcl_controls["map"],
-            tcl_par=self._tcl_controls["par"],
-            tcl_bitstream=self._tcl_controls["bitstream"]))
+            tcl_close=self._tcl_controls["close"]))
+        stage_list = ["synthesize", "translate", "map", "par", "bitstream"]
+        for stage in stage_list:
+            if not self._tcl_controls[stage] == "":
+                self.writeln("""\
+define TCL_{1}
+{0}
+endef
+export TCL_{1}
+""".format(self._tcl_controls[stage], stage.upper()))
 
     def makefile_syn_files(self):
         """End stub method to write the synthesis files section"""
@@ -176,6 +154,8 @@ export TCL_BITSTREAM
 
     def makefile_syn_build(self):
         """Generate the synthesis Makefile targets for handling design build"""
+        stage_previous = "project"
+        stage_list = ["synthesize", "translate", "map", "par", "bitstream"]
         self.writeln("""\
 project.tcl:
 \t\techo "$$TCL_CREATE" > $@
@@ -188,112 +168,36 @@ project: project.tcl
 \t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_PROJECT_CMD)
 \t\ttouch $@
-
-synthesize.tcl:
+""") 
+        for stage in stage_list:
+            if not self._tcl_controls[stage] == "":
+                self.writeln("""\
+{0}.tcl:
 \t\techo "$$TCL_OPEN" > $@
-\t\techo "$$TCL_SYNTHESIZE" >> $@
+\t\techo "$$TCL_{2}" >> $@
 \t\techo "$$TCL_SAVE" >> $@
 \t\techo "$$TCL_CLOSE" >> $@
 
-synthesize: project synthesize.tcl
-\t\t$(SYN_PRE_SYNTHESIZE_CMD)
+{0}: {1} {0}.tcl
+\t\t$(SYN_PRE_{2}_CMD)
 \t\t$(TCL_INTERPRETER) $@.tcl
-\t\t$(SYN_POST_SYNTHESIZE_CMD)
+\t\t$(SYN_POST_{2}_CMD)
 \t\ttouch $@
-
-translate.tcl:
-\t\techo "$$TCL_OPEN" > $@
-\t\techo "$$TCL_TRANSLATE" >> $@
-\t\techo "$$TCL_SAVE" >> $@
-\t\techo "$$TCL_CLOSE" >> $@
-
-translate: synthesize translate.tcl
-\t\t$(SYN_PRE_TRANSLATE_CMD)
-\t\t$(TCL_INTERPRETER) $@.tcl
-\t\t$(SYN_POST_TRANSLATE_CMD)
-\t\ttouch $@
-
-map.tcl:
-\t\techo "$$TCL_OPEN" > $@
-\t\techo "$$TCL_MAP" >> $@
-\t\techo "$$TCL_SAVE" >> $@
-\t\techo "$$TCL_CLOSE" >> $@
-
-map: translate map.tcl
-\t\t$(SYN_PRE_MAP_CMD)
-\t\t$(TCL_INTERPRETER) $@.tcl
-\t\t$(SYN_POST_MAP_CMD)
-\t\ttouch $@
-
-par.tcl:
-\t\techo "$$TCL_OPEN" > $@
-\t\techo "$$TCL_PAR" >> $@
-\t\techo "$$TCL_SAVE" >> $@
-\t\techo "$$TCL_CLOSE" >> $@
-
-par: map par.tcl
-\t\t$(SYN_PRE_PAR_CMD)
-\t\t$(TCL_INTERPRETER) $@.tcl
-\t\t$(SYN_POST_PAR_CMD)
-\t\ttouch $@
-
-bitstream.tcl:
-\t\techo "$$TCL_OPEN" > $@
-\t\techo "$$TCL_BITSTREAM" >> $@
-\t\techo "$$TCL_SAVE" >> $@
-\t\techo "$$TCL_CLOSE" >> $@
-
-bitstream: par bitstream.tcl
-\t\t$(SYN_PRE_BITSTREAM_CMD)
-\t\t$(TCL_INTERPRETER) $@.tcl
-\t\t$(SYN_POST_BITSTREAM_CMD)
-\t\ttouch $@
-
-""")
-
+""".format(stage, stage_previous, stage.upper()))
+                stage_previous = stage
 
     def makefile_syn_command(self):
         """Create the Makefile targets for user defined commands"""
-        syn_command = string.Template("""\
-SYN_PRE_PROJECT_CMD := ${syn_pre_cmd}
-SYN_POST_PROJECT_CMD := ${syn_post_cmd}
-SYN_PRE_SYNTHESIZE_CMD := ${syn_pre_synthesize_cmd}
-SYN_POST_SYNTHESIZE_CMD := ${syn_post_synthesize_cmd}
-SYN_PRE_TRANSLATE_CMD := ${syn_pre_translate_cmd}
-SYN_POST_TRANSLATE_CMD := ${syn_post_translate_cmd}
-SYN_PRE_MAP_CMD := ${syn_pre_map_cmd}
-SYN_POST_MAP_CMD := ${syn_post_map_cmd}
-SYN_PRE_PAR_CMD := ${syn_pre_par_cmd}
-SYN_POST_PAR_CMD := ${syn_post_par_cmd}
-SYN_PRE_BITSTREAM_CMD := ${syn_pre_bitstream_cmd}
-SYN_POST_BITSTREAM_CMD := ${syn_post_bitstream_cmd}
-
-""")
-        self.writeln(syn_command.substitute(
-            syn_pre_cmd=self.manifest_dict.get(
-                "syn_pre_cmd", ''),
-            syn_post_cmd=self.manifest_dict.get(
-                "syn_post_cmd", ''),
-            syn_pre_synthesize_cmd=self.manifest_dict.get(
-                "syn_pre_synthesize_cmd", ''),
-            syn_post_synthesize_cmd=self.manifest_dict.get(
-                "syn_post_synthesize_cmd", ''),
-            syn_pre_translate_cmd=self.manifest_dict.get(
-                "syn_pre_translate_cmd", ''),
-            syn_post_translate_cmd=self.manifest_dict.get(
-                "syn_post_translate_cmd", ''),
-            syn_pre_map_cmd=self.manifest_dict.get(
-                "syn_pre_map_cmd", ''),
-            syn_post_map_cmd=self.manifest_dict.get(
-                "syn_post_map_cmd", ''),
-            syn_pre_par_cmd=self.manifest_dict.get(
-                "syn_pre_par_cmd", ''),
-            syn_post_par_cmd=self.manifest_dict.get(
-                "syn_post_par_cmd", ''),
-            syn_pre_bitstream_cmd=self.manifest_dict.get(
-                "syn_pre_bitstream_cmd", ''),
-            syn_post_bitstream_cmd=self.manifest_dict.get(
-                "syn_post_bitstream_cmd", '')))
+        stage_list = ["project", "synthesize", "translate",
+                      "map", "par", "bitstream"]
+        for stage in stage_list:
+            if not self._tcl_controls.get(stage) == "":
+                self.writeln("""\
+SYN_PRE_{0}_CMD := {1}
+SYN_POST_{0}_CMD := {2}
+""".format(stage.upper(),
+           self.manifest_dict.get("syn_pre_" + stage + "_cmd", ''),
+           self.manifest_dict.get("syn_post_" + stage + "_cmd", '')))
 
     def makefile_syn_clean(self):
         """Print the Makefile clean target for synthesis"""

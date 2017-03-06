@@ -128,9 +128,13 @@ class ManifestParser(ConfigParser):
              'default': None,
              'help': "Synthesis properties",
              'type': []},
-            {'name': 'syn_pre_cmd',
+            {'name': 'syn_pre_project_cmd',
              'default': '',
-             'help': "Command to be executed before synthesis: local",
+             'help': "Command to be executed before synthesis: project",
+             'type': ''},
+            {'name': 'syn_post_project_cmd',
+             'default': '',
+             'help': "Command to be executed after synthesis: project",
              'type': ''},
             {'name': 'syn_pre_synthesize_cmd',
              'default': '',
@@ -171,10 +175,6 @@ class ManifestParser(ConfigParser):
             {'name': 'syn_post_bitstream_cmd',
              'default': '',
              'help': "Command to be executed after synthesis: bitstream",
-             'type': ''},
-            {'name': 'syn_post_cmd',
-             'default': '',
-             'help': "Command to be executed after synthesis: local",
              'type': ''}]
         self.add_option_list(syn_options)
         self.add_delimiter()
