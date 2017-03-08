@@ -113,7 +113,6 @@ if {{ $$result == "errors" }} {{
 
     def makefile_syn_tcl(self):
         """Create a Xilinx synthesis project by TCL"""
-        tmp = "{0}set {1} {2}"
         syn_device = self.manifest_dict["syn_device"]
         syn_grade = self.manifest_dict["syn_grade"]
         syn_package = self.manifest_dict["syn_package"]
@@ -126,19 +125,23 @@ if {{ $$result == "errors" }} {{
                     "syn_family is not defined in Manifest.py"
                     " and can not be guessed!")
                 quit(-1)
+        syn_properties = self.manifest_dict.get("syn_properties")
         create_new = []
         create_new.append(self._tcl_controls["create"])
+        tmp = 'project set "{0}" "{1}"'
         properties = [
-            ['project ', 'family', syn_family],
-            ['project ', 'device', syn_device],
-            ['project ', 'package', syn_package],
-            ['project ', 'speed', syn_grade],
-            ['project ', '"Manual Implementation Compile Order"', '"false"'],
-            ['project ', '"Auto Implementation Top"', '"false"'],
-            ['project ', '"Create Binary Configuration File"', '"true"'],
-            ['', 'compile_directory', '.']]
+            ['family', syn_family],
+            ['device', syn_device],
+            ['package', syn_package],
+            ['speed', syn_grade],
+            ['Manual Implementation Compile Order', 'false'],
+            ['Auto Implementation Top', 'false'],
+            ['Create Binary Configuration File', 'true']]
+        if not syn_properties is None:
+            properties.extend(syn_properties)
         for prop in properties:
-            create_new.append(tmp.format(prop[0], prop[1], prop[2]))
+            create_new.append(tmp.format(prop[0], prop[1]))
+        create_new.append('set compile_directory .')
         self._tcl_controls["create"] = "\n".join(create_new)
         super(ToolISE, self).makefile_syn_tcl()
 
