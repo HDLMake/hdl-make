@@ -147,10 +147,17 @@ if {{ $$result == "errors" }} {{
 
     def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
-        hdl = "xfile add {0}"
+        hdl = "  {0}"
         self.writeln("define TCL_FILES")
+        self.writeln("set hdl_files {")
         for file_aux in self.fileset:
             self.writeln(hdl.format(file_aux.rel_path()))
+        self.writeln("}")
+        self.writeln(
+            'foreach filename $$hdl_files {\n'
+            '  xfile add $$filename\n'
+            '  puts "Adding file $$filename to the project."\n'
+            '}')
         self.writeln("project set top $(TOP_MODULE)")
         self.writeln("endef")
         self.writeln("export TCL_FILES")
