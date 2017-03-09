@@ -105,13 +105,15 @@ def _load_syn_tool(modules_pool):
     """Funtion that checks the provided module_pool and generate an
     initialized instance of the the appropriated synthesis tool"""
     from hdlmake.tools import (ToolISE, ToolPlanAhead, ToolVivado,
-                               ToolQuartus, ToolDiamond, ToolLibero)
+                               ToolQuartus, ToolDiamond, ToolLibero,
+                               ToolIcestorm)
     available_tools = {'ise': ToolISE,
                        'planahead':  ToolPlanAhead,
                        'vivado': ToolVivado,
                        'quartus': ToolQuartus,
                        'diamond': ToolDiamond,
-                       'libero': ToolLibero}
+                       'libero': ToolLibero,
+                       'icestorm': ToolIcestorm}
     for mod in modules_pool:
         if 'syn_tool' in mod.manifest_dict:
             tool_name = mod.manifest_dict['syn_tool']

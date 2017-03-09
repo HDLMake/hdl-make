@@ -235,6 +235,9 @@ class LPFFile(File):
     """Lattice Preference/Constraint File"""
     pass
 
+class PCFFile(File):
+    """Icestorm Physical constraints File"""
+    pass
 
 class EDFFile(File):
     """EDIF Netlist Files"""
@@ -247,7 +250,8 @@ LATTICE_FILE_DICT = {
     'edf': EDFFile,
     'edif': EDFFile,
     'edi': EDFFile,
-    'edn': EDFFile}
+    'edn': EDFFile,
+    'pcf': PCFFile}
 
 
 # MICROSEMI/ACTEL FILES
