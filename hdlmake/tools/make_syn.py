@@ -107,41 +107,16 @@ endif
 
     def makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
-        tcl_string = string.Template("""\
-define TCL_CREATE
-${tcl_create}
-endef
-export TCL_CREATE
-
-define TCL_OPEN
-${tcl_open}
-endef
-export TCL_OPEN
-
-define TCL_SAVE
-${tcl_save}
-endef
-export TCL_SAVE
-
-define TCL_CLOSE
-${tcl_close}
-endef
-export TCL_CLOSE
-""")
-        self.writeln(tcl_string.substitute(
-            tcl_create=self._tcl_controls["create"],
-            tcl_open=self._tcl_controls["open"],
-            tcl_save=self._tcl_controls["save"],
-            tcl_close=self._tcl_controls["close"]))
-        stage_list = ["synthesize", "translate", "map", "par", "bitstream"]
-        for stage in stage_list:
-            if not self._tcl_controls[stage] == "":
+        command_list = ["create", "open", "save", "close",
+            "synthesize", "translate", "map", "par", "bitstream"]
+        for command in command_list:
+            if not self._tcl_controls[command] == "":
                 self.writeln("""\
 define TCL_{1}
 {0}
 endef
 export TCL_{1}
-""".format(self._tcl_controls[stage], stage.upper()))
+""".format(self._tcl_controls[command], command.upper()))
 
     def makefile_syn_files(self):
         """End stub method to write the synthesis files section"""
