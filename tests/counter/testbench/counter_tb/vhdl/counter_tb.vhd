@@ -14,6 +14,9 @@ end counter_tb;
 architecture testbench of counter_tb is
 
     component counter
+    generic(
+	    cycles_per_second: integer
+    );
     port(   
 	    clock:	in std_logic;
 	    clear:	in std_logic;
@@ -29,7 +32,9 @@ architecture testbench of counter_tb is
 
 begin
     
-    U_counter: counter port map (t_clock, t_clear, t_count, t_Q);
+    U_counter: counter
+        generic map (cycles_per_second => 500)
+        port map (t_clock, t_clear, t_count, t_Q);
 	
     process				 
     begin

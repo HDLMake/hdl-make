@@ -11,7 +11,7 @@ use ieee.numeric_std.all;
 
 entity counter is
 
-generic (cycles_per_second : unsigned := 12000000);
+generic (cycles_per_second : integer := 12000000);
 
 port(	
     clock:  in std_logic;
