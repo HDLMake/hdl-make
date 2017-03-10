@@ -8,6 +8,8 @@ module counter_tb();
 reg clock, clear, count;
 wire [7:0] Q;
 
+defparam U_counter.cycles_per_second = 500;
+
 // Initialize all variables
 initial begin   
   $dumpfile("counter_tb.vcd");
@@ -21,13 +23,13 @@ initial begin
   #5 clear = 1;    // Assert the clear signal
   #10 clear = 0;   // De-assert clear signal
   #10 count = 1;   // Start count 
-  #2000 count = 0;  // De-assert count enable
+  #10000 count = 0;  // De-assert count enable
   #5 $finish;      // Terminate simulation
 end
 
 // Clock generator
 always begin
-  #5 clock = ~clock; // Toggle clock every 5 ticks
+  #1 clock = ~clock; // Toggle clock every 5 ticks
 end
 
 // Connect DUT to test bench
