@@ -46,6 +46,7 @@ class ToolMakefile(object):
         self._supported_files = []
         self._standard_libs = []
         self.fileset = None
+        self.manifest_dict = {}
         if filename:
             self._filename = filename
         else:
