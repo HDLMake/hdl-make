@@ -45,7 +45,6 @@ class ToolMakefile(object):
         self._hdl_files = []
         self._supported_files = []
         self._standard_libs = []
-        self.repo_list = []
         self.fileset = None
         if filename:
             self._filename = filename

@@ -33,15 +33,7 @@ class ToolSim(ToolMakefile):
     def simulation_makefile(self, pool):
         """Execute the simulation action"""
         pool.check_all_fetched_or_quit()
-        manifest_project_dict = {}
-        for mod in pool:
-            manifest_project_dict.update(mod.manifest_dict)
-            if 'fetchto' in mod.manifest_dict:
-                self.repo_list.append(
-                    os.path.abspath(
-                        os.path.join(
-                            mod.path,
-                            mod.manifest_dict['fetchto'])))
+        manifest_project_dict = pool.get_config_dict()
         _check_simulation_manifest(manifest_project_dict)
         fset = pool.build_file_set(
             manifest_project_dict.get("sim_top"),

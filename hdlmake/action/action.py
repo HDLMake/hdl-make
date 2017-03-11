@@ -131,6 +131,19 @@ class Action(list):
         """Get the Top module from the pool"""
         return self.top_module
 
+    def get_config_dict(self):
+        """Get the combined hierarchical Manifest dictionary from the pool"""
+        config_dict = {}
+        for mod in self:
+            manifest_dict_tmp = mod.manifest_dict
+            if 'fetchto' in manifest_dict_tmp:
+                manifest_dict_tmp['fetchto'] = path_mod.relpath(os.path.join(
+                    mod.path,
+                    mod.manifest_dict['fetchto']))
+            manifest_dict_tmp.update(config_dict)
+            config_dict = manifest_dict_tmp
+        return config_dict
+
     def _add(self, new_module):
         """Add the given new module if this is not already in the pool"""
         from hdlmake.module import Module

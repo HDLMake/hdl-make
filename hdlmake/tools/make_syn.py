@@ -42,15 +42,7 @@ class ToolSyn(ToolMakefile):
     def synthesis_project(self, pool):
         """Generate a project for the specific synthesis tool"""
         pool.check_all_fetched_or_quit()
-        manifest_project_dict = {}
-        for mod in pool:
-            manifest_project_dict.update(mod.manifest_dict)
-            if 'fetchto' in mod.manifest_dict:
-                self.repo_list.append(
-                    os.path.abspath(
-                        os.path.join(
-                            mod.path,
-                            mod.manifest_dict['fetchto'])))
+        manifest_project_dict = pool.get_config_dict()
         _check_synthesis_manifest(manifest_project_dict)
         top_module = pool.get_top_module()
         fileset = pool.build_file_set(

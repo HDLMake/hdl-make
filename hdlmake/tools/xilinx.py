@@ -82,9 +82,9 @@ if {{ $$keyword != "Complete!" }} {{
             ['part', syn_device + syn_package + syn_grade, 'current_project'],
             ['target_language', 'VHDL', 'current_project'],
             ['top', syn_top, 'get_property srcset [current_run]']]
-        if not self.repo_list == []:
-            repo_string = '{' + " ".join(self.repo_list) + '}'
-            properties.append(['ip_repo_paths', repo_string, 'current_fileset'])
+        fetchto = self.manifest_dict.get("fetchto")
+        if not fetchto is None:
+            properties.append(['ip_repo_paths', fetchto, 'current_fileset'])
         if not syn_properties is None:
             properties.extend(syn_properties)
         for prop in properties:
