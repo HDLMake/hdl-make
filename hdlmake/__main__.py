@@ -233,11 +233,10 @@ def _get_parser():
         help="generate synthesis makefile")
     subparsers.add_parser(
         "fetch",
-        help="fetch and/or update remote modules listed in Manifest")
+        help="fetch and/or update all of the remote modules")
     subparsers.add_parser(
         "clean",
-        help="remove all modules fetched for direct and indirect "
-             "children of this module")
+        help="clean all of the already fetched remote modules")
     listmod = subparsers.add_parser(
         "list-mods",
         help="List all modules together with their files")
@@ -255,7 +254,7 @@ def _get_parser():
         dest="terse")
     listfiles = subparsers.add_parser(
         "list-files",
-        help="List all files in a form of a space-separated string")
+        help="List all of the files in the design hierarchy")
     listfiles.add_argument(
         "--delimiter",
         help="set delimitier for the list of files",
