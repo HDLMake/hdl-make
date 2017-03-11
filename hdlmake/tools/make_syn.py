@@ -44,7 +44,6 @@ class ToolSyn(ToolMakefile):
         pool.check_all_fetched_or_quit()
         manifest_project_dict = pool.get_config_dict()
         _check_synthesis_manifest(manifest_project_dict)
-        top_module = pool.get_top_module()
         fileset = pool.build_file_set(
             manifest_project_dict["syn_top"],
             standard_libs=self._standard_libs)
@@ -135,7 +134,7 @@ project: project.tcl
 \t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_PROJECT_CMD)
 \t\ttouch $@
-""") 
+""")
         for stage in stage_list:
             if not self._tcl_controls[stage] == "":
                 self.writeln("""\
