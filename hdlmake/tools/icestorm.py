@@ -24,6 +24,8 @@
 
 
 from __future__ import absolute_import
+
+import logging
 from .make_syn import ToolSyn
 from hdlmake.srcfile import VerilogFile, PCFFile
 
@@ -81,7 +83,7 @@ class ToolIcestorm(ToolSyn):
         ret.append("yosys -import")
         # First stage: linking files
         for file_aux in self.fileset:
-            if (isinstance(file_aux, VerilogFile)):
+            if isinstance(file_aux, VerilogFile):
                 ret.append('read_verilog {0}'.format(file_aux.rel_path()))
         ret.append("synth_ice40 -top {0} -blif {1}.blif".format(
             self.manifest_dict["syn_top"],
@@ -93,12 +95,10 @@ class ToolIcestorm(ToolSyn):
     def makefile_syn_tcl(self):
         """Create an IceStorm synthesis project by TCL"""
         syn_device = self.manifest_dict["syn_device"]
-        syn_grade = self.manifest_dict["syn_grade"]
         syn_package = self.manifest_dict["syn_package"]
-        syn_properties = self.manifest_dict.get("syn_properties")
         constraints_file = None
         for file_aux in self.fileset:
-            if (isinstance(file_aux, PCFFile)):
+            if isinstance(file_aux, PCFFile):
                 constraints_file = file_aux.rel_path()
         if constraints_file == None:
             logging.error("No Arachne-pnr constraints file found!")
