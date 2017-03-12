@@ -39,6 +39,8 @@ class ToolXilinx(ToolSyn):
     CLEAN_TARGETS = {'mrproper': ["*.bit", "*.bin"]}
 
     _XILINX_RUN = '''\
+$(TCL_OPEN)
+{1}
 reset_run {0}
 launch_runs {0}
 wait_on_run {0}
@@ -47,16 +49,20 @@ set keyword [lindex [split $$result " "] end]
 if {{ $$keyword != "Complete!" }} {{
     puts "{0} failed"
     exit 1
-}}'''
+}}
+$(TCL_CLOSE)'''
 
     TCL_CONTROLS = {'create': 'create_project $(PROJECT) ./',
                     'open': 'open_project $(PROJECT_FILE)',
-                    'save': '',
                     'close': 'exit',
-                    'synthesize': _XILINX_RUN.format("synth_1"),
-                    'translate': '',
-                    'map': '',
-                    'par': _XILINX_RUN.format("impl_1"),
+                    'project': '$(TCL_CREATE)\n'
+                               '{0}\n'
+                               '$(TCL_FILES)\n'
+                               'update_compile_order -fileset sources_1\n'
+                               'update_compile_order -fileset sim_1\n'
+                               '$(TCL_CLOSE)',
+                    'synthesize': _XILINX_RUN,
+                    'par': _XILINX_RUN,
                     'install_source': '$(PROJECT).runs/impl_1/$(SYN_TOP).bit'}
 
     def __init__(self):
@@ -74,8 +80,7 @@ if {{ $$keyword != "Complete!" }} {{
         syn_package = self.manifest_dict["syn_package"]
         syn_top = self.manifest_dict["syn_top"]
         syn_properties = self.manifest_dict.get("syn_properties")
-        create_new = []
-        create_new.append(self._tcl_controls["create"])
+        project_new = []
         synthesize_new = []
         par_new = []
         properties = [
@@ -106,17 +111,24 @@ if {{ $$keyword != "Complete!" }} {{
                             par_new.append(tmp.format(
                                 prop[0], prop[1], 'get_runs impl_1'))
                     else:
-                        create_new.append(tmp.format(
+                        project_new.append(tmp.format(
                             prop[0], prop[1], 'current_project'))
                 elif len(prop) == 3:
-                    create_new.append(tmp.format(prop[0], prop[1], prop[2]))
+                    project_new.append(tmp.format(prop[0], prop[1], prop[2]))
                 else:
                     logging.error('Unknown project property: %s', prop[0])
-        synthesize_new.append(self._tcl_controls["synthesize"])
-        par_new.append(self._tcl_controls["par"])
-        self._tcl_controls["create"] = "\n".join(create_new)
-        self._tcl_controls["synthesize"] = "\n".join(synthesize_new)
-        self._tcl_controls["par"] = "\n".join(par_new)
+        tmp_dict = {}
+        tmp_dict["project"] = self._tcl_controls["project"]
+        tmp_dict["synthesize"] = self._tcl_controls["synthesize"]
+        tmp_dict["par"] = self._tcl_controls["par"]
+        self._tcl_controls["project"] = tmp_dict["project"].format(
+            "\n".join(project_new))
+        self._tcl_controls["synthesize"] = tmp_dict["synthesize"].format(
+            "synth_1",
+            "\n".join(synthesize_new))
+        self._tcl_controls["par"] = tmp_dict["par"].format(
+            "impl_1",
+            "\n".join(par_new))
         super(ToolXilinx, self).makefile_syn_tcl()
 
     def makefile_syn_files(self):
@@ -131,7 +143,5 @@ if {{ $$keyword != "Complete!" }} {{
             else:
                 self.writeln(tmp.format(file_aux.rel_path()))
                 self.writeln(hack.format(file_aux.rel_path()))
-        self.writeln('update_compile_order -fileset sources_1')
-        self.writeln('update_compile_order -fileset sim_1')
         self.writeln("endef")
         self.writeln("export TCL_FILES")

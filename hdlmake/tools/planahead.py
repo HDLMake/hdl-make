@@ -48,8 +48,10 @@ class ToolPlanAhead(ToolXilinx):
                                ".Xil", "$(PROJECT).cache", "$(PROJECT).data",
                                " $(PROJECT).runs", "$(PROJECT).ppr"]}
 
-    TCL_CONTROLS = {'bitstream': 'launch_runs impl_1 -to_step Bitgen\n'
-                                 'wait_on_run impl_1'}
+    TCL_CONTROLS = {'bitstream': '$(TCL_OPEN)\n'
+                                 'launch_runs impl_1 -to_step Bitgen\n'
+                                 'wait_on_run impl_1\n'
+                                 '$(TCL_CLOSE)'}
 
     def __init__(self):
         super(ToolPlanAhead, self).__init__()
