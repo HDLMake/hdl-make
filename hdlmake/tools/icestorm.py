@@ -51,13 +51,13 @@ class ToolIcestorm(ToolSyn):
                      'mrproper': ["$(PROJECT).bin"]}
 
     TCL_CONTROLS = {
-        'create': '',
-        'open': '',
-        'save': '',
-        'close': '',
-        'synthesize': '',
-        'translate': '',
-        'map': '',
+        'synthesize': 'yosys -import\n' +
+                      '$(TCL_FILES)\n' +
+                      'foreach filename $$hdl_files {\n' +
+                      '  read_verilog $$filename\n' +
+                      '  puts "Adding file $$filename to the project."\n' +
+                      '}\n' +
+                      'synth_ice40 -top $(TOP_MODULE) -blif $(PROJECT).blif',
         'par': 'catch {{exec arachne-pnr' +
                ' -d {0}' +
                ' -P {1}' +
@@ -80,14 +80,11 @@ class ToolIcestorm(ToolSyn):
         """Write the files TCL section of the Makefile"""
         ret = []
         ret.append("define TCL_FILES")
-        ret.append("yosys -import")
-        # First stage: linking files
+        ret.append("set hdl_files {")
         for file_aux in self.fileset:
             if isinstance(file_aux, VerilogFile):
-                ret.append('read_verilog {0}'.format(file_aux.rel_path()))
-        ret.append("synth_ice40 -top {0} -blif {1}.blif".format(
-            self.manifest_dict["syn_top"],
-            self.manifest_dict["syn_project"]))
+                ret.append("  {0}".format(file_aux.rel_path()))
+        ret.append("}")
         ret.append("endef")
         ret.append("export TCL_FILES")
         self.writeln('\n'.join(ret))
@@ -103,8 +100,8 @@ class ToolIcestorm(ToolSyn):
         if constraints_file == None:
             logging.error("No Arachne-pnr constraints file found!")
             quit()
-        tmp = self._tcl_controls["par"]
-        self._tcl_controls["par"] = tmp.format(
+        par_tmp = self._tcl_controls["par"]
+        self._tcl_controls["par"] = par_tmp.format(
             syn_device, syn_package, constraints_file)
         super(ToolIcestorm, self).makefile_syn_tcl()
 
