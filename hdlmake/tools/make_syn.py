@@ -117,21 +117,22 @@ export TCL_{1}
         fileset_dict.update(self._hdl_files)
         fileset_dict.update(self._supported_files)
         for filetype in fileset_dict:
-            file_list = []
-            for file_aux in self.fileset:
-                if isinstance(file_aux, filetype):
-                    file_list.append(file_aux.rel_path())
-            if not file_list == []:
-                ret.append(
-                   'set {0} {{\n'
-                   '{1}\n'
-                   '}}\n'
-                   'foreach filename $${0} {{\n'
-                   '  {2}\n'
-                   '  puts "Adding {0} file $$filename to the project."\n'
-                   '}}'.format(filetype.__name__,
-                               '\n'.join(file_list),
-                               fileset_dict[filetype]))
+            if not fileset_dict[filetype] == None:
+                file_list = []
+                for file_aux in self.fileset:
+                    if isinstance(file_aux, filetype):
+                        file_list.append(file_aux.rel_path())
+                if not file_list == []:
+                    ret.append(
+                       'set {0} {{\n'
+                       '{1}\n'
+                       '}}\n'
+                       'foreach filename $${0} {{\n'
+                       '  {2}\n'
+                       '  puts "Adding {0} file $$filename to the project."\n'
+                       '}}'.format(filetype.__name__,
+                                   '\n'.join(file_list),
+                                   fileset_dict[filetype]))
         ret.append("endef")
         ret.append("export TCL_FILES")
         self.writeln('\n'.join(ret))
