@@ -61,9 +61,15 @@ class ToolISE(ToolSyn):
     STANDARD_LIBS = ['ieee', 'ieee_proposed', 'iSE', 'simprims', 'std',
                      'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
 
-    SUPPORTED_FILES = [UCFFile, CDCFile, NGCFile]
+    SUPPORTED_FILES = {
+        UCFFile: 'xfile add $$filename',
+        CDCFile: 'xfile add $$filename',
+        NGCFile: 'xfile add $$filename'}
 
-    HDL_FILES = [VHDLFile, VerilogFile, SVFile]
+    HDL_FILES = {
+        VHDLFile: 'xfile add $$filename',
+        VerilogFile: 'xfile add $$filename',
+        SVFile: 'xfile add $$filename'}
 
     CLEAN_TARGETS = {'clean': ["xst xlnx_auto_*_xdb", "iseconfig _xmsgs",
                                "_ngo", "*.b", "*_summary.html", "*.tcl",
@@ -101,10 +107,6 @@ $(TCL_CLOSE)'''
         'close': 'project close',
         'project': '$(TCL_CREATE)\n'
                    '$(TCL_FILES)\n'
-                   'foreach filename $$hdl_files {{\n'
-                   '  xfile add $$filename\n'
-                   '  puts "Adding file $$filename to the project."\n'
-                   '}}\n'
                    '{0}\n'
                    'project set top $(TOP_MODULE)\n'
                    '$(TCL_SAVE)\n'
@@ -119,8 +121,8 @@ $(TCL_CLOSE)'''
     def __init__(self):
         super(ToolISE, self).__init__()
         self._tool_info.update(ToolISE.TOOL_INFO)
-        self._hdl_files.extend(ToolISE.HDL_FILES)
-        self._supported_files.extend(ToolISE.SUPPORTED_FILES)
+        self._hdl_files.update(ToolISE.HDL_FILES)
+        self._supported_files.update(ToolISE.SUPPORTED_FILES)
         self._standard_libs.extend(ToolISE.STANDARD_LIBS)
         self._clean_targets.update(ToolISE.CLEAN_TARGETS)
         self._tcl_controls.update(ToolISE.TCL_CONTROLS)
@@ -159,14 +161,3 @@ $(TCL_CLOSE)'''
         self._tcl_controls["project"] = project_tcl.format(
             "\n".join(project_new))
         super(ToolISE, self).makefile_syn_tcl()
-
-    def makefile_syn_files(self):
-        """Write the files TCL section of the Makefile"""
-        hdl = "  {0}"
-        self.writeln("define TCL_FILES")
-        self.writeln("set hdl_files {")
-        for file_aux in self.fileset:
-            self.writeln(hdl.format(file_aux.rel_path()))
-        self.writeln("}")
-        self.writeln("endef")
-        self.writeln("export TCL_FILES")
