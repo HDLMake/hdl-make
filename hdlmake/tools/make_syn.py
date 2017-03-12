@@ -99,9 +99,9 @@ endif
     def makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
         command_list = ["create", "open", "save", "close",
-            "synthesize", "translate", "map", "par", "bitstream"]
+            "project", "synthesize", "translate", "map", "par", "bitstream"]
         for command in command_list:
-            if not self._tcl_controls[command] == "":
+            if command in self._tcl_controls:
                 self.writeln("""\
 define TCL_{1}
 {0}
@@ -120,29 +120,14 @@ export TCL_{1}
 
     def makefile_syn_build(self):
         """Generate the synthesis Makefile targets for handling design build"""
-        stage_previous = "project"
-        stage_list = ["synthesize", "translate", "map", "par", "bitstream"]
-        self.writeln("""\
-project.tcl:
-\t\techo "$$TCL_CREATE" > $@
-\t\techo "$$TCL_FILES" >> $@
-\t\techo "$$TCL_SAVE" >> $@
-\t\techo "$$TCL_CLOSE" >> $@
-
-project: project.tcl
-\t\t$(SYN_PRE_PROJECT_CMD)
-\t\t$(TCL_INTERPRETER) $@.tcl
-\t\t$(SYN_POST_PROJECT_CMD)
-\t\ttouch $@
-""")
+        stage_previous = ""
+        stage_list = ["project", "synthesize", "translate",
+                      "map", "par", "bitstream"]
         for stage in stage_list:
-            if not self._tcl_controls[stage] == "":
+            if stage in self._tcl_controls:
                 self.writeln("""\
 {0}.tcl:
-\t\techo "$$TCL_OPEN" > $@
-\t\techo "$$TCL_{2}" >> $@
-\t\techo "$$TCL_SAVE" >> $@
-\t\techo "$$TCL_CLOSE" >> $@
+\t\techo "$$TCL_{2}" > $@
 
 {0}: {1} {0}.tcl
 \t\t$(SYN_PRE_{2}_CMD)
@@ -157,7 +142,7 @@ project: project.tcl
         stage_list = ["project", "synthesize", "translate",
                       "map", "par", "bitstream"]
         for stage in stage_list:
-            if not self._tcl_controls.get(stage) == "":
+            if stage in self._tcl_controls:
                 self.writeln("""\
 SYN_PRE_{0}_CMD := {1}
 SYN_POST_{0}_CMD := {2}
