@@ -43,9 +43,9 @@ class ToolIcestorm(ToolSyn):
 
     STANDARD_LIBS = []
 
-    SUPPORTED_FILES = [PCFFile]
+    SUPPORTED_FILES = {PCFFile: None}
 
-    HDL_FILES = [VerilogFile]
+    HDL_FILES = {VerilogFile: 'read_verilog $$filename'}
 
     CLEAN_TARGETS = {'clean': ["$(PROJECT).asc", "$(PROJECT).blif"],
                      'mrproper': ["$(PROJECT).bin"]}
@@ -53,10 +53,6 @@ class ToolIcestorm(ToolSyn):
     TCL_CONTROLS = {
         'synthesize': 'yosys -import\n' +
                       '$(TCL_FILES)\n' +
-                      'foreach filename $$hdl_files {\n' +
-                      '  read_verilog $$filename\n' +
-                      '  puts "Adding file $$filename to the project."\n' +
-                      '}\n' +
                       'synth_ice40 -top $(TOP_MODULE) -blif $(PROJECT).blif',
         'par': 'catch {{exec arachne-pnr' +
                ' -d {0}' +
@@ -70,24 +66,11 @@ class ToolIcestorm(ToolSyn):
     def __init__(self):
         super(ToolIcestorm, self).__init__()
         self._tool_info.update(ToolIcestorm.TOOL_INFO)
-        self._hdl_files.extend(ToolIcestorm.HDL_FILES)
-        self._supported_files.extend(ToolIcestorm.SUPPORTED_FILES)
+        self._hdl_files.update(ToolIcestorm.HDL_FILES)
+        self._supported_files.update(ToolIcestorm.SUPPORTED_FILES)
         self._standard_libs.extend(ToolIcestorm.STANDARD_LIBS)
         self._clean_targets.update(ToolIcestorm.CLEAN_TARGETS)
         self._tcl_controls.update(ToolIcestorm.TCL_CONTROLS)
-
-    def makefile_syn_files(self):
-        """Write the files TCL section of the Makefile"""
-        ret = []
-        ret.append("define TCL_FILES")
-        ret.append("set hdl_files {")
-        for file_aux in self.fileset:
-            if isinstance(file_aux, VerilogFile):
-                ret.append("  {0}".format(file_aux.rel_path()))
-        ret.append("}")
-        ret.append("endef")
-        ret.append("export TCL_FILES")
-        self.writeln('\n'.join(ret))
 
     def makefile_syn_tcl(self):
         """Create an IceStorm synthesis project by TCL"""

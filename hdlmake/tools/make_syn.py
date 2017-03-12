@@ -110,8 +110,28 @@ export TCL_{1}
 """.format(self._tcl_controls[command], command.upper()))
 
     def makefile_syn_files(self):
-        """End stub method to write the synthesis files section"""
-        pass
+        """Write the files TCL section of the Makefile"""
+        ret = []
+        ret.append("define TCL_FILES")
+        for hdl_filetype in self._hdl_files:
+            file_list = []
+            for file_aux in self.fileset:
+                if isinstance(file_aux, hdl_filetype):
+                    file_list.append(file_aux.rel_path())
+            if not file_list == []:
+                ret.append(
+                   'set {0} {{\n'
+                   '{1}\n'
+                   '}}\n'
+                   'foreach filename $${0} {{\n'
+                   '  {2}\n'
+                   '  puts "Adding {0} file $$filename to the project."\n'
+                   '}}'.format(hdl_filetype.__name__,
+                               '\n'.join(file_list),
+                               self._hdl_files[hdl_filetype]))
+        ret.append("endef")
+        ret.append("export TCL_FILES")
+        self.writeln('\n'.join(ret))
 
     def makefile_syn_local(self):
         """Generic method to write the synthesis Makefile local target"""

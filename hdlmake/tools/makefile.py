@@ -42,8 +42,8 @@ class ToolMakefile(object):
         self._tool_info = {}
         self._clean_targets = {}
         self._tcl_controls = {}
-        self._hdl_files = []
-        self._supported_files = []
+        self._hdl_files = {}
+        self._supported_files = {}
         self._standard_libs = []
         self.fileset = None
         self.manifest_dict = {}
