@@ -82,25 +82,39 @@ class ToolISE(ToolSyn):
                                "par_usage_statistics.html", "webtalk_pn.xml"],
                      'mrproper': ["*.bit", "*.bin", "*.mcs"]}
 
-    _ISE_RUN = '''
+    _ISE_RUN = '''\
+$(TCL_OPEN)
 set process {{{0}}}
 process run $$process
 set result [process get $$process status]
 if {{ $$result == "errors" }} {{
     puts "$$process failed"
     exit 1
-}}'''
+}}
+$(TCL_SAVE)
+$(TCL_CLOSE)'''
 
-    TCL_CONTROLS = {'create': 'project new $(PROJECT_FILE)',
-                    'open': 'project open $(PROJECT_FILE)',
-                    'save': 'project save',
-                    'close': 'project close',
-                    'synthesize': _ISE_RUN.format('Synthesize - XST'),
-                    'translate': _ISE_RUN.format('Translate'),
-                    'map': _ISE_RUN.format('Map'),
-                    'par': _ISE_RUN.format('Place & Route'),
-                    'bitstream': _ISE_RUN.format('Generate Programming File'),
-                    'install_source': '*.bit *.bin'}
+    TCL_CONTROLS = {
+        'create': 'project new $(PROJECT_FILE)',
+        'open': 'project open $(PROJECT_FILE)',
+        'save': 'project save',
+        'close': 'project close',
+        'project': '$(TCL_CREATE)\n'
+                   '$(TCL_FILES)\n'
+                   'foreach filename $$hdl_files {{\n'
+                   '  xfile add $$filename\n'
+                   '  puts "Adding file $$filename to the project."\n'
+                   '}}\n'
+                   '{0}\n'
+                   'project set top $(TOP_MODULE)\n'
+                   '$(TCL_SAVE)\n'
+                   '$(TCL_CLOSE)',
+        'synthesize': _ISE_RUN.format('Synthesize - XST'),
+        'translate': _ISE_RUN.format('Translate'),
+        'map': _ISE_RUN.format('Map'),
+        'par': _ISE_RUN.format('Place & Route'),
+        'bitstream': _ISE_RUN.format('Generate Programming File'),
+        'install_source': '*.bit *.bin'}
 
     def __init__(self):
         super(ToolISE, self).__init__()
@@ -126,8 +140,8 @@ if {{ $$result == "errors" }} {{
                     " and can not be guessed!")
                 quit(-1)
         syn_properties = self.manifest_dict.get("syn_properties")
-        create_new = []
-        create_new.append(self._tcl_controls["create"])
+        project_new = []
+        project_tcl = self._tcl_controls["project"]
         tmp = 'project set "{0}" "{1}"'
         properties = [
             ['family', syn_family],
@@ -140,9 +154,10 @@ if {{ $$result == "errors" }} {{
         if not syn_properties is None:
             properties.extend(syn_properties)
         for prop in properties:
-            create_new.append(tmp.format(prop[0], prop[1]))
-        create_new.append('set compile_directory .')
-        self._tcl_controls["create"] = "\n".join(create_new)
+            project_new.append(tmp.format(prop[0], prop[1]))
+        project_new.append('set compile_directory .')
+        self._tcl_controls["project"] = project_tcl.format(
+            "\n".join(project_new))
         super(ToolISE, self).makefile_syn_tcl()
 
     def makefile_syn_files(self):
@@ -153,11 +168,5 @@ if {{ $$result == "errors" }} {{
         for file_aux in self.fileset:
             self.writeln(hdl.format(file_aux.rel_path()))
         self.writeln("}")
-        self.writeln(
-            'foreach filename $$hdl_files {\n'
-            '  xfile add $$filename\n'
-            '  puts "Adding file $$filename to the project."\n'
-            '}')
-        self.writeln("project set top $(TOP_MODULE)")
         self.writeln("endef")
         self.writeln("export TCL_FILES")
