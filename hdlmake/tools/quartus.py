@@ -60,17 +60,14 @@ class ToolQuartus(ToolSyn):
                      'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
                                   "*.ekp", "*.jic"]}
 
-    TCL_CONTROLS = {'create': 'load_package flow\\n'
+    TCL_CONTROLS = {'create': 'load_package flow\n'
                               'project_new $(PROJECT)',
-                    'open': 'load_package flow\\n'
+                    'open': 'load_package flow\n'
                             'project_open $(PROJECT)',
-                    'save': '',
-                    'close': '',
-                    'synthesize': '',
-                    'translate': '',
-                    'map': '',
-                    'par': '',
-                    'bitstream': 'execute_flow -compile',
+                    'project': '$(TCL_CREATE)\n'
+                               '$(TCL_FILES)',
+                    'bitstream': '$(TCL_OPEN)\n'
+                                 'execute_flow -compile',
                     'install_source': ''}
 
     SET_GLOBAL_INSTANCE = 0
@@ -154,7 +151,7 @@ class ToolQuartus(ToolSyn):
             self.manifest_dict["syn_package"] +
             self.manifest_dict["syn_grade"]).upper()
         command_list = []
-        command_list.append(self._tcl_controls["create"])
+        command_list.append(self._tcl_controls["project"])
         command_list.append(_emit_property(
             self.SET_GLOBAL_ASSIGNMENT,
             name_type='FAMILY',
@@ -205,7 +202,7 @@ class ToolQuartus(ToolSyn):
             command_list.append(_emit_property(self.SET_GLOBAL_ASSIGNMENT,
                                 name_type='POST_FLOW_SCRIPT_FILE',
                                 name=postflow))
-        self._tcl_controls["create"] = '\n'.join(command_list)
+        self._tcl_controls["project"] = '\n'.join(command_list)
         super(ToolQuartus, self).makefile_syn_tcl()
 
     def makefile_syn_files(self):
