@@ -46,9 +46,19 @@ class ToolVivado(ToolXilinx, ToolSim):
 
     STANDARD_LIBS = ['ieee', 'std']
 
-    SUPPORTED_FILES = [XDCFile, XCIFile, NGCFile, XMPFile,
-                       XCOFile, COEFile, BDFile, TCLFile,
-                       MIFFile, RAMFile, VHOFile, VEOFile]
+    SUPPORTED_FILES = {
+         XDCFile: ToolXilinx._XILINX_SOURCE,
+         XCIFile: ToolXilinx._XILINX_SOURCE,
+         NGCFile: ToolXilinx._XILINX_SOURCE,
+         XMPFile: ToolXilinx._XILINX_SOURCE,
+         XCOFile: ToolXilinx._XILINX_SOURCE,
+         COEFile: ToolXilinx._XILINX_SOURCE,
+         BDFile: ToolXilinx._XILINX_SOURCE,
+         TCLFile: ToolXilinx._XILINX_SOURCE,
+         MIFFile: ToolXilinx._XILINX_SOURCE,
+         RAMFile: ToolXilinx._XILINX_SOURCE,
+         VHOFile: ToolXilinx._XILINX_SOURCE,
+         VEOFile: ToolXilinx._XILINX_SOURCE}
 
     CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
@@ -70,7 +80,7 @@ class ToolVivado(ToolXilinx, ToolSim):
     def __init__(self):
         super(ToolVivado, self).__init__()
         self._tool_info.update(ToolVivado.TOOL_INFO)
-        self._supported_files.extend(ToolVivado.SUPPORTED_FILES)
+        self._supported_files.update(ToolVivado.SUPPORTED_FILES)
         self._standard_libs.extend(ToolVivado.STANDARD_LIBS)
         self._clean_targets.update(ToolVivado.CLEAN_TARGETS)
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)

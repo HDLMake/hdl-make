@@ -34,7 +34,15 @@ class ToolXilinx(ToolSyn):
 
     """Class providing the interface for Xilinx Vivado synthesis"""
 
-    HDL_FILES = [VHDLFile, VerilogFile, SVFile]
+    _XILINX_SOURCE = ("add_files -norecurse $$filename\n"
+                     "set_property IS_GLOBAL_INCLUDE 1 [get_files $$filename]")
+
+    HDL_FILES = {
+        VHDLFile: _XILINX_SOURCE,
+        VerilogFile: _XILINX_SOURCE,
+        SVFile: _XILINX_SOURCE}
+
+    SUPPORTED_FILES = {TCLFile: 'source $$filename'}
 
     CLEAN_TARGETS = {'mrproper': ["*.bit", "*.bin"]}
 
@@ -67,7 +75,8 @@ $(TCL_CLOSE)'''
 
     def __init__(self):
         super(ToolXilinx, self).__init__()
-        self._hdl_files.extend(ToolXilinx.HDL_FILES)
+        self._hdl_files.update(ToolXilinx.HDL_FILES)
+        self._supported_files.update(ToolXilinx.SUPPORTED_FILES)
         self._clean_targets.update(ToolXilinx.CLEAN_TARGETS)
         self._tcl_controls.update(ToolXilinx.TCL_CONTROLS)
 
@@ -130,18 +139,3 @@ $(TCL_CLOSE)'''
             "impl_1",
             "\n".join(par_new))
         super(ToolXilinx, self).makefile_syn_tcl()
-
-    def makefile_syn_files(self):
-        """Write the files TCL section of the Makefile"""
-        self.writeln("define TCL_FILES")
-        tmp = "add_files -norecurse {0}"
-        tcl = "source {0}"
-        hack = "set_property IS_GLOBAL_INCLUDE 1 [get_files {0}]"
-        for file_aux in self.fileset:
-            if isinstance(file_aux, TCLFile):
-                self.writeln(tcl.format(file_aux.rel_path()))
-            else:
-                self.writeln(tmp.format(file_aux.rel_path()))
-                self.writeln(hack.format(file_aux.rel_path()))
-        self.writeln("endef")
-        self.writeln("export TCL_FILES")
