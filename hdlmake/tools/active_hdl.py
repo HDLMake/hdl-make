@@ -34,13 +34,13 @@ class ToolActiveHDL(ToolSim):
 
     TOOL_INFO = {
         'name': 'Aldec Active-HDL',
-        'id': 'aldec',
+        'id': 'active_hdl',
         'windows_bin': 'vsimsa',
         'linux_bin': None}
 
     STANDARD_LIBS = ['ieee', 'std']
 
-    HDL_FILES = [VHDLFile, VerilogFile, SVFile]
+    HDL_FILES = {VHDLFile: None, VerilogFile: None, SVFile: None}
 
     CLEAN_TARGETS = {'clean': ["run.command", "library.cfg", "work"],
                      'mrproper': ["*.vcd", "*.asdb"]}
@@ -48,7 +48,7 @@ class ToolActiveHDL(ToolSim):
     def __init__(self):
         super(ToolActiveHDL, self).__init__()
         self._tool_info.update(ToolActiveHDL.TOOL_INFO)
-        self._hdl_files.extend(ToolActiveHDL.HDL_FILES)
+        self._hdl_files.update(ToolActiveHDL.HDL_FILES)
         self._standard_libs.extend(ToolActiveHDL.STANDARD_LIBS)
         self._clean_targets.update(ToolActiveHDL.CLEAN_TARGETS)
 
