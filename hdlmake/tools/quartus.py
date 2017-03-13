@@ -48,10 +48,27 @@ class ToolQuartus(ToolSyn):
 
     STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
-    SUPPORTED_FILES = [SignalTapFile, SDCFile, QIPFile, QSYSFile, DPFFile,
-                       QSFFile, BSFFile, BDFFile, TDFFile, GDFFile]
+    _QUARTUS_SOURCE = 'set_global_assignment -name {0} $$filename'
 
-    HDL_FILES = [VHDLFile, VerilogFile, SVFile]
+    SUPPORTED_FILES = {
+        SignalTapFile: _QUARTUS_SOURCE.format('SIGNALTAP_FILE'),
+        SDCFile: _QUARTUS_SOURCE.format('SDC_FILE'),
+        QIPFile: _QUARTUS_SOURCE.format('QIP_FILE'), 
+        QSYSFile: _QUARTUS_SOURCE.format('QSYS_FILE'),
+        DPFFile: _QUARTUS_SOURCE.format('MISC_FILE'),
+        QSFFile: _QUARTUS_SOURCE.format('SOURCE_TCL_SCRIPT_FILE'),
+        BSFFile: _QUARTUS_SOURCE.format('BSF_FILE'),
+        BDFFile: _QUARTUS_SOURCE.format('BDF_FILE'),
+        TDFFile: _QUARTUS_SOURCE.format('AHDL_FILE'),
+        GDFFile: _QUARTUS_SOURCE.format('GDF_FILE')}
+
+    ## TODO: the work library should be read from Manifest.py hierarchy
+    _QUARTUS_LIBRARY = " -library {0}".format('work')
+
+    HDL_FILES = {
+        VHDLFile: _QUARTUS_SOURCE.format('VHDL_FILE') + _QUARTUS_LIBRARY,
+        VerilogFile: _QUARTUS_SOURCE.format('SYSTEMVERILOG_FILE') + _QUARTUS_LIBRARY,
+        SVFile: _QUARTUS_SOURCE.format('VERILOG_FILE') + _QUARTUS_LIBRARY}
 
     CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "run.tcl", "*.summary",
                                "*.done", "*.jdi", "*.pin", "*.qws",
@@ -83,8 +100,8 @@ class ToolQuartus(ToolSyn):
     def __init__(self):
         super(ToolQuartus, self).__init__()
         self._tool_info.update(ToolQuartus.TOOL_INFO)
-        self._hdl_files.extend(ToolQuartus.HDL_FILES)
-        self._supported_files.extend(ToolQuartus.SUPPORTED_FILES)
+        self._hdl_files.update(ToolQuartus.HDL_FILES)
+        self._supported_files.update(ToolQuartus.SUPPORTED_FILES)
         self._standard_libs.extend(ToolQuartus.STANDARD_LIBS)
         self._clean_targets.update(ToolQuartus.CLEAN_TARGETS)
         self._tcl_controls.update(ToolQuartus.TCL_CONTROLS)
@@ -204,48 +221,3 @@ class ToolQuartus(ToolSyn):
                                 name=postflow))
         self._tcl_controls["project"] = '\n'.join(command_list)
         super(ToolQuartus, self).makefile_syn_tcl()
-
-    def makefile_syn_files(self):
-        """Write the files TCL section of the Makefile"""
-        self.writeln("define TCL_FILES")
-        tmp = "set_global_assignment -name {0} {1}"
-        tmplib = tmp + " -library {2}"
-        ret = []
-        for file_aux in self.fileset:
-            if isinstance(file_aux, VHDLFile):
-                line = tmplib.format("VHDL_FILE",
-                                     file_aux.rel_path(), file_aux.library)
-            elif isinstance(file_aux, SVFile):
-                line = tmplib.format(
-                    "SYSTEMVERILOG_FILE",
-                    file_aux.rel_path(),
-                    file_aux.library)
-            elif isinstance(file_aux, VerilogFile):
-                line = tmp.format("VERILOG_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, SignalTapFile):
-                line = tmp.format("SIGNALTAP_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, SDCFile):
-                line = tmp.format("SDC_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, QIPFile):
-                line = tmp.format("QIP_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, QSYSFile):
-                line = tmp.format("QSYS_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, DPFFile):
-                line = tmp.format("MISC_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, QSFFile):
-                line = tmp.format("SOURCE_TCL_SCRIPT_FILE",
-                                  file_aux.rel_path())
-            elif isinstance(file_aux, BSFFile):
-                line = tmp.format("BSF_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, BDFFile):
-                line = tmp.format("BDF_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, TDFFile):
-                line = tmp.format("AHDL_FILE", file_aux.rel_path())
-            elif isinstance(file_aux, GDFFile):
-                line = tmp.format("GDF_FILE", file_aux.rel_path())
-            else:
-                continue
-            ret.append(line)
-        self.writeln('\n'.join(ret))
-        self.writeln("endef")
-        self.writeln("export TCL_FILES")
