@@ -51,7 +51,7 @@ class ToolISim(ToolSim):
                      'simprims_ver', 'unisims_ver', 'uni9000_ver',
                      'unimacro_ver', 'xilinxcorelib_ver', 'secureip']
 
-    HDL_FILES = [VerilogFile, VHDLFile]
+    HDL_FILES = {VerilogFile: '', VHDLFile: ''}
 
     CLEAN_TARGETS = {'clean': ["./xilinxsim.ini $(LIBS)", "fuse.xmsgs",
                                "fuse.log", "fuseRelaunch.cmd", "isim",
@@ -62,7 +62,7 @@ class ToolISim(ToolSim):
     def __init__(self):
         super(ToolISim, self).__init__()
         self._tool_info.update(ToolISim.TOOL_INFO)
-        self._hdl_files.extend(ToolISim.HDL_FILES)
+        self._hdl_files.update(ToolISim.HDL_FILES)
         self._standard_libs.extend(ToolISim.STANDARD_LIBS)
         self._clean_targets.update(ToolISim.CLEAN_TARGETS)
 
