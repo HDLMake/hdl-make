@@ -42,9 +42,15 @@ class ToolLibero(ToolSyn):
 
     STANDARD_LIBS = ['ieee', 'std']
 
-    SUPPORTED_FILES = [SDCFile, PDCFile]
+    _LIBERO_SOURCE = 'create_links {0} {{$$filename}}'
 
-    HDL_FILES = [VHDLFile, VerilogFile]
+    SUPPORTED_FILES = {
+        SDCFile: _LIBERO_SOURCE.format('-sdc'),
+        PDCFile: _LIBERO_SOURCE.format('-pdc')}
+
+    HDL_FILES = {
+        VHDLFile: _LIBERO_SOURCE.format('-hdl_source'),
+        VerilogFile: _LIBERO_SOURCE.format('-hdl_source')}
 
     CLEAN_TARGETS = {'clean': ["$(PROJECT)", "run.tcl"],
                      'mrproper': ["*.pdb", "*.stp"]}
@@ -56,58 +62,51 @@ class ToolLibero(ToolSyn):
         'open': 'open_project -file {$(PROJECT)/$(PROJECT_FILE)}',
         'save': 'save_project',
         'close': 'close_project',
-        'synthesize': '',
-        'translate': '',
-        'map': '',
-        'par': '',
-        'bitstream':
-        'update_and_run_tool -name {GENERATEPROGRAMMINGDATA}',
+        'project': '$(TCL_CREATE)\n'
+                   '$(TCL_FILES)\n'
+                   '{0}\n'
+                   '$(TCL_SAVE)\n'
+                   '$(TCL_CLOSE)',
+        'bitstream': '$(TCL_OPEN)\n'
+                     'update_and_run_tool'
+                     ' -name {GENERATEPROGRAMMINGDATA}\n'
+                     '$(TCL_SAVE)\n'
+                     '$(TCL_CLOSE)',
         'install_source': '$(PROJECT)/designer/impl1/$(SYN_TOP).pdb'}
 
     def __init__(self):
         super(ToolLibero, self).__init__()
         self._tool_info.update(ToolLibero.TOOL_INFO)
-        self._hdl_files.extend(ToolLibero.HDL_FILES)
-        self._supported_files.extend(ToolLibero.SUPPORTED_FILES)
+        self._hdl_files.update(ToolLibero.HDL_FILES)
+        self._supported_files.update(ToolLibero.SUPPORTED_FILES)
         self._standard_libs.extend(ToolLibero.STANDARD_LIBS)
         self._clean_targets.update(ToolLibero.CLEAN_TARGETS)
         self._tcl_controls.update(ToolLibero.TCL_CONTROLS)
 
     def makefile_syn_tcl(self):
         """Create a Libero synthesis project by TCL"""
-        syn_project = self.top_module.manifest_dict["syn_project"]
-        syn_device = self.top_module.manifest_dict["syn_device"]
-        syn_grade = self.top_module.manifest_dict["syn_grade"]
-        syn_package = self.top_module.manifest_dict["syn_package"]
+        syn_project = self.manifest_dict["syn_project"]
+        syn_device = self.manifest_dict["syn_device"]
+        syn_grade = self.manifest_dict["syn_grade"]
+        syn_package = self.manifest_dict["syn_package"]
         create_tmp = self._tcl_controls["create"]
         self._tcl_controls["create"] = create_tmp.format(syn_project,
                                                          syn_device.upper(),
                                                          syn_package.upper(),
                                                          syn_grade)
-        super(ToolLibero, self).makefile_syn_tcl()
-
-    def makefile_syn_files(self):
-        """Write the files TCL section of the Makefile"""
-        link_string = 'create_links {0} {{{1}}}'
+        project_tmp = self._tcl_controls["project"]
         synthesis_constraints = []
         compilation_constraints = []
         ret = []
-        ret.append("define TCL_FILES")
         # First stage: linking files
         for file_aux in self.fileset:
-            if (isinstance(file_aux, VHDLFile) or
-                    isinstance(file_aux, VerilogFile)):
-                line = link_string.format('-hdl_source', file_aux.rel_path())
-            elif isinstance(file_aux, SDCFile):
-                line = link_string.format('-sdc', file_aux.rel_path())
+            if isinstance(file_aux, SDCFile):
                 synthesis_constraints.append(file_aux)
                 compilation_constraints.append(file_aux)
             elif isinstance(file_aux, PDCFile):
-                line = link_string.format('-pdc', file_aux.rel_path())
                 compilation_constraints.append(file_aux)
             else:
                 continue
-            ret.append(line)
         # Second stage: Organizing / activating synthesis constraints (the top
         # module needs to be present!)
         if synthesis_constraints:
@@ -129,6 +128,5 @@ class ToolLibero(ToolSyn):
         # Fourth stage: set root/top module
         line = 'set_root -module {$(TOP_MODULE)::work}'
         ret.append(line)
-        ret.append("endef")
-        ret.append("export TCL_FILES")
-        self.writeln('\n'.join(ret))
+        self._tcl_controls['project'] = project_tmp.format('\n'.join(ret))
+        super(ToolLibero, self).makefile_syn_tcl()
