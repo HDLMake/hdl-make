@@ -49,9 +49,9 @@ class Git(Fetcher):
                                   shell=True)
             tree_root_line = tree_root_cmd.stdout.readlines()[0].strip()
             return tree_root_line
-        except CalledProcessError as e:
-            print e.output
-            logging.error("Cannot get the top level!")
+        except CalledProcessError as process_error:
+            logging.error("Cannot get the top level!: %s",
+                process_error.output)
             quit()
 
     @staticmethod
@@ -74,9 +74,9 @@ class Git(Fetcher):
                     return None
             else:
                 return None
-        except CalledProcessError as e:
-            print e.output
-            logging.error("Cannot get the submodule status!")
+        except CalledProcessError as process_error:
+            logging.error("Cannot get the submodule status!: %s",
+                process_error.output)
             quit()
 
     def fetch(self, module):
@@ -99,7 +99,7 @@ class Git(Fetcher):
         else:
             logging.info("Updating git module %s", mod_path)
         checkout_id = None
-        if module.branch is not None: 
+        if module.branch is not None:
             checkout_id = module.branch
             logging.debug("Git branch requested: %s", checkout_id)
         elif module.revision is not None:

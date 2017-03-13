@@ -53,7 +53,7 @@ class ToolQuartus(ToolSyn):
     SUPPORTED_FILES = {
         SignalTapFile: _QUARTUS_SOURCE.format('SIGNALTAP_FILE'),
         SDCFile: _QUARTUS_SOURCE.format('SDC_FILE'),
-        QIPFile: _QUARTUS_SOURCE.format('QIP_FILE'), 
+        QIPFile: _QUARTUS_SOURCE.format('QIP_FILE'),
         QSYSFile: _QUARTUS_SOURCE.format('QSYS_FILE'),
         DPFFile: _QUARTUS_SOURCE.format('MISC_FILE'),
         QSFFile: _QUARTUS_SOURCE.format('SOURCE_TCL_SCRIPT_FILE'),
@@ -66,9 +66,12 @@ class ToolQuartus(ToolSyn):
     _QUARTUS_LIBRARY = " -library {0}".format('work')
 
     HDL_FILES = {
-        VHDLFile: _QUARTUS_SOURCE.format('VHDL_FILE') + _QUARTUS_LIBRARY,
-        VerilogFile: _QUARTUS_SOURCE.format('SYSTEMVERILOG_FILE') + _QUARTUS_LIBRARY,
-        SVFile: _QUARTUS_SOURCE.format('VERILOG_FILE') + _QUARTUS_LIBRARY}
+        VHDLFile: _QUARTUS_SOURCE.format('VHDL_FILE') +
+                  _QUARTUS_LIBRARY,
+        VerilogFile: _QUARTUS_SOURCE.format('SYSTEMVERILOG_FILE') +
+                     _QUARTUS_LIBRARY,
+        SVFile: _QUARTUS_SOURCE.format('VERILOG_FILE') +
+                 _QUARTUS_LIBRARY}
 
     CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "run.tcl", "*.summary",
                                "*.done", "*.jdi", "*.pin", "*.qws",

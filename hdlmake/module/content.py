@@ -110,8 +110,10 @@ class ModuleContent(ModuleCore):
         # Included Makefiles
         included_makefiles_aux = []
         if "incl_makefiles" in self.manifest_dict:
-            if isinstance(self.manifest_dict["incl_makefiles"], six.string_types):
-                included_makefiles_aux.append(self.manifest_dict["incl_makefiles"])
+            if isinstance(self.manifest_dict["incl_makefiles"],
+                    six.string_types):
+                included_makefiles_aux.append(
+                    self.manifest_dict["incl_makefiles"])
             else:  # list
                 included_makefiles_aux = self.manifest_dict["incl_makefiles"][:]
         makefiles_paths = self._make_list_of_paths(included_makefiles_aux)
