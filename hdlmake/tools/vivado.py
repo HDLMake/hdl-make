@@ -64,7 +64,7 @@ class ToolVivado(ToolXilinx, ToolSim):
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
                                "$(PROJECT).runs", "$(PROJECT).hw", "xsim.dir",
                                "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"],
-                     'mrproper': ["*.wdb"]}
+                     'mrproper': ["*.wdb", "*.vcd"]}
 
     TCL_CONTROLS = {'bitstream': '$(TCL_OPEN)\n'
                                  'launch_runs impl_1 -to_step write_bitstream'
