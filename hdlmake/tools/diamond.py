@@ -40,11 +40,18 @@ class ToolDiamond(ToolSyn):
         'linux_bin': 'diamondc',
         'project_ext': 'ldf'}
 
-    SUPPORTED_FILES = [EDFFile, LPFFile]
-
     STANDARD_LIBS = ['ieee', 'std']
 
-    HDL_FILES = [VHDLFile, VerilogFile]
+    _LATTICE_SOURCE = 'prj_src {0} "$$filename"'
+
+    SUPPORTED_FILES = {
+        EDFFile: _LATTICE_SOURCE.format('add'),
+        LPFFile: _LATTICE_SOURCE.format('add -exclude') + '\n  ' + 
+                 _LATTICE_SOURCE.format('enable')}
+
+    HDL_FILES = {
+        VHDLFile: _LATTICE_SOURCE.format('add'),
+        VerilogFile: _LATTICE_SOURCE.format('add')}
 
     CLEAN_TARGETS = {'clean': ["*.sty", "$(PROJECT)", "run.tcl"],
                      'mrproper': ["*.jed"]}
@@ -55,42 +62,36 @@ class ToolDiamond(ToolSyn):
                     'open': 'prj_project open $(PROJECT).ldf',
                     'save': 'prj_project save',
                     'close': 'prj_project close',
-                    'synthesize': '',
-                    'translate': '',
-                    'map': '',
-                    'par': 'prj_run PAR -impl $(PROJECT)',
-                    'bitstream':
-                    'prj_run Export -impl $(PROJECT) -task Bitgen',
+                    'project': '$(TCL_CREATE)\n'
+                               '$(TCL_FILES)\n'
+                               '$(TCL_SAVE)\n'
+                               '$(TCL_CLOSE)',
+                    'par': '$(TCL_OPEN)\n'
+                           'prj_run PAR -impl $(PROJECT)\n'
+                           '$(TCL_SAVE)\n'
+                           '$(TCL_CLOSE)',
+                    'bitstream': '$(TCL_OPEN)\n'
+                                 'prj_run Export'
+                                 ' -impl $(PROJECT) -task Bitgen\n'
+                                 '$(TCL_SAVE)\n'
+                                 '$(TCL_CLOSE)',
                     'install_source': '$(PROJECT)/$(PROJECT)_$(PROJECT).jed'}
 
     def __init__(self):
         super(ToolDiamond, self).__init__()
         self._tool_info.update(ToolDiamond.TOOL_INFO)
-        self._hdl_files.extend(ToolDiamond.HDL_FILES)
-        self._supported_files.extend(ToolDiamond.SUPPORTED_FILES)
+        self._hdl_files.update(ToolDiamond.HDL_FILES)
+        self._supported_files.update(ToolDiamond.SUPPORTED_FILES)
         self._standard_libs.extend(ToolDiamond.STANDARD_LIBS)
         self._clean_targets.update(ToolDiamond.CLEAN_TARGETS)
         self._tcl_controls.update(ToolDiamond.TCL_CONTROLS)
 
     def makefile_syn_tcl(self):
         """Create a Diamond synthesis project by TCL"""
-        syn_device = self.top_module.manifest_dict["syn_device"]
-        syn_grade = self.top_module.manifest_dict["syn_grade"]
-        syn_package = self.top_module.manifest_dict["syn_package"]
+        syn_device = self.manifest_dict["syn_device"]
+        syn_grade = self.manifest_dict["syn_grade"]
+        syn_package = self.manifest_dict["syn_package"]
         create_tmp = self._tcl_controls["create"]
         target = syn_device + syn_grade + syn_package
         self._tcl_controls["create"] = create_tmp.format(target.upper())
         super(ToolDiamond, self).makefile_syn_tcl()
-
-    def makefile_syn_files(self):
-        """Write the files TCL section of the Makefile"""
-        hdl = 'prj_src {0} \"{1}\"'
-        self.writeln("define TCL_FILES")
-        for file_aux in self.fileset:
-            if isinstance(file_aux, LPFFile):
-                self.writeln(hdl.format('add -exclude', file_aux.rel_path()))
-                self.writeln(hdl.format('enable', file_aux.rel_path()))
-            else:
-                self.writeln(hdl.format('add', file_aux.rel_path()))
-        self.writeln("endef")
-        self.writeln("export TCL_FILES")
