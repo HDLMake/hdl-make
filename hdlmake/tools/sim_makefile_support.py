@@ -42,7 +42,7 @@ class VsimMakefileWriter(ToolSim):
       - Riviera
     """
 
-    HDL_FILES = [VerilogFile, VHDLFile, SVFile]
+    HDL_FILES = {VerilogFile: '', VHDLFile: '', SVFile: ''}
 
     def __init__(self):
         super(VsimMakefileWriter, self).__init__()
@@ -59,7 +59,7 @@ class VsimMakefileWriter(ToolSim):
         # These are files copied into your working directory by a make rule
         # The key is the filename, the value is the file source path
         self.copy_rules = {}
-        self._hdl_files.extend(VsimMakefileWriter.HDL_FILES)
+        self._hdl_files.update(VsimMakefileWriter.HDL_FILES)
 
     def makefile_sim_options(self):
         """Print the vsim options to the Makefile"""
