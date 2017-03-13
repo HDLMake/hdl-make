@@ -42,7 +42,7 @@ class ToolGHDL(ToolSim):
 
     STANDARD_LIBS = ['ieee', 'std']
 
-    HDL_FILES = [VHDLFile]
+    HDL_FILES = {VHDLFile: ''}
 
     CLEAN_TARGETS = {'clean': ["*.cf", "*.o", "$(TOP_MODULE)", "work"],
                      'mrproper': ["*.vcd"]}
@@ -54,7 +54,7 @@ class ToolGHDL(ToolSim):
     def __init__(self):
         super(ToolGHDL, self).__init__()
         self._tool_info.update(ToolGHDL.TOOL_INFO)
-        self._hdl_files.extend(ToolGHDL.HDL_FILES)
+        self._hdl_files.update(ToolGHDL.HDL_FILES)
         self._standard_libs.extend(ToolGHDL.STANDARD_LIBS)
         self._clean_targets.update(ToolGHDL.CLEAN_TARGETS)
         self._simulator_controls.update(ToolGHDL.SIMULATOR_CONTROLS)
