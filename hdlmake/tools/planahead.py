@@ -42,7 +42,11 @@ class ToolPlanAhead(ToolXilinx):
     STANDARD_LIBS = ['ieee', 'ieee_proposed', 'simprims', 'std',
                      'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
 
-    SUPPORTED_FILES = [UCFFile, NGCFile, XMPFile, XCOFile]
+    SUPPORTED_FILES = {
+        UCFFile: ToolXilinx._XILINX_SOURCE,
+        NGCFile: ToolXilinx._XILINX_SOURCE,
+        XMPFile: ToolXilinx._XILINX_SOURCE,
+        XCOFile: ToolXilinx._XILINX_SOURCE}
 
     CLEAN_TARGETS = {'clean': ["planAhead_*", "planAhead.*", "run.tcl",
                                ".Xil", "$(PROJECT).cache", "$(PROJECT).data",
@@ -56,7 +60,7 @@ class ToolPlanAhead(ToolXilinx):
     def __init__(self):
         super(ToolPlanAhead, self).__init__()
         self._tool_info.update(ToolPlanAhead.TOOL_INFO)
-        self._supported_files.extend(ToolPlanAhead.SUPPORTED_FILES)
+        self._supported_files.update(ToolPlanAhead.SUPPORTED_FILES)
         self._standard_libs.extend(ToolPlanAhead.STANDARD_LIBS)
         self._clean_targets.update(ToolPlanAhead.CLEAN_TARGETS)
         self._tcl_controls.update(ToolPlanAhead.TCL_CONTROLS)
