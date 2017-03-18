@@ -97,7 +97,7 @@ SYN_GRADE := ${syn_grade}
             project_name=os.path.splitext(
                 self.manifest_dict["syn_project"])[0],
             project_ext=self._tool_info["project_ext"],
-            syn_family=self.manifest_dict["syn_family"],
+            syn_family=self.manifest_dict.get("syn_family", ''),
             syn_device=self.manifest_dict["syn_device"],
             syn_package=self.manifest_dict["syn_package"],
             syn_grade=self.manifest_dict["syn_grade"],
