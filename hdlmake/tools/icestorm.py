@@ -45,14 +45,14 @@ class ToolIcestorm(ToolSyn):
 
     SUPPORTED_FILES = {PCFFile: None}
 
-    HDL_FILES = {VerilogFile: 'read_verilog $$filename'}
+    HDL_FILES = {VerilogFile: 'read_verilog $(sourcefile)'}
 
     CLEAN_TARGETS = {'clean': ["$(PROJECT).asc", "$(PROJECT).blif"],
                      'mrproper': ["$(PROJECT).bin"]}
 
     TCL_CONTROLS = {
         'synthesize': 'yosys -import\n' +
-                      '$(TCL_FILES)\n' +
+                      'source files.tcl\n' +
                       'synth_ice40 -top $(TOP_MODULE) -blif $(PROJECT).blif',
         'par': 'catch {{exec arachne-pnr' +
                ' -d {0}' +

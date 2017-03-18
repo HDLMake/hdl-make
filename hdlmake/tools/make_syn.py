@@ -62,8 +62,8 @@ class ToolSyn(ToolMakefile):
         self.makefile_includes()
         self.makefile_syn_top()
         self.makefile_syn_tcl()
-        self.makefile_syn_files()
         self.makefile_syn_local()
+        self.makefile_syn_files()
         self.makefile_syn_command()
         self.makefile_syn_build()
         self.makefile_syn_clean()
@@ -98,44 +98,32 @@ endif
 
     def makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
-        command_list = ["create", "open", "save", "close",
-            "project", "synthesize", "translate", "map", "par", "bitstream"]
-        for command in command_list:
-            if command in self._tcl_controls:
-                self.writeln("""\
-define TCL_{1}
-{0}
-endef
-export TCL_{1}
-""".format(self._tcl_controls[command], command.upper()))
+        pass
 
     def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
         ret = []
-        ret.append("define TCL_FILES")
         fileset_dict = {}
+        sources_list = []
         fileset_dict.update(self._hdl_files)
         fileset_dict.update(self._supported_files)
         for filetype in fileset_dict:
-            if not fileset_dict[filetype] == None:
-                file_list = []
-                for file_aux in self.fileset:
-                    if isinstance(file_aux, filetype):
-                        file_list.append(file_aux.rel_path())
-                if not file_list == []:
-                    ret.append(
-                       'set {0} {{\n'
-                       '{1}\n'
-                       '}}\n'
-                       'foreach filename $${0} {{\n'
-                       '  {2}\n'
-                       '  puts "Adding {0} file $$filename to the project."\n'
-                       '}}'.format(filetype.__name__,
-                                   '\n'.join(file_list),
-                                   fileset_dict[filetype]))
-        ret.append("endef")
-        ret.append("export TCL_FILES")
+            file_list = []
+            for file_aux in self.fileset:
+                if isinstance(file_aux, filetype):
+                    file_list.append(file_aux.rel_path())
+            if not file_list == []:
+                ret.append(
+                   'SOURCES_{0} := \\\n'
+                   '{1}\n'.format(filetype.__name__,
+                               ' \\\n'.join(file_list)))
+                if not fileset_dict[filetype] is None:
+                    sources_list.append(filetype)
         self.writeln('\n'.join(ret))
+        self.writeln('files.tcl:')
+        for filetype in sources_list:
+            self.writeln('\t\t@$(foreach sourcefile, $(SOURCES_{0}), echo "{1}" >> $@;)'.format(filetype.__name__, fileset_dict[filetype]))
+        self.writeln()
 
     def makefile_syn_local(self):
         """Generic method to write the synthesis Makefile local target"""
@@ -144,21 +132,27 @@ export TCL_{1}
 
     def makefile_syn_build(self):
         """Generate the synthesis Makefile targets for handling design build"""
-        stage_previous = ""
+        stage_previous = "files.tcl"
         stage_list = ["project", "synthesize", "translate",
                       "map", "par", "bitstream"]
         for stage in stage_list:
             if stage in self._tcl_controls:
+                echo_command = '\t\techo "{0}" >> $@'
+                tcl_command = []
+                for command in self._tcl_controls[stage].split('\n'):
+                    tcl_command.append(echo_command.format(command))
                 self.writeln("""\
 {0}.tcl:
-\t\techo "$$TCL_{2}" > $@
+\t\techo "" > $@
+{3}
 
 {0}: {1} {0}.tcl
 \t\t$(SYN_PRE_{2}_CMD)
 \t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_{2}_CMD)
 \t\ttouch $@
-""".format(stage, stage_previous, stage.upper()))
+""".format(stage, stage_previous, stage.upper(),
+           "\n".join(tcl_command)))
                 stage_previous = stage
 
     def makefile_syn_command(self):
@@ -181,7 +175,7 @@ SYN_POST_{0}_CMD := {2}
                      " project synthesize translate map par bitstream")
         self.writeln("\t\t" + path_mod.del_command() +
                      " project.tcl synthesize.tcl translate.tcl" +
-                     " map.tcl par.tcl bitstream.tcl")
+                     " map.tcl par.tcl bitstream.tcl files.tcl")
         self.makefile_mrproper()
 
     def makefile_syn_phony(self):
