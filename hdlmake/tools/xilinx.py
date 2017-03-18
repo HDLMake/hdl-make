@@ -34,8 +34,9 @@ class ToolXilinx(ToolSyn):
 
     """Class providing the interface for Xilinx Vivado synthesis"""
 
-    _XILINX_SOURCE = ("add_files -norecurse $(sourcefile); "
-                     "set_property IS_GLOBAL_INCLUDE 1 [get_files $(sourcefile)]")
+    _XILINX_SOURCE = (
+        "add_files -norecurse $(sourcefile); "
+        "set_property IS_GLOBAL_INCLUDE 1 [get_files $(sourcefile)]")
 
     HDL_FILES = {
         VHDLFile: _XILINX_SOURCE,
@@ -83,18 +84,16 @@ $(TCL_CLOSE)'''
         """Create a Xilinx synthesis project by TCL"""
         prop_val = 'set_property "{0}" "{1}" [{2}]'
         prop_opt = 'set_property -name {{{0}}} -value {{{1}}} -objects [{2}]'
-        syn_device = self.manifest_dict["syn_device"]
-        syn_grade = self.manifest_dict["syn_grade"]
-        syn_package = self.manifest_dict["syn_package"]
-        syn_top = self.manifest_dict["syn_top"]
         syn_properties = self.manifest_dict.get("syn_properties")
         project_new = []
         synthesize_new = []
         par_new = []
         properties = [
-            ['part', syn_device + syn_package + syn_grade, 'current_project'],
+            ['part', '$(SYN_DEVICE)' +
+                     '$(SYN_PACKAGE)' +
+                     '$(SYN_GRADE)', 'current_project'],
             ['target_language', 'VHDL', 'current_project'],
-            ['top', syn_top, 'get_property srcset [current_run]']]
+            ['top', '$(TOP_MODULE)', 'get_property srcset [current_run]']]
         fetchto = self.manifest_dict.get("fetchto")
         if not fetchto is None:
             properties.append(['ip_repo_paths', fetchto, 'current_fileset'])
