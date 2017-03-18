@@ -62,14 +62,14 @@ class ToolISE(ToolSyn):
                      'synopsys', 'unimacro', 'unisim', 'XilinxCoreLib']
 
     SUPPORTED_FILES = {
-        UCFFile: 'xfile add $$filename',
-        CDCFile: 'xfile add $$filename',
-        NGCFile: 'xfile add $$filename'}
+        UCFFile: 'xfile add $(sourcefile)',
+        CDCFile: 'xfile add $(sourcefile)',
+        NGCFile: 'xfile add $(sourcefile)'}
 
     HDL_FILES = {
-        VHDLFile: 'xfile add $$filename',
-        VerilogFile: 'xfile add $$filename',
-        SVFile: 'xfile add $$filename'}
+        VHDLFile: 'xfile add $(sourcefile)',
+        VerilogFile: 'xfile add $(sourcefile)',
+        SVFile: 'xfile add $(sourcefile)'}
 
     CLEAN_TARGETS = {'clean': ["xst xlnx_auto_*_xdb", "iseconfig _xmsgs",
                                "_ngo", "*.b", "*_summary.html", "*.tcl",
@@ -90,11 +90,10 @@ class ToolISE(ToolSyn):
 
     _ISE_RUN = '''\
 $(TCL_OPEN)
-set process {{{0}}}
-process run $$process
-set result [process get $$process status]
-if {{ $$result == "errors" }} {{
-    puts "$$process failed"
+set process {{"{0}"}}
+process run '$$'process
+set result [process get '$$'process status]
+if {{ '$$'result == \\"errors\\" }} {{
     exit 1
 }}
 $(TCL_SAVE)
@@ -106,7 +105,7 @@ $(TCL_CLOSE)'''
         'save': 'project save',
         'close': 'project close',
         'project': '$(TCL_CREATE)\n'
-                   '$(TCL_FILES)\n'
+                   'source files.tcl\n'
                    '{0}\n'
                    'project set top $(TOP_MODULE)\n'
                    '$(TCL_SAVE)\n'
@@ -127,11 +126,8 @@ $(TCL_CLOSE)'''
         self._clean_targets.update(ToolISE.CLEAN_TARGETS)
         self._tcl_controls.update(ToolISE.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self):
-        """Create a Xilinx synthesis project by TCL"""
-        syn_device = self.manifest_dict["syn_device"]
-        syn_grade = self.manifest_dict["syn_grade"]
-        syn_package = self.manifest_dict["syn_package"]
+    def makefile_syn_top(self):
+        """Create the top part of the synthesis Makefile for ISE"""
         syn_family = self.manifest_dict.get("syn_family", None)
         if syn_family is None:
             syn_family = FAMILY_NAMES.get(
@@ -141,15 +137,21 @@ $(TCL_CLOSE)'''
                     "syn_family is not defined in Manifest.py"
                     " and can not be guessed!")
                 quit(-1)
+        self.manifest_dict["syn_family"] = syn_family
+        super(ToolISE, self).makefile_syn_top()
+
+
+    def makefile_syn_tcl(self):
+        """Create a Xilinx synthesis project by TCL"""
         syn_properties = self.manifest_dict.get("syn_properties")
         project_new = []
         project_tcl = self._tcl_controls["project"]
-        tmp = 'project set "{0}" "{1}"'
+        tmp = 'project set \\"{0}\\" \\"{1}\\"'
         properties = [
-            ['family', syn_family],
-            ['device', syn_device],
-            ['package', syn_package],
-            ['speed', syn_grade],
+            ['family', '$(SYN_FAMILY)'],
+            ['device', '$(SYN_DEVICE)'],
+            ['package','$(SYN_PACKAGE)'],
+            ['speed', '$(SYN_GRADE)'],
             ['Manual Implementation Compile Order', 'false'],
             ['Auto Implementation Top', 'false'],
             ['Create Binary Configuration File', 'true']]

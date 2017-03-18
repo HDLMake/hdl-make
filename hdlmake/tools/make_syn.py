@@ -87,6 +87,7 @@ ifneq ($$(strip $$(TOOL_PATH)),)
 TCL_INTERPRETER := $$(TOOL_PATH)/$$(TCL_INTERPRETER)
 endif
 
+SYN_FAMILY := ${syn_family}
 SYN_DEVICE := ${syn_device}
 SYN_PACKAGE := ${syn_package}
 SYN_GRADE := ${syn_grade}
@@ -96,6 +97,7 @@ SYN_GRADE := ${syn_grade}
             project_name=os.path.splitext(
                 self.manifest_dict["syn_project"])[0],
             project_ext=self._tool_info["project_ext"],
+            syn_family=self.manifest_dict["syn_family"],
             syn_device=self.manifest_dict["syn_device"],
             syn_package=self.manifest_dict["syn_package"],
             syn_grade=self.manifest_dict["syn_grade"],
@@ -104,7 +106,11 @@ SYN_GRADE := ${syn_grade}
 
     def makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
-        pass
+        command_list = ["create", "open", "save", "close"]
+        for command in command_list:
+            if command in self._tcl_controls:
+                self.writeln('TCL_{1} := {0}'.format(self._tcl_controls[command], command.upper()))
+        self.writeln()
 
     def makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
@@ -143,7 +149,7 @@ SYN_GRADE := ${syn_grade}
                       "map", "par", "bitstream"]
         for stage in stage_list:
             if stage in self._tcl_controls:
-                echo_command = '\t\techo "{0}" >> $@'
+                echo_command = '\t\techo {0} >> $@'
                 tcl_command = []
                 for command in self._tcl_controls[stage].split('\n'):
                     tcl_command.append(echo_command.format(command))
