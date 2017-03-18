@@ -54,12 +54,12 @@ class ToolIcestorm(ToolSyn):
         'synthesize': 'yosys -import\n' +
                       'source files.tcl\n' +
                       'synth_ice40 -top $(TOP_MODULE) -blif $(PROJECT).blif',
-        'par': 'catch {{exec arachne-pnr' +
+        'par': 'catch {exec arachne-pnr' +
                ' -d $(SYN_DEVICE)' +
                ' -P $(SYN_PACKAGE)' +
-               ' -p {0}' +
+               ' -p $(SOURCES_PCFFile)' +
                ' -o $(PROJECT).asc' +
-               ' $(PROJECT).blif}}',
+               ' $(PROJECT).blif}',
         'bitstream': 'catch {exec icepack $(PROJECT).asc $(PROJECT).bin}',
         'install_source': ''}
 
@@ -71,17 +71,4 @@ class ToolIcestorm(ToolSyn):
         self._standard_libs.extend(ToolIcestorm.STANDARD_LIBS)
         self._clean_targets.update(ToolIcestorm.CLEAN_TARGETS)
         self._tcl_controls.update(ToolIcestorm.TCL_CONTROLS)
-
-    def makefile_syn_tcl(self):
-        """Create an IceStorm synthesis project by TCL"""
-        constraints_file = None
-        for file_aux in self.fileset:
-            if isinstance(file_aux, PCFFile):
-                constraints_file = file_aux.rel_path()
-        if constraints_file == None:
-            logging.error("No Arachne-pnr constraints file found!")
-            quit()
-        par_tmp = self._tcl_controls["par"]
-        self._tcl_controls["par"] = par_tmp.format(constraints_file)
-        super(ToolIcestorm, self).makefile_syn_tcl()
 
