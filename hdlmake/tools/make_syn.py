@@ -87,12 +87,18 @@ ifneq ($$(strip $$(TOOL_PATH)),)
 TCL_INTERPRETER := $$(TOOL_PATH)/$$(TCL_INTERPRETER)
 endif
 
+SYN_DEVICE := ${syn_device}
+SYN_PACKAGE := ${syn_package}
+SYN_GRADE := ${syn_grade}
 """)
         self.writeln(top_parameter.substitute(
             tcl_interpreter=tcl_interpreter,
             project_name=os.path.splitext(
                 self.manifest_dict["syn_project"])[0],
             project_ext=self._tool_info["project_ext"],
+            syn_device=self.manifest_dict["syn_device"],
+            syn_package=self.manifest_dict["syn_package"],
+            syn_grade=self.manifest_dict["syn_grade"],
             tool_path=self.manifest_dict["syn_path"],
             top_module=self.manifest_dict["syn_top"]))
 
