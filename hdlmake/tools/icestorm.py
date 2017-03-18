@@ -72,3 +72,7 @@ class ToolIcestorm(ToolSyn):
         self._clean_targets.update(ToolIcestorm.CLEAN_TARGETS)
         self._tcl_controls.update(ToolIcestorm.TCL_CONTROLS)
 
+    def makefile_syn_top(self):
+        self.manifest_dict["syn_family"] = 'iCE40'
+        super(ToolIcestorm, self).makefile_syn_top()
+
