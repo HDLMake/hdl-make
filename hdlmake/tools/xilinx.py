@@ -34,15 +34,15 @@ class ToolXilinx(ToolSyn):
 
     """Class providing the interface for Xilinx Vivado synthesis"""
 
-    _XILINX_SOURCE = ("add_files -norecurse $$filename\n"
-                     "set_property IS_GLOBAL_INCLUDE 1 [get_files $$filename]")
+    _XILINX_SOURCE = ("add_files -norecurse $(sourcefile); "
+                     "set_property IS_GLOBAL_INCLUDE 1 [get_files $(sourcefile)]")
 
     HDL_FILES = {
         VHDLFile: _XILINX_SOURCE,
         VerilogFile: _XILINX_SOURCE,
         SVFile: _XILINX_SOURCE}
 
-    SUPPORTED_FILES = {TCLFile: 'source $$filename'}
+    SUPPORTED_FILES = {TCLFile: 'source $(sourcefile)'}
 
     CLEAN_TARGETS = {'mrproper': ["*.bit", "*.bin"]}
 
@@ -53,9 +53,8 @@ reset_run {0}
 launch_runs {0}
 wait_on_run {0}
 set result [get_property STATUS [get_runs {0}]]
-set keyword [lindex [split $$result " "] end]
-if {{ $$keyword != "Complete!" }} {{
-    puts "{0} failed"
+set keyword [lindex [split '$$'result " "] end]
+if {{ '$$'keyword != \\"Complete!\\" }} {{
     exit 1
 }}
 $(TCL_CLOSE)'''
@@ -65,7 +64,7 @@ $(TCL_CLOSE)'''
                     'close': 'exit',
                     'project': '$(TCL_CREATE)\n'
                                '{0}\n'
-                               '$(TCL_FILES)\n'
+                               'source files.tcl\n'
                                'update_compile_order -fileset sources_1\n'
                                'update_compile_order -fileset sim_1\n'
                                '$(TCL_CLOSE)',
