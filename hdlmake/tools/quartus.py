@@ -48,7 +48,7 @@ class ToolQuartus(ToolSyn):
 
     STANDARD_LIBS = ['altera', 'altera_mf', 'lpm', 'ieee', 'std']
 
-    _QUARTUS_SOURCE = 'set_global_assignment -name {0} $$filename'
+    _QUARTUS_SOURCE = 'set_global_assignment -name {0} $(sourcefile)'
 
     SUPPORTED_FILES = {
         SignalTapFile: _QUARTUS_SOURCE.format('SIGNALTAP_FILE'),
@@ -80,12 +80,12 @@ class ToolQuartus(ToolSyn):
                      'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
                                   "*.ekp", "*.jic"]}
 
-    TCL_CONTROLS = {'create': 'load_package flow\n'
+    TCL_CONTROLS = {'create': 'load_package flow; '
                               'project_new $(PROJECT)',
-                    'open': 'load_package flow\n'
+                    'open': 'load_package flow; '
                             'project_open $(PROJECT)',
                     'project': '$(TCL_CREATE)\n'
-                               '$(TCL_FILES)',
+                               'source files.tcl',
                     'bitstream': '$(TCL_OPEN)\n'
                                  'execute_flow -compile',
                     'install_source': ''}
@@ -166,24 +166,21 @@ class ToolQuartus(ToolSyn):
         family_string = __get_family_string(
             family=self.manifest_dict.get("syn_family", None),
             device=self.manifest_dict.get("syn_device", ''))
-        device_string = (
-            self.manifest_dict["syn_device"] +
-            self.manifest_dict["syn_package"] +
-            self.manifest_dict["syn_grade"]).upper()
+        device_string = "$(SYN_DEVICE)$(SYN_PACKAGE)$(SYN_GRADE)"
         command_list = []
         command_list.append(self._tcl_controls["project"])
         command_list.append(_emit_property(
             self.SET_GLOBAL_ASSIGNMENT,
             name_type='FAMILY',
-            name='"' + family_string + '"'))
+            name='\\"$(SYN_FAMILY)\\"'))
         command_list.append(_emit_property(
             self.SET_GLOBAL_ASSIGNMENT,
             name_type='DEVICE',
-            name=device_string))
+            name='\\"' + device_string + '\\"'))
         command_list.append(_emit_property(
             self.SET_GLOBAL_ASSIGNMENT,
             name_type='TOP_LEVEL_ENTITY',
-            name=self.manifest_dict["syn_top"]))
+            name='\\"$(TOP_MODULE)\\"'))
         # Insert the Quartus standard control TCL files
         if "quartus_preflow" in self.manifest_dict:
             path = path_mod.compose(
