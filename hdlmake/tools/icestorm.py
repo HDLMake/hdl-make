@@ -25,7 +25,6 @@
 
 from __future__ import absolute_import
 
-import logging
 from .make_syn import ToolSyn
 from hdlmake.srcfile import VerilogFile, PCFFile
 
