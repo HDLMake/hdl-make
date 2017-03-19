@@ -150,7 +150,7 @@ $(TCL_CLOSE)'''
         properties = [
             ['family', '$(SYN_FAMILY)'],
             ['device', '$(SYN_DEVICE)'],
-            ['package','$(SYN_PACKAGE)'],
+            ['package', '$(SYN_PACKAGE)'],
             ['speed', '$(SYN_GRADE)'],
             ['Manual Implementation Compile Order', 'false'],
             ['Auto Implementation Top', 'false'],
