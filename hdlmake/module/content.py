@@ -49,16 +49,20 @@ class ModuleContent(ModuleCore):
             paths = self._make_list_of_paths(self.manifest_dict["files"])
             self.files = self._create_file_list_from_paths(paths=paths)
 
-    def _process_manifest_modules(self):
-        """Process the submodules required by the HDLMake module"""
+    def _get_fetchto(self):
+        """Calculate the fetchto folder"""
         if ("fetchto" in self.manifest_dict and
                 self.manifest_dict["fetchto"] is not None):
             fetchto = path_mod.rel2abs(self.manifest_dict["fetchto"],
                                        self.path)
         else:
             fetchto = self.fetchto()
+        return fetchto
 
+    def _process_manifest_modules(self):
+        """Process the submodules required by the HDLMake module"""
         # Process required modules
+        fetchto = self._get_fetchto()
         if "modules" in self.manifest_dict:
 
             if "local" in self.manifest_dict["modules"]:
