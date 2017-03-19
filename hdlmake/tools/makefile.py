@@ -61,41 +61,48 @@ class ToolMakefile(object):
         self.manifest_dict = manifest_project_dict
         self.fileset = fileset
 
+    def _get_name_bin(self):
+        """Get the name and binary values"""
+        if path_mod.check_windows():
+            bin_name = self._tool_info['windows_bin']
+        else:
+            bin_name = self._tool_info['linux_bin']
+        return bin_name
+
+    def _get_path(self):
+        """Get the directory in which the tool binary is at Host"""
+        bin_name = self._get_name_bin()
+        locations = path_mod.which(bin_name)
+        if len(locations) == 0:
+            return
+        logging.debug("location for %s: %s", bin_name, locations[0])
+        return os.path.dirname(locations[0])
+
+    def _is_in_path(self, path_key):
+        """Check if the directory is in the system path"""
+        path = self.manifest_dict.get(path_key)
+        bin_name = self._get_name_bin()
+        if path is not None:
+            return os.path.exists(os.path.join(path, bin_name))
+        else:
+            assert isinstance(bin_name, six.string_types)
+            path = self._get_path()
+            return len(path) > 0
+
+    def _check_in_system_path(self):
+        """Check if if in the system path exists a file named (name)"""
+        path = self._get_path()
+        if path:
+            return True
+        else:
+            return False
+
     def makefile_check_tool(self, path_key):
         """Check if the binary is available in the O.S. environment"""
-        def _get_path(name):
-            """Get the directory in which the tool binary is at Host"""
-            locations = path_mod.which(name)
-            if len(locations) == 0:
-                return
-            logging.debug("location for %s: %s", name, locations[0])
-            return os.path.dirname(locations[0])
-
-        def _is_in_path(name, path=None):
-            """Check if the directory is in the system path"""
-            if path is not None:
-                return os.path.exists(os.path.join(path, name))
-            else:
-                assert isinstance(name, six.string_types)
-                path = _get_path(name)
-                return len(path) > 0
-
-        def _check_in_system_path(name):
-            """Check if if in the system path exists a file named (name)"""
-            path = _get_path(name)
-            if path:
-                return True
-            else:
-                return False
-        tool_info = self._tool_info
-        if path_mod.check_windows():
-            bin_name = tool_info['windows_bin']
-        else:
-            bin_name = tool_info['linux_bin']
-        name = tool_info['name']
+        name = self._tool_info['name']
         logging.debug("Checking if " + name + " tool is available on PATH")
         if path_key in self.manifest_dict:
-            if _is_in_path(bin_name, self.manifest_dict[path_key]):
+            if self._is_in_path(path_key):
                 logging.info("%s found under HDLMAKE_%s: %s",
                              name, path_key.upper(),
                              self.manifest_dict[path_key])
@@ -105,8 +112,8 @@ class ToolMakefile(object):
                                 self.manifest_dict[path_key])
                 self.manifest_dict[path_key] = ''
         else:
-            if _check_in_system_path(bin_name):
-                self.manifest_dict[path_key] = _get_path(bin_name)
+            if self._check_in_system_path():
+                self.manifest_dict[path_key] = self._get_path()
                 logging.info("%s found in system PATH: %s",
                              name, self.manifest_dict[path_key])
             else:
