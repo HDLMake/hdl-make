@@ -80,14 +80,9 @@ $(TCL_CLOSE)'''
         self._clean_targets.update(ToolXilinx.CLEAN_TARGETS)
         self._tcl_controls.update(ToolXilinx.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self):
-        """Create a Xilinx synthesis project by TCL"""
-        prop_val = 'set_property "{0}" "{1}" [{2}]'
-        prop_opt = 'set_property -name {{{0}}} -value {{{1}}} -objects [{2}]'
+    def _get_properties(self):
+        """Create the property list"""
         syn_properties = self.manifest_dict.get("syn_properties")
-        project_new = []
-        synthesize_new = []
-        par_new = []
         properties = [
             ['part', '$(SYN_DEVICE)' +
                      '$(SYN_PACKAGE)' +
@@ -99,6 +94,16 @@ $(TCL_CLOSE)'''
             properties.append(['ip_repo_paths', fetchto, 'current_fileset'])
         if not syn_properties is None:
             properties.extend(syn_properties)
+        return properties
+
+    def makefile_syn_tcl(self):
+        """Create a Xilinx synthesis project by TCL"""
+        prop_val = 'set_property "{0}" "{1}" [{2}]'
+        prop_opt = 'set_property -name {{{0}}} -value {{{1}}} -objects [{2}]'
+        project_new = []
+        synthesize_new = []
+        par_new = []
+        properties = self._get_properties()
         for prop in properties:
             if len(prop) > 1:
                 tmp = prop_val
