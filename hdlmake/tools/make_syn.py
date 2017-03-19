@@ -109,7 +109,8 @@ SYN_GRADE := ${syn_grade}
         command_list = ["create", "open", "save", "close"]
         for command in command_list:
             if command in self._tcl_controls:
-                self.writeln('TCL_{1} := "{0}"'.format(self._tcl_controls[command], command.upper()))
+                self.writeln('TCL_{1} := "{0}"'.format(
+                    self._tcl_controls[command], command.upper()))
         self.writeln()
 
     def makefile_syn_files(self):
@@ -134,7 +135,9 @@ SYN_GRADE := ${syn_grade}
         self.writeln('\n'.join(ret))
         self.writeln('files.tcl:')
         for filetype in sources_list:
-            self.writeln('\t\t@$(foreach sourcefile, $(SOURCES_{0}), echo "{1}" >> $@;)'.format(filetype.__name__, fileset_dict[filetype]))
+            self.writeln('\t\t@$(foreach sourcefile,'
+                         ' $(SOURCES_{0}), echo "{1}" >> $@;)'.format(
+                         filetype.__name__, fileset_dict[filetype]))
         self.writeln()
 
     def makefile_syn_local(self):
