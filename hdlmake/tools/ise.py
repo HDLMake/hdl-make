@@ -91,7 +91,7 @@ class ToolISE(ToolSyn):
 
     _ISE_RUN = '''\
 $(TCL_OPEN)
-set process {{"{0}"}}
+set process {{{0}}}
 process run '$$'process
 set result [process get '$$'process status]
 if {{ '$$'result == \\"errors\\" }} {{
