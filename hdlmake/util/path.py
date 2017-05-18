@@ -178,7 +178,7 @@ def check_windows():
 def del_command():
     """Get a string with the O.S. specific delete command"""
     if check_windows():
-        return "del /s /q"
+        return "del /s /q /f"
     else:
         return "rm -rf"
 
