@@ -79,13 +79,13 @@ class ToolQuartus(ToolSyn):
                      'mrproper': ["*.sof", "*.pof", "*.jam", "*.jbc",
                                   "*.ekp", "*.jic"]}
 
-    TCL_CONTROLS = {'create': 'load_package flow; '
-                              'project_new $(PROJECT)',
-                    'open': 'load_package flow; '
-                            'project_open $(PROJECT)',
-                    'project': '$(TCL_CREATE)\n'
+    TCL_CONTROLS = {'create': 'project_new $(PROJECT)',
+                    'open': 'project_open $(PROJECT)',
+                    'project': 'load_package flow\n'
+                               '$(TCL_CREATE)\n'
                                'source files.tcl',
-                    'bitstream': '$(TCL_OPEN)\n'
+                    'bitstream': 'load_package flow\n'
+                                 '$(TCL_OPEN)\n'
                                  'execute_flow -compile',
                     'install_source': ''}
 
