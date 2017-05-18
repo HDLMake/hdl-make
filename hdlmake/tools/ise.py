@@ -29,6 +29,7 @@ import logging
 
 from .make_syn import ToolSyn
 
+from hdlmake.util import path as path_mod
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                              UCFFile, CDCFile, NGCFile)
 
@@ -146,7 +147,10 @@ $(TCL_CLOSE)'''
         syn_properties = self.manifest_dict.get("syn_properties")
         project_new = []
         project_tcl = self._tcl_controls["project"]
-        tmp = 'project set \\"{0}\\" \\"{1}\\"'
+        if path_mod.check_windows():
+            tmp = 'project set "{0}" "{1}"'
+        else:
+            tmp = 'project set \\"{0}\\" \\"{1}\\"'
         properties = [
             ['family', '$(SYN_FAMILY)'],
             ['device', '$(SYN_DEVICE)'],

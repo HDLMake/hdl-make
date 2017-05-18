@@ -158,9 +158,7 @@ SYN_GRADE := ${syn_grade}
                     tcl_command.append(echo_command.format(command))
                 self.writeln("""\
 {0}.tcl:
-\t\techo puts \\"START {2}.TCL SCRIPT\\" > $@
 {3}
-\t\techo puts \\"FINISH {2}.TCL SCRIPT\\" >> $@
 
 {0}: {1} {0}.tcl
 \t\t$(SYN_PRE_{2}_CMD)
