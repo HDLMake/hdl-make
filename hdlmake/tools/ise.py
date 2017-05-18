@@ -115,7 +115,7 @@ $(TCL_CLOSE)'''
         'translate': _ISE_RUN.format("Translate"),
         'map': _ISE_RUN.format("Map"),
         'par': _ISE_RUN.format("Place "
-            + ("&&" if path_mod.check_windows() else "'&'")
+            + ("^&" if path_mod.check_windows() else "'&'")
             + " Route"),
         'bitstream': _ISE_RUN.format("Generate Programming File"),
         'install_source': "*.bit *.bin"}
