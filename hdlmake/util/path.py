@@ -117,7 +117,7 @@ def relpath(path1, path2=None):
         path2 = os.getcwd()
     if path1 == path2:
         return '.'
-    return os.path.relpath(path1, path2)
+    return os.path.relpath(path1, path2).replace(slash_char(), "/")
 
 
 def rel2abs(path, base=None):
