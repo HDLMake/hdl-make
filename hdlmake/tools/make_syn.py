@@ -109,7 +109,7 @@ SYN_GRADE := ${syn_grade}
         command_list = ["create", "open", "save", "close"]
         for command in command_list:
             if command in self._tcl_controls:
-                self.writeln('TCL_{1} := "{0}"'.format(
+                self.writeln('TCL_{1} := {0}'.format(
                     self._tcl_controls[command], command.upper()))
         self.writeln()
 
