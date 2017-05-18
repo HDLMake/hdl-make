@@ -29,6 +29,7 @@ import argparse
 import logging
 import sys
 
+from .util import path as path_mod
 from .util.termcolor import colored
 from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
@@ -60,13 +61,20 @@ def main():
     if not isinstance(numeric_level, int):
         sys.exit('Invalid log level: %s' % options.log)
 
-    logging.basicConfig(
-        format=colored(
-            "%(levelname)s",
-            "yellow") + colored(
-            "\t%(filename)s:%(lineno)d: %(funcName)s()\t",
-            "blue") + "%(message)s",
-        level=numeric_level)
+    if not path_mod.check_windows():
+        logging.basicConfig(
+            format=colored(
+                "%(levelname)s",
+                "yellow") + colored(
+                "\t%(filename)s:%(lineno)d: %(funcName)s()\t",
+                "blue") + "%(message)s",
+            level=numeric_level)
+    else:
+        logging.basicConfig(
+            format="%(levelname)s" +
+                   "\t%(filename)s:%(lineno)d: %(funcName)s()\t" +
+                   "%(message)s",
+            level=numeric_level)
     logging.debug(str(options))
 
     # Create a ModulePool object, this will become our workspace
