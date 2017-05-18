@@ -134,6 +134,10 @@ class ToolMakefile(object):
         tmp = "\t\t" + path_mod.del_command() + \
             " $(LIBS) " + ' '.join(self._clean_targets["clean"])
         self.writeln(tmp)
+        if path_mod.check_windows():
+            tmp = "\t\trmdir /s /q" + \
+                " $(LIBS) " + ' '.join(self._clean_targets["clean"])
+            self.writeln(tmp)
 
     def makefile_mrproper(self):
         """Print the Makefile target for cleaning final files"""
