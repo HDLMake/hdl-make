@@ -156,6 +156,10 @@ SYN_GRADE := ${syn_grade}
                 tcl_command = []
                 for command in self._tcl_controls[stage].split('\n'):
                     tcl_command.append(echo_command.format(command))
+                command_string = "\n".join(tcl_command)
+                if path_mod.check_windows():
+                    command_string = command_string.replace(
+                        path_mod.slash_char, "")
                 self.writeln("""\
 {0}.tcl:
 {3}
@@ -166,7 +170,7 @@ SYN_GRADE := ${syn_grade}
 \t\t$(SYN_POST_{2}_CMD)
 \t\t{4} $@
 """.format(stage, stage_previous, stage.upper(),
-           "\n".join(tcl_command), path_mod.touch_command()))
+           command_string, path_mod.touch_command()))
                 stage_previous = stage
 
     def makefile_syn_command(self):
