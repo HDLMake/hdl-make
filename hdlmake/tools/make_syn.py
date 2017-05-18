@@ -136,7 +136,7 @@ SYN_GRADE := ${syn_grade}
         self.writeln('files.tcl:')
         for filetype in sources_list:
             self.writeln('\t\t@$(foreach sourcefile,'
-                         ' $(SOURCES_{0}), echo "{1}" >> $@;)'.format(
+                         ' $(SOURCES_{0}), echo {1} >> $@ &)'.format(
                          filetype.__name__, fileset_dict[filetype]))
         self.writeln()
 
