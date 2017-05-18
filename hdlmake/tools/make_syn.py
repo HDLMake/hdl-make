@@ -164,9 +164,9 @@ SYN_GRADE := ${syn_grade}
 \t\t$(SYN_PRE_{2}_CMD)
 \t\t$(TCL_INTERPRETER) $@.tcl
 \t\t$(SYN_POST_{2}_CMD)
-\t\ttouch $@
+\t\t{4} $@
 """.format(stage, stage_previous, stage.upper(),
-           "\n".join(tcl_command)))
+           "\n".join(tcl_command), path_mod.touch_command()))
                 stage_previous = stage
 
     def makefile_syn_command(self):

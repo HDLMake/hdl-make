@@ -199,6 +199,14 @@ def mkdir_command():
         return "mkdir -p"
 
 
+def touch_command():
+    """Get a string with the O.S. specific mkdir command"""
+    if check_windows():
+        return "type nul >>"
+    else:
+        return "touch"
+
+
 def which(filename):
     """Implement the which function and return the paths as a string list"""
     locations = os.environ.get("PATH").split(os.pathsep)
