@@ -135,9 +135,13 @@ SYN_GRADE := ${syn_grade}
         self.writeln('\n'.join(ret))
         self.writeln('files.tcl:')
         for filetype in sources_list:
-            self.writeln('\t\t@$(foreach sourcefile,'
-                         ' $(SOURCES_{0}), echo {1} >> $@ &)'.format(
-                         filetype.__name__, fileset_dict[filetype]))
+            filetype_string = ('\t\t@$(foreach sourcefile,'
+                ' $(SOURCES_{0}), echo "{1}" >> $@ &)'.format(
+                filetype.__name__, fileset_dict[filetype]))
+            if path_mod.check_windows():
+                filetype_string = filetype_string.replace(
+                    '"', '')
+            self.writeln(filetype_string)
         self.writeln()
 
     def makefile_syn_local(self):
