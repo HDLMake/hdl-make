@@ -242,4 +242,5 @@ def slash_char():
 
 def architecture():
     """Get a string with the O.S. bus width"""
-    return 64 if sys.maxsize > 2 ** 32 else 32
+    import struct
+    return 64 if struct.calcsize('P') * 8 == 64 else 32
