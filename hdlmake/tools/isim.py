@@ -147,8 +147,8 @@ $(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
 """)
         self.writeln("xilinxsim.ini: $(XILINX_INI_PATH)" +
             path_mod.slash_char() + "xilinxsim.ini")
+        self.writeln("\t\t" + path_mod.copy_command() + " $< .")
         self.writeln("""\
-\t\tcp $< .
 fuse:
 \t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
 
