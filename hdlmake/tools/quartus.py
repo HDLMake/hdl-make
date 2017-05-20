@@ -42,7 +42,7 @@ class ToolQuartus(ToolSyn):
     TOOL_INFO = {
         'name': 'Quartus',
         'id': 'quartus',
-        'windows_bin': 'quartus',
+        'windows_bin': 'quartus_sh -t',
         'linux_bin': 'quartus_sh -t',
         'project_ext': 'qpf'}
 
