@@ -111,13 +111,18 @@ def is_abs_path(path):
     return os.path.isabs(path)
 
 
+def tclpath(path):
+    """Convert a O.S. specific path into a TCL friendly one"""
+    return path.replace(slash_char(), "/")
+
+
 def relpath(path1, path2=None):
     """Return the relative path of one path with respect to the other"""
     if path2 is None:
         path2 = os.getcwd()
     if path1 == path2:
         return '.'
-    return os.path.relpath(path1, path2).replace(slash_char(), "/")
+    return os.path.relpath(path1, path2)
 
 
 def rel2abs(path, base=None):
@@ -143,7 +148,7 @@ def compose(path, base=None):
     if base is None:
         base = os.getcwd()
     return os.path.relpath(os.path.abspath(
-        os.path.join(base, path))).replace(slash_char(), "/")
+        os.path.join(base, path)))
 
 
 def search_for_manifest(search_path):
