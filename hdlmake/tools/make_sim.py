@@ -149,7 +149,7 @@ PWD := $$(shell pwd)
                     command_key = 'vlog'
                 self.writeln("\t\t" + self._simulator_controls[command_key])
                 self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
-                self.writeln(" && touch $@ \n")
+                self.writeln(" && " + path_mod.touch_command()  + " $@ \n")
                 self.writeln()
 
     def makefile_sim_command(self):
