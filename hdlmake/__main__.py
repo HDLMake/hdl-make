@@ -373,6 +373,8 @@ def _get_options(sys_aux, parser):
             options = parser.parse_args(["auto"] + sys_aux.argv[1:])
         else:
             options = parser.parse_args(sys_aux.argv[1:])
+    elif len(sys_aux.argv[1:]) % 2 == 0:
+        options = parser.parse_args(sys_aux.argv[1:] + ["auto"])
     else:
         options = parser.parse_args(sys_aux.argv[1:])
     return options
