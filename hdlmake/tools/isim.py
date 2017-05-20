@@ -53,7 +53,7 @@ class ToolISim(ToolSim):
 
     HDL_FILES = {VerilogFile: '', VHDLFile: ''}
 
-    CLEAN_TARGETS = {'clean': ["./xilinxsim.ini $(LIBS)", "fuse.xmsgs",
+    CLEAN_TARGETS = {'clean': ["xilinxsim.ini $(LIBS)", "fuse.xmsgs",
                                "fuse.log", "fuseRelaunch.cmd", "isim",
                                "isim.log", "isim.wdb", "isim_proj",
                                "isim_proj.*"],
@@ -130,33 +130,36 @@ VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
     def makefile_sim_compilation(self):
         """Print the compile simulation target for Xilinx ISim"""
         fileset = self.fileset
-        make_preambule_p2 = """## rules #################################
-simulation: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ) fuse
-$(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini
-$(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
-
-xilinxsim.ini: $(XILINX_INI_PATH)/xilinxsim.ini
-\t\tcp $< .
-fuse:
-\t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
-
-"""
         libs = set(f.library for f in fileset)
         self.write('LIBS := ')
         self.write(' '.join(libs))
         self.write('\n')
         # tell how to make libraries
         self.write('LIB_IND := ')
-        self.write(' '.join([lib + "/." + lib for lib in libs]))
+        self.write(' '.join([lib + path_mod.slash_char() + 
+            "." + lib for lib in libs]))
         self.write('\n')
-        self.writeln(make_preambule_p2)
+        self.writeln("""\
+simulation: xilinxsim.ini $(LIB_IND) $(VERILOG_OBJ) $(VHDL_OBJ) fuse
+$(VERILOG_OBJ): $(LIB_IND) xilinxsim.ini
+$(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
+
+""")
+        self.writeln("xilinxsim.ini: $(XILINX_INI_PATH)" +
+            path_mod.slash_char() + "xilinxsim.ini")
+        self.writeln("""\
+\t\tcp $< .
+fuse:
+\t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
+
+""")
         # ISim does not have a vmap command to insert additional libraries in
         #.ini file.
         for lib in libs:
-            self.write(lib + "/." + lib + ":\n")
+            self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
             self.write(
                 ' '.join(["\t(mkdir", lib, "&&", "touch",
-                          lib + "/." + lib + " "]))
+                          lib + path_mod.slash_char() + "." + lib + " "]))
             # self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\"
             # ", ">>", "xilinxsim.ini) "]))
             self.write(
@@ -193,7 +196,7 @@ fuse:
             self.writeln(
                 ' '.join([fname.rel_path() for fname in vl_file.depends_on]))
             self.write("\t\tvlogcomp -work " + vl_file.library
-                       + "=./" + vl_file.library)
+                       + "=." + path_mod.slash_char() + vl_file.library)
             self.write(" $(VLOGCOMP_FLAGS) ")
             # if isinstance(vl_file, SVFile):
             #    self.write(" -sv ")
@@ -232,7 +235,7 @@ fuse:
                 ' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)",
                           vhdl_file.vcom_opt,
                           "-work",
-                          lib + "=./" + lib,
+                          lib + "=." + path_mod.slash_char() + lib,
                           "$< "]))
             self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
             self.writeln()
