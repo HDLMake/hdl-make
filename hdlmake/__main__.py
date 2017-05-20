@@ -333,6 +333,11 @@ def _get_parser():
         default=False,
         action="store_true")
     parser.add_argument(
+        "-f", "--filename",
+        help="Name for the Makefile file to be created",
+        default=None,
+        dest="filename")
+    parser.add_argument(
         "--prefix",
         dest="prefix_code",
         default="",

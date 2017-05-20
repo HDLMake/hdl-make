@@ -35,7 +35,7 @@ class ToolMakefile(object):
 
     """Class that provides the Makefile writing methods and status"""
 
-    def __init__(self, filename=None):
+    def __init__(self):
         super(ToolMakefile, self).__init__()
         self._file = None
         self._initialized = False
@@ -47,19 +47,18 @@ class ToolMakefile(object):
         self._standard_libs = []
         self.fileset = None
         self.manifest_dict = {}
-        if filename:
-            self._filename = filename
-        else:
-            self._filename = "Makefile"
+        self._filename = "Makefile"
 
     def __del__(self):
         if self._file:
             self._file.close()
 
-    def makefile_setup(self, manifest_project_dict, fileset):
+    def makefile_setup(self, manifest_project_dict, fileset, filename=None):
         """Set the Makefile configuration"""
         self.manifest_dict = manifest_project_dict
         self.fileset = fileset
+        if filename:
+            self._filename = filename
 
     def _get_name_bin(self):
         """Get the name and binary values"""

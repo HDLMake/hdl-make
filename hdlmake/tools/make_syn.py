@@ -57,7 +57,8 @@ class ToolSyn(ToolMakefile):
             logging.info("Detected %d supported files that are not parseable",
                          len(privative_files))
             fileset.add(privative_files)
-        self.makefile_setup(manifest_project_dict, fileset)
+        self.makefile_setup(manifest_project_dict, fileset,
+            filename=pool.env.options.filename)
         self.makefile_check_tool('syn_path')
         self.makefile_includes()
         self.makefile_syn_top()

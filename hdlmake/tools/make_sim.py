@@ -41,7 +41,8 @@ class ToolSim(ToolMakefile):
         # Filter the not parseable files!
         dep_files = fset.filter(DepFile)
         # dep_solver.solve(dep_files)
-        self.makefile_setup(manifest_project_dict, dep_files)
+        self.makefile_setup(manifest_project_dict, dep_files,
+            filename=pool.env.options.filename)
         self.makefile_check_tool('sim_path')
         self.makefile_sim_top()
         self.makefile_sim_options()
