@@ -41,7 +41,7 @@ class ToolModelsim(VsimMakefileWriter):
 
     STANDARD_LIBS = ['ieee', 'std', 'altera_mf']
 
-    CLEAN_TARGETS = {'clean': ["./modelsim.ini", "transcript"],
+    CLEAN_TARGETS = {'clean': ["modelsim.ini", "transcript"],
                      'mrproper': ["*.vcd", "*.wlf"]}
 
     def __init__(self):
