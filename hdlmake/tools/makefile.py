@@ -170,7 +170,10 @@ class ToolMakefile(object):
         """Write a string in the manifest, no new line"""
         if not self._initialized:
             self.initialize()
-        self._file.write(line)
+        if path_mod.check_windows():
+            self._file.write(line.replace('\\"', '"'))
+        else:
+            self._file.write(line)
 
     def writeln(self, text=None):
         """Write a string in the manifest, automatically add new line"""

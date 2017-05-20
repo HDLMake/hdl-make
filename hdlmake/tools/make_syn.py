@@ -163,8 +163,6 @@ SYN_GRADE := ${syn_grade}
                 command_string = "\n".join(tcl_command)
                 if path_mod.check_windows():
                     command_string = command_string.replace(
-                        path_mod.slash_char(), "")
-                    command_string = command_string.replace(
                         "'", "")
                 self.writeln("""\
 {0}.tcl:
