@@ -158,7 +158,8 @@ fuse:
         for lib in libs:
             self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
             self.write(
-                ' '.join(["\t(mkdir", lib, "&&", "touch",
+                ' '.join(["\t(" + path_mod.mkdir_command(), lib, "&&",
+                          path_mod.touch_command(),
                           lib + path_mod.slash_char() + "." + lib + " "]))
             # self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\"
             # ", ">>", "xilinxsim.ini) "]))
@@ -168,7 +169,7 @@ fuse:
                           "\"" + lib + "=" + lib + "\" ",
                           ">>",
                           "xilinxsim.ini) "]))
-            self.write(' '.join(["||", "rm -rf", lib, "\n"]))
+            self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
             self.write('\n')
             # Modify xilinxsim.ini file by including the extra local libraries
             # self.write(' '.join(["\t(echo """, lib+"="+lib+"/."+lib, ">>",
@@ -207,8 +208,8 @@ fuse:
                 self.write(' -i ')
                 self.write(' '.join(vl_file.include_dirs) + ' ')
             self.writeln(vl_file.vlog_opt + " $<")
-            self.write("\t\t@mkdir -p $(dir $@)")
-            self.writeln(" && touch $@ \n\n")
+            self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
+            self.writeln(" && " + path_mod.touch_command() + " $@ \n\n")
         self.write("\n")
         # list rules for all _primary.dat files for vhdl
         for vhdl_file in fileset.filter(VHDLFile):
@@ -237,7 +238,8 @@ fuse:
                           "-work",
                           lib + "=." + path_mod.slash_char() + lib,
                           "$< "]))
-            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
+            self.writeln("\t\t@" + path_mod.mkdir_command() +
+                         " $(dir $@) && " + path_mod.touch_command() + " $@\n")
             self.writeln()
             # dependency meta-target.
             # This rule just list the dependencies of the above file
@@ -258,4 +260,5 @@ fuse:
                 else:
                     self.write(" \\\n" + os.path.join(dep_file.rel_path()))
             self.write('\n')
-            self.writeln("\t\t@mkdir -p $(dir $@) && touch $@\n")
+            self.writeln("\t\t@" + path_mod.mkdir_command() +
+                         " $(dir $@) && " + path_mod.touch_command() + " $@\n")
