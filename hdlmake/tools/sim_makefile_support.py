@@ -126,8 +126,8 @@ class VsimMakefileWriter(ToolSim):
             self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command, lib, "&&",
-                                 "touch", lib + path_mod.slash_char() +
-                                 "." + lib, ")"]))
+                path_mod.touch_command(), lib + path_mod.slash_char() +
+                "." + lib, ")"]))
             self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
             self.write('\n\n')
         # rules for all _primary.dat files for sv
@@ -164,7 +164,7 @@ class VsimMakefileWriter(ToolSim):
                 if isinstance(vlog, SVFile) else "")
             self.writeln(compile_line)
             self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
-            self.writeln(" && touch $@ \n\n")
+            self.writeln(" && " + path_mod.touch_command() + " $@ \n\n")
             self.writeln()
         # list rules for all _primary.dat files for vhdl
         for vhdl in fileset.filter(VHDLFile):
@@ -188,4 +188,4 @@ class VsimMakefileWriter(ToolSim):
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)",
                          vhdl.vcom_opt, "-work", lib, "$< "]))
             self.writeln("\t\t@" + path_mod.mkdir_command() +
-                         " $(dir $@) && touch $@ \n\n")
+                " $(dir $@) && " + path_mod.touch_command() + " $@ \n\n")
