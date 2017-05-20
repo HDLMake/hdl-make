@@ -42,7 +42,7 @@ class ToolISim(ToolSim):
     TOOL_INFO = {
         'name': 'ISim',
         'id': 'isim',
-        'windows_bin': 'isimgui',
+        'windows_bin': 'isimgui.exe',
         'linux_bin': 'isimgui'}
 
     STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys',

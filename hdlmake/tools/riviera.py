@@ -69,7 +69,7 @@ class ToolRiviera(VsimMakefileWriter):
     TOOL_INFO = {
         'name': 'Riviera',
         'id': 'riviera',
-        'windows_bin': 'vsim',
+        'windows_bin': 'vsim.exe',
         'linux_bin': 'vsim'}
 
     STANDARD_LIBS = RIVIERA_STANDARD_LIBS

@@ -36,7 +36,7 @@ class ToolLibero(ToolSyn):
     TOOL_INFO = {
         'name': 'Libero',
         'id': 'libero',
-        'windows_bin': 'libero SCRIPT:',
+        'windows_bin': 'libero.exe SCRIPT:',
         'linux_bin': 'libero SCRIPT:',
         'project_ext': 'prjx'}
 

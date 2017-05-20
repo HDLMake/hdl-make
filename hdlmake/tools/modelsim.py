@@ -36,7 +36,7 @@ class ToolModelsim(VsimMakefileWriter):
 
     TOOL_INFO = {'name': 'Modelsim',
                  'id': 'modelsim',
-                 'windows_bin': 'vsim',
+                 'windows_bin': 'vsim.exe',
                  'linux_bin': 'vsim'}
 
     STANDARD_LIBS = ['ieee', 'std', 'altera_mf']

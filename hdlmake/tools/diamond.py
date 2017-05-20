@@ -36,7 +36,7 @@ class ToolDiamond(ToolSyn):
     TOOL_INFO = {
         'name': 'Diamond',
         'id': 'diamond',
-        'windows_bin': 'pnmainc',
+        'windows_bin': 'pnmainc.exe',
         'linux_bin': 'diamondc',
         'project_ext': 'ldf'}
 

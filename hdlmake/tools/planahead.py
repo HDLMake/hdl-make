@@ -35,7 +35,7 @@ class ToolPlanAhead(ToolXilinx):
     TOOL_INFO = {
         'name': 'PlanAhead',
         'id': 'planahead',
-        'windows_bin': 'planAhead -mode tcl -source',
+        'windows_bin': 'planAhead.exe -mode tcl -source',
         'linux_bin': 'planAhead -mode tcl -source',
         'project_ext': 'ppr'}
 

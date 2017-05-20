@@ -36,7 +36,7 @@ class ToolIcestorm(ToolSyn):
     TOOL_INFO = {
         'name': 'IceStorm',
         'id': 'icestorm',
-        'windows_bin': 'yosys -c',
+        'windows_bin': None,
         'linux_bin': 'yosys -c',
         'project_ext': ''}
 

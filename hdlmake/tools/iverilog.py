@@ -37,7 +37,7 @@ class ToolIVerilog(ToolSim):
     TOOL_INFO = {
         'name': 'Icarus Verilog',
         'id': 'iverilog',
-        'windows_bin': 'iverilog',
+        'windows_bin': None,
         'linux_bin': 'iverilog'}
 
     STANDARD_LIBS = ['std', 'ieee', 'ieee_proposed', 'vl', 'synopsys']

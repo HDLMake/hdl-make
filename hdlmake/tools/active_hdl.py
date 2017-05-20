@@ -35,7 +35,7 @@ class ToolActiveHDL(ToolSim):
     TOOL_INFO = {
         'name': 'Aldec Active-HDL',
         'id': 'active_hdl',
-        'windows_bin': 'vsimsa',
+        'windows_bin': 'vsimsa.exe',
         'linux_bin': None}
 
     STANDARD_LIBS = ['ieee', 'std']
