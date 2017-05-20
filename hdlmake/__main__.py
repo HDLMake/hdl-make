@@ -338,12 +338,12 @@ def _get_parser():
         default=None,
         dest="filename")
     parser.add_argument(
-        "--prefix",
+        "-p", "--prefix",
         dest="prefix_code",
         default="",
         help="Arbitrary python code to be executed just before the Manifest")
     parser.add_argument(
-        "--sufix",
+        "-s", "--sufix",
         dest="sufix_code",
         default="",
         help="Arbitrary python code to be executed just after the Manifest")
