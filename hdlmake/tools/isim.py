@@ -166,8 +166,8 @@ fuse:
             self.write(
                 ' '.join(["&&",
                           "echo",
-                          "\"" + lib + "=" + lib + "\" ",
-                          ">>",
+                          lib + "=" + lib,
+                          " >>",
                           "xilinxsim.ini) "]))
             self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
             self.write('\n')
