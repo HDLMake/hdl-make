@@ -124,7 +124,7 @@ SYN_GRADE := ${syn_grade}
             file_list = []
             for file_aux in self.fileset:
                 if isinstance(file_aux, filetype):
-                    file_list.append(file_aux.rel_path())
+                    file_list.append(path_mod.tclpath(file_aux.rel_path()))
             if not file_list == []:
                 ret.append(
                    'SOURCES_{0} := \\\n'
