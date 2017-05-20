@@ -46,7 +46,7 @@ class ToolDiamond(ToolSyn):
 
     SUPPORTED_FILES = {
         EDFFile: _LATTICE_SOURCE.format('add'),
-        LPFFile: _LATTICE_SOURCE.format('add -exclude') + '\n  ' +
+        LPFFile: _LATTICE_SOURCE.format('add -exclude') + '; ' +
                  _LATTICE_SOURCE.format('enable')}
 
     HDL_FILES = {
