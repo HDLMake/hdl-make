@@ -195,7 +195,12 @@ class ToolQuartus(ToolSyn):
             self.SET_GLOBAL_ASSIGNMENT,
             {'name_type': 'TOP_LEVEL_ENTITY',
             'name': '\\"$(TOP_MODULE)\\"'}))
+        self._tcl_controls["project"] = '\n'.join(command_list)
+        super(ToolQuartus, self).makefile_syn_tcl()
+
+    def makefile_syn_files(self):
         # Insert the Quartus standard control TCL files
+        command_list = []
         if "quartus_preflow" in self.manifest_dict:
             path = path_mod.tclpath(path_mod.compose(
                 self.manifest_dict["quartus_preflow"], os.getcwd()))
@@ -233,5 +238,5 @@ class ToolQuartus(ToolSyn):
             command_list.append(self._emit_property(self.SET_GLOBAL_ASSIGNMENT,
                                 {'name_type': 'POST_FLOW_SCRIPT_FILE',
                                 'name': postflow}))
-        self._tcl_controls["project"] = '\n'.join(command_list)
-        super(ToolQuartus, self).makefile_syn_tcl()
+        self._tcl_controls["files"] = '\n'.join(command_list)
+        super(ToolQuartus, self).makefile_syn_files()
