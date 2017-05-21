@@ -135,6 +135,15 @@ SYN_GRADE := ${syn_grade}
                     sources_list.append(filetype)
         self.writeln('\n'.join(ret))
         self.writeln('files.tcl:')
+        if "files" in self._tcl_controls:
+            echo_command = '\t\t@echo {0} >> $@'
+            tcl_command = []
+            for command in self._tcl_controls["files"].split('\n'):
+                tcl_command.append(echo_command.format(command))
+            command_string = "\n".join(tcl_command)
+            if path_mod.check_windows():
+                command_string = command_string.replace("'", "")
+            self.writeln(command_string)
         for filetype in sources_list:
             filetype_string = ('\t\t@$(foreach sourcefile,'
                 ' $(SOURCES_{0}), echo "{1}" >> $@ &)'.format(
