@@ -128,22 +128,20 @@ class ToolMakefile(object):
 
     def makefile_clean(self):
         """Print the Makefile target for cleaning intermediate files"""
-        self.writeln("#target for cleaning intermediate files")
+        self.writeln("CLEAN_TARGETS := $(LIBS) " +
+            ' '.join(self._clean_targets["clean"]) + "\n")
         self.writeln("clean:")
-        tmp = "\t\t" + path_mod.del_command() + \
-            " $(LIBS) " + ' '.join(self._clean_targets["clean"])
+        tmp = "\t\t" + path_mod.del_command() + " $(CLEAN_TARGETS)"
         self.writeln(tmp)
         if path_mod.check_windows():
-            tmp = "\t\t" + path_mod.rmdir_command() + \
-                " $(LIBS) " + ' '.join(self._clean_targets["clean"])
+            tmp = "\t\t" + path_mod.rmdir_command() + " $(CLEAN_TARGETS)"
             self.writeln(tmp)
 
     def makefile_mrproper(self):
         """Print the Makefile target for cleaning final files"""
-        self.writeln("#target for cleaning final files")
         self.writeln("mrproper: clean")
         tmp = "\t\t" + path_mod.del_command() + \
-            " " + ' '.join(self._clean_targets["mrproper"])
+            " " + ' '.join(self._clean_targets["mrproper"]) + "\n"
         self.writeln(tmp)
 
     def initialize(self):
