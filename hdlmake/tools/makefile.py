@@ -134,7 +134,7 @@ class ToolMakefile(object):
             " $(LIBS) " + ' '.join(self._clean_targets["clean"])
         self.writeln(tmp)
         if path_mod.check_windows():
-            tmp = "\t\trmdir /s /q" + \
+            tmp = "\t\t" + path_mod.rmdir_command() + \
                 " $(LIBS) " + ' '.join(self._clean_targets["clean"])
             self.writeln(tmp)
 

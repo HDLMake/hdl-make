@@ -189,6 +189,14 @@ def del_command():
         return "rm -rf"
 
 
+def rmdir_command():
+    """Get a string with the O.S. specific remove directory command"""
+    if check_windows():
+        return "rmdir /s /q"
+    else:
+        return "rm -rf"
+
+
 def copy_command():
     """Get a string with the O.S. specific copy command"""
     if check_windows():

@@ -103,7 +103,7 @@ class Module(ModuleContent):
             return
         logging.debug("Removing " + self.path)
         try:
-            command_tmp = (path_mod.del_command() + " " +
+            command_tmp = (path_mod.rmdir_command() + " " +
                            path_mod.relpath(self.path))
             status_cmd = Popen(command_tmp,
                                   stdout=PIPE,
