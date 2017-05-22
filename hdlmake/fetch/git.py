@@ -106,7 +106,8 @@ class Git(Fetcher):
             checkout_id = module.revision
             logging.debug("Git commit requested: %s", checkout_id)
         else:
-            checkout_id = self.get_submodule_commit(module.path)
+            checkout_id = self.get_submodule_commit(
+                path_utils.relpath(module.path))
             logging.debug("Git submodule commit: %s", checkout_id)
         if checkout_id is not None:
             logging.info("Checking out version %s", checkout_id)
