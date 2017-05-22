@@ -112,6 +112,10 @@ SYN_GRADE := ${syn_grade}
             if command in self._tcl_controls:
                 self.writeln('TCL_{1} := {0}'.format(
                     self._tcl_controls[command], command.upper()))
+        self.writeln("""\
+ifneq ($(wildcard $(PROJECT_FILE)),)
+TCL_CREATE := $(TCL_OPEN)
+endif""")
         self.writeln()
 
     def makefile_syn_files(self):
