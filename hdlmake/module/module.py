@@ -31,6 +31,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 import logging
+from subprocess import Popen, PIPE, CalledProcessError
 
 from hdlmake.util import path as path_mod
 from hdlmake.manifest_parser import ManifestParser
@@ -100,16 +101,20 @@ class Module(ModuleContent):
         """Delete the module dir if it is already fetched and available"""
         if not self.isfetched:
             return
-
-        import shutil
         logging.debug("Removing " + self.path)
-        shutil.rmtree(self.path)
-        while True:
-            try:
-                logging.debug("Trying to remove " + os.path.dirname(self.path))
-                os.rmdir(os.path.dirname(self.path))
-            except OSError:  # a catologue is not empty - we are done
-                break
+        try:
+            command_tmp = path_mod.del_command() + " " + self.path
+            status_cmd = Popen(command_tmp,
+                                  stdout=PIPE,
+                                  stdin=PIPE,
+                                  stderr=PIPE,
+                                  close_fds=not path_mod.check_windows(),
+                                  shell=True)
+            status_output = status_cmd.stdout.readlines()
+        except CalledProcessError as process_error:
+            logging.error("Cannot clean the module: %s",
+                process_error.output)
+            quit()
 
     def process_manifest(self):
         """
