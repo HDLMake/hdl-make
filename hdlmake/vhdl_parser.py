@@ -43,7 +43,7 @@ class VHDLParser(DepParser):
         from .dep_file import DepRelation
         if dep_file.is_parsed:
             return
-        logging.info("Parsing %s", dep_file.path)
+        logging.debug("Parsing %s", dep_file.path)
 
         def _preprocess(vhdl_file):
             """Preprocess the supplied VHDL file instance"""

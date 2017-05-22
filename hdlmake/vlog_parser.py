@@ -570,7 +570,7 @@ class VerilogParser(DepParser):
         all of the detected dependency relations"""
         if dep_file.is_parsed:
             return
-        logging.info("Parsing %s", dep_file.path)
+        logging.debug("Parsing %s", dep_file.path)
         # assert isinstance(dep_file, DepFile), print("unexpected type: " +
         # str(type(dep_file)))
         buf = self.preprocessor.preprocess(dep_file)
