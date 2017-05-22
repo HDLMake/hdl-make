@@ -134,7 +134,8 @@ class ToolMakefile(object):
         tmp = "\t\t" + path_mod.del_command() + " $(CLEAN_TARGETS)"
         self.writeln(tmp)
         if path_mod.check_windows():
-            tmp = "\t\t" + path_mod.rmdir_command() + " $(CLEAN_TARGETS)"
+            tmp = "\t\t@-" + path_mod.rmdir_command() + \
+            " $(CLEAN_TARGETS) >nul 2>&1"
             self.writeln(tmp)
 
     def makefile_mrproper(self):
