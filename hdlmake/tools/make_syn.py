@@ -209,9 +209,7 @@ SYN_POST_{0}_CMD := {2}
         self.makefile_clean()
         self.writeln("\t\t" + path_mod.del_command() +
                      " project synthesize translate map par bitstream")
-        self.writeln("\t\t" + path_mod.del_command() +
-                     " project.tcl synthesize.tcl translate.tcl" +
-                     " map.tcl par.tcl bitstream.tcl files.tcl")
+        self.writeln()
         self.makefile_mrproper()
 
     def makefile_syn_phony(self):
