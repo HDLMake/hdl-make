@@ -72,7 +72,7 @@ class ToolISE(ToolSyn):
         VerilogFile: 'xfile add $(sourcefile)',
         SVFile: 'xfile add $(sourcefile)'}
 
-    CLEAN_TARGETS = {'clean': ["xst *_xdb", "iseconfig _xmsgs",
+    CLEAN_TARGETS = {'clean': ["xst", "xlnx_auto_0_xdb", "iseconfig _xmsgs",
                                "_ngo", "*.b", "*_summary.html", "*.tcl",
                                "*.bld", "*.cmd_log", "*.drc", "*.lso", "*.ncd",
                                "*.ngc", "*.ngd", "*.ngr", "*.pad", "*.par",
