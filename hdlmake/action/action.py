@@ -26,7 +26,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 import logging
-from subprocess import PIPE, Popen
 import sys
 
 from hdlmake.util import shell
@@ -192,23 +191,11 @@ class Action(list):
         """Guess origin (git, svn, local) of a module at given path"""
         cwd = self.top_module.path
         try:
-            is_windows = shell.check_windows()
             os.chdir(path)
-            git_out = Popen("git config --get remote.origin.url",
-                            stdout=PIPE, shell=True, close_fds=not is_windows)
-            lines = git_out.stdout.readlines()
-            if len(lines) == 0:
-                return None
-            url = lines[0].strip()
+            url = shell.run("git config --get remote.origin.url")
             if not url:  # try svn
-                svn_out = Popen(
-                    "svn info | grep 'Repository Root' | awk '{print $NF}'",
-                    stdout=PIPE, shell=True, close_fds=not is_windows)
-                url = svn_out.stdout.readlines()[0].strip()
-                if url:
-                    return url
-                else:
-                    return None
+                return shell.run("svn info | grep 'Repository Root' | " +
+                                 "awk '{print $NF}'")
             else:
                 return url
         finally:

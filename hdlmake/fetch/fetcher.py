@@ -24,9 +24,6 @@
 from __future__ import absolute_import
 import os
 from hdlmake.util import shell
-import logging
-from tempfile import TemporaryFile
-from subprocess import Popen, PIPE
 
 
 class Fetcher(object):
@@ -42,28 +39,7 @@ class Fetcher(object):
         """Use the provided command to get the specific ID from
         the repository at path"""
         cur_dir = os.getcwd()
-        identifier = None
-        stderr = TemporaryFile()
-        try:
-            is_windows = shell.check_windows()
-            os.chdir(path)
-            command_out = Popen(
-                command,
-                shell=True,
-                stdin=PIPE,
-                stdout=PIPE,
-                stderr=stderr,
-                close_fds=not is_windows)
-            errmsg = stderr.readlines()
-            if errmsg:
-                logging.debug(
-                    "ID error message (in %s): %s",
-                    path, '\n'.join(errmsg))
-            try:
-                identifier = command_out.stdout.readlines()[0].strip()
-            except IndexError:
-                pass
-        finally:
-            os.chdir(cur_dir)
-            stderr.close()
+        os.chdir(path)
+        identifier = shell.run(command)
+        os.chdir(cur_dir)
         return identifier

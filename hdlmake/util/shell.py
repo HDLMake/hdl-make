@@ -27,6 +27,27 @@ from __future__ import absolute_import
 import os
 import sys
 import platform
+import logging
+from subprocess import PIPE, Popen, CalledProcessError
+
+
+def run(command):
+    """Execute a command in the shell and print the output lines as a list"""
+    try:
+        command_out = Popen(command,
+            stdout=PIPE,
+            stdin=PIPE,
+            stderr=PIPE,
+            close_fds=not check_windows(),
+            shell=True)
+        lines = command_out.stdout.readlines()
+        if len(lines) == 0:
+            return None
+        return lines[0].strip()
+    except CalledProcessError as process_error:
+        logging.error("Cannot clean the module: %s",
+            process_error.output)
+        quit()
 
 
 def tclpath(path):

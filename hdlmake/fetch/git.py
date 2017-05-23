@@ -26,7 +26,6 @@ import os
 from hdlmake.util import path as path_utils
 from hdlmake.util import shell
 import logging
-from subprocess import Popen, PIPE, CalledProcessError
 from .constants import GIT
 from .fetcher import Fetcher
 
@@ -42,43 +41,17 @@ class Git(Fetcher):
     @staticmethod
     def get_git_toplevel():
         """Get the top level for the Git repository"""
-        try:
-            tree_root_cmd = Popen("git rev-parse --show-toplevel",
-                                  stdout=PIPE,
-                                  stdin=PIPE,
-                                  close_fds=not shell.check_windows(),
-                                  shell=True)
-            tree_root_line = tree_root_cmd.stdout.readlines()[0].strip()
-            return tree_root_line
-        except CalledProcessError as process_error:
-            logging.error("Cannot get the top level!: %s",
-                process_error.output)
-            quit()
+        return shell.run("git rev-parse --show-toplevel")
 
     @staticmethod
     def get_submodule_commit(submodule_dir):
         """Get the commit for a repository if defined in Git submodules"""
-        try:
-            command_tmp = "git submodule status %s" % submodule_dir
-            status_cmd = Popen(command_tmp,
-                                  stdout=PIPE,
-                                  stdin=PIPE,
-                                  stderr=PIPE,
-                                  close_fds=not shell.check_windows(),
-                                  shell=True)
-            status_output = status_cmd.stdout.readlines()
-            if len(status_output) == 1:
-                status_line = status_output[0].split()
-                if len(status_line) == 2:
-                    return status_line[0][1:]
-                else:
-                    return None
-            else:
-                return None
-        except CalledProcessError as process_error:
-            logging.error("Cannot get the submodule status!: %s",
-                process_error.output)
-            quit()
+        status_line = shell.run("git submodule status %s" % submodule_dir)
+        status_line = status_line.split()
+        if len(status_line) == 2:
+            return status_line[0][1:]
+        else:
+            return None
 
     def fetch(self, module):
         """Get the code from the remote Git repository"""
