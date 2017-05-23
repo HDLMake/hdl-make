@@ -31,6 +31,7 @@ import sys
 from hdlmake.util import shell
 from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
+from hdlmake import fetch as fetch_mod
 
 
 def set_logging_level(options):
@@ -61,11 +62,15 @@ class Action(list):
     """This is the base class providing the common Action methods"""
 
     def __init__(self, options):
+        super(Action, self).__init__()
         self.top_module = None
         self._deps_solved = False
         self.options = options
         set_logging_level(options)
-        super(Action, self).__init__()
+        self.new_module(parent=None,
+                         url=os.getcwd(),
+                         source=fetch_mod.LOCAL,
+                         fetchto=".")
 
     def new_module(self, parent, url, source, fetchto):
         """Add new module to the pool.

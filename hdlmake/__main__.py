@@ -24,13 +24,11 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
-import os
 import argparse
 import sys
 
 from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
-from . import fetch as fetch_mod
 from ._version import __version__
 
 
@@ -55,32 +53,7 @@ def main():
     # Create a ModulePool object, this will become our workspace
     modules_pool = ModulePool(options)
 
-    # Set the module_pool environment by providing the options: this is a must!
-    #modules_pool.env = Env(options)
-
-    # Now, we add the first module, the one from which we are launching
-    #  the program:
-    # Note that we are asking for not processing the manifest and specifying
-    # that there is not a parent module.
-    # 1- Hdlmake create a new Module() object
-    # 2- There is not a top_module yet in modules_pool, so only this time...:
-    #    - this becomes the top_module
-    #    - the manifest is parsed & processed
-    # And dependent modules are added to the modules pool, but...
-    # .. How should we handle recursive fetching?
-    # Note: CERN BE-CO-HT advocates for defaulting to non-recursive.
-
-    modules_pool.new_module(parent=None,
-                            url=os.getcwd(),
-                            source=fetch_mod.LOCAL,
-                            fetchto=".")
-
-    # Check if our top_module has been successfully assigned and
-    # contains a Manifest.py (ModulePool class)
-    # if not modules_pool.get_top_module().manifest_dict:
-    #    logging.info("No manifest found. At least an empty one is needed")
-    #    logging.info("To see some help, type hdlmake --help")
-    #    sys.exit("Exiting")
+    # Execute the appropriated action for the freshly created modules pool
     _action_runner(modules_pool)
 
 
