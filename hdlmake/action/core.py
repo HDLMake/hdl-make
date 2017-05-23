@@ -27,14 +27,11 @@ import logging
 import os
 import sys
 import os.path
-import time
 
 from hdlmake.tools import write_makefile
 import hdlmake.fetch as fetch
 import hdlmake.new_dep_solver as dep_solver
 from hdlmake.util import path as path_mod
-from hdlmake.srcfile import VerilogFile, VHDLFile, NGCFile
-from hdlmake.vlog_parser import VerilogPreprocessor
 from hdlmake.fetch import Svn, Git, Local
 from hdlmake.fetch import SVN, GIT, LOCAL
 from .action import Action
