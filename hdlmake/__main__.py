@@ -115,9 +115,8 @@ def _action_runner(modules_pool):
     if options.command == "manifest-help":
         ManifestParser().print_help()
         quit()
-    elif options.command == "auto":
-        from hdlmake.tools import write_makefile
-        write_makefile(modules_pool)
+    elif options.command == "makefile":
+        modules_pool.makefile()
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":
@@ -228,17 +227,17 @@ def _get_parser():
         "--condition",
         dest="condition",
         required=True)
-    auto = subparsers.add_parser(
-        "auto",
-        help="default action for hdlmake. Run when no args are given")
-    auto.add_argument(
+    makefile = subparsers.add_parser(
+        "makefile",
+        help="Write the Makefile -- default action for hdlmake.")
+    makefile.add_argument(
         '-v',
         '--version',
         action='version',
         version=parser.prog +
         " " +
         __version__)
-    auto.add_argument(
+    makefile.add_argument(
         "--noprune",
         help="prevent hdlmake from pruning unneeded files",
         default=False,
@@ -276,16 +275,16 @@ def _get_options(sys_aux, parser):
     """Function that decodes and set the provided command user options"""
     options = None
     if len(sys_aux.argv[1:]) == 0:
-        options = parser.parse_args(['auto'])
+        options = parser.parse_args(['makefile'])
     elif len(sys_aux.argv[1:]) == 1:
         if sys_aux.argv[1] == "--help" or sys_aux.argv[1] == "-h":
             options = parser.parse_args(sys_aux.argv[1:])
         elif sys_aux.argv[1].startswith('-'):
-            options = parser.parse_args(["auto"] + sys_aux.argv[1:])
+            options = parser.parse_args(["makefile"] + sys_aux.argv[1:])
         else:
             options = parser.parse_args(sys_aux.argv[1:])
     elif len(sys_aux.argv[1:]) % 2 == 0:
-        options = parser.parse_args(sys_aux.argv[1:] + ["auto"])
+        options = parser.parse_args(sys_aux.argv[1:] + ["makefile"])
     else:
         options = parser.parse_args(sys_aux.argv[1:])
     return options

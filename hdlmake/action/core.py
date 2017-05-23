@@ -29,6 +29,7 @@ import sys
 import os.path
 import time
 
+from hdlmake.tools import write_makefile
 import hdlmake.fetch as fetch
 import hdlmake.new_dep_solver as dep_solver
 from hdlmake.util import path as path_mod
@@ -48,6 +49,12 @@ class ActionCore(Action):
         self.git_backend = Git()
         self.svn_backend = Svn()
         self.local_backend = Local()
+
+
+    def makefile(self):
+        """Write the Makefile for the current design"""
+        write_makefile(self)
+
 
     def _fetch_all(self):
         """Fetch all the modules declared in the design"""
