@@ -26,11 +26,8 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 import argparse
-import logging
 import sys
 
-from .util import path as path_mod
-from .util.termcolor import colored
 from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
 from . import fetch as fetch_mod
@@ -54,27 +51,6 @@ def main():
     # PARSE & GET OPTIONS
     #
     options = _get_options(sys, parser)
-
-    # Here we set the log level (A.K.A.) debug verbosity)
-    numeric_level = getattr(logging, options.log.upper(), None)
-    if not isinstance(numeric_level, int):
-        sys.exit('Invalid log level: %s' % options.log)
-
-    if not path_mod.check_windows():
-        logging.basicConfig(
-            format=colored(
-                "%(levelname)s",
-                "yellow") + colored(
-                "\t%(filename)s:%(lineno)d: %(funcName)s()\t",
-                "blue") + "%(message)s",
-            level=numeric_level)
-    else:
-        logging.basicConfig(
-            format="%(levelname)s" +
-                   "\t%(filename)s:%(lineno)d: %(funcName)s()\t" +
-                   "%(message)s",
-            level=numeric_level)
-    logging.debug(str(options))
 
     # Create a ModulePool object, this will become our workspace
     modules_pool = ModulePool(options)

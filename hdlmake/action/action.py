@@ -30,7 +30,31 @@ from subprocess import PIPE, Popen
 import sys
 
 from hdlmake.util import path as path_mod
+from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
+
+
+def set_logging_level(options):
+    """Set the log level and config (A.K.A. log verbosity)"""
+    numeric_level = getattr(logging, options.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        sys.exit('Invalid log level: %s' % options.log)
+
+    if not path_mod.check_windows():
+        logging.basicConfig(
+            format=colored(
+                "%(levelname)s",
+                "yellow") + colored(
+                "\t%(filename)s:%(lineno)d: %(funcName)s()\t",
+                "blue") + "%(message)s",
+            level=numeric_level)
+    else:
+        logging.basicConfig(
+            format="%(levelname)s" +
+                   "\t%(filename)s:%(lineno)d: %(funcName)s()\t" +
+                   "%(message)s",
+            level=numeric_level)
+    logging.debug(str(options))
 
 
 class Action(list):
@@ -41,6 +65,7 @@ class Action(list):
         self.top_module = None
         self._deps_solved = False
         self.options = options
+        set_logging_level(options)
         super(Action, self).__init__()
 
     def new_module(self, parent, url, source, fetchto):
