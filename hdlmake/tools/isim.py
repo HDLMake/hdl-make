@@ -136,7 +136,7 @@ VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
         self.write('\n')
         # tell how to make libraries
         self.write('LIB_IND := ')
-        self.write(' '.join([lib + path_mod.slash_char() + 
+        self.write(' '.join([lib + path_mod.slash_char() +
             "." + lib for lib in libs]))
         self.write('\n')
         self.writeln("""\
