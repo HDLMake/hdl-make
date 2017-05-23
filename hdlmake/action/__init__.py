@@ -22,7 +22,5 @@
 
 """The Action package provides the full set of provided user functionalities"""
 
-from .action import Action
-
 from .core import ActionCore
 from .tree import ActionTree
