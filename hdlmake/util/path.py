@@ -26,7 +26,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 import sys
-import logging
 import platform
 
 
@@ -149,18 +148,6 @@ def compose(path, base=None):
         base = os.getcwd()
     return os.path.relpath(os.path.abspath(
         os.path.join(base, path)))
-
-
-def search_for_manifest(search_path):
-    """
-    Look for manifest in the given folder
-    """
-    logging.debug("Looking for manifest in " + search_path)
-    for filename in os.listdir(search_path):
-        if filename == "manifest.py" and not os.path.isdir(filename):
-            return os.path.abspath(os.path.join(search_path, filename))
-    # no manifest file found
-    return None
 
 
 def flatten_list(sth):
