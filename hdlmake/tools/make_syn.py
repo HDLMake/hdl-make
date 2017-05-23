@@ -39,8 +39,8 @@ class ToolSyn(ToolMakefile):
     def __init__(self):
         super(ToolSyn, self).__init__()
 
-    def synthesis_project(self, pool):
-        """Generate a project for the specific synthesis tool"""
+    def synthesis_makefile(self, pool):
+        """Generate a Makefile for the specific synthesis tool"""
         pool.check_all_fetched_or_quit()
         manifest_project_dict = pool.get_config_dict()
         _check_synthesis_manifest(manifest_project_dict)

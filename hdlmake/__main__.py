@@ -174,8 +174,7 @@ def _auto_pilot(modules_pool):
         sim_writer.simulation_makefile(modules_pool)
     elif action == "synthesis":
         syn_writer = _load_syn_tool(modules_pool)
-        syn_writer.synthesis_project(modules_pool)
-        # modules_pool.synthesis_makefile()
+        syn_writer.synthesis_makefile(modules_pool)
     elif action == "qsys_hw_tcl_update":
         if not top_mod.manifest_dict["hw_tcl_filename"]:
             logging.error("'hw_tcl_filename' manifest variable has to be "
@@ -198,7 +197,7 @@ def _action_runner(modules_pool):
         sim_writer.simulation_makefile(modules_pool)
     elif options.command == "make-synthesis":
         syn_writer = _load_syn_tool(modules_pool)
-        syn_writer.synthesis_project(modules_pool)
+        syn_writer.synthesis_makefile(modules_pool)
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":
