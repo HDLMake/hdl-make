@@ -111,7 +111,6 @@ class Module(ModuleContent):
                                   stderr=PIPE,
                                   close_fds=not path_mod.check_windows(),
                                   shell=True)
-            status_output = status_cmd.stdout.readlines()
         except CalledProcessError as process_error:
             logging.error("Cannot clean the module: %s",
                 process_error.output)
