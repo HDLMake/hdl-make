@@ -33,7 +33,6 @@ from .util import path as path_mod
 from .util.termcolor import colored
 from .manifest_parser import ManifestParser
 from .module_pool import ModulePool
-from .env import Env
 from . import fetch as fetch_mod
 from ._version import __version__
 
