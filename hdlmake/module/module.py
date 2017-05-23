@@ -105,12 +105,12 @@ class Module(ModuleContent):
         try:
             command_tmp = (path_mod.rmdir_command() + " " +
                            path_mod.relpath(self.path))
-            status_cmd = Popen(command_tmp,
-                                  stdout=PIPE,
-                                  stdin=PIPE,
-                                  stderr=PIPE,
-                                  close_fds=not path_mod.check_windows(),
-                                  shell=True)
+            Popen(command_tmp,
+                stdout=PIPE,
+                stdin=PIPE,
+                stderr=PIPE,
+                close_fds=not path_mod.check_windows(),
+                shell=True)
         except CalledProcessError as process_error:
             logging.error("Cannot clean the module: %s",
                 process_error.output)
