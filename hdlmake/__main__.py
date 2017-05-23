@@ -192,12 +192,6 @@ def _action_runner(modules_pool):
         quit()
     elif options.command == "auto":
         _auto_pilot(modules_pool)
-    elif options.command == "make-simulation":
-        sim_writer = _load_sim_tool(modules_pool)
-        sim_writer.simulation_makefile(modules_pool)
-    elif options.command == "make-synthesis":
-        syn_writer = _load_syn_tool(modules_pool)
-        syn_writer.synthesis_makefile(modules_pool)
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":
@@ -230,12 +224,6 @@ def _get_parser():
     subparsers.add_parser(
         "manifest-help",
         help="print manifest file variables description")
-    subparsers.add_parser(
-        "make-simulation",
-        help="generate simulation makefile")
-    subparsers.add_parser(
-        "make-synthesis",
-        help="generate synthesis makefile")
     subparsers.add_parser(
         "fetch",
         help="fetch and/or update all of the remote modules")
