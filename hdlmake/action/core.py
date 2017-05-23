@@ -134,20 +134,20 @@ class ActionCore(Action):
         for mod_aux in unfetched_modules:
             logging.warning(
                 "List incomplete, module %s has not been fetched!", mod_aux)
-        file_set = self.build_file_set(top_entity=self.env.options.top)
+        file_set = self.build_file_set(top_entity=self.options.top)
         file_list = dep_solver.make_dependency_sorted_list(file_set)
         files_str = [file_aux.path for file_aux in file_list]
-        if self.env.options.reverse is True:
+        if self.options.reverse is True:
             files_str.reverse()
-        if self.env.options.delimiter is None:
+        if self.options.delimiter is None:
             delimiter = "\n"
         else:
-            delimiter = self.env.options.delimiter
+            delimiter = self.options.delimiter
         print(delimiter.join(files_str))
 
     def _print_comment(self, message):
         """Private method that prints a message to stdout if not terse"""
-        if not self.env.options.terse:
+        if not self.options.terse:
             print(message)
 
     def _print_file_list(self, file_list):
@@ -187,7 +187,7 @@ class ActionCore(Action):
                     self._print_comment("# * This is the root module")
                 print("%s\t%s" % (path_mod.relpath(mod_aux.path),
                                   _convert_to_source_name(mod_aux.source)))
-                if self.env.options.withfiles:
+                if self.options.withfiles:
                     self._print_file_list(mod_aux.files)
                 self._print_comment("# MODULE END -> %s" % mod_aux.url)
             self._print_comment("")
@@ -197,7 +197,7 @@ class ActionCore(Action):
         self.check_all_fetched_or_quit()
         logging.info("Merging all cores into one source file per language.")
         flist = self.build_file_set()
-        base = self.env.options.dest
+        base = self.options.dest
 
         file_header = (
             "\n\n\n\n"

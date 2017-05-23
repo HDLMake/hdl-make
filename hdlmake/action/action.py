@@ -37,12 +37,11 @@ class Action(list):
 
     """This is the base class providing the common Action methods"""
 
-    def __init__(self, *args):
+    def __init__(self, options):
         self.top_module = None
         self._deps_solved = False
-        self.env = None
-        list.__init__(self, *args)
-        super(Action, self).__init__(*args)
+        self.options = options
+        super(Action, self).__init__()
 
     def new_module(self, parent, url, source, fetchto):
         """Add new module to the pool.

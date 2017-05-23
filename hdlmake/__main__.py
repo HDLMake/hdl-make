@@ -78,10 +78,10 @@ def main():
     logging.debug(str(options))
 
     # Create a ModulePool object, this will become our workspace
-    modules_pool = ModulePool()
+    modules_pool = ModulePool(options)
 
     # Set the module_pool environment by providing the options: this is a must!
-    modules_pool.env = Env(options)
+    #modules_pool.env = Env(options)
 
     # Now, we add the first module, the one from which we are launching
     #  the program:
@@ -111,7 +111,7 @@ def main():
 
 def _action_runner(modules_pool):
     """Funtion that decodes and executed the action selected by the user"""
-    options = modules_pool.env.options
+    options = modules_pool.options
     if options.command == "manifest-help":
         ManifestParser().print_help()
         quit()

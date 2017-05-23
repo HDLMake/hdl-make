@@ -38,7 +38,7 @@ class ActionTree(Action):
 
     def _generate_tree_web(self, hierarchy, top_id):
         """Create a JSON file containing the graph hierarchy from pool"""
-        if self.env.options.web:
+        if self.options.web:
             try:
                 import json
                 from networkx.readwrite import json_graph
@@ -57,7 +57,7 @@ class ActionTree(Action):
              twopi, gvcolor, wc, ccomps, tred, sccmap, fdp,
              circo, neato, acyclic, nop, gvpr, dot, sfdp
         """
-        if self.env.options.graphviz:
+        if self.options.graphviz:
             try:
                 import matplotlib.pyplot as plt
                 import networkx as nx
@@ -65,7 +65,7 @@ class ActionTree(Action):
                 logging.error(error_import)
                 quit()
             pos = nx.graphviz_layout(hierarchy,
-                                     prog=self.env.options.graphviz,
+                                     prog=self.options.graphviz,
                                      root=top_id)
             nx.draw(hierarchy, pos,
                     with_labels=True,
@@ -84,7 +84,7 @@ class ActionTree(Action):
         unfetched_modules = False
         hierarchy = nx.DiGraph()
 
-        if self.env.options.solved:
+        if self.options.solved:
             logging.warning("This is the solved tree")
         else:
             for mod_aux in self:
@@ -98,7 +98,7 @@ class ActionTree(Action):
                     else:
                         hierarchy.add_node(path.relpath(mod_aux.path))
                         top_id = path.relpath(mod_aux.path)
-                    if self.env.options.withfiles:
+                    if self.options.withfiles:
                         if len(mod_aux.files):
                             for file_aux in mod_aux.files:
                                 hierarchy.add_edge(path.relpath(mod_aux.path),

@@ -58,7 +58,7 @@ class ToolSyn(ToolMakefile):
                          len(privative_files))
             fileset.add(privative_files)
         self.makefile_setup(manifest_project_dict, fileset,
-            filename=pool.env.options.filename)
+            filename=pool.options.filename)
         self.makefile_check_tool('syn_path')
         self.makefile_includes()
         self.makefile_syn_top()
