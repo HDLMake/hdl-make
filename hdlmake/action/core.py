@@ -53,6 +53,7 @@ class ActionCore(Action):
 
     def makefile(self):
         """Write the Makefile for the current design"""
+        self.check_all_fetched_or_quit()
         write_makefile(self)
 
 
