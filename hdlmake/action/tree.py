@@ -92,16 +92,15 @@ class ActionTree(Action):
                     unfetched_modules = True
                 else:
                     if mod_aux.parent:
-                        hierarchy.add_node(path.relpath(mod_aux.path))
-                        hierarchy.add_edge(path.relpath(mod_aux.parent.path),
-                                           path.relpath(mod_aux.path))
+                        hierarchy.add_node(mod_aux.path)
+                        hierarchy.add_edge(mod_aux.parent.path, mod_aux.path)
                     else:
-                        hierarchy.add_node(path.relpath(mod_aux.path))
-                        top_id = path.relpath(mod_aux.path)
+                        hierarchy.add_node(mod_aux.path)
+                        top_id = mod_aux.path
                     if self.options.withfiles:
                         if len(mod_aux.files):
                             for file_aux in mod_aux.files:
-                                hierarchy.add_edge(path.relpath(mod_aux.path),
+                                hierarchy.add_edge(mod_aux.path,
                                                    path.relpath(file_aux.path))
 
         if unfetched_modules:

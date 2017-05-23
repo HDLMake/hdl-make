@@ -53,7 +53,8 @@ class ModuleConfig(object):
             self.url, self.branch, self.revision = \
                 path_mod.url_parse(url)
             basename = self.basename()
-            path = os.path.abspath(os.path.join(fetchto, basename))
+            path = path_mod.relpath(os.path.abspath(
+                os.path.join(fetchto, basename)))
             # Check if the module dir exists and is not empty
             if os.path.exists(path) and os.listdir(path):
                 self.path = path

@@ -183,7 +183,7 @@ class ActionCore(Action):
                                         % mod_aux.parent.url)
                 else:
                     self._print_comment("# * This is the root module")
-                print("%s\t%s" % (path_mod.relpath(mod_aux.path),
+                print("%s\t%s" % (mod_aux.path,
                                   _convert_to_source_name(mod_aux.source)))
                 if self.options.withfiles:
                     self._print_file_list(mod_aux.files)

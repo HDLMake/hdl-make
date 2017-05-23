@@ -26,7 +26,6 @@ from __future__ import absolute_import
 import os
 import logging
 
-from hdlmake.util import path as path_mod
 from .configparser import ConfigParser
 
 
@@ -278,9 +277,9 @@ class ManifestParser(ConfigParser):
                         path_aux = os.path.join(path, filename)
                         if not isinstance(path_aux, str):
                             raise ValueError("Path must be an instance of str")
-                        if not path_mod.is_abs_path(path_aux):
-                            raise ValueError(
-                                "Manifest path must be absolute path")
+                        #if not path_mod.is_abs_path(path_aux):
+                        #    raise ValueError(
+                        #        "Manifest path must be absolute path")
                         return path_aux
             return None
         manifest = _search_for_manifest(path)
