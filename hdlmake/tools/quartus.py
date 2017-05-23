@@ -30,6 +30,7 @@ import logging
 
 from .make_syn import ToolSyn
 from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, DPFFile,
                              SignalTapFile, SDCFile, QIPFile, QSYSFile,
                              QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
@@ -202,7 +203,7 @@ class ToolQuartus(ToolSyn):
         # Insert the Quartus standard control TCL files
         command_list = []
         if "quartus_preflow" in self.manifest_dict:
-            path = path_mod.tclpath(path_mod.compose(
+            path = shell.tclpath(path_mod.compose(
                 self.manifest_dict["quartus_preflow"], os.getcwd()))
             if not os.path.exists(path):
                 logging.error("quartus_preflow file listed in "
@@ -214,7 +215,7 @@ class ToolQuartus(ToolSyn):
                                 {'name_type': 'PRE_FLOW_SCRIPT_FILE',
                                 'name': preflow}))
         if "quartus_postmodule" in self.manifest_dict:
-            path = path_mod.tclpath(path_mod.compose(
+            path = shell.tclpath(path_mod.compose(
                 self.manifest_dict["quartus_postmodule"],
                 os.getcwd()))
             if not os.path.exists(path):
@@ -227,7 +228,7 @@ class ToolQuartus(ToolSyn):
                                 {'name_type': 'POST_MODULE_SCRIPT_FILE',
                                 'name': postmodule}))
         if "quartus_postflow" in self.manifest_dict:
-            path = path_mod.tclpath(path_mod.compose(
+            path = shell.tclpath(path_mod.compose(
                 self.manifest_dict["quartus_postflow"], os.getcwd()))
             if not os.path.exists(path):
                 logging.error("quartus_postflow file listed in "

@@ -29,7 +29,7 @@ import logging
 
 from .make_syn import ToolSyn
 
-from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                              UCFFile, CDCFile, NGCFile)
 
@@ -115,7 +115,7 @@ $(TCL_CLOSE)'''
         'translate': _ISE_RUN.format("Translate"),
         'map': _ISE_RUN.format("Map"),
         'par': _ISE_RUN.format("Place "
-            + ("^&" if path_mod.check_windows() else "'&'")
+            + ("^&" if shell.check_windows() else "'&'")
             + " Route"),
         'bitstream': _ISE_RUN.format("Generate Programming File"),
         'install_source': "*.bit *.bin"}
@@ -149,7 +149,7 @@ $(TCL_CLOSE)'''
         syn_properties = self.manifest_dict.get("syn_properties")
         project_new = []
         project_tcl = self._tcl_controls["project"]
-        if path_mod.check_windows():
+        if shell.check_windows():
             tmp = 'project set "{0}" "{1}"'
         else:
             tmp = 'project set \\"{0}\\" \\"{1}\\"'

@@ -28,7 +28,7 @@ import os
 import logging
 import six
 
-from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 
 
 class ToolMakefile(object):
@@ -62,7 +62,7 @@ class ToolMakefile(object):
 
     def _get_name_bin(self):
         """Get the name and binary values"""
-        if path_mod.check_windows():
+        if shell.check_windows():
             bin_name = self._tool_info['windows_bin']
         else:
             bin_name = self._tool_info['linux_bin']
@@ -71,7 +71,7 @@ class ToolMakefile(object):
     def _get_path(self):
         """Get the directory in which the tool binary is at Host"""
         bin_name = self._get_name_bin()
-        locations = path_mod.which(bin_name)
+        locations = shell.which(bin_name)
         if len(locations) == 0:
             return
         logging.debug("location for %s: %s", bin_name, locations[0])
@@ -131,17 +131,17 @@ class ToolMakefile(object):
         self.writeln("CLEAN_TARGETS := $(LIBS) " +
             ' '.join(self._clean_targets["clean"]) + "\n")
         self.writeln("clean:")
-        tmp = "\t\t" + path_mod.del_command() + " $(CLEAN_TARGETS)"
+        tmp = "\t\t" + shell.del_command() + " $(CLEAN_TARGETS)"
         self.writeln(tmp)
-        if path_mod.check_windows():
-            tmp = "\t\t@-" + path_mod.rmdir_command() + \
+        if shell.check_windows():
+            tmp = "\t\t@-" + shell.rmdir_command() + \
             " $(CLEAN_TARGETS) >nul 2>&1"
             self.writeln(tmp)
 
     def makefile_mrproper(self):
         """Print the Makefile target for cleaning final files"""
         self.writeln("mrproper: clean")
-        tmp = "\t\t" + path_mod.del_command() + \
+        tmp = "\t\t" + shell.del_command() + \
             " " + ' '.join(self._clean_targets["mrproper"]) + "\n"
         self.writeln(tmp)
 
@@ -168,7 +168,7 @@ class ToolMakefile(object):
         """Write a string in the manifest, no new line"""
         if not self._initialized:
             self.initialize()
-        if path_mod.check_windows():
+        if shell.check_windows():
             self._file.write(line.replace('\\"', '"'))
         else:
             self._file.write(line)

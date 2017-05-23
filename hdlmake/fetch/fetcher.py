@@ -23,7 +23,7 @@
 
 from __future__ import absolute_import
 import os
-from hdlmake.util import path as path_utils
+from hdlmake.util import shell
 import logging
 from tempfile import TemporaryFile
 from subprocess import Popen, PIPE
@@ -45,7 +45,7 @@ class Fetcher(object):
         identifier = None
         stderr = TemporaryFile()
         try:
-            is_windows = path_utils.check_windows()
+            is_windows = shell.check_windows()
             os.chdir(path)
             command_out = Popen(
                 command,

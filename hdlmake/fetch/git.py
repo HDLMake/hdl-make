@@ -24,6 +24,7 @@
 from __future__ import absolute_import
 import os
 from hdlmake.util import path as path_utils
+from hdlmake.util import shell
 import logging
 from subprocess import Popen, PIPE, CalledProcessError
 from .constants import GIT
@@ -45,7 +46,7 @@ class Git(Fetcher):
             tree_root_cmd = Popen("git rev-parse --show-toplevel",
                                   stdout=PIPE,
                                   stdin=PIPE,
-                                  close_fds=not path_utils.check_windows(),
+                                  close_fds=not shell.check_windows(),
                                   shell=True)
             tree_root_line = tree_root_cmd.stdout.readlines()[0].strip()
             return tree_root_line
@@ -63,7 +64,7 @@ class Git(Fetcher):
                                   stdout=PIPE,
                                   stdin=PIPE,
                                   stderr=PIPE,
-                                  close_fds=not path_utils.check_windows(),
+                                  close_fds=not shell.check_windows(),
                                   shell=True)
             status_output = status_cmd.stdout.readlines()
             if len(status_output) == 1:

@@ -29,7 +29,7 @@ import logging
 from subprocess import PIPE, Popen
 import sys
 
-from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
 
@@ -40,7 +40,7 @@ def set_logging_level(options):
     if not isinstance(numeric_level, int):
         sys.exit('Invalid log level: %s' % options.log)
 
-    if not path_mod.check_windows():
+    if not shell.check_windows():
         logging.basicConfig(
             format=colored(
                 "%(levelname)s",
@@ -161,7 +161,7 @@ class Action(list):
         for mod in self:
             manifest_dict_tmp = mod.manifest_dict
             if 'fetchto' in manifest_dict_tmp:
-                manifest_dict_tmp['fetchto'] = path_mod.relpath(os.path.join(
+                manifest_dict_tmp['fetchto'] = os.path.relpath(os.path.join(
                     mod.path,
                     mod.manifest_dict['fetchto']))
             manifest_dict_tmp.update(config_dict)
@@ -192,7 +192,7 @@ class Action(list):
         """Guess origin (git, svn, local) of a module at given path"""
         cwd = self.top_module.path
         try:
-            is_windows = path_mod.check_windows()
+            is_windows = shell.check_windows()
             os.chdir(path)
             git_out = Popen("git config --get remote.origin.url",
                             stdout=PIPE, shell=True, close_fds=not is_windows)

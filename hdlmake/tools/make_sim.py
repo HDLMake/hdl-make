@@ -7,7 +7,7 @@ import string
 import logging
 
 from .makefile import ToolMakefile
-from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 from hdlmake.dep_file import DepFile
 
@@ -149,8 +149,8 @@ PWD := $$(shell pwd)
                       isinstance(file_aux, SVFile)):
                     command_key = 'vlog'
                 self.writeln("\t\t" + self._simulator_controls[command_key])
-                self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
-                self.writeln(" && " + path_mod.touch_command()  + " $@ \n")
+                self.write("\t\t@" + shell.mkdir_command() + " $(dir $@)")
+                self.writeln(" && " + shell.touch_command()  + " $@ \n")
                 self.writeln()
 
     def makefile_sim_command(self):

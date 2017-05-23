@@ -31,7 +31,7 @@ import os.path
 import logging
 
 from .make_sim import ToolSim
-from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 from hdlmake.srcfile import VerilogFile, VHDLFile
 
 
@@ -78,11 +78,11 @@ class ToolISim(ToolSim):
                 logging.error("Cannot calculate xilinx tools base directory")
                 quit()
             hdl_language = 'vhdl'  # 'verilog'
-            if path_mod.check_windows():
+            if shell.check_windows():
                 os_prefix = 'nt'
             else:
                 os_prefix = 'lin'
-            if path_mod.architecture() == 32:
+            if shell.architecture() == 32:
                 arch_sufix = ''
             else:
                 arch_sufix = '64'
@@ -136,7 +136,7 @@ VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
         self.write('\n')
         # tell how to make libraries
         self.write('LIB_IND := ')
-        self.write(' '.join([lib + path_mod.slash_char() +
+        self.write(' '.join([lib + shell.slash_char() +
             "." + lib for lib in libs]))
         self.write('\n')
         self.writeln("""\
@@ -146,8 +146,8 @@ $(VHDL_OBJ): $(LIB_IND) xilinxsim.ini
 
 """)
         self.writeln("xilinxsim.ini: $(XILINX_INI_PATH)" +
-            path_mod.slash_char() + "xilinxsim.ini")
-        self.writeln("\t\t" + path_mod.copy_command() + " $< .")
+            shell.slash_char() + "xilinxsim.ini")
+        self.writeln("\t\t" + shell.copy_command() + " $< .")
         self.writeln("""\
 fuse:
 \t\tfuse work.$(TOP_MODULE) -intstyle ise -incremental -o $(FUSE_OUTPUT)
@@ -156,11 +156,11 @@ fuse:
         # ISim does not have a vmap command to insert additional libraries in
         #.ini file.
         for lib in libs:
-            self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
+            self.write(lib + shell.slash_char() + "." + lib + ":\n")
             self.write(
-                ' '.join(["\t(" + path_mod.mkdir_command(), lib, "&&",
-                          path_mod.touch_command(),
-                          lib + path_mod.slash_char() + "." + lib + " "]))
+                ' '.join(["\t(" + shell.mkdir_command(), lib, "&&",
+                          shell.touch_command(),
+                          lib + shell.slash_char() + "." + lib + " "]))
             # self.write(' '.join(["&&", "echo", "\""+lib+"="+lib+"/."+lib+"\"
             # ", ">>", "xilinxsim.ini) "]))
             self.write(
@@ -169,7 +169,7 @@ fuse:
                           lib + "=" + lib,
                           " >>",
                           "xilinxsim.ini) "]))
-            self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
+            self.write(' '.join(["||", shell.del_command(), lib, "\n"]))
             self.write('\n')
             # Modify xilinxsim.ini file by including the extra local libraries
             # self.write(' '.join(["\t(echo """, lib+"="+lib+"/."+lib, ">>",
@@ -197,7 +197,7 @@ fuse:
             self.writeln(
                 ' '.join([fname.rel_path() for fname in vl_file.depends_on]))
             self.write("\t\tvlogcomp -work " + vl_file.library
-                       + "=." + path_mod.slash_char() + vl_file.library)
+                       + "=." + shell.slash_char() + vl_file.library)
             self.write(" $(VLOGCOMP_FLAGS) ")
             # if isinstance(vl_file, SVFile):
             #    self.write(" -sv ")
@@ -208,8 +208,8 @@ fuse:
                 self.write(' -i ')
                 self.write(' '.join(vl_file.include_dirs) + ' ')
             self.writeln(vl_file.vlog_opt + " $<")
-            self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
-            self.writeln(" && " + path_mod.touch_command() + " $@ \n\n")
+            self.write("\t\t@" + shell.mkdir_command() + " $(dir $@)")
+            self.writeln(" && " + shell.touch_command() + " $@ \n\n")
         self.write("\n")
         # list rules for all _primary.dat files for vhdl
         for vhdl_file in fileset.filter(VHDLFile):
@@ -236,10 +236,10 @@ fuse:
                 ' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)",
                           vhdl_file.vcom_opt,
                           "-work",
-                          lib + "=." + path_mod.slash_char() + lib,
+                          lib + "=." + shell.slash_char() + lib,
                           "$< "]))
-            self.writeln("\t\t@" + path_mod.mkdir_command() +
-                         " $(dir $@) && " + path_mod.touch_command() + " $@\n")
+            self.writeln("\t\t@" + shell.mkdir_command() +
+                         " $(dir $@) && " + shell.touch_command() + " $@\n")
             self.writeln()
             # dependency meta-target.
             # This rule just list the dependencies of the above file
@@ -260,5 +260,5 @@ fuse:
                 else:
                     self.write(" \\\n" + os.path.join(dep_file.rel_path()))
             self.write('\n')
-            self.writeln("\t\t@" + path_mod.mkdir_command() +
-                         " $(dir $@) && " + path_mod.touch_command() + " $@\n")
+            self.writeln("\t\t@" + shell.mkdir_command() +
+                         " $(dir $@) && " + shell.touch_command() + " $@\n")

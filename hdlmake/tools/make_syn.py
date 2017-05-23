@@ -6,7 +6,7 @@ import logging
 import string
 
 from .makefile import ToolMakefile
-from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 
 
 def _check_synthesis_manifest(manifest_dict):
@@ -73,7 +73,7 @@ class ToolSyn(ToolMakefile):
 
     def makefile_syn_top(self):
         """Create the top part of the synthesis Makefile"""
-        if path_mod.check_windows():
+        if shell.check_windows():
             tcl_interpreter = self._tool_info["windows_bin"]
         else:
             tcl_interpreter = self._tool_info["linux_bin"]
@@ -129,7 +129,7 @@ endif""")
             file_list = []
             for file_aux in self.fileset:
                 if isinstance(file_aux, filetype):
-                    file_list.append(path_mod.tclpath(file_aux.rel_path()))
+                    file_list.append(shell.tclpath(file_aux.rel_path()))
             if not file_list == []:
                 ret.append(
                    'SOURCES_{0} := \\\n'
@@ -145,14 +145,14 @@ endif""")
             for command in self._tcl_controls["files"].split('\n'):
                 tcl_command.append(echo_command.format(command))
             command_string = "\n".join(tcl_command)
-            if path_mod.check_windows():
+            if shell.check_windows():
                 command_string = command_string.replace("'", "")
             self.writeln(command_string)
         for filetype in sources_list:
             filetype_string = ('\t\t@$(foreach sourcefile,'
                 ' $(SOURCES_{0}), echo "{1}" >> $@ &)'.format(
                 filetype.__name__, fileset_dict[filetype]))
-            if path_mod.check_windows():
+            if shell.check_windows():
                 filetype_string = filetype_string.replace(
                     '"', '')
             self.writeln(filetype_string)
@@ -175,7 +175,7 @@ endif""")
                 for command in self._tcl_controls[stage].split('\n'):
                     tcl_command.append(echo_command.format(command))
                 command_string = "\n".join(tcl_command)
-                if path_mod.check_windows():
+                if shell.check_windows():
                     command_string = command_string.replace(
                         "'", "")
                 self.writeln("""\
@@ -188,7 +188,7 @@ endif""")
 \t\t$(SYN_POST_{2}_CMD)
 \t\t{4} $@
 """.format(stage, stage_previous, stage.upper(),
-           command_string, path_mod.touch_command()))
+           command_string, shell.touch_command()))
                 stage_previous = stage
 
     def makefile_syn_command(self):
@@ -207,7 +207,7 @@ SYN_POST_{0}_CMD := {2}
     def makefile_syn_clean(self):
         """Print the Makefile clean target for synthesis"""
         self.makefile_clean()
-        self.writeln("\t\t" + path_mod.del_command() +
+        self.writeln("\t\t" + shell.del_command() +
                      " project synthesize translate map par bitstream")
         self.writeln()
         self.makefile_mrproper()

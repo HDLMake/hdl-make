@@ -28,7 +28,7 @@ import os
 import string
 
 from .make_sim import ToolSim
-from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 import six
 
@@ -96,7 +96,7 @@ class VsimMakefileWriter(ToolSim):
             copying it to the local directory."""
             rule = """%s: %s
 \t\t%s $< . 2>&1
-""" % (name, src, path_mod.copy_command())
+""" % (name, src, shell.copy_command())
             return rule
         fileset = self.fileset
         # self.writeln("INCLUDE_DIRS := +incdir+%s" %
@@ -107,7 +107,7 @@ class VsimMakefileWriter(ToolSim):
         self.write('\n')
         # tell how to make libraries
         self.write('LIB_IND := ')
-        self.write(' '.join([lib + path_mod.slash_char() +
+        self.write(' '.join([lib + shell.slash_char() +
                    "." + lib for lib in libs]))
         self.write('\n')
         self.writeln()
@@ -123,12 +123,12 @@ class VsimMakefileWriter(ToolSim):
         for filename, filesource in six.iteritems(self.copy_rules):
             self.write(__create_copy_rule(filename, filesource))
         for lib in libs:
-            self.write(lib + path_mod.slash_char() + "." + lib + ":\n")
+            self.write(lib + shell.slash_char() + "." + lib + ":\n")
             vmap_command = "vmap $(VMAP_FLAGS)"
             self.write(' '.join(["\t(vlib", lib, "&&", vmap_command, lib, "&&",
-                path_mod.touch_command(), lib + path_mod.slash_char() +
+                shell.touch_command(), lib + shell.slash_char() +
                 "." + lib, ")"]))
-            self.write(' '.join(["||", path_mod.del_command(), lib, "\n"]))
+            self.write(' '.join(["||", shell.del_command(), lib, "\n"]))
             self.write('\n\n')
         # rules for all _primary.dat files for sv
         for vlog in fileset.filter(VerilogFile):
@@ -163,8 +163,8 @@ class VsimMakefileWriter(ToolSim):
                 library=vlog.library, sv_option="-sv"
                 if isinstance(vlog, SVFile) else "")
             self.writeln(compile_line)
-            self.write("\t\t@" + path_mod.mkdir_command() + " $(dir $@)")
-            self.writeln(" && " + path_mod.touch_command() + " $@ \n\n")
+            self.write("\t\t@" + shell.mkdir_command() + " $(dir $@)")
+            self.writeln(" && " + shell.touch_command() + " $@ \n\n")
             self.writeln()
         # list rules for all _primary.dat files for vhdl
         for vhdl in fileset.filter(VHDLFile):
@@ -187,5 +187,5 @@ class VsimMakefileWriter(ToolSim):
             self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)",
                          vhdl.vcom_opt, "-work", lib, "$< "]))
-            self.writeln("\t\t@" + path_mod.mkdir_command() +
-                " $(dir $@) && " + path_mod.touch_command() + " $@ \n\n")
+            self.writeln("\t\t@" + shell.mkdir_command() +
+                " $(dir $@) && " + shell.touch_command() + " $@ \n\n")

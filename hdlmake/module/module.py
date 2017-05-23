@@ -34,6 +34,7 @@ import logging
 from subprocess import Popen, PIPE, CalledProcessError
 
 from hdlmake.util import path as path_mod
+from hdlmake.util import shell
 from hdlmake.manifest_parser import ManifestParser
 from .content import ModuleContent
 import six
@@ -103,12 +104,12 @@ class Module(ModuleContent):
             return
         logging.debug("Removing " + self.path)
         try:
-            command_tmp = path_mod.rmdir_command() + " " + self.path
+            command_tmp = shell.rmdir_command() + " " + self.path
             Popen(command_tmp,
                 stdout=PIPE,
                 stdin=PIPE,
                 stderr=PIPE,
-                close_fds=not path_mod.check_windows(),
+                close_fds=not shell.check_windows(),
                 shell=True)
         except CalledProcessError as process_error:
             logging.error("Cannot clean the module: %s",
