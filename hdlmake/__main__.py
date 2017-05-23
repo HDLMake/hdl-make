@@ -124,8 +124,6 @@ def _action_runner(modules_pool):
         modules_pool.list_modules()
     elif options.command == "list-files":
         modules_pool.list_files()
-    elif options.command == "merge-cores":
-        modules_pool.merge_cores()
     elif options.command == "tree":
         modules_pool.generate_tree()
 
