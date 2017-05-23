@@ -23,14 +23,10 @@
 
 """This is the Python module providing the container for the HDL Modules"""
 
-from .action import (ActionCore,
-                     ActionTree,
-                     QsysHwTclUpdate)
+from .action import ActionCore, ActionTree
 
 
-class ModulePool(ActionCore,
-                 ActionTree,
-                 QsysHwTclUpdate):
+class ModulePool(ActionCore, ActionTree):
 
     """
     The ModulePool class acts as the container for the HDLMake modules that
@@ -40,4 +36,3 @@ class ModulePool(ActionCore,
     def __init__(self, *args):
         ActionCore.__init__(self, *args)
         ActionTree.__init__(self, *args)
-        QsysHwTclUpdate.__init__(self, *args)

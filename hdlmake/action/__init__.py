@@ -26,5 +26,3 @@ from .action import Action
 
 from .core import ActionCore
 from .tree import ActionTree
-
-from .qsys_hw_tcl_update import QsysHwTclUpdate
