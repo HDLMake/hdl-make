@@ -109,81 +109,6 @@ def main():
     _action_runner(modules_pool)
 
 
-def _load_syn_tool(modules_pool):
-    """Funtion that checks the provided module_pool and generate an
-    initialized instance of the the appropriated synthesis tool"""
-    from hdlmake.tools import (ToolISE, ToolPlanAhead, ToolVivado,
-                               ToolQuartus, ToolDiamond, ToolLibero,
-                               ToolIcestorm)
-    available_tools = {'ise': ToolISE,
-                       'planahead':  ToolPlanAhead,
-                       'vivado': ToolVivado,
-                       'quartus': ToolQuartus,
-                       'diamond': ToolDiamond,
-                       'libero': ToolLibero,
-                       'icestorm': ToolIcestorm}
-    for mod in modules_pool:
-        if 'syn_tool' in mod.manifest_dict:
-            tool_name = mod.manifest_dict['syn_tool']
-            if tool_name in available_tools:
-                logging.debug("Tool to be used found: %s", tool_name)
-                return available_tools[tool_name]()
-    logging.error("Unknown synthesis tool: %s", tool_name)
-    quit()
-
-
-def _load_sim_tool(modules_pool):
-    """Funtion that checks the provided module_pool and generate an
-    initialized instance of the the appropriated simulation tool"""
-    from hdlmake.tools import (ToolIVerilog, ToolISim, ToolModelsim,
-                               ToolActiveHDL, ToolRiviera, ToolGHDL,
-                               ToolVivado)
-    available_tools = {'iverilog': ToolIVerilog,
-                       'isim': ToolISim,
-                       'modelsim':  ToolModelsim,
-                       'active_hdl': ToolActiveHDL,
-                       'riviera':  ToolRiviera,
-                       'ghdl': ToolGHDL,
-                       'vivado': ToolVivado}
-    manifest_dict = modules_pool.get_top_module().manifest_dict
-    tool_name = manifest_dict['sim_tool']
-    if tool_name in available_tools:
-        return available_tools[tool_name]()
-    else:
-        logging.error("Unknown simulation tool: %s", tool_name)
-        quit()
-
-
-def _auto_pilot(modules_pool):
-    """Scan the design to select and run the automatic flow"""
-    for mod in modules_pool:
-        print(mod.action)
-        if mod.action is not None:
-            action = mod.action
-            logging.debug("Action to be executed found: %s", action)
-            break
-    top_mod = modules_pool.get_top_module()
-    logging.info("Running automatic flow.")
-    if not action:
-        logging.error("`action' manifest variable has to be specified. "
-                      "Otherwise hdlmake doesn't know how to handle the "
-                      "project.")
-        quit()
-    if action == "simulation":
-        sim_writer = _load_sim_tool(modules_pool)
-        sim_writer.simulation_makefile(modules_pool)
-    elif action == "synthesis":
-        syn_writer = _load_syn_tool(modules_pool)
-        syn_writer.synthesis_makefile(modules_pool)
-    elif action == "qsys_hw_tcl_update":
-        if not top_mod.manifest_dict["hw_tcl_filename"]:
-            logging.error("'hw_tcl_filename' manifest variable has to be "
-                          "specified. Otherwise hdlmake doesn't know which"
-                          " file to update.")
-            quit()
-        modules_pool.qsys_hw_tcl_update()
-
-
 def _action_runner(modules_pool):
     """Funtion that decodes and executed the action selected by the user"""
     options = modules_pool.env.options
@@ -191,7 +116,8 @@ def _action_runner(modules_pool):
         ManifestParser().print_help()
         quit()
     elif options.command == "auto":
-        _auto_pilot(modules_pool)
+        from hdlmake.tools import write_makefile
+        write_makefile(modules_pool)
     elif options.command == "fetch":
         modules_pool.fetch()
     elif options.command == "clean":
