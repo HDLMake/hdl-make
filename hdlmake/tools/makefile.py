@@ -53,6 +53,18 @@ class ToolMakefile(object):
         if self._file:
             self._file.close()
 
+    def get_standard_libs(self):
+        """Get the standard libs supported by the tool"""
+        return self._standard_libs
+
+    def get_parseable_files(self):
+        """Get the parseable HDL file types supported by the tool"""
+        return self._hdl_files
+
+    def get_privative_files(self):
+        """Get the privative format file types supported by the tool"""
+        return self._supported_files
+
     def makefile_setup(self, manifest_project_dict, fileset, filename=None):
         """Set the Makefile configuration"""
         self.manifest_dict = manifest_project_dict

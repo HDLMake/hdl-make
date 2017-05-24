@@ -33,6 +33,7 @@ from hdlmake import shell
 from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
 from hdlmake import fetch as fetch_mod
+from hdlmake.srcfile import SourceFileSet
 
 
 def set_logging_level(options):
@@ -65,6 +66,8 @@ class Action(list):
     def __init__(self, options):
         super(Action, self).__init__()
         self.top_module = None
+        self.parseable_fileset = SourceFileSet()
+        self.privative_fileset = SourceFileSet()
         self._deps_solved = False
         self.options = options
         set_logging_level(options)
@@ -76,10 +79,13 @@ class Action(list):
         action = self.config.get("action")
         if action == None:
             self.tool = None
+            self.top_entity = None
         elif action == "simulation":
             self.tool = load_sim_tool(self.config.get("sim_tool"))
+            self.top_entity = self.config.get("sim_top")
         elif action == "synthesis":
             self.tool = load_syn_tool(self.config.get("syn_tool"))
+            self.top_entity = self.config.get("syn_top")
         else:
             logging.error("Unknown requested action: %s", action)
             quit()
@@ -132,25 +138,42 @@ class Action(list):
     def build_complete_file_set(self):
         """Build file set with all the files listed in the complete pool"""
         logging.debug("Begin build complete file set")
-        from hdlmake.srcfile import SourceFileSet
         all_manifested_files = SourceFileSet()
         for module in self:
             all_manifested_files.add(module.files)
         logging.debug("End build complete file set")
         return all_manifested_files
 
-    def build_file_set(self, top_entity=None, standard_libs=None):
+    def solve_file_set(self):
         """Build file set with only those files required by the top entity"""
-        logging.debug("Begin build file set for %s", top_entity)
-        all_files = self.build_complete_file_set()
         if not self._deps_solved:
-            dep_solver.solve(all_files, standard_libs=standard_libs)
+            dep_solver.solve(self.parseable_fileset,
+                             self.tool.get_standard_libs())
             self._deps_solved = True
-        from hdlmake.srcfile import SourceFileSet
-        source_files = SourceFileSet()
-        source_files.add(dep_solver.make_dependency_set(all_files, top_entity))
-        logging.debug("End build file set")
-        return source_files
+        solved_files = SourceFileSet()
+        solved_files.add(dep_solver.make_dependency_set(
+            self.parseable_fileset, self.top_entity))
+        self.parseable_fileset = solved_files
+
+    def build_file_set(self):
+        """Initialize the parseable and privative fileset contents"""
+        total_files = self.build_complete_file_set()
+        for file_aux in total_files:
+            if any(isinstance(file_aux, file_type)
+                   for file_type in self.tool.get_privative_files()):
+                self.privative_fileset.add(file_aux)
+            elif any(isinstance(file_aux, file_type)
+                   for file_type in self.tool.get_parseable_files()):
+                self.parseable_fileset.add(file_aux)
+            else:
+                logging.error("File not supported by the tool: %s",
+                              file_aux.path)
+        if len(self.privative_fileset) > 0:
+            logging.info("Detected %d supported files that are not parseable",
+                         len(self.privative_fileset))
+        if len(self.parseable_fileset) > 0:
+            logging.info("Detected %d supported files that can be parsed",
+                         len(self.parseable_fileset))
 
     def get_top_module(self):
         """Get the Top module from the pool"""

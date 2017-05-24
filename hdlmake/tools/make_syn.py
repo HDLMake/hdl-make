@@ -39,24 +39,11 @@ class ToolSyn(ToolMakefile):
     def __init__(self):
         super(ToolSyn, self).__init__()
 
-    def write_makefile(self, pool):
+    def write_makefile(self, config, fileset, filename=None):
         """Generate a Makefile for the specific synthesis tool"""
-        _check_synthesis_manifest(pool.config)
-        fileset = pool.build_file_set(
-            pool.config["syn_top"],
-            standard_libs=self._standard_libs)
-        sup_files = pool.build_complete_file_set()
-        privative_files = []
-        for file_aux in sup_files:
-            if any(isinstance(file_aux, file_type)
-                   for file_type in self._supported_files):
-                privative_files.append(file_aux)
-        if len(privative_files) > 0:
-            logging.info("Detected %d supported files that are not parseable",
-                         len(privative_files))
-            fileset.add(privative_files)
-        self.makefile_setup(pool.config, fileset,
-            filename=pool.options.filename)
+        _check_synthesis_manifest(config)
+        self.makefile_setup(config, fileset,
+            filename=filename)
         self.makefile_check_tool('syn_path')
         self.makefile_includes()
         self.makefile_syn_top()

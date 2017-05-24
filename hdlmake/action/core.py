@@ -61,7 +61,13 @@ class ActionCore(Action):
     def makefile(self):
         """Write the Makefile for the current design"""
         self._check_all_fetched_or_quit()
-        self.tool.write_makefile(self)
+        self.build_file_set()
+        self.solve_file_set()
+        combined_fileset = self.parseable_fileset
+        combined_fileset.add(self.privative_fileset)
+        self.tool.write_makefile(self.config,
+                                 combined_fileset,
+                                 filename=self.options.filename)
 
     def _fetch_all(self):
         """Fetch all the modules declared in the design"""
@@ -141,8 +147,11 @@ class ActionCore(Action):
         for mod_aux in unfetched_modules:
             logging.warning(
                 "List incomplete, module %s has not been fetched!", mod_aux)
-        file_set = self.build_file_set(top_entity=self.options.top)
-        file_list = dep_solver.make_dependency_sorted_list(file_set)
+        self.top_entity = self.options.top
+        self.build_file_set()
+        self.solve_file_set()
+        file_list = dep_solver.make_dependency_sorted_list(
+            self.parseable_fileset)
         files_str = [file_aux.path for file_aux in file_list]
         if self.options.reverse is True:
             files_str.reverse()

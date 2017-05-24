@@ -9,7 +9,6 @@ import logging
 from .makefile import ToolMakefile
 from hdlmake import shell
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
-from hdlmake.dep_file import DepFile
 
 
 def _check_simulation_manifest(manifest_dict):
@@ -30,17 +29,10 @@ class ToolSim(ToolMakefile):
         super(ToolSim, self).__init__()
         self._simulator_controls = {}
 
-    def write_makefile(self, pool):
+    def write_makefile(self, config, fileset, filename=None):
         """Execute the simulation action"""
-        _check_simulation_manifest(pool.config)
-        fset = pool.build_file_set(
-            pool.config.get("sim_top"),
-            standard_libs=self._standard_libs)
-        # Filter the not parseable files!
-        dep_files = fset.filter(DepFile)
-        # dep_solver.solve(dep_files)
-        self.makefile_setup(pool.config, dep_files,
-            filename=pool.options.filename)
+        _check_simulation_manifest(config)
+        self.makefile_setup(config, fileset, filename=filename)
         self.makefile_check_tool('sim_path')
         self.makefile_sim_top()
         self.makefile_sim_options()
