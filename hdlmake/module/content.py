@@ -16,14 +16,17 @@ class ModuleArgs(object):
     def __init__(self):
         self.parent = None
         self.url = None
-        self.source = None
+        self.source = fetch.LOCAL
         self.fetchto = None
 
     def set_args(self, parent, url, source, fetchto):
         """Set the module arguments"""
         self.parent = parent
         self.url = url
-        self.source = source
+        if source == None:
+            self.source = fetch.LOCAL
+        else:
+            self.source = source
         self.fetchto = fetchto
 
     def get_args(self):

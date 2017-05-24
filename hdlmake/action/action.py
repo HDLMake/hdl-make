@@ -32,7 +32,6 @@ from hdlmake.tools import load_syn_tool, load_sim_tool
 from hdlmake.util import shell
 from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
-from hdlmake import fetch as fetch_mod
 from hdlmake.srcfile import SourceFileSet
 
 
@@ -73,7 +72,7 @@ class Action(list):
         set_logging_level(options)
         self.new_module(parent=None,
                          url=os.getcwd(),
-                         source=fetch_mod.LOCAL,
+                         source=None,
                          fetchto=".")
         self.config = self._get_config_dict()
         action = self.config.get("action")
