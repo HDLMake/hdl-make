@@ -41,7 +41,6 @@ class ToolSyn(ToolMakefile):
 
     def synthesis_makefile(self, pool):
         """Generate a Makefile for the specific synthesis tool"""
-        pool.check_all_fetched_or_quit()
         _check_synthesis_manifest(pool.config)
         fileset = pool.build_file_set(
             pool.config["syn_top"],

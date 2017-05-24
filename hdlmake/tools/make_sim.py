@@ -32,7 +32,6 @@ class ToolSim(ToolMakefile):
 
     def simulation_makefile(self, pool):
         """Execute the simulation action"""
-        pool.check_all_fetched_or_quit()
         _check_simulation_manifest(pool.config)
         fset = pool.build_file_set(
             pool.config.get("sim_top"),

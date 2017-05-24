@@ -83,11 +83,9 @@ class Action(list):
         """
         from hdlmake.module import Module, ModuleArgs
         self._deps_solved = False
-
         new_module_args = ModuleArgs()
         new_module_args.set_args(parent, url, source, fetchto)
         new_module = Module(new_module_args, self)
-
         if not self.__contains(new_module):
             self._add(new_module)
             if not self.top_module:
@@ -96,20 +94,7 @@ class Action(list):
                 url = self._guess_origin(self.top_module.path)
                 if url:
                     self.top_module.url = url
-
         return new_module
-
-    def check_all_fetched_or_quit(self):
-        """Check if every module in the pool is fetched"""
-
-        if not len([m for m in self if not m.isfetched]) == 0:
-            logging.error(
-                "Fetching must be done before continuing.\n"
-                "The following modules remains unfetched:\n"
-                "%s",
-                "\n".join([str(m) for m in self if not m.isfetched])
-            )
-            quit()
 
     def _check_manifest_variable_is_set(self, name):
         """Method to check if a specific manifest variable is set"""
@@ -165,12 +150,13 @@ class Action(list):
         config_dict = {}
         for mod in self:
             manifest_dict_tmp = mod.manifest_dict
-            if 'fetchto' in manifest_dict_tmp:
-                manifest_dict_tmp['fetchto'] = os.path.relpath(os.path.join(
-                    mod.path,
-                    mod.manifest_dict['fetchto']))
-            manifest_dict_tmp.update(config_dict)
-            config_dict = manifest_dict_tmp
+            if not manifest_dict_tmp == None:
+                if 'fetchto' in manifest_dict_tmp:
+                    manifest_dict_tmp['fetchto'] = os.path.relpath(os.path.join(
+                        mod.path,
+                        mod.manifest_dict['fetchto']))
+                manifest_dict_tmp.update(config_dict)
+                config_dict = manifest_dict_tmp
         return config_dict
 
     def _add(self, new_module):
