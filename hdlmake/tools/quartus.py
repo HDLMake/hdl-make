@@ -109,7 +109,7 @@ class ToolQuartus(ToolSyn):
         self._clean_targets.update(ToolQuartus.CLEAN_TARGETS)
         self._tcl_controls.update(ToolQuartus.TCL_CONTROLS)
 
-    def makefile_syn_top(self):
+    def _makefile_syn_top(self):
         """Update project synthesis variables for Quartus"""
         import re
 
@@ -144,7 +144,7 @@ class ToolQuartus(ToolSyn):
                          self.manifest_dict["syn_grade"])
         self.manifest_dict["syn_family"] = family_string
         self.manifest_dict["syn_device"] = device_string
-        super(ToolQuartus, self).makefile_syn_top()
+        super(ToolQuartus, self)._makefile_syn_top()
 
     def _emit_property(self, command, new_property):
         """Emit a formated property for Altera Quartus TCL"""
@@ -180,7 +180,7 @@ class ToolQuartus(ToolSyn):
             words.append(property_dict['section_id'])
         return ' '.join(words)
 
-    def makefile_syn_tcl(self):
+    def _makefile_syn_tcl(self):
         """Add initial properties to the Altera Quartus project"""
         command_list = []
         command_list.append(self._tcl_controls["project"])
@@ -197,9 +197,9 @@ class ToolQuartus(ToolSyn):
             {'name_type': 'TOP_LEVEL_ENTITY',
             'name': '\\"$(TOP_MODULE)\\"'}))
         self._tcl_controls["project"] = '\n'.join(command_list)
-        super(ToolQuartus, self).makefile_syn_tcl()
+        super(ToolQuartus, self)._makefile_syn_tcl()
 
-    def makefile_syn_files(self):
+    def _makefile_syn_files(self):
         # Insert the Quartus standard control TCL files
         command_list = []
         if "quartus_preflow" in self.manifest_dict:
@@ -240,4 +240,4 @@ class ToolQuartus(ToolSyn):
                                 {'name_type': 'POST_FLOW_SCRIPT_FILE',
                                 'name': postflow}))
         self._tcl_controls["files"] = '\n'.join(command_list)
-        super(ToolQuartus, self).makefile_syn_files()
+        super(ToolQuartus, self)._makefile_syn_files()

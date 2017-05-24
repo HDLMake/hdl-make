@@ -62,7 +62,7 @@ class ToolIVerilog(ToolSim):
         self._clean_targets.update(ToolIVerilog.CLEAN_TARGETS)
         self._simulator_controls.update(ToolIVerilog.SIMULATOR_CONTROLS)
 
-    def makefile_sim_compilation(self):
+    def _makefile_sim_compilation(self):
         """Generate compile simulation Makefile target for IVerilog"""
         self.writeln("simulation: include_dirs $(VERILOG_OBJ) $(VHDL_OBJ)")
         self.writeln("\t\t" + self._simulator_controls['compiler'])
@@ -74,9 +74,9 @@ class ToolIVerilog(ToolSim):
         for inc in self.manifest_dict.get("include_dirs", []):
             self.writeln("\t\techo \"+incdir+" + inc + "\" >> run.command")
         self.writeln('\n')
-        self.makefile_sim_dep_files()
+        self._makefile_sim_dep_files()
 
-    def makefile_sim_options(self):
+    def _makefile_sim_options(self):
         """Print the IVerilog options to the Makefile"""
         iverilog_opt = self.manifest_dict.get("iverilog_opt", '')
         iverilog_string = string.Template(

@@ -52,7 +52,7 @@ class ToolActiveHDL(ToolSim):
         self._standard_libs.extend(ToolActiveHDL.STANDARD_LIBS)
         self._clean_targets.update(ToolActiveHDL.CLEAN_TARGETS)
 
-    def makefile_sim_compilation(self):
+    def _makefile_sim_compilation(self):
         """Print Makefile compilation target for Aldec Active-HDL simulator"""
         fileset = self.fileset
         self.writeln("simulation:")

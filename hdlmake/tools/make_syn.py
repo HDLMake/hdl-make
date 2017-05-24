@@ -46,17 +46,17 @@ class ToolSyn(ToolMakefile):
             filename=filename)
         self.makefile_check_tool('syn_path')
         self.makefile_includes()
-        self.makefile_syn_top()
-        self.makefile_syn_tcl()
-        self.makefile_syn_local()
-        self.makefile_syn_files()
-        self.makefile_syn_command()
-        self.makefile_syn_build()
-        self.makefile_syn_clean()
-        self.makefile_syn_phony()
+        self._makefile_syn_top()
+        self._makefile_syn_tcl()
+        self._makefile_syn_local()
+        self._makefile_syn_files()
+        self._makefile_syn_command()
+        self._makefile_syn_build()
+        self._makefile_syn_clean()
+        self._makefile_syn_phony()
         logging.info(self._tool_info['name'] + " synthesis makefile generated.")
 
-    def makefile_syn_top(self):
+    def _makefile_syn_top(self):
         """Create the top part of the synthesis Makefile"""
         if shell.check_windows():
             tcl_interpreter = self._tool_info["windows_bin"]
@@ -90,7 +90,7 @@ SYN_GRADE := ${syn_grade}
             tool_path=self.manifest_dict["syn_path"],
             top_module=self.manifest_dict["syn_top"]))
 
-    def makefile_syn_tcl(self):
+    def _makefile_syn_tcl(self):
         """Create the Makefile TCL dictionary for the selected tool"""
         command_list = ["create", "open", "save", "close"]
         for command in command_list:
@@ -103,7 +103,7 @@ TCL_CREATE := $(TCL_OPEN)
 endif""")
         self.writeln()
 
-    def makefile_syn_files(self):
+    def _makefile_syn_files(self):
         """Write the files TCL section of the Makefile"""
         ret = []
         fileset_dict = {}
@@ -143,12 +143,12 @@ endif""")
             self.writeln(filetype_string)
         self.writeln()
 
-    def makefile_syn_local(self):
+    def _makefile_syn_local(self):
         """Generic method to write the synthesis Makefile local target"""
         self.writeln("#target for performing local synthesis\n"
                      "all: bitstream\n")
 
-    def makefile_syn_build(self):
+    def _makefile_syn_build(self):
         """Generate the synthesis Makefile targets for handling design build"""
         stage_previous = "files.tcl"
         stage_list = ["project", "synthesize", "translate",
@@ -176,7 +176,7 @@ endif""")
            command_string, shell.touch_command()))
                 stage_previous = stage
 
-    def makefile_syn_command(self):
+    def _makefile_syn_command(self):
         """Create the Makefile targets for user defined commands"""
         stage_list = ["project", "synthesize", "translate",
                       "map", "par", "bitstream"]
@@ -189,7 +189,7 @@ SYN_POST_{0}_CMD := {2}
            self.manifest_dict.get("syn_pre_" + stage + "_cmd", ''),
            self.manifest_dict.get("syn_post_" + stage + "_cmd", '')))
 
-    def makefile_syn_clean(self):
+    def _makefile_syn_clean(self):
         """Print the Makefile clean target for synthesis"""
         self.makefile_clean()
         self.writeln("\t\t" + shell.del_command() +
@@ -197,7 +197,7 @@ SYN_POST_{0}_CMD := {2}
         self.writeln()
         self.makefile_mrproper()
 
-    def makefile_syn_phony(self):
+    def _makefile_syn_phony(self):
         """Print synthesis PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean all")

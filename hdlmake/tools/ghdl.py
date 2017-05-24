@@ -59,7 +59,7 @@ class ToolGHDL(ToolSim):
         self._clean_targets.update(ToolGHDL.CLEAN_TARGETS)
         self._simulator_controls.update(ToolGHDL.SIMULATOR_CONTROLS)
 
-    def makefile_sim_options(self):
+    def _makefile_sim_options(self):
         """Print the GHDL options to the Makefile"""
         ghdl_opt = self.manifest_dict.get("ghdl_opt", '')
         ghdl_string = string.Template(
@@ -67,9 +67,9 @@ class ToolGHDL(ToolSim):
         self.writeln(ghdl_string.substitute(
             ghdl_opt=ghdl_opt))
 
-    def makefile_sim_compilation(self):
+    def _makefile_sim_compilation(self):
         """Print the GDHL simulation compilation target"""
         self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
         self.writeln("\t\t" + self._simulator_controls['compiler'])
         self.writeln('\n')
-        self.makefile_sim_dep_files()
+        self._makefile_sim_dep_files()

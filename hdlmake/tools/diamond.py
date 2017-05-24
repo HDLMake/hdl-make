@@ -86,7 +86,7 @@ class ToolDiamond(ToolSyn):
         self._clean_targets.update(ToolDiamond.CLEAN_TARGETS)
         self._tcl_controls.update(ToolDiamond.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self):
+    def _makefile_syn_tcl(self):
         """Create a Diamond synthesis project by TCL"""
         syn_device = self.manifest_dict["syn_device"]
         syn_grade = self.manifest_dict["syn_grade"]
@@ -94,4 +94,4 @@ class ToolDiamond(ToolSyn):
         create_tmp = self._tcl_controls["create"]
         target = syn_device + syn_grade + syn_package
         self._tcl_controls["create"] = create_tmp.format(target.upper())
-        super(ToolDiamond, self).makefile_syn_tcl()
+        super(ToolDiamond, self)._makefile_syn_tcl()

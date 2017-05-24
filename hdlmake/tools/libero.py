@@ -83,7 +83,7 @@ class ToolLibero(ToolSyn):
         self._clean_targets.update(ToolLibero.CLEAN_TARGETS)
         self._tcl_controls.update(ToolLibero.TCL_CONTROLS)
 
-    def makefile_syn_tcl(self):
+    def _makefile_syn_tcl(self):
         """Create a Libero synthesis project by TCL"""
         syn_project = self.manifest_dict["syn_project"]
         syn_device = self.manifest_dict["syn_device"]
@@ -129,4 +129,4 @@ class ToolLibero(ToolSyn):
         line = 'set_root -module {$(TOP_MODULE)::work}'
         ret.append(line)
         self._tcl_controls['project'] = project_tmp.format('\n'.join(ret))
-        super(ToolLibero, self).makefile_syn_tcl()
+        super(ToolLibero, self)._makefile_syn_tcl()

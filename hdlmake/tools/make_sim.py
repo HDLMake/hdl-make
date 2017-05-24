@@ -34,16 +34,16 @@ class ToolSim(ToolMakefile):
         _check_simulation_manifest(config)
         self.makefile_setup(config, fileset, filename=filename)
         self.makefile_check_tool('sim_path')
-        self.makefile_sim_top()
-        self.makefile_sim_options()
-        self.makefile_sim_local()
-        self.makefile_sim_sources()
-        self.makefile_sim_compilation()
-        self.makefile_sim_command()
-        self.makefile_sim_clean()
-        self.makefile_sim_phony()
+        self._makefile_sim_top()
+        self._makefile_sim_options()
+        self._makefile_sim_local()
+        self._makefile_sim_sources()
+        self._makefile_sim_compilation()
+        self._makefile_sim_command()
+        self._makefile_sim_clean()
+        self._makefile_sim_phony()
 
-    def makefile_sim_top(self):
+    def _makefile_sim_top(self):
         """Generic method to write the simulation Makefile top section"""
         top_parameter = string.Template("""\
 TOP_MODULE := ${top_module}
@@ -52,21 +52,21 @@ PWD := $$(shell pwd)
         self.writeln(top_parameter.substitute(
             top_module=self.manifest_dict["sim_top"]))
 
-    def makefile_sim_options(self):
+    def _makefile_sim_options(self):
         """End stub method to write the simulation Makefile options section"""
         pass
 
-    def makefile_sim_compilation(self):
+    def _makefile_sim_compilation(self):
         """End stub method to write the simulation Makefile compilation
         section"""
         pass
 
-    def makefile_sim_local(self):
+    def _makefile_sim_local(self):
         """Generic method to write the simulation Makefile local target"""
         self.writeln("#target for performing local simulation\n"
                      "local: sim_pre_cmd simulation sim_post_cmd\n")
 
-    def makefile_sim_sources(self):
+    def _makefile_sim_sources(self):
         """Generic method to write the simulation Makefile HDL sources"""
         fileset = self.fileset
         self.write("VERILOG_SRC := ")
@@ -110,7 +110,7 @@ PWD := $$(shell pwd)
                 " \\")
         self.writeln()
 
-    def makefile_sim_dep_files(self):
+    def _makefile_sim_dep_files(self):
         """Print dummy targets to handle file dependencies"""
         fileset = self.fileset
         for file_aux in fileset:
@@ -143,7 +143,7 @@ PWD := $$(shell pwd)
                 self.writeln(" && " + shell.touch_command()  + " $@ \n")
                 self.writeln()
 
-    def makefile_sim_command(self):
+    def _makefile_sim_command(self):
         """Generic method to write the simulation Makefile user commands"""
         sim_pre_cmd = self.manifest_dict.get("sim_pre_cmd", '')
         sim_post_cmd = self.manifest_dict.get("sim_post_cmd", '')
@@ -156,12 +156,12 @@ sim_post_cmd:
         self.writeln(sim_command.substitute(sim_pre_cmd=sim_pre_cmd,
                                             sim_post_cmd=sim_post_cmd))
 
-    def makefile_sim_clean(self):
+    def _makefile_sim_clean(self):
         """Generic method to write the simulation Makefile user clean target"""
         self.makefile_clean()
         self.makefile_mrproper()
 
-    def makefile_sim_phony(self):
+    def _makefile_sim_phony(self):
         """Print simulation PHONY target list to the Makefile"""
         self.writeln(
             ".PHONY: mrproper clean sim_pre_cmd sim_post_cmd simulation")

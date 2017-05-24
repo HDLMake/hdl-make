@@ -129,7 +129,7 @@ $(TCL_CLOSE)'''
         self._clean_targets.update(ToolISE.CLEAN_TARGETS)
         self._tcl_controls.update(ToolISE.TCL_CONTROLS)
 
-    def makefile_syn_top(self):
+    def _makefile_syn_top(self):
         """Create the top part of the synthesis Makefile for ISE"""
         syn_family = self.manifest_dict.get("syn_family", None)
         if syn_family is None:
@@ -141,10 +141,10 @@ $(TCL_CLOSE)'''
                     " and can not be guessed!")
                 quit(-1)
         self.manifest_dict["syn_family"] = syn_family
-        super(ToolISE, self).makefile_syn_top()
+        super(ToolISE, self)._makefile_syn_top()
 
 
-    def makefile_syn_tcl(self):
+    def _makefile_syn_tcl(self):
         """Create a Xilinx synthesis project by TCL"""
         syn_properties = self.manifest_dict.get("syn_properties")
         project_new = []
@@ -168,4 +168,4 @@ $(TCL_CLOSE)'''
         project_new.append('set compile_directory .')
         self._tcl_controls["project"] = project_tcl.format(
             "\n".join(project_new))
-        super(ToolISE, self).makefile_syn_tcl()
+        super(ToolISE, self)._makefile_syn_tcl()

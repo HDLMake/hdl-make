@@ -61,7 +61,7 @@ class VsimMakefileWriter(ToolSim):
         self.copy_rules = {}
         self._hdl_files.update(VsimMakefileWriter.HDL_FILES)
 
-    def makefile_sim_options(self):
+    def _makefile_sim_options(self):
         """Print the vsim options to the Makefile"""
         def __get_rid_of_vsim_incdirs(vlog_opt=""):
             """Parse the VLOG options and purge the included dirs"""
@@ -86,7 +86,7 @@ class VsimMakefileWriter(ToolSim):
         self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
         self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
 
-    def makefile_sim_compilation(self):
+    def _makefile_sim_compilation(self):
         """Write a properly formatted Makefile for the simulator.
         The Makefile format is shared, but flags, dependencies, clean rules,
         etc are defined by the specific tool.

@@ -96,7 +96,7 @@ $(TCL_CLOSE)'''
             properties.extend(syn_properties)
         return properties
 
-    def makefile_syn_tcl(self):
+    def _makefile_syn_tcl(self):
         """Create a Xilinx synthesis project by TCL"""
         prop_val = 'set_property "{0}" "{1}" [{2}]'
         prop_opt = 'set_property -name {{{0}}} -value {{{1}}} -objects [{2}]'
@@ -141,4 +141,4 @@ $(TCL_CLOSE)'''
         self._tcl_controls["par"] = tmp_dict["par"].format(
             "impl_1",
             "\n".join(par_new))
-        super(ToolXilinx, self).makefile_syn_tcl()
+        super(ToolXilinx, self)._makefile_syn_tcl()

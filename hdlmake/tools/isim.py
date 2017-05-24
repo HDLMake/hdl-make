@@ -66,7 +66,7 @@ class ToolISim(ToolSim):
         self._standard_libs.extend(ToolISim.STANDARD_LIBS)
         self._clean_targets.update(ToolISim.CLEAN_TARGETS)
 
-    def makefile_sim_top(self):
+    def _makefile_sim_top(self):
         """Print the top section of the Makefile for Xilinx ISim"""
 
         def __get_xilinxsim_ini_dir():
@@ -101,7 +101,7 @@ XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir() +
                      """
 """)
 
-    def makefile_sim_options(self):
+    def _makefile_sim_options(self):
         """Print the Xilinx ISim simulation options in the Makefile"""
         def __get_rid_of_isim_incdirs(vlog_opt):
             """Clean the vlog options from include dirs"""
@@ -127,7 +127,7 @@ VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
                          self.manifest_dict.get("vlog_opt", '')) + """
 """)
 
-    def makefile_sim_compilation(self):
+    def _makefile_sim_compilation(self):
         """Print the compile simulation target for Xilinx ISim"""
         fileset = self.fileset
         libs = set(f.library for f in fileset)
