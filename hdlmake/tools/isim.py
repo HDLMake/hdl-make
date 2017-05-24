@@ -31,7 +31,7 @@ import os.path
 import logging
 
 from .make_sim import ToolSim
-from hdlmake.util import shell
+from hdlmake import shell
 from hdlmake.srcfile import VerilogFile, VHDLFile
 
 

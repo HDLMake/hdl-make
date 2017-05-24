@@ -33,7 +33,7 @@ import os
 import logging
 
 from hdlmake.util import path as path_mod
-from hdlmake.util import shell
+from hdlmake import shell
 from hdlmake.manifest_parser import ManifestParser
 from .content import ModuleContent
 import six

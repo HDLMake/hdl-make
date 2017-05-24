@@ -29,7 +29,7 @@ import logging
 
 from .make_syn import ToolSyn
 
-from hdlmake.util import shell
+from hdlmake import shell
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
                              UCFFile, CDCFile, NGCFile)
 

@@ -7,7 +7,7 @@ import string
 import logging
 
 from .makefile import ToolMakefile
-from hdlmake.util import shell
+from hdlmake import shell
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 from hdlmake.dep_file import DepFile
 
