@@ -71,6 +71,7 @@ class Action(list):
                          url=os.getcwd(),
                          source=fetch_mod.LOCAL,
                          fetchto=".")
+        self.config = self._get_config_dict()
 
     def new_module(self, parent, url, source, fetchto):
         """Add new module to the pool.
@@ -159,7 +160,7 @@ class Action(list):
         """Get the Top module from the pool"""
         return self.top_module
 
-    def get_config_dict(self):
+    def _get_config_dict(self):
         """Get the combined hierarchical Manifest dictionary from the pool"""
         config_dict = {}
         for mod in self:

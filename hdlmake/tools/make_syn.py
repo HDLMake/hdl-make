@@ -42,10 +42,9 @@ class ToolSyn(ToolMakefile):
     def synthesis_makefile(self, pool):
         """Generate a Makefile for the specific synthesis tool"""
         pool.check_all_fetched_or_quit()
-        manifest_project_dict = pool.get_config_dict()
-        _check_synthesis_manifest(manifest_project_dict)
+        _check_synthesis_manifest(pool.config)
         fileset = pool.build_file_set(
-            manifest_project_dict["syn_top"],
+            pool.config["syn_top"],
             standard_libs=self._standard_libs)
         sup_files = pool.build_complete_file_set()
         privative_files = []
@@ -57,7 +56,7 @@ class ToolSyn(ToolMakefile):
             logging.info("Detected %d supported files that are not parseable",
                          len(privative_files))
             fileset.add(privative_files)
-        self.makefile_setup(manifest_project_dict, fileset,
+        self.makefile_setup(pool.config, fileset,
             filename=pool.options.filename)
         self.makefile_check_tool('syn_path')
         self.makefile_includes()

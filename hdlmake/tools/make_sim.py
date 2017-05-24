@@ -33,15 +33,14 @@ class ToolSim(ToolMakefile):
     def simulation_makefile(self, pool):
         """Execute the simulation action"""
         pool.check_all_fetched_or_quit()
-        manifest_project_dict = pool.get_config_dict()
-        _check_simulation_manifest(manifest_project_dict)
+        _check_simulation_manifest(pool.config)
         fset = pool.build_file_set(
-            manifest_project_dict.get("sim_top"),
+            pool.config.get("sim_top"),
             standard_libs=self._standard_libs)
         # Filter the not parseable files!
         dep_files = fset.filter(DepFile)
         # dep_solver.solve(dep_files)
-        self.makefile_setup(manifest_project_dict, dep_files,
+        self.makefile_setup(pool.config, dep_files,
             filename=pool.options.filename)
         self.makefile_check_tool('sim_path')
         self.makefile_sim_top()

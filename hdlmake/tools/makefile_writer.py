@@ -58,8 +58,7 @@ def _load_sim_tool(modules_pool):
 
 def write_makefile(modules_pool):
     """Function that detects the appropriated tool and write the Makefile"""
-    manifest_project_dict = modules_pool.get_config_dict()
-    action = manifest_project_dict.get('action')
+    action = modules_pool.config.get('action')
     if action == "simulation":
         sim_writer = _load_sim_tool(modules_pool)
         sim_writer.simulation_makefile(modules_pool)
@@ -69,4 +68,3 @@ def write_makefile(modules_pool):
     else:
         logging.error("Unknown requested action: %s", action)
         quit()
-
