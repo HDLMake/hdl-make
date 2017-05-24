@@ -108,9 +108,6 @@ class Action(list):
             if not self.top_module:
                 self.top_module = new_module
                 new_module.parse_manifest()
-                url = self._guess_origin(self.top_module.path)
-                if url:
-                    self.top_module.url = url
         return new_module
 
     def _check_manifest_variable_is_set(self, name):
@@ -212,20 +209,6 @@ class Action(list):
             if mod.url == module.url:
                 return True
         return False
-
-    def _guess_origin(self, path):
-        """Guess origin (git, svn, local) of a module at given path"""
-        cwd = self.top_module.path
-        try:
-            os.chdir(path)
-            url = shell.run("git config --get remote.origin.url")
-            if not url:  # try svn
-                return shell.run("svn info | grep 'Repository Root' | " +
-                                 "awk '{print $NF}'")
-            else:
-                return url
-        finally:
-            os.chdir(cwd)
 
     def __str__(self):
         """Cast the module list as a list of strings"""
