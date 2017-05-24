@@ -28,6 +28,7 @@ import os
 import logging
 import sys
 
+from hdlmake.tools import load_syn_tool, load_sim_tool
 from hdlmake import shell
 from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
@@ -72,6 +73,16 @@ class Action(list):
                          source=fetch_mod.LOCAL,
                          fetchto=".")
         self.config = self._get_config_dict()
+        action = self.config.get("action")
+        if action == None:
+            self.tool = None
+        elif action == "simulation":
+            self.tool = load_sim_tool(self.config.get("sim_tool"))
+        elif action == "synthesis":
+            self.tool = load_syn_tool(self.config.get("syn_tool"))
+        else:
+            logging.error("Unknown requested action: %s", action)
+            quit()
 
     def new_module(self, parent, url, source, fetchto):
         """Add new module to the pool.

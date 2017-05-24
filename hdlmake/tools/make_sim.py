@@ -30,7 +30,7 @@ class ToolSim(ToolMakefile):
         super(ToolSim, self).__init__()
         self._simulator_controls = {}
 
-    def simulation_makefile(self, pool):
+    def write_makefile(self, pool):
         """Execute the simulation action"""
         _check_simulation_manifest(pool.config)
         fset = pool.build_file_set(

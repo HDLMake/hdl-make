@@ -28,7 +28,6 @@ import os
 import sys
 import os.path
 
-from hdlmake.tools import load_syn_tool, load_sim_tool
 import hdlmake.fetch as fetch
 import hdlmake.new_dep_solver as dep_solver
 from hdlmake.util import path as path_mod
@@ -62,16 +61,7 @@ class ActionCore(Action):
     def makefile(self):
         """Write the Makefile for the current design"""
         self._check_all_fetched_or_quit()
-        action = self.config.get("action")
-        if action == "simulation":
-            sim_writer = load_sim_tool(self.config.get("sim_tool"))
-            sim_writer.simulation_makefile(self)
-        elif action == "synthesis":
-            syn_writer = load_syn_tool(self.config.get("syn_tool"))
-            syn_writer.synthesis_makefile(self)
-        else:
-            logging.error("Unknown requested action: %s", action)
-            quit()
+        self.tool.write_makefile(self)
 
     def _fetch_all(self):
         """Fetch all the modules declared in the design"""

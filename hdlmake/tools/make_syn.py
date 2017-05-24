@@ -39,7 +39,7 @@ class ToolSyn(ToolMakefile):
     def __init__(self):
         super(ToolSyn, self).__init__()
 
-    def synthesis_makefile(self, pool):
+    def write_makefile(self, pool):
         """Generate a Makefile for the specific synthesis tool"""
         _check_synthesis_manifest(pool.config)
         fileset = pool.build_file_set(
