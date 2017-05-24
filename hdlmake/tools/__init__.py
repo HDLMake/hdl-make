@@ -1,3 +1,3 @@
 """Package that provides all the tool specific stuff"""
 
-from .makefile_writer import write_makefile
+from .makefile_writer import load_syn_tool, load_sim_tool

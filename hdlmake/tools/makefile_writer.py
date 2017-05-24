@@ -3,7 +3,7 @@
 
 import logging
 
-def _load_syn_tool(modules_pool):
+def load_syn_tool(tool_name):
     """Funtion that checks the provided module_pool and generate an
     initialized instance of the the appropriated synthesis tool"""
     from .ise import ToolISE
@@ -20,17 +20,15 @@ def _load_syn_tool(modules_pool):
                        'diamond': ToolDiamond,
                        'libero': ToolLibero,
                        'icestorm': ToolIcestorm}
-    for mod in modules_pool:
-        if 'syn_tool' in mod.manifest_dict:
-            tool_name = mod.manifest_dict['syn_tool']
-            if tool_name in available_tools:
-                logging.debug("Tool to be used found: %s", tool_name)
-                return available_tools[tool_name]()
-    logging.error("Unknown synthesis tool: %s", tool_name)
-    quit()
+    if tool_name in available_tools:
+        logging.debug("Synthesis tool to be used found: %s", tool_name)
+        return available_tools[tool_name]()
+    else:
+        logging.error("Unknown synthesis tool: %s", tool_name)
+        quit()
 
 
-def _load_sim_tool(modules_pool):
+def load_sim_tool(tool_name):
     """Funtion that checks the provided module_pool and generate an
     initialized instance of the the appropriated simulation tool"""
     from .iverilog import ToolIVerilog
@@ -47,24 +45,9 @@ def _load_sim_tool(modules_pool):
                        'riviera':  ToolRiviera,
                        'ghdl': ToolGHDL,
                        'vivado': ToolVivado}
-    manifest_dict = modules_pool.get_top_module().manifest_dict
-    tool_name = manifest_dict['sim_tool']
     if tool_name in available_tools:
+        logging.debug("Simulation tool to be used found: %s", tool_name)
         return available_tools[tool_name]()
     else:
         logging.error("Unknown simulation tool: %s", tool_name)
-        quit()
-
-
-def write_makefile(modules_pool):
-    """Function that detects the appropriated tool and write the Makefile"""
-    action = modules_pool.config.get('action')
-    if action == "simulation":
-        sim_writer = _load_sim_tool(modules_pool)
-        sim_writer.simulation_makefile(modules_pool)
-    elif action == "synthesis":
-        syn_writer = _load_syn_tool(modules_pool)
-        syn_writer.synthesis_makefile(modules_pool)
-    else:
-        logging.error("Unknown requested action: %s", action)
         quit()
