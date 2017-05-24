@@ -140,38 +140,3 @@ class ModuleCore(ModuleConfig):
             self.library = self.manifest_dict["library"]
         if "action" in self.manifest_dict:
             self.action = self.manifest_dict["action"].lower()
-
-    def _create_file_list_from_paths(self, paths):
-        """
-        Build a Source File Set containing the files indicated by the
-        provided list of paths
-        """
-        from hdlmake.srcfile import create_source_file, SourceFileSet
-        srcs = SourceFileSet()
-        # Check if this is the top module and grab the include_dirs
-        if self.parent is None:
-            if 'include_dirs' in self.manifest_dict:
-                include_dirs = self.manifest_dict['include_dirs']
-            else:
-                include_dirs = []
-        else:
-            if 'include_dirs' in self.manifest_dict:
-                include_dirs = self.top_module.manifest_dict['include_dirs']
-            else:
-                include_dirs = []
-        for path_aux in paths:
-            if os.path.isdir(path_aux):
-                dir_ = os.listdir(path_aux)
-                for f_dir in dir_:
-                    f_dir = os.path.join(self.path, path_aux, f_dir)
-                    if not os.path.isdir(f_dir):
-                        srcs.add(create_source_file(path=f_dir,
-                                                    module=self,
-                                                    library=self.library,
-                                                    include_dirs=include_dirs))
-            else:
-                srcs.add(create_source_file(path=path_aux,
-                                            module=self,
-                                            library=self.library,
-                                            include_dirs=include_dirs))
-        return srcs
