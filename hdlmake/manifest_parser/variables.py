@@ -34,8 +34,7 @@ class ManifestParser(ConfigParser):
     """This is the class providing HDLMake Manifest parser capabilities"""
 
     def __init__(self):
-        ConfigParser.__init__(
-            self,
+        super(ManifestParser, self).__init__(
             description="Configuration options description")
         general_options = [
             {'name': 'top_module',
