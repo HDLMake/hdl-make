@@ -184,9 +184,7 @@ class DepFile(File):
     parsed and solved (Verilog, SystemVerilog, VHDL)"""
 
     def __init__(self, file_path, module):
-        from hdlmake.module import Module
         assert isinstance(file_path, six.string_types)
-        assert isinstance(module, Module)
         File.__init__(self, path=file_path, module=module)
         self.file_path = file_path
         self.rels = set()
