@@ -6,7 +6,7 @@ import logging
 import string
 
 from .makefile import ToolMakefile
-from hdlmake import shell
+from hdlmake.util import shell
 
 
 def _check_synthesis_manifest(manifest_dict):

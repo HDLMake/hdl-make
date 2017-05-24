@@ -23,7 +23,7 @@
 
 from __future__ import absolute_import
 import os
-from hdlmake import shell
+from hdlmake.util import shell
 
 
 class Fetcher(object):

@@ -30,7 +30,7 @@ import logging
 
 from .make_syn import ToolSyn
 from hdlmake.util import path as path_mod
-from hdlmake import shell
+from hdlmake.util import shell
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, DPFFile,
                              SignalTapFile, SDCFile, QIPFile, QSYSFile,
                              QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)

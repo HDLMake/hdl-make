@@ -33,32 +33,10 @@ import os
 import logging
 
 from hdlmake.util import path as path_mod
-from hdlmake import shell
+from hdlmake.util import shell
 from hdlmake.manifest_parser import ManifestParser
-from .content import ModuleContent
+from .content import ModuleContent, ModuleArgs
 import six
-
-
-class ModuleArgs(object):
-
-    """This class is just a container for the main Module args"""
-
-    def __init__(self):
-        self.parent = None
-        self.url = None
-        self.source = None
-        self.fetchto = None
-
-    def set_args(self, parent, url, source, fetchto):
-        """Set the module arguments"""
-        self.parent = parent
-        self.url = url
-        self.source = source
-        self.fetchto = fetchto
-
-    def get_args(self):
-        """Get the module arguments"""
-        return self.parent, self.url, self.source, self.fetchto
 
 
 class Module(ModuleContent):

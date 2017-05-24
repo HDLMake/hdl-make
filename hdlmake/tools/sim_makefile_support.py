@@ -28,7 +28,7 @@ import os
 import string
 
 from .make_sim import ToolSim
-from hdlmake import shell
+from hdlmake.util import shell
 from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
 import six
 

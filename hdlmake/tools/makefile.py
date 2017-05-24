@@ -28,7 +28,7 @@ import os
 import logging
 import six
 
-from hdlmake import shell
+from hdlmake.util import shell
 
 
 class ToolMakefile(object):
