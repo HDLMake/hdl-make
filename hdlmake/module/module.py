@@ -90,30 +90,6 @@ class Module(ModuleContent):
         """
         logging.debug("Process manifest at: " + os.path.dirname(self.path))
         super(Module, self).process_manifest()
-        self._set_simulation_options()
-
-    def _set_simulation_options(self):
-        """This set the simulation option for all the files in the Module."""
-        from hdlmake.srcfile import VerilogFile, VHDLFile, SVFile
-        include_dirs_list = self.get_include_dirs_list()
-        for file_aux in self.files:
-            if isinstance(file_aux, VerilogFile):
-                if "vsim_opt" in self.manifest_dict:
-                    file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
-                else:
-                    file_aux.vsim_opt = ''
-                file_aux.include_dirs = include_dirs_list
-            elif isinstance(file_aux, SVFile):
-                if "vsim_opt" in self.manifest_dict:
-                    file_aux.vsim_opt = self.manifest_dict["vsim_opt"]
-                else:
-                    file_aux.vsim_opt = ''
-                file_aux.include_dirs = include_dirs_list
-            elif isinstance(file_aux, VHDLFile):
-                if "vcom_opt" in self.manifest_dict:
-                    file_aux.vcom_opt = self.manifest_dict["vcom_opt"]
-                else:
-                    file_aux.vcom_opt = ''
 
     def get_include_dirs_list(self):
         """Private method that processes the included directory list"""
