@@ -73,7 +73,7 @@ class ToolISE(ToolSyn):
         SVFile: 'xfile add $(sourcefile)'}
 
     CLEAN_TARGETS = {'clean': ["xst", "xlnx_auto_0_xdb", "iseconfig _xmsgs",
-                               "_ngo", "*.b", "*_summary.html", "*.tcl",
+                               "_ngo", "*.b", "*_summary.html",
                                "*.bld", "*.cmd_log", "*.drc", "*.lso", "*.ncd",
                                "*.ngc", "*.ngd", "*.ngr", "*.pad", "*.par",
                                "*.pcf", "*.prj", "*.ptwx", "*.stx", "*.syr",

@@ -73,7 +73,7 @@ class ToolQuartus(ToolSyn):
         SVFile: _QUARTUS_SOURCE.format('VERILOG_FILE') +
                  _QUARTUS_LIBRARY}
 
-    CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "run.tcl", "*.summary",
+    CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "*.summary",
                                "*.done", "*.jdi", "*.pin", "*.qws",
                                "db", "incremental_db", "$(PROJECT).qsf",
                                "*.qpf"],

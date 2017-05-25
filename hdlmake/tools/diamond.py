@@ -53,7 +53,7 @@ class ToolDiamond(ToolSyn):
         VHDLFile: _LATTICE_SOURCE.format('add'),
         VerilogFile: _LATTICE_SOURCE.format('add')}
 
-    CLEAN_TARGETS = {'clean': ["*.sty", "$(PROJECT)", "run.tcl"],
+    CLEAN_TARGETS = {'clean': ["*.sty", "$(PROJECT)"],
                      'mrproper': ["*.jed"]}
 
     TCL_CONTROLS = {'create': 'prj_project new -name $(PROJECT)'

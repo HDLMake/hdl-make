@@ -52,7 +52,7 @@ class ToolLibero(ToolSyn):
         VHDLFile: _LIBERO_SOURCE.format('-hdl_source'),
         VerilogFile: _LIBERO_SOURCE.format('-hdl_source')}
 
-    CLEAN_TARGETS = {'clean': ["$(PROJECT)", "run.tcl"],
+    CLEAN_TARGETS = {'clean': ["$(PROJECT)"],
                      'mrproper': ["*.pdb", "*.stp"]}
 
     TCL_CONTROLS = {

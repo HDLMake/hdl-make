@@ -43,7 +43,7 @@ class ToolVivadoSim(ToolSim):
 
     HDL_FILES = {VerilogFile: '', VHDLFile: '', SVFile: ''}
 
-    CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
+    CLEAN_TARGETS = {'clean': [".Xil", "*.jou", "*.log", "*.pb",
                                "work", "xsim.dir"],
                      'mrproper': ["*.wdb", "*.vcd"]}
 

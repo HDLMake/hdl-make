@@ -59,7 +59,7 @@ class ToolVivado(ToolXilinx):
          VHOFile: ToolXilinx._XILINX_SOURCE,
          VEOFile: ToolXilinx._XILINX_SOURCE}
 
-    CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
+    CLEAN_TARGETS = {'clean': [".Xil", "*.jou", "*.log", "*.pb",
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
                                "$(PROJECT).runs", "$(PROJECT).hw",
                                "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"]}

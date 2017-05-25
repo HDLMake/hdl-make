@@ -48,7 +48,7 @@ class ToolPlanAhead(ToolXilinx):
         XMPFile: ToolXilinx._XILINX_SOURCE,
         XCOFile: ToolXilinx._XILINX_SOURCE}
 
-    CLEAN_TARGETS = {'clean': ["planAhead_*", "planAhead.*", "run.tcl",
+    CLEAN_TARGETS = {'clean': ["planAhead_*", "planAhead.*",
                                ".Xil", "$(PROJECT).cache", "$(PROJECT).data",
                                " $(PROJECT).runs", "$(PROJECT).ppr"]}
 
