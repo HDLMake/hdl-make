@@ -1006,11 +1006,62 @@ just perform a ``make clean`` or ``make cleanremote`` before executing the ``mak
 Advanced examples
 -----------------
 
-**EVO project**: PlanAhead synthesis project for the Zedboard platform, powered by Xilinx Zynq based ARM Dual Cortex-A9 processor plus Artix grade FPGA and performing an asynchronous logic demo:
-http://www.ohwr.org/projects/evo/repository
+Xilinx ISE
+~~~~~~~~~~
 
-**UMV, Mentor Questa & System Verilog simulation**: A test example involving these tools and languages is included in the ``hdlmake`` source tree.
-You can find it inside the ``tests/questa_uvm_sv`` folder.
+As a non-trivial design example of a real use case of ``hdlmake`` with  Xilinx ISE, we have chosen the **White Rabbit PTP Core** reference design the European Organization for Nuclear Research (CERN) provides for the **Simple PCIe FMC Carrier (SPEC)**. This open-hardware platform is powered by a **Xilinx Spartan-6** and is used in multiple experimental physics facilities around the world.
+
+- WR PTP Core: http://www.ohwr.org/projects/wr-cores/wiki/Current_release
+- Simple PCIe FMC Carrier: http://www.ohwr.org/projects/spec/wiki
+
+In the following instructions, we will see how easy is to build the bitstream from the command line (**tested on both Windows and Linux hosts**).
+
+We start by cloning the repository and getting into the SPEC reference design (**tested with Release v4.0**):
+
+.. code-block:: bash
+   git clone git://ohwr.org/hdl-core-lib/wr-cores.git
+   cd wr-cores/syn/spec_ref_design/
+
+Now, the WR PTP Core requires a series of HDL libraries that are provided under ``hdlmake`` format in the CERN Open Hardware repository. In this example, you have the option of fetching all of the dependencies for all of the reference designs provided in the downloaded source code by using the ``git submodule`` mechanism, this is:
+
+.. code-block:: bash
+   git submodule init
+   git submodule update
+
+Alternatively, if you only want to download the design submodule dependencies the design needs, we can use the ``hdlmake fetch`` feature as the required remote modules are already listed in the provided ``Manifest.py``. As the ``Git`` remote  modules directives doesn't point to a specific branch or commit id, ``hdlmake`` will only clone the listed repositories in the ``fetchto`` folder and then will checkout the appropriated commits by previously interrogating the ``git submodule`` mechanism.
+
+.. code-block:: bash
+   hdlmake fetch
+
+Once we have all the dependencies, we can run ``hdlmake`` to automatically generate a synthesis ``Makefile``. Once we have done this, we can just run Make to automatically generate the bitstream:
+
+.. code-block:: bash
+   hdlmake
+   make
+
+.. note:: If you experience any problem, please perform a **make clean** before running ``Make``. The synthesis should run fine after doing this -- the design comes out of the box with an Xilinx ``*.ise`` project created with ``hdlmake 2.1``, while in ``hdlmake 3.0`` the synthesis project file is created by the ``Makefile``.
+
+If you want to regenerate the ISE project by using your custom Xilinx ISE properties, you may replace the provided ``Manifest.py`` with the following one and edit it accordingly:
+
+.. code-block:: python
+   target = "xilinx"
+   action = "synthesis"
+
+   syn_device = "xc6slx45t"
+   syn_grade = "-3"
+   syn_package = "fgg484"
+   syn_top = "spec_wr_ref_top"
+   syn_project = "spec_wr_ref.xise"
+   syn_tool = "ise"
+   syn_properties = [
+       ["Auto Implementation Compile Order", "false"],
+       ["Manual Implementation Compile Order", "true"],
+       ["Manual Implementation Compile Order", "true"],
+       ["Pack I/O Registers/Latches into IOBs", "For Outputs Only"],
+       ["Generate Detailed MAP Report", "true"]]
+
+   modules = { "local" : "../../top/spec_ref_design/"}
+
 
 
 hdlmake supported actions/commands
