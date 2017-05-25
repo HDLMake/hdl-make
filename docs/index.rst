@@ -1019,31 +1019,36 @@ In the following instructions, we will see how easy is to build the bitstream fr
 We start by cloning the repository and getting into the SPEC reference design (**tested with Release v4.0**):
 
 .. code-block:: bash
+
    git clone git://ohwr.org/hdl-core-lib/wr-cores.git
    cd wr-cores/syn/spec_ref_design/
 
 Now, the WR PTP Core requires a series of HDL libraries that are provided under ``hdlmake`` format in the CERN Open Hardware repository. In this example, you have the option of fetching all of the dependencies for all of the reference designs provided in the downloaded source code by using the ``git submodule`` mechanism, this is:
 
 .. code-block:: bash
+
    git submodule init
    git submodule update
 
 Alternatively, if you only want to download the design submodule dependencies the design needs, we can use the ``hdlmake fetch`` feature as the required remote modules are already listed in the provided ``Manifest.py``. As the ``Git`` remote  modules directives doesn't point to a specific branch or commit id, ``hdlmake`` will only clone the listed repositories in the ``fetchto`` folder and then will checkout the appropriated commits by previously interrogating the ``git submodule`` mechanism.
 
 .. code-block:: bash
+
    hdlmake fetch
 
 Once we have all the dependencies, we can run ``hdlmake`` to automatically generate a synthesis ``Makefile``. Once we have done this, we can just run Make to automatically generate the bitstream:
 
 .. code-block:: bash
+
    hdlmake
    make
 
-.. note:: If you experience any problem, please perform a **make clean** before running ``Make``. The synthesis should run fine after doing this -- the design comes out of the box with an Xilinx ``*.ise`` project created with ``hdlmake 2.1``, while in ``hdlmake 3.0`` the synthesis project file is created by the ``Makefile``.
+If you experience any problem, please perform a **make clean** before running ``Make``. The synthesis should run fine after doing this -- the design comes out of the box with an Xilinx ``*.ise`` project created with ``hdlmake 2.1``, while in ``hdlmake 3.0`` the synthesis project file is created by the ``Makefile``.
 
-If you want to regenerate the ISE project by using your custom Xilinx ISE properties, you may replace the provided ``Manifest.py`` with the following one and edit it accordingly:
+If you want to regenerate the ISE project by using your **custom Xilinx ISE properties**, you may replace the provided ``Manifest.py`` with the following one and edit it accordingly. By using this code, you can exactly reproduce the CERN's team setup:
 
 .. code-block:: python
+
    target = "xilinx"
    action = "synthesis"
 
