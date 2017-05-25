@@ -26,7 +26,6 @@ import os
 from hdlmake.util import path as path_utils
 from hdlmake.util import shell
 import logging
-from .constants import GIT
 from .fetcher import Fetcher
 
 
@@ -56,8 +55,6 @@ class Git(Fetcher):
     def fetch(self, module):
         """Get the code from the remote Git repository"""
         fetchto = module.fetchto()
-        if module.source != GIT:
-            raise ValueError("This backend should get git modules only.")
         if not os.path.exists(fetchto):
             os.mkdir(fetchto)
         basename = path_utils.url_basename(module.url)
