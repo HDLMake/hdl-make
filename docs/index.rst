@@ -31,7 +31,7 @@ Support
 
 If you are having issues, please let us know.
 We have a mailing list located at: 
-http://www.ohwr.org/mailing_list/show?project_id=hdl-make
+- http://www.ohwr.org/mailing_list/show?project_id=hdl-make
 
 
 License
@@ -186,8 +186,8 @@ At this point, ``hdlmake`` is now installed into your active Python environment 
 Git
 ~~~
 
-Fetch the code from the official ``hdlmake`` git repository, that can be found at the next link: 
-http://www.ohwr.org/projects/hdl-make/repository
+Fetch the code from the official ``hdlmake`` git repository, that can be found at the next link:
+- http://www.ohwr.org/projects/hdl-make/repository
 
 Once you have a valid ``hdlmake`` source tree, you can install ``hdlmake`` into your Python site-packages directly via *setup.py install*:
 
@@ -229,25 +229,65 @@ In the above examples the following nomenclature is used:
 Windows specific guidelines
 ---------------------------
 
-Despite the fact that ``hdlmake`` was originally designed to be used in Linux environments, the new release of the tool has been modified to be easily used in both 32 and 64 bits Windows Operating Systems inside a Cygwin deployment. In this way, you must just follow the next steps to be able to run ``hdlmake``.
+From the new 3.0 version onwards, ``hdlmake`` supports execution on native ``Windows`` shell, including both the old ``cmd`` and the new ``PowerShell``. In this section, you'll find instructions on how to install and configure the tool and the required versions of the programs (``Git`` and ``Make``).
 
-First, install a valid Cygwin environment for your Windows machine. I order to access to the full set of features from ``hdlmake``, you must choose at least the following packages when deploying Cygwin:
+Make
+~~~~
 
-- python (choose the most up-to-date 2.7 release)
-- openssh
-- git-svn
-- git
-- curl
-- make
+Install ``GNU Make Win32``:
 
-Once you have installed your Cygwin environment, you can just get into the Cygwin console and operate as if you were inside a Linux machine for both installing and working with ``hdlmake``.
+- https://sourceforge.net/projects/gnuwin32/files/make/3.81
 
-Environment
------------
+Then, we need to add to PATH system variable the Make bin folder, e.g.:
 
-When working in Linux or Windows inside Cygwin, in order to work with ``hdlmake`` we must assure that the tools executables that are going to be used are accessibles in the shell $PATH. This is a requirement for both simulation and synthesis
+.. code-block:: bash
 
-.. warning:: there is another way to define the specific tools as an environmental variable, but this is buggy and fails when executing some of the actions. The $PATH way is the most easy and stable way to go!
+   c:\Program Files (x86)\GnuWin32\bin
+
+Git
+~~~
+
+Install Git-scm for Windows. If the bin dir is not added to the PATH, you'll need it to update the system environmental variable.
+
+- https://git-scm.com/download/win
+
+Python
+~~~~~~
+
+Install Python (2.7 or 3.x) for Windows:
+
+- https://www.python.org/downloads/windows/
+
+To make it available on the command line, add this to PATH (e.g. for Python 2.7):
+
+.. code-block:: bash
+
+   c:\Python27
+
+Before running ``hdlmake 3.0``, you'll need to instal ``six`` package to work with Hdlmake (``six`` is required to support Python 2.7 and 3.x with a single code base).
+
+We can install ``six`` by just using the ``pip`` tool that comes with the Python deployment:
+
+.. code-block:: bash
+
+   pip install six
+
+
+Install hdlmake package
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Install ``hdlmake`` using the Python installation mechanism:
+
+.. code-block:: bash
+
+   python setup.py install
+
+And be sure the following directory is in the PATH, as it will contain ``hdlmake.exe``
+
+.. code-block:: bash
+
+   c:\Python27\scripts
+
 
 
 Learn by example
