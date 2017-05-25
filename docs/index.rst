@@ -1004,6 +1004,110 @@ If you want to regenerate the ISE project by using your **custom Xilinx ISE prop
    modules = { "local" : "../../top/spec_ref_design/"}
 
 
+Xilinx Vivado
+~~~~~~~~~~~~~
+
+As an advanced example for Xilinx Vivado, we have chosen the Beam Position Monitor (BPM) design from the Beam Diagnostics group of the Brazilian Synchrotron Light Laboratory (LNLS) for the **AMC FMC Carrier (AFC)**. Equiped in **Xilinx Artix-7** FPGA, it allows to connect clock source to any clock input.
+
+- BPM Design: https://github.com/lnls-dig/bpm-gw
+- AMC FMC Carrier (AFC): http://www.ohwr.org/projects/afc/wiki
+
+
+In the following instructions, we will see how easy is to build the bitstream from the command line (**tested on both Windows and Linux hosts**).
+
+We start by cloning the repository and getting into the AFC reference design:
+
+.. code-block:: bash
+
+   git clone https://github.com/lnls-dig/bpm-gw.git
+   cd bpm-gw/hdl/syn/afc_v3/vivado/dbe_bpm2/
+
+Now, the Beam Position Monitor requires a series of HDL libraries that are provided under ``hdlmake`` format in both the CERN Open Hardware repository and GitHub. In this example, you have the option of fetching all of the dependencies for all of the reference designs provided in the downloaded source code by using the ``git submodule`` mechanism, this is:
+
+.. code-block:: bash
+
+   git submodule init
+   git submodule update
+
+Alternatively, if you only want to download the design submodule dependencies the design needs, we can use the ``hdlmake fetch``, but we will need to modify the ``bpm-gw/hdl/Manifest.py`` so that its new content is:
+
+.. code-block:: python
+
+   fetchto = "ip_cores"
+
+   modules = { "local": ["modules/dbe_wishbone",
+                         "modules/dbe_common",
+                         "modules/fabric",
+                         "modules/fmc_adc_common",
+                         "modules/utils",
+                         "modules/pcie",
+                         "platform"],
+               "git" : [ "git://ohwr.org/hdl-core-lib/etherbone-core.git",
+                         "https://github.com/lnls-dig/general-cores.git",
+                         "https://github.com/lnls-dig/dsp-cores.git" ] }
+
+
+.. note:: In order to allow the use of IP-XACT IP Core libraries for Vivado, the ``fetcho`` variable in the ``Manifest.py`` hierarchy is not only used as the folder to store remote ``hdlmake`` modules, but it's automatically assigned as the value for the ``ip_repo_paths`` Vivado project property.
+
+Once this is done, ``hdlmake`` will only clone the listed repositories in the ``fetchto`` folder and then will checkout the appropriated commits by previously interrogating the ``git submodule`` mechanism. In this example, doing
+
+.. code-block:: bash
+
+   hdlmake fetch
+
+Once we have all the dependencies, we can run ``hdlmake`` to automatically generate a synthesis ``Makefile``. Once we have done this, we can just run Make to automatically generate the bitstream:
+
+.. code-block:: bash
+
+   hdlmake
+   make
+
+
+This project makes use of **custom Xilinx Vivado properties** and **custom Python code**, so it is a very valuable example as a template for custom setups. Here, you can see a copy of the top ``Manifest.py`` contents for the BPM design:
+
+.. code-block:: python
+
+   target = "xilinx"
+   action = "synthesis"
+
+   syn_device = "xc7a200t"
+   syn_grade = "-2"
+   syn_package = "ffg1156"
+   syn_top = "dbe_bpm2"
+   syn_project = "dbe_bpm2"
+   syn_tool = "vivado"
+   syn_properties = [
+       ["steps.synth_design.args.more options", "-verbose"],
+       ["steps.synth_design.args.retiming", "1"],
+       ["steps.synth_design.args.assert", "1"],
+       ["steps.opt_design.args.verbose", "1"],
+       ["steps.opt_design.args.directive", "Explore"],
+       ["steps.opt_design.is_enabled", "1"],
+       ["steps.place_design.args.directive", "Explore"],
+       ["steps.place_design.args.more options", "-verbose"],
+       ["steps.phys_opt_design.args.directive", "AlternateFlowWithRetiming"],
+       ["steps.phys_opt_design.args.more options", "-verbose"],
+       ["steps.phys_opt_design.is_enabled", "1"],
+       ["steps.route_design.args.directive", "Explore"],
+       ["steps.route_design.args.more options", "-verbose"],
+       ["steps.post_route_phys_opt_design.args.directive", "AddRetime"],
+       ["steps.post_route_phys_opt_design.args.more options", "-verbose"],
+       ["steps.post_route_phys_opt_design.is_enabled", "1"],
+       ["steps.write_bitstream.args.verbose", "1"]]
+
+   import os
+   import sys
+   if os.path.isfile("synthesis_descriptor_pkg.vhd"):
+       files = ["synthesis_descriptor_pkg.vhd"];
+   else:
+       sys.exit("Generate the SDB descriptor before using HDLMake (./build_synthesis_sdb.sh)")
+
+   machine_pkg = "uvx_250M";
+
+   modules = { "local" : [ "../../../../top/afc_v3/vivado/dbe_bpm2" ] };
+
+
+
 Intel Quartus
 ~~~~~~~~~~~~~
 
@@ -1036,11 +1140,14 @@ Once we have all the dependencies, we can run ``hdlmake`` to automatically gener
 
 .. code-block:: bash
 
+   hdlmake
+   make
+
 It's important to know that this design relies on versioned Intel IP-Cores, so it will only work just out of the box with the appropriated Intel Quartus version (**WR PTP Core v4.0 requires Intel Quartus 16.0**).
 
 If you want to use a different Intel Quartus version, you will need to fix the IP-Core versions. This is an example patch for **upgrading  WR PTP Core v4.0 from Intel Quartus 16.0 to Intel Quartus 16.1**:
 
-.. code-block:: patch
+.. code-block:: diff
 
    diff --git a/platform/altera/wr_arria5_phy/arria5_phy16.txt b/platform/altera/wr_arria5_phy/arria5_phy16.txt
    index c0db187..8040f12 100644
@@ -1081,6 +1188,7 @@ If you want to use a different Intel Quartus version, you will need to fix the I
     -- Retrieval info: 	<generic name="device_family" value="Arria V" />
     -- Retrieval info: 	<generic name="number_of_reconfig_interfaces" value="2" />
     -- Retrieval info: 	<generic name="gui_split_sizes" value="" />
+
 
 hdlmake supported actions/commands
 ==================================
