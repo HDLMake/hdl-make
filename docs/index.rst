@@ -1004,6 +1004,83 @@ If you want to regenerate the ISE project by using your **custom Xilinx ISE prop
    modules = { "local" : "../../top/spec_ref_design/"}
 
 
+Intel Quartus
+~~~~~~~~~~~~~
+
+In the same source code design the CERN provides for the White Rabbit PTP Core, it is also included an example for the **VME FMC Carrier HPC-DDR3 (VFC-HD)**. The VFC-HD is an **Intel Arria V** based VME64x carrier for one High Pin Count (HPC) FPGA Mezzanine Card (FMC, VITA 57). It is has six SFP+ transceivers compatible with support for rad-hard GBT links, CERN Beam Synchronous Timing (BST), White Rabbit and Ethernet.
+
+- WR PTP Core: http://www.ohwr.org/projects/wr-cores/wiki/Current_release
+- VME FMC Carrier HPC-DDR3 (VFC-HD): http://www.ohwr.org/projects/vfc-hd/wiki
+
+We start by cloning the repository and getting into the VFC-HD reference design (**tested with Release v4.0**):
+
+.. code-block:: bash
+
+   git clone git://ohwr.org/hdl-core-lib/wr-cores.git
+   cd wr-cores/syn/vfchd_ref_design/
+
+Now, the WR PTP Core requires a series of HDL libraries that are provided under ``hdlmake`` format in the CERN Open Hardware repository. In this example, you have the option of fetching all of the dependencies for all of the reference designs provided in the downloaded source code by using the ``git submodule`` mechanism, this is:
+
+.. code-block:: bash
+
+   git submodule init
+   git submodule update
+
+Alternatively, if you only want to download the design submodule dependencies the design needs, we can use the ``hdlmake fetch`` feature as the required remote modules are already listed in the provided ``Manifest.py``. As the ``Git`` remote  modules directives doesn't point to a specific branch or commit id, ``hdlmake`` will only clone the listed repositories in the ``fetchto`` folder and then will checkout the appropriated commits by previously interrogating the ``git submodule`` mechanism.
+
+.. code-block:: bash
+
+   hdlmake fetch
+
+Once we have all the dependencies, we can run ``hdlmake`` to automatically generate a synthesis ``Makefile``. Once we have done this, we can just run Make to automatically generate the bitstream:
+
+.. code-block:: bash
+
+It's important to know that this design relies on versioned Intel IP-Cores, so it will only work just out of the box with the appropriated Intel Quartus version (**WR PTP Core v4.0 requires Intel Quartus 16.0**).
+
+If you want to use a different Intel Quartus version, you will need to fix the IP-Core versions. This is an example patch for **upgrading  WR PTP Core v4.0 from Intel Quartus 16.0 to Intel Quartus 16.1**:
+
+.. code-block:: patch
+
+   diff --git a/platform/altera/wr_arria5_phy/arria5_phy16.txt b/platform/altera/wr_arria5_phy/arria5_phy16.txt
+   index c0db187..8040f12 100644
+   --- a/platform/altera/wr_arria5_phy/arria5_phy16.txt
+   +++ b/platform/altera/wr_arria5_phy/arria5_phy16.txt
+   @@ -1,6 +1,6 @@
+   --- megafunction wizard: %Deterministic Latency PHY v16.0%
+   +-- megafunction wizard: %Deterministic Latency PHY v16.1%
+    -- Retrieval info: <?xml version="1.0"?>
+   --- Retrieval info: <instance entity-name="altera_xcvr_det_latency" version="16.0" >
+   +-- Retrieval info: <instance entity-name="altera_xcvr_det_latency" version="16.1" >
+    -- Retrieval info: 	<generic name="device_family" value="Arria V" />
+    -- Retrieval info: 	<generic name="operation_mode" value="Duplex" />
+    -- Retrieval info: 	<generic name="lanes" value="1" />
+   diff --git a/platform/altera/wr_arria5_phy/arria5_phy8.txt b/platform/altera/wr_arria5_phy/arria5_phy8.txt
+   index 5b52cba..2993643 100644
+   --- a/platform/altera/wr_arria5_phy/arria5_phy8.txt
+   +++ b/platform/altera/wr_arria5_phy/arria5_phy8.txt
+   @@ -1,6 +1,6 @@
+   --- megafunction wizard: %Deterministic Latency PHY v16.0%
+   +-- megafunction wizard: %Deterministic Latency PHY v16.1%
+    -- Retrieval info: <?xml version="1.0"?>
+   --- Retrieval info: <instance entity-name="altera_xcvr_det_latency" version="16.0" >
+   +-- Retrieval info: <instance entity-name="altera_xcvr_det_latency" version="16.1" >
+    -- Retrieval info: 	<generic name="device_family" value="Arria V" />
+    -- Retrieval info: 	<generic name="operation_mode" value="Duplex" />
+    -- Retrieval info: 	<generic name="lanes" value="1" />
+   diff --git a/platform/altera/wr_arria5_phy/arria5_phy_reconf.txt b/platform/altera/wr_arria5_phy/arria5_phy_reconf.txt
+   index 78e0f2f..d698be2 100644
+   --- a/platform/altera/wr_arria5_phy/arria5_phy_reconf.txt
+   +++ b/platform/altera/wr_arria5_phy/arria5_phy_reconf.txt
+   @@ -1,6 +1,6 @@
+   --- megafunction wizard: %Transceiver Reconfiguration Controller v16.0%
+   +-- megafunction wizard: %Transceiver Reconfiguration Controller v16.1%
+    -- Retrieval info: <?xml version="1.0"?>
+   --- Retrieval info: <instance entity-name="alt_xcvr_reconfig" version="16.0" >
+   +-- Retrieval info: <instance entity-name="alt_xcvr_reconfig" version="16.1" >
+    -- Retrieval info: 	<generic name="device_family" value="Arria V" />
+    -- Retrieval info: 	<generic name="number_of_reconfig_interfaces" value="2" />
+    -- Retrieval info: 	<generic name="gui_split_sizes" value="" />
 
 hdlmake supported actions/commands
 ==================================
