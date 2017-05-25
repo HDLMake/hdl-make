@@ -119,13 +119,13 @@ XILINX_INI_PATH := """ + __get_xilinxsim_ini_dir() +
                 else:
                     skip = True
             return ' '.join(ret)
-        self.writeln("""VHPCOMP_FLAGS := -intstyle default \
--incremental -initfile xilinxsim.ini
-ISIM_FLAGS :=
-VLOGCOMP_FLAGS := -intstyle default -incremental -initfile xilinxsim.ini """ +
-                     __get_rid_of_isim_incdirs(
-                         self.manifest_dict.get("vlog_opt", '')) + """
-""")
+        default_options = ("-intstyle default -incremental " +
+                           "-initfile xilinxsim.ini ")
+        self.writeln("VHPCOMP_FLAGS := " +
+            default_options + self.manifest_dict.get("vcom_opt", ''))
+        self.writeln("VLOGCOMP_FLAGS := " +
+            default_options + __get_rid_of_isim_incdirs(
+            self.manifest_dict.get("vlog_opt", '')))
 
     def _makefile_sim_compilation(self):
         """Print the compile simulation target for Xilinx ISim"""
@@ -206,8 +206,8 @@ fuse:
             # incdir += " "
             if vl_file.include_dirs:
                 self.write(' -i ')
-                self.write(' '.join(vl_file.include_dirs) + ' ')
-            self.writeln(vl_file.vlog_opt + " $<")
+                self.write(' '.join(vl_file.include_dirs))
+            self.writeln(" $<")
             self.write("\t\t@" + shell.mkdir_command() + " $(dir $@)")
             self.writeln(" && " + shell.touch_command() + " $@ \n\n")
         self.write("\n")
@@ -234,7 +234,6 @@ fuse:
                     "." + purename) + '\n')
             self.writeln(
                 ' '.join(["\t\tvhpcomp $(VHPCOMP_FLAGS)",
-                          vhdl_file.vcom_opt,
                           "-work",
                           lib + "=." + shell.slash_char() + lib,
                           "$< "]))

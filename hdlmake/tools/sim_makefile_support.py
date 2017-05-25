@@ -73,18 +73,22 @@ class VsimMakefileWriter(ToolSim):
                 if not vlog_aux.startswith("+incdir+"):
                     ret.append(vlog_aux)
             return ' '.join(ret)
-        self.vlog_flags.append(__get_rid_of_vsim_incdirs(
+        vcom_flags = ["-quiet", ]
+        vsim_flags = []
+        vlog_flags = ["-quiet", ]
+        vmap_flags = []
+        vlog_flags.append(__get_rid_of_vsim_incdirs(
             self.manifest_dict.get("vlog_opt", '')))
-        self.vcom_flags.append(self.manifest_dict.get("vcom_opt", ''))
-        self.vmap_flags.append(self.manifest_dict.get("vmap_opt", ''))
-        self.vsim_flags.append(self.manifest_dict.get("vsim_opt", ''))
+        vcom_flags.append(self.manifest_dict.get("vcom_opt", ''))
+        vmap_flags.append(self.manifest_dict.get("vmap_opt", ''))
+        vsim_flags.append(self.manifest_dict.get("vsim_opt", ''))
         for var, value in six.iteritems(self.custom_variables):
             self.writeln("%s := %s" % (var, value))
         self.writeln()
-        self.writeln("VCOM_FLAGS := %s" % (' '.join(self.vcom_flags)))
-        self.writeln("VSIM_FLAGS := %s" % (' '.join(self.vsim_flags)))
-        self.writeln("VLOG_FLAGS := %s" % (' '.join(self.vlog_flags)))
-        self.writeln("VMAP_FLAGS := %s" % (' '.join(self.vmap_flags)))
+        self.writeln("VCOM_FLAGS := %s" % (' '.join(vcom_flags)))
+        self.writeln("VSIM_FLAGS := %s" % (' '.join(vsim_flags)))
+        self.writeln("VLOG_FLAGS := %s" % (' '.join(vlog_flags)))
+        self.writeln("VMAP_FLAGS := %s" % (' '.join(vmap_flags)))
 
     def _makefile_sim_compilation(self):
         """Write a properly formatted Makefile for the simulator.
@@ -147,15 +151,6 @@ class VsimMakefileWriter(ToolSim):
                 else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
             self.writeln()
-            # self.write("\t\tvlog -work "+vlog.library)
-            # self.write(" $(VLOG_FLAGS) ")
-            # if isinstance(vl, SVFile):
-            #      self.write(" -sv ")
-            # incdir = "+incdir+"
-            # incdir += '+'.join(vlog.include_dirs)
-            # incdir += " "
-            # self.write(incdir)
-            # self.writeln(vlog.vlog_opt+" $<")
             compile_template = string.Template(
                 "\t\tvlog -work ${library} $$(VLOG_FLAGS) "
                 "${sv_option} $${INCLUDE_DIRS} $$<")
@@ -186,6 +181,6 @@ class VsimMakefileWriter(ToolSim):
                     self.write(" \\\n" + dep_file.rel_path())
             self.writeln()
             self.writeln(' '.join(["\t\tvcom $(VCOM_FLAGS)",
-                         vhdl.vcom_opt, "-work", lib, "$< "]))
+                         "-work", lib, "$< "]))
             self.writeln("\t\t@" + shell.mkdir_command() +
                 " $(dir $@) && " + shell.touch_command() + " $@ \n\n")

@@ -59,13 +59,9 @@ class VHDLFile(SourceFile):
 
     """This is the class providing the generic VHDL file"""
 
-    def __init__(self, path, module, library=None, vcom_opt=None):
+    def __init__(self, path, module, library=None):
         SourceFile.__init__(self, path=path, module=module, library=library)
         from hdlmake.vhdl_parser import VHDLParser
-        if not vcom_opt:
-            self.vcom_opt = ""
-        else:
-            self.vcom_opt = vcom_opt
         self.parser = VHDLParser(self)
 
     def _check_encryption(self):
@@ -84,13 +80,9 @@ class VerilogFile(SourceFile):
     """This is the class providing the generic Verilog file"""
 
     def __init__(self, path, module, library=None,
-                 vlog_opt=None, include_dirs=None):
+                 include_dirs=None):
         SourceFile.__init__(self, path=path, module=module, library=library)
         from hdlmake.vlog_parser import VerilogParser
-        if not vlog_opt:
-            self.vlog_opt = ""
-        else:
-            self.vlog_opt = vlog_opt
         self.include_dirs = []
         if include_dirs:
             self.include_dirs.extend(include_dirs)
@@ -387,7 +379,7 @@ class SourceFileSet(set):
 
 
 def create_source_file(path, module, library=None,
-                       vcom_opt=None, vlog_opt=None, include_dirs=None):
+                       include_dirs=None):
     """Function that analyzes the given arguments and returns a new HDL source
     file of the appropriated type"""
     if path is None or path == "":
@@ -402,19 +394,16 @@ def create_source_file(path, module, library=None,
     if extension in ['vhd', 'vhdl', 'vho']:
         new_file = VHDLFile(path=path,
                             module=module,
-                            library=library,
-                            vcom_opt=vcom_opt)
+                            library=library)
     elif extension in ['v', 'vh', 'vo', 'vm']:
         new_file = VerilogFile(path=path,
                                module=module,
                                library=library,
-                               vlog_opt=vlog_opt,
                                include_dirs=include_dirs)
     elif extension == 'sv' or extension == 'svh':
         new_file = SVFile(path=path,
                           module=module,
                           library=library,
-                          vlog_opt=vlog_opt,
                           include_dirs=include_dirs)
     elif extension == 'wb':
         new_file = WBGenFile(path=path, module=module)
