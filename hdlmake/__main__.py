@@ -208,12 +208,6 @@ def _get_parser():
         dest="log",
         default="info",
         help="set logging level: debug, info, warning, error, critical")
-    parser.add_argument(
-        "--force",
-        help="force hdlmake to generate the makefile, "
-             "even if the specified tool is missing",
-        default=False,
-        action="store_true")
     return parser
 
 

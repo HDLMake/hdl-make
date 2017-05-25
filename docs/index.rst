@@ -1543,9 +1543,3 @@ Set logging level for the Python logger facility. You can choose one of the leve
 +---------------+---------------+
 
 
-
-``--force``
------------
-Force hdlmake to generate the makefile, even if the specified tool is missing.
-
-
