@@ -1543,16 +1543,6 @@ Set logging level for the Python logger facility. You can choose one of the leve
 +---------------+---------------+
 
 
-``--generate-project-vhd``
---------------------------
-
-.. warning:: this is an experimental feature!!
-
-Generate ``project.vhd`` file with a meta package describing the project.
-
-This option is targeted to VHDL designs in which the SDB (Self Describing Bus) standard is going to be used. You can get more information about SDB in the following link: 
-http://www.ohwr.org/projects/fpga-config-space/wiki 
-
 
 ``--force``
 -----------
