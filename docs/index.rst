@@ -76,12 +76,13 @@ the associated source code deliverables.
 Features
 ========
 
-- Synthesis
-- Simulation
+- Synthesis Makefile generation
+- Simulation Makefile generation
+- HDL parser and dependency solver
 - GIT/SVN Support
-- Multi Language
-- Multi Tools
-- Multiple Operating System Support
+- Multiple HDL Languages
+- Multiple Tools
+- Multiple Operating Systems
 
 Supported Tools
 ---------------
@@ -93,7 +94,7 @@ Supported Tools
 +--------------------------+-----------+------------+
 | Xilinx PlanAhead         | Yes       | No         |
 +--------------------------+-----------+------------+
-| Xilinx Vivado            | Yes       | No         |
+| Xilinx Vivado            | Yes       | Yes        |
 +--------------------------+-----------+------------+
 | Altera Quartus           | Yes       | n.a.       |
 +--------------------------+-----------+------------+
@@ -107,6 +108,8 @@ Supported Tools
 +--------------------------+-----------+------------+
 | Aldec Active-HDL         | n.a.      | Yes        |
 +--------------------------+-----------+------------+
+| Project IceStorm         | Yes       | n.a.       |
++--------------------------+-----------+------------+
 | Icarus Verilog           | n.a.      | Yes        |
 +--------------------------+-----------+------------+
 | GHDL                     | n.a.      | VHDL       |
@@ -117,13 +120,16 @@ Supported Operating Systems
 
 ``hdlmake`` is supported in both 32 and 64 bits operating systems.
 
-+-------------------+---------------------------------------------+
-| Operating System  | Comments                                    |
-+===================+=============================================+
-| Linux             | tested on Ubuntu Precise/Trusty, CentOS 6/7 |
-+-------------------+---------------------------------------------+
-| Windows           | tested on Windows 7/8/8.1 by using Cygwin   |
-+-------------------+---------------------------------------------+
+From version 3.0 onwards, ``hdlmake`` supports native Windows shells too,
+so you don't need to cheat the system by using Cygwin like environments.
+
++-------------------+--------------------------------------------------+
+| Operating System  | Comments                                         |
++===================+==================================================+
+| Linux             | tested on Ubuntu Precise/Trusty, CentOS 6/7      |
++-------------------+--------------------------------------------------+
+| Windows           | tested on Windows 7/8/8.1/10 CMD and PowerShell  |
++-------------------+--------------------------------------------------+
 
 Supported Python Version
 ------------------------
@@ -133,7 +139,7 @@ Supported Python Version
 +==========+===============================+
 | Python 2 | Runs on 2.7.x                 |
 +----------+-------------------------------+
-| Python 3 | To be done, not supported yet |
+| Python 3 | Runs on 3.x                   |
 +----------+-------------------------------+
 
 
@@ -151,6 +157,8 @@ As a prerequisite, you must have the following programs installed in your host m
 - ``python``: you need a compatible Python deployment
 - ``git``: you need git for both fetching the ``hdlmake`` code and accessing to remote HDL repositories.
 - ``svn``: svn will only be used when accessing to remote SVN HDL repositories. 
+
+.. note:: In order to support Python 2.7.x and 3.x with a single codebase, the ``six`` Python package is now required to run ``hdlmake`` 3.0 version.
 
 There are two methods to obtain and install ``hdlmake``: via git repository or PyPI. PyPI is the preferred method if you are only interested in releases. Git may be preferred if you are a developer, or would like to stay in sync with active development.
 
