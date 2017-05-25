@@ -37,14 +37,14 @@ def load_sim_tool(tool_name):
     from .active_hdl import ToolActiveHDL
     from .riviera import ToolRiviera
     from .ghdl import ToolGHDL
-    from .vivado import ToolVivado
+    from .vivado_sim import ToolVivadoSim
     available_tools = {'iverilog': ToolIVerilog,
                        'isim': ToolISim,
                        'modelsim':  ToolModelsim,
                        'active_hdl': ToolActiveHDL,
                        'riviera':  ToolRiviera,
                        'ghdl': ToolGHDL,
-                       'vivado': ToolVivado}
+                       'vivado_sim': ToolVivadoSim}
     if tool_name in available_tools:
         logging.debug("Simulation tool to be used found: %s", tool_name)
         return available_tools[tool_name]()

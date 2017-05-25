@@ -26,13 +26,12 @@
 
 from __future__ import absolute_import
 from .xilinx import ToolXilinx
-from .make_sim import ToolSim
 from hdlmake.srcfile import (XDCFile, XCIFile, NGCFile, XMPFile,
                              XCOFile, COEFile, BDFile, TCLFile,
                              MIFFile, RAMFile, VHOFile, VEOFile)
 
 
-class ToolVivado(ToolXilinx, ToolSim):
+class ToolVivado(ToolXilinx):
 
     """Class providing the interface for Xilinx Vivado synthesis"""
 
@@ -62,20 +61,14 @@ class ToolVivado(ToolXilinx, ToolSim):
 
     CLEAN_TARGETS = {'clean': ["run.tcl", ".Xil", "*.jou", "*.log", "*.pb",
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
-                               "$(PROJECT).runs", "$(PROJECT).hw", "xsim.dir",
-                               "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"],
-                     'mrproper': ["*.wdb", "*.vcd"]}
+                               "$(PROJECT).runs", "$(PROJECT).hw",
+                               "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"]}
 
     TCL_CONTROLS = {'bitstream': '$(TCL_OPEN)\n'
                                  'launch_runs impl_1 -to_step write_bitstream'
                                  '\n'
                                  'wait_on_run impl_1\n'
                                  '$(TCL_CLOSE)'}
-
-    SIMULATOR_CONTROLS = {'vlog': 'xvlog $<',
-                          'vhdl': 'xvhdl $<',
-                          'compiler': 'xelab -debug all $(TOP_MODULE) '
-                                      '-s $(TOP_MODULE)'}
 
     def __init__(self):
         super(ToolVivado, self).__init__()
@@ -84,11 +77,3 @@ class ToolVivado(ToolXilinx, ToolSim):
         self._standard_libs.extend(ToolVivado.STANDARD_LIBS)
         self._clean_targets.update(ToolVivado.CLEAN_TARGETS)
         self._tcl_controls.update(ToolVivado.TCL_CONTROLS)
-        self._simulator_controls.update(ToolVivado.SIMULATOR_CONTROLS)
-
-    def _makefile_sim_compilation(self):
-        """Generate compile simulation Makefile target for Vivado Simulator"""
-        self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
-        self.writeln("\t\t" + ToolVivado.SIMULATOR_CONTROLS['compiler'])
-        self.writeln()
-        self._makefile_sim_dep_files()
