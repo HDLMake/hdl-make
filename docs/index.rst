@@ -1193,10 +1193,6 @@ If you want to use a different Intel Quartus version, you will need to fix the I
 hdlmake supported actions/commands
 ==================================
 
-Check environment (``check-env``)
----------------------------------
-
-Check environment for HDLMake-related settings. This scan the top Manifest and report if the potentially used tools or/and environment variables are met or not.
 
 Print manifest file variables description (``manifest-help``)
 -------------------------------------------------------------
