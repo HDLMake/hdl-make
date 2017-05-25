@@ -46,9 +46,6 @@ class ToolModelsim(VsimMakefileWriter):
 
     def __init__(self):
         super(ToolModelsim, self).__init__()
-        self.vcom_flags.extend(["-modelsimini", "modelsim.ini"])
-        self.vlog_flags.extend(["-modelsimini", "modelsim.ini"])
-        self.vmap_flags.extend(["-modelsimini", "modelsim.ini"])
         self.copy_rules["modelsim.ini"] = os.path.join(
             "$(MODELSIM_INI_PATH)", "modelsim.ini")
         self.additional_deps.append("modelsim.ini")
@@ -65,4 +62,11 @@ class ToolModelsim(VsimMakefileWriter):
         else:
             modelsim_ini_path = os.path.join("$(HDLMAKE_MODELSIM_PATH)", "..")
         self.custom_variables["MODELSIM_INI_PATH"] = modelsim_ini_path
+        modelsim_ini = "-modelsimini modelsim.ini "
+        vcom_opt = self.manifest_dict.get("vcom_opt", '')
+        self.manifest_dict["vcom_opt"] = modelsim_ini + vcom_opt
+        vlog_opt = self.manifest_dict.get("vlog_opt", '')
+        self.manifest_dict["vlog_opt"] = modelsim_ini + vlog_opt
+        vmap_opt = self.manifest_dict.get("vmap_opt", '')
+        self.manifest_dict["vmap_opt"] = modelsim_ini + vmap_opt
         super(ToolModelsim, self)._makefile_sim_options()

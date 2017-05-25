@@ -46,11 +46,6 @@ class VsimMakefileWriter(ToolSim):
 
     def __init__(self):
         super(VsimMakefileWriter, self).__init__()
-        # additional global flags to pass to every invocation of these commands
-        self.vcom_flags = ["-quiet", ]
-        self.vsim_flags = []
-        self.vlog_flags = ["-quiet", ]
-        self.vmap_flags = []
         # These are variables that will be set in the makefile
         # The key is the variable name, and the value is the variable value
         self.custom_variables = {}
@@ -73,22 +68,18 @@ class VsimMakefileWriter(ToolSim):
                 if not vlog_aux.startswith("+incdir+"):
                     ret.append(vlog_aux)
             return ' '.join(ret)
-        vcom_flags = ["-quiet", ]
-        vsim_flags = []
-        vlog_flags = ["-quiet", ]
-        vmap_flags = []
-        vlog_flags.append(__get_rid_of_vsim_incdirs(
-            self.manifest_dict.get("vlog_opt", '')))
-        vcom_flags.append(self.manifest_dict.get("vcom_opt", ''))
-        vmap_flags.append(self.manifest_dict.get("vmap_opt", ''))
-        vsim_flags.append(self.manifest_dict.get("vsim_opt", ''))
+        vcom_flags = "-quiet " + self.manifest_dict.get("vcom_opt", '')
+        vsim_flags = "" + self.manifest_dict.get("vsim_opt", '')
+        vlog_flags = "-quiet " + __get_rid_of_vsim_incdirs(
+            self.manifest_dict.get("vlog_opt", ''))
+        vmap_flags = "" + self.manifest_dict.get("vmap_opt", '')
         for var, value in six.iteritems(self.custom_variables):
             self.writeln("%s := %s" % (var, value))
         self.writeln()
-        self.writeln("VCOM_FLAGS := %s" % (' '.join(vcom_flags)))
-        self.writeln("VSIM_FLAGS := %s" % (' '.join(vsim_flags)))
-        self.writeln("VLOG_FLAGS := %s" % (' '.join(vlog_flags)))
-        self.writeln("VMAP_FLAGS := %s" % (' '.join(vmap_flags)))
+        self.writeln("VCOM_FLAGS := %s" % vcom_flags)
+        self.writeln("VSIM_FLAGS := %s" % vsim_flags)
+        self.writeln("VLOG_FLAGS := %s" % vlog_flags)
+        self.writeln("VMAP_FLAGS := %s" % vmap_flags)
 
     def _makefile_sim_compilation(self):
         """Write a properly formatted Makefile for the simulator.

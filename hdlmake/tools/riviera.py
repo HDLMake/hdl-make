@@ -79,7 +79,12 @@ class ToolRiviera(VsimMakefileWriter):
 
     def __init__(self):
         super(ToolRiviera, self).__init__()
-        self.vcom_flags.append("-2008")
         self._tool_info.update(ToolRiviera.TOOL_INFO)
         self._standard_libs.extend(ToolRiviera.STANDARD_LIBS)
         self._clean_targets.update(ToolRiviera.CLEAN_TARGETS)
+
+    def _makefile_sim_options(self):
+        """Print the Riviera options to the Makefile"""
+        vcom_opt = self.manifest_dict.get("vcom_opt", '')
+        self.manifest_dict["vcom_opt"] = "-2008 " + vcom_opt
+        super(ToolRiviera, self)._makefile_sim_options()
