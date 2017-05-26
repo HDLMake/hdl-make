@@ -38,7 +38,7 @@ class ToolVivado(ToolXilinx):
     TOOL_INFO = {
         'name': 'vivado',
         'id': 'vivado',
-        'windows_bin': 'vivado.exe -mode tcl -source',
+        'windows_bin': 'vivado -mode tcl -source',
         'linux_bin': 'vivado -mode tcl -source',
         'project_ext': 'xpr'
     }
@@ -59,7 +59,7 @@ class ToolVivado(ToolXilinx):
          VHOFile: ToolXilinx._XILINX_SOURCE,
          VEOFile: ToolXilinx._XILINX_SOURCE}
 
-    CLEAN_TARGETS = {'clean': [".Xil", "*.jou", "*.log", "*.pb",
+    CLEAN_TARGETS = {'clean': [".Xil", "*.jou", "*.log", "*.pb", "*.dmp",
                                "$(PROJECT).cache", "$(PROJECT).data", "work",
                                "$(PROJECT).runs", "$(PROJECT).hw",
                                "$(PROJECT).ip_user_files", "$(PROJECT_FILE)"]}

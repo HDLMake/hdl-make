@@ -100,9 +100,9 @@ $(TCL_CLOSE)'''
         """Create a Xilinx synthesis project by TCL"""
         prop_val = 'set_property "{0}" "{1}" [{2}]'
         prop_opt = 'set_property -name {{{0}}} -value {{{1}}} -objects [{2}]'
-        project_new = []
-        synthesize_new = []
-        par_new = []
+        project_new = ['# project properties']
+        synthesize_new = ['# synthesize properties']
+        par_new = ['# par properties']
         properties = self._get_properties()
         for prop in properties:
             if len(prop) > 1:

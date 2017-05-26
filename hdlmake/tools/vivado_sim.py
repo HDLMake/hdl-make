@@ -35,7 +35,7 @@ class ToolVivadoSim(ToolSim):
     TOOL_INFO = {
         'name': 'vivado-sim',
         'id': 'vivado-sim',
-        'windows_bin': 'vivado.exe -mode tcl -source',
+        'windows_bin': 'vivado -mode tcl -source',
         'linux_bin': 'vivado -mode tcl -source',
     }
 
