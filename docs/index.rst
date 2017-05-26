@@ -737,17 +737,10 @@ In this way, the external commands are automatically executed in order when a ``
 
 **Synthesis:**
 
-In order to add external commands to a synthesis top makefile, the following parameters must be introduced:
+Depending on the tool you are going to use, you'll be able to run specific pre/post commands for all the available fine grained synthesis targets: ``{synthesize, translate, map, par, bitstream}``. This is how these custom commands works:
 
-+----------------+--------------+-----------------------------------------------------------------+-----------+
-| Name           | Type         | Description                                                     | Default   |
-+================+==============+=================================================================+===========+
-| syn_pre_cmd    | str          | Command to be executed before synthesis                         | ''        |
-+----------------+--------------+-----------------------------------------------------------------+-----------+
-| syn_post_cmd   | str          | Command to be executed after synthesis                          | ''        |
-+----------------+--------------+-----------------------------------------------------------------+-----------+
-
-If you are using Xilinx ISE synthesis, now you are able to run specific pre/post commands for all the new fine grained synthesis targets: ``{synthesize, translate, map, par, bitstream}``
+- ``syn_pre_<stage>_cmd``: this command is executed before executing the ``<stage>`` synthesis step.
+- ``syn_post_<stage>_cmd``: this command is executed after executing the ``<stage>`` synthesis step.
 
 +--------------------------+--------------+-----------------------------------------------------------------+-----------+
 | Name                     | Type         | Description                                                     | Default   |
