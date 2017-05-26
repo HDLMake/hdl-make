@@ -150,7 +150,7 @@ Installing ``hdlmake``
 Linux deployment
 ----------------
 
-``hdlmake`` is a Python application and, in order to allow an agile development and customization, is not distributed as a packaged executable file, but as a set of Python source files. In this way, there is no need to build hdlmake, as the Python code gets interpreted on the fly. In order to run ``hdlmake`` as a shell command, the next process has to be followed.
+``hdlmake`` is a Python application and is distributed as an easy to build and deploy source code Python package. In order to run ``hdlmake`` as a shell command, the next process has to be followed.
 
 As a prerequisite, you must have the following programs installed in your host machine:
 
