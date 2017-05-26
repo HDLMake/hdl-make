@@ -932,12 +932,12 @@ The first one is to include this as a new variable in the top Manifest.py, i.e.:
        "local" : [ "../../../testbench/counter_tb/verilog" ],
    }
 
-But we can also define the variable value by injecting custom Python code from the command line
-when ``hdlmake`` is executed:
+But we can also define the variable value by injecting custom prefix or sufix Python code from the command line
+when ``hdlmake`` is executed, e.g.:
 
 .. code-block:: bash
 
-   hdlmake --py "simulate_vhdl = False" auto
+   hdlmake --sufix "simulate_vhdl = False" makefile
 
 
 
