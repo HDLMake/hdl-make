@@ -81,20 +81,20 @@ def _get_parser():
     """This is the parser function, where options and commands are defined.
     Here, we make the next processes:
     """
-    usage = """hdlmake [command] [options]"""
-    description = """Version %s\n
-        To see optional arguments for particular command type:
-        hdlmake <command> --help
-\0
-""" % (__version__,)
-
-    parser = argparse.ArgumentParser("hdlmake",
-                                     usage=usage,
-                                     description=description)
+    description = ("A tool designed to help FPGA designers to manage "
+                 + "and share their HDL code by automatically finding file "
+                 + "dependencies, writing synthesis & simulation Makefiles, "
+                 + "and fetching IP-Core libraries from remote repositories.")
+    parser = argparse.ArgumentParser("hdlmake", description=description)
     subparsers = parser.add_subparsers(title="commands", dest="command")
-    subparsers.add_parser(
-        "manifest-help",
-        help="print manifest file variables description")
+    makefile = subparsers.add_parser(
+        "makefile",
+        help="write the Makefile (default action for hdlmake)")
+    makefile.add_argument(
+        "-f", "--filename",
+        help="name for the Makefile file to be created",
+        default=None,
+        dest="filename")
     subparsers.add_parser(
         "fetch",
         help="fetch and/or update all of the remote modules")
@@ -103,7 +103,7 @@ def _get_parser():
         help="clean all of the already fetched remote modules")
     listmod = subparsers.add_parser(
         "list-mods",
-        help="List all modules together with their files")
+        help="list all modules together with their files")
     listmod.add_argument(
         "--with-files",
         help="list modules together with their files",
@@ -118,7 +118,7 @@ def _get_parser():
         dest="terse")
     listfiles = subparsers.add_parser(
         "list-files",
-        help="List all of the files in the design hierarchy")
+        help="list all of the files in the design hierarchy")
     listfiles.add_argument(
         "--delimiter",
         help="set delimitier for the list of files",
@@ -137,10 +137,10 @@ def _get_parser():
         default=None)
     tree = subparsers.add_parser(
         "tree",
-        help="generate a module hierarchy tree")
+        help="generate a module hierarchy tree graph")
     tree.add_argument(
         "--with-files",
-        help="Add files to the module hierarchy tree",
+        help="add files to the module hierarchy tree",
         default=False,
         action="store_true",
         dest="withfiles")
@@ -148,66 +148,47 @@ def _get_parser():
         "--graphviz",
         dest="graphviz",
         default=None,
-        help="Activate graphviz and specify the program to be used to plot "
+        help="qctivate graphviz and specify the program to be used to plot "
              "the graph (twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, "
              "circo, neato, acyclic, nop, gvpr, dot, sfdp)")
     tree.add_argument(
         "--web",
-        help="Edit the tree hierarchy in a web browser",
+        help="export the tree hierarchy in a web friendly JSON format",
         default=False,
         action="store_true",
         dest="web")
     tree.add_argument(
         "--solved",
-        help="Enable the parser",
+        help="enable the parser",
         default=False,
         action="store_true",
         dest="solved")
-    condition_check = argparse.ArgumentParser()
-    condition_check.add_argument("--tool", dest="tool", required=True)
-    condition_check.add_argument(
-        "--reference",
-        dest="reference",
-        required=True)
-    condition_check.add_argument(
-        "--condition",
-        dest="condition",
-        required=True)
-    makefile = subparsers.add_parser(
-        "makefile",
-        help="Write the Makefile -- default action for hdlmake.")
-    makefile.add_argument(
+    subparsers.add_parser(
+        "manifest-help",
+        help="print manifest file variables description")
+    parser.add_argument(
         '-v',
         '--version',
         action='version',
+        help="print the version of this program",
         version=parser.prog +
         " " +
         __version__)
-    makefile.add_argument(
-        "--noprune",
-        help="prevent hdlmake from pruning unneeded files",
-        default=False,
-        action="store_true")
-    parser.add_argument(
-        "-f", "--filename",
-        help="Name for the Makefile file to be created",
-        default=None,
-        dest="filename")
-    parser.add_argument(
-        "-p", "--prefix",
-        dest="prefix_code",
-        default="",
-        help="Arbitrary python code to be executed just before the Manifest")
-    parser.add_argument(
-        "-s", "--sufix",
-        dest="sufix_code",
-        default="",
-        help="Arbitrary python code to be executed just after the Manifest")
     parser.add_argument(
         "--log",
         dest="log",
         default="info",
-        help="set logging level: debug, info, warning, error, critical")
+        help="logging level: debug, info, warning, error, critical")
+    parser.add_argument(
+        "-p", "--prefix",
+        dest="prefix_code",
+        default="",
+        help="Python code executed before every Manifest.py")
+    parser.add_argument(
+        "-s", "--sufix",
+        dest="sufix_code",
+        default="",
+        help="Python code executed after every Manifest.py")
     return parser
 
 
@@ -216,15 +197,9 @@ def _get_options(sys_aux, parser):
     options = None
     if len(sys_aux.argv[1:]) == 0:
         options = parser.parse_args(['makefile'])
-    elif len(sys_aux.argv[1:]) == 1:
-        if sys_aux.argv[1] == "--help" or sys_aux.argv[1] == "-h":
-            options = parser.parse_args(sys_aux.argv[1:])
-        elif sys_aux.argv[1].startswith('-'):
-            options = parser.parse_args(["makefile"] + sys_aux.argv[1:])
-        else:
-            options = parser.parse_args(sys_aux.argv[1:])
-    elif len(sys_aux.argv[1:]) % 2 == 0:
-        options = parser.parse_args(sys_aux.argv[1:] + ["makefile"])
+    elif len(sys_aux.argv[1:]) == 2 and (
+             sys_aux.argv[1] == '-f' or sys_aux.argv[1] == '--filename'):
+        options = parser.parse_args(['makefile'] + sys_aux.argv[1:])
     else:
         options = parser.parse_args(sys_aux.argv[1:])
     return options
