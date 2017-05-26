@@ -505,6 +505,7 @@ The ``top`` folder contains the a series of HDL files describing how to attach t
    counter/top
    |-- brevia2_dk
    |-- cyclone3_sk
+   |-- icestick
    |-- proasic3_sk
    `-- spec_v4
 
@@ -637,20 +638,14 @@ We can see that the only difference is that each of the top synthesis Manifest.p
 - ``syn_project``: indicates the name of the FPGA project that is going to be created.
 - ``syn_tool``: indicates the specific synthesis tool that is going to be used.
 
-Now, in order to generate the bitstream for our board, we just get into the folder containing the specific top Manifest.py for synthesis and run ``hdlmake`` without arguments, e.g. for VHDL:
+Now, in order to generate the bitstream for our board, we just get into the folder containing the specific top Manifest.py for synthesis and run ``hdlmake`` without arguments to create the desired ``Makefile``, e.g. for VHDL:
 
 .. code-block:: bash
 
    user@host:~$ cd counter/syn/spec_v4_ise/vhdl
    user@host:~$ hdlmake
 
-The ``hdlmake`` performs two independent actions in the next order:
-
-1. Create an ISE project containing the all the files that are in the hierachy indicated by the Manifest.py tree. If there is an existing project in the folder, this will be updated accordingly.
-
-2. Generate a synthesis Makefile which contains all the information for building the associated ISE project in order to get a valid bitstream.
-
-So, once ``hdlmake`` has already generated the project and the Makefile, issuing a simple ``make`` command is enough to synthesize a valid bitstream. Then, we can issue a clean target for make in order to erase the most of the intermediate generated stuff and even a mrproper one to remove everything included the generated bitstreams.
+So, once ``hdlmake`` has already generated the Makefile, issuing a simple ``make`` command is enough to synthesize a valid bitstream. Then, we can issue a clean target for make in order to erase the most of the intermediate generated stuff and even a mrproper one to remove everything included the generated bitstreams.
 
 .. code-block:: bash
 
