@@ -684,7 +684,7 @@ Supposing that all of the modules are local to the development machine, i.e. the
 
 We only have the ``local`` key and an asociated four elements list containing the path to the respective local folders where the modules are stored.
 
-This case was very trivial. Let's try now to complicate the situation a bit. Let say, that two of our modules are stored in a SVN repository and the last one in a GIT repository. What is more, for ``module2`` we would like to use revision number 25. In that case, the manifest will look as follows:
+This case was very trivial. Let's try now to complicate the situation a bit. Let say, ``module1`` is stored as a local module, ``module2`` and ``module3`` are stored in remote **SVN** repositories, and ``module4`` is stored in a **GIT** repository. Here we have how a sample module declaration including remote repositories would look like:
 
 .. code-block:: python
 
@@ -699,7 +699,9 @@ This case was very trivial. Let's try now to complicate the situation a bit. Let
 
 Now we can see that the ``local`` key just has an associated path (i.e. this is a 1-element list), while we have two additional key identifiers: ``svn``, pointing to a list of two remote SVN repositories, and ``git``, pointing to a single remote GIT repository.
 
-In this way, just as in the SVN list ``module2`` is pointing to the default/head revision and ``module3`` SVN repository is pointing to revision number 25, we can refine the target for GIT repositories too. In our previous example, ``module4`` is the only entry for the GIT module list and it is pointing to the default/master branch, but we can introduce the following extra modifiers too:
+In this way, just as in the SVN list ``module2`` is pointing to the default/head revision and ``module3`` SVN repository is pointing to revision number 25.
+
+we can refine the target for GIT repositories too. In our previous example, ``module4`` is the only entry for the GIT module list and it is pointing to the default/master branch, but we can introduce the following extra modifiers too:
 
 * [ ``::`` ] | Point to a specific branch (e.g. "develop")
 
@@ -719,6 +721,7 @@ In this way, just as in the SVN list ``module2`` is pointing to the default/head
        # e.g.: target commit is "a964df3d84f84ef1f87acb300c4946d8c33e526a"
        "git":"git@github.com:user/module4.git@@a964df3d84f84ef1f87acb300c4946d8c33e526a"
 
+.. note:: if the requested Git repository is declared as a ``git submodule`` too and we do not provide a extra ``::`` or ``@@``  modifier in the ``Manifest.py``, ``hdlmake`` will read the desired commit id from the respective submodule declaration and will checkout this code revision right after the repository is cloned.
 
 If we run the ``hdlmake fetch`` command from inside the folder where the top Manifest.py is stored, hdlmake will read the local, SVN and GIT module lists and will automatically clone/fetch the remote SVN and GIT repositories. The only issue is that the modules would be fetched to the directory in which we are placed, which is not very elegant. To make the process more flexible, we can add the ``fetchto`` option to the manifest in order to point to the actual folder in which we want to store our remotely hosted modules.
 
