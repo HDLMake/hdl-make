@@ -548,7 +548,24 @@ And the Verilog one is:
 Synthesizing a bitstream
 ------------------------
 
-Once we have a constrained design targeted to a real FPGA board, we can generate a valid bitstream configuration file that can be downloaded into the FPGA configuration memory. In order to do that, in the ``syn`` folder we can find examples of top Manifest.py targeted to perform a bitstream generation by using all of the synthesis tools supported by ``hdlmake``:
+Once we have a constrained design targeted to a real FPGA board, we can generate a valid bitstream configuration file that can be downloaded into the FPGA configuration memory. In order to do that, we can use ``hdlmake`` to generate a synthesis Makefile that is able to perform the complete process by running a step-by-step flow that starts with the project generation and ends with the bitstream compiling. The main advantage of this approach is that, when synthesizing complex designs, the process can be resumed if it fails or is halted and the already performed jobs don't need to be re-launched again.
+
+The following are the different **target names** a synthesis Makefile may feature. The names are taken from Xilinx ISE, a synthesis tools that goes through all of the potential synthesis stages, but will apply to all other available tools too:
+
+   - ``project``: Create the synthesis tool specific project.
+   - ``synthesize``: Synthesize the HDL source code.
+   - ``translate``: Translate to synthesis tool format.
+   - ``map``: Map the translated design into FPGA building blocks.
+   - ``par``: Execute Place & Route for the selected FPGA device.
+   - ``bitstream``: Generate the bitstream for FPGA programming.
+
+For each of the potential synthesis targets, a **Tool Command Language (TCL)** file will be created as a dependency in the Makefile. These TCL files include the tool specific commands that are then sourced to the selected tool to perform the different synthesis stages. We have chosen to use TCL files as the intermediate format as this is the de-facto standard language that has been selected by the FPGA vendors.
+
+A TCL file associated to a specific synthesis stage can be generated without sourcing it to the tool by just calling Make with the associated target name (``project.tcl``, ``synthesize.tcl``, ``translate.tcl``, ``map.tcl``, ``par.tcl``, ``bitstream.tcl``). In this way, this files can be integrated into other custom development flows.
+
+.. note:: note that we have an additional ``files.tcl`` target. This is a dependency target for the project, and includes the TCL commands that are required all of the different design files to the tool in an appropriated way.
+
+As a quick-start for synthesis projects development, in the ``syn`` folder we can find examples of top ``Manifest.py`` targeted to perform a bitstream generation by using all of the synthesis tools supported by ``hdlmake``:
 
 .. code-block:: bash
 
@@ -556,6 +573,7 @@ Once we have a constrained design targeted to a real FPGA board, we can generate
    counter/syn
    |-- brevia2_dk_diamond
    |-- cyclone3_sk_quartus
+   |-- icestick_icestorm
    |-- proasic3_sk_libero
    |-- spec_v4_ise
    `-- spec_v4_planahead
@@ -632,7 +650,7 @@ The ``hdlmake`` performs two independent actions in the next order:
 
 2. Generate a synthesis Makefile which contains all the information for building the associated ISE project in order to get a valid bitstream.
 
-So, once ``hdlmake`` has already generated the project and the Makefile, issuing a simple ``make`` command is enough to synthesize a valid bitstream. Then, we can issue a clean target for make in order to erase the most of the intermediate generated stuff and even a mrproper one to remove everything but the bitstream and the project.
+So, once ``hdlmake`` has already generated the project and the Makefile, issuing a simple ``make`` command is enough to synthesize a valid bitstream. Then, we can issue a clean target for make in order to erase the most of the intermediate generated stuff and even a mrproper one to remove everything included the generated bitstreams.
 
 .. code-block:: bash
 
@@ -642,15 +660,6 @@ So, once ``hdlmake`` has already generated the project and the Makefile, issuing
 
 Note that ``hdlmake`` and the examples included in the ``counter`` test have been designed in order to be regular across the different toolchains. In this way, every top Manifest.py for synthesis in the ``syn`` folder can be executed to build a valid bitstream by using the same command sequence we have seen in this section.
 
-.. note:: If you are using Xilinx ISE for synthesis, you are now able to make extra more fine-grainde targets for each
-   of the synthesis stages that ISE supports (remember, ISE will execute by its own the dependent synthesis stages if the associated
-   targets has not been previously executed):
-   
-   - ``synthesize``: Synthesize the design.
-   - ``translate``: Translate to Xilinx format.
-   - ``map``: Map the translated design into FPGA building blocks.
-   - ``par``: Execute Place & Route for the selected FPGA device.
-   - ``bitstream``: Generate the bitstream for FPGA programming.
 
 Handling remote modules
 -----------------------
@@ -908,30 +917,6 @@ when ``hdlmake`` is executed:
    hdlmake --py "simulate_vhdl = False" auto
 
 
-
-Incremental synthesis in Xilinx ISE
------------------------------------
-
-Note that, for both local and remote Xilinx ISE synthesis, the synthesis process in the Makefile generated by ``hdlmake``
-performs the complete process by running a step-by-step approach that goes from synthesis to bitstream generation
-instead of executing a single "build_all" command. Going through this step-by-step path, the synthesis process 
-scans for already performed ISE steps, so that only the pending ones are actually executed 
-(this information is stored in the associated .gise file).
-
-The different Xilinx ISE steps that are performed by the synthesis makefile are:
-
-- Synthesize - XST
-- Translate
-- Map
-- Place & Route
-- Generate Programming File
-
-The main advantage of this approach is that, when synthesizing complex designs, the process can be resumed if
-it fails or is halted and the already performed jobs don't need to be re-launched. The drawback is that a little time
-overhead is introduced while scanning for the already completed stuff, and this can be noticed if the design is trivial.
-
-If you want to re-synthesize the whole system from the start without scanning for already performed jobs, 
-just perform a ``make clean`` or ``make cleanremote`` before executing the ``make`` or ``make remote`` command.
 
 
 Advanced examples
