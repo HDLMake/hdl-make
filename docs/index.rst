@@ -737,7 +737,7 @@ In this way, the external commands are automatically executed in order when a ``
 
 **Synthesis:**
 
-Depending on the tool you are going to use, you'll be able to run specific pre/post commands for all the available fine grained synthesis targets: ``{synthesize, translate, map, par, bitstream}``. This is how these custom commands works:
+Depending on the tool you are going to use, you'll be able to run specific pre/post commands for all the available fine grained synthesis targets: ``{project, synthesize, translate, map, par, bitstream}``. This is how these custom commands works:
 
 - ``syn_pre_<stage>_cmd``: this command is executed before executing the ``<stage>`` synthesis step.
 - ``syn_post_<stage>_cmd``: this command is executed after executing the ``<stage>`` synthesis step.
@@ -745,6 +745,10 @@ Depending on the tool you are going to use, you'll be able to run specific pre/p
 +--------------------------+--------------+-----------------------------------------------------------------+-----------+
 | Name                     | Type         | Description                                                     | Default   |
 +==========================+==============+=================================================================+===========+
+| syn_pre_project_cmd      | str          | Command to be executed before synthesis: project                | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
+| syn_post_project_cmd     | str          | Command to be executed after synthesis: project                 | ''        |
++--------------------------+--------------+-----------------------------------------------------------------+-----------+
 | syn_pre_synthesize_cmd   | str          | Command to be executed before synthesis: synthesize             | ''        |
 +--------------------------+--------------+-----------------------------------------------------------------+-----------+
 | syn_post_synthesize_cmd  | str          | Command to be executed after synthesis: synthesize              | ''        |
@@ -767,7 +771,7 @@ Depending on the tool you are going to use, you'll be able to run specific pre/p
 +--------------------------+--------------+-----------------------------------------------------------------+-----------+
 
 
-As a very simple example, we can introduce both extra commands in the top synthesis makefile we have previously seen:
+As a very simple example, we can introduce in the ``Manifest.py`` from a Xilinx ISE design a *hello world!* command that will be executed just before the first synthesis target (``project``) and a *bye, bye world!* that will be executed just after the last synthesis target (``bitstream``):
 
 .. code-block:: python
 
@@ -781,15 +785,13 @@ As a very simple example, we can introduce both extra commands in the top synthe
    syn_project = "demo.xise"
    syn_tool = "ise"
 
-   syn_pre_cmd = "echo This is executed just before the synthesis"
-   syn_post_cmd = "echo This is executed just after the synthesis"
+   syn_pre_project_cmd = "echo hello world!"
+   syn_post_bitstream_cmd = "echo bye, bye world!"
 
    modules = {
        "local" : [ "../../../top/spec_v4/verilog" ],
    }
 
-
-.. note:: the ``target`` parameter is used as a condition code variable in this specific example
 
 **Simulation:**
 
