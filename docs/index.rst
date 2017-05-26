@@ -36,7 +36,7 @@ We have a mailing list located at:
 
 If you are seeking for consultancy and training services on advanced ``hdlmake`` use cases, you can get **commercial support from GL Research**, the company on charge of maintaining and developing the tool.
 
-.. figure:: images/gl-research.*
+.. figure:: images/gl_research.*
    :scale: 100
    :align: center
    :target: https://gl-research.com
