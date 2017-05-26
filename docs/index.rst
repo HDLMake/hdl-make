@@ -414,11 +414,13 @@ Now, we have all that we need to run a simulation for our simple design. If we t
 
    user@host:~$ tree -d -L 1 counter/sim
    counter/sim
-   |-- aldec
+   |-- active_hdl
    |-- ghdl
    |-- isim
    |-- iverilog
-   `-- modelsim
+   |-- modelsim
+   |-- riviera
+   `-- vivado
 
 As an example, let's focus on the ``modelsim`` folder:
 
@@ -507,7 +509,8 @@ The ``top`` folder contains the a series of HDL files describing how to attach t
    |-- cyclone3_sk
    |-- icestick
    |-- proasic3_sk
-   `-- spec_v4
+   |-- spec_v4
+   `-- zedboard
 
 If we focus on the ``spec_v4`` folder, we can see that we have the following contents:
 
@@ -577,7 +580,8 @@ As a quick-start for synthesis projects development, in the ``syn`` folder we ca
    |-- icestick_icestorm
    |-- proasic3_sk_libero
    |-- spec_v4_ise
-   `-- spec_v4_planahead
+   |-- spec_v4_planahead
+   `-- zedboard_vivado
 
 Note that we have a different tool associated to each of the different supported vendor specific FPGA boards. The only exception is the spec_v4 design, that can be synthesized by using both Xilinx ISE and Xilinx PlanAhead.
 
