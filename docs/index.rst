@@ -22,6 +22,7 @@ Introduction
 Contribute
 ----------
 
+- Wiki Pages: http://www.ohwr.org/projects/hdl-make/wiki
 - Issue Tracker: http://www.ohwr.org/projects/hdl-make/issues
 - Source Code: http://www.ohwr.org/projects/hdl-make/repository
 
@@ -29,9 +30,23 @@ Contribute
 Support
 -------
 
-If you are having issues, please let us know.
+If you are experiencing any issues, please let us know.
 We have a mailing list located at: 
 - http://www.ohwr.org/mailing_list/show?project_id=hdl-make
+
+If you are seeking for consultancy and training services on advanced ``hdlmake`` use cases, you can get **commercial support from GL Research**, the company on charge of maintaining and developing the tool.
+
+.. figure:: images/gl-research.*
+   :scale: 100
+   :align: center
+   :target: https://gl-research.com
+   :figclass: align-center
+
+
+For direct inquiries, you can contact the ``hdlmake`` project manager:
+
+- Javier Garcia Lasheras: ``jgarcia@gl-research.com``
+
 
 
 License
