@@ -893,8 +893,8 @@ Custom variables and conditional execution
 ------------------------------------------
 
 In order to give an extra level of flexibility when defining the files and modules that are going to be used in a
-specific project, ``hdlmake`` allows for the introduction of custom variables in the top Manifest that can then be
-accessed from inside all of the Manifests in the design hierarchy. This is a very handy feature when different synthesis
+specific project, ``hdlmake`` allows for the introduction of custom Python variables and code in the ``Manifest.py`` hierarchy.
+This is a very handy feature when different synthesis
 or simulation configurations in complex designs should be selected from the top level Manifest when running ``hdlmake``.
 
 As a very simple example of how this mechanism can be used, suppose that we want to simulate a design that uses a module for which
