@@ -51,6 +51,20 @@ If you are seeking for consultancy and training services on advanced ``hdlmake``
    :figclass: align-center
 
 
+Copyright notice
+----------------
+
+`CERN <http://home.web.cern.ch/>`_, the European Organization for Nuclear Research,
+is the first and sole owner of all copyright of both this document and
+the associated source code deliverables.
+
+.. figure:: images/CERN_logo.*
+   :scale: 40
+   :alt: CERN Logo
+   :align: center
+   :target: http://home.web.cern.ch/
+   :figclass: align-center
+
 
 License
 -------
@@ -73,21 +87,6 @@ http://www.gnu.org/copyleft/gpl.html
    :scale: 100
    :align: center
    :target: http://www.gnu.org/copyleft/gpl.html
-   :figclass: align-center
-
-Copyright notice
-----------------
-
-`CERN 
-<http://home.web.cern.ch/>`_, the European Organization for Nuclear Research,
-is the first and sole owner of all copyright of both this document and
-the associated source code deliverables.
-
-.. figure:: images/CERN_logo.*
-   :scale: 40
-   :alt: CERN Logo
-   :align: center
-   :target: http://home.web.cern.ch/
    :figclass: align-center
 
 
