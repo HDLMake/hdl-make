@@ -699,9 +699,9 @@ This case was very trivial. Let's try now to complicate the situation a bit. Let
 
 Now we can see that the ``local`` key just has an associated path (i.e. this is a 1-element list), while we have two additional key identifiers: ``svn``, pointing to a list of two remote SVN repositories, and ``git``, pointing to a single remote GIT repository.
 
-In this way, just as in the SVN list ``module2`` is pointing to the default/head revision and ``module3`` SVN repository is pointing to revision number 25.
+Regarding the SVN repositories, ``module2`` is pointing to the ``default/head`` revision while ``module3`` SVN repository is pointing to revision number 25 by appending the ``@25`` sufix to the repository URL..
 
-we can refine the target for GIT repositories too. In our previous example, ``module4`` is the only entry for the GIT module list and it is pointing to the default/master branch, but we can introduce the following extra modifiers too:
+Finally, the Git repository ``module4`` is the only entry for the GIT module list and it is pointing to the ``default/master`` branch, but we can introduce the following extra modifiers to force a specific ``branch``, ``tag`` or ``commit``:
 
 * [ ``::`` ] | Point to a specific branch (e.g. "develop")
 
@@ -721,9 +721,9 @@ we can refine the target for GIT repositories too. In our previous example, ``mo
        # e.g.: target commit is "a964df3d84f84ef1f87acb300c4946d8c33e526a"
        "git":"git@github.com:user/module4.git@@a964df3d84f84ef1f87acb300c4946d8c33e526a"
 
-.. note:: if the requested Git repository is declared as a ``git submodule`` too and we do not provide a extra ``::`` or ``@@``  modifier in the ``Manifest.py``, ``hdlmake`` will read the desired commit id from the respective submodule declaration and will checkout this code revision right after the repository is cloned.
+.. note:: if the requested Git repository is declared as a ``git submodule`` too and we do not provide an extra ``::`` or ``@@``  modifier in the ``Manifest.py``, ``hdlmake`` will read the desired commit id from the respective submodule declaration and will checkout this code revision right after the repository is cloned.
 
-If we run the ``hdlmake fetch`` command from inside the folder where the top Manifest.py is stored, hdlmake will read the local, SVN and GIT module lists and will automatically clone/fetch the remote SVN and GIT repositories. The only issue is that the modules would be fetched to the directory in which we are placed, which is not very elegant. To make the process more flexible, we can add the ``fetchto`` option to the manifest in order to point to the actual folder in which we want to store our remotely hosted modules.
+Now, if we run the ``hdlmake fetch`` command from inside the folder where the top Manifest.py is stored, hdlmake will read the local, SVN and GIT module lists and will automatically clone/fetch the remote SVN and GIT repositories. The only issue is that the modules would be fetched to the directory in which we are placed, which is not very elegant. To make the process more flexible, we can add the ``fetchto`` option to the manifest in order to point to the actual folder in which we want to store our remotely hosted modules.
 
 .. code-block:: python
 
@@ -731,7 +731,7 @@ If we run the ``hdlmake fetch`` command from inside the folder where the top Man
 
 
 
-Pre and Post synthesis / simulation commands
+Custom Makefile commands
 --------------------------------------------
 
 As we have already seen in the simulation example, ``hdlmake`` allows for the injection of optional external shell commands that
@@ -742,7 +742,8 @@ If a external command has been defined in the top Manifest, this is automaticall
 In this way, the external commands are automatically executed in order when a ``make`` command is issued.
 
 
-**Synthesis:**
+Synthesis commands
+~~~~~~~~~~~~~~~~~~
 
 Depending on the tool you are going to use, you'll be able to run specific pre/post commands for all the available fine grained synthesis targets: ``{project, synthesize, translate, map, par, bitstream}``. This is how these custom commands works:
 
@@ -800,7 +801,8 @@ As a very simple example, we can introduce in the ``Manifest.py`` from a Xilinx 
    }
 
 
-**Simulation:**
+Simulation commands
+~~~~~~~~~~~~~~~~~~~
 
 Now, if we want to add external commands to a simulation top makefile, the following parameters must be introduced:
 
@@ -828,7 +830,8 @@ As a very simple example, we can introduce both extra commands in the top simula
    }
 
 
-**Multiline commands:**
+Multiline commands
+~~~~~~~~~~~~~~~~~~
 
 If you need to execute a more complex action from the pre/post synthesis/simulation commands, you can point to an
 external shell script or program. As an alternative, you can use a multiline string in order to inject multiple
