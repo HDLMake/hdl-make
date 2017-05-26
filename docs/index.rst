@@ -18,6 +18,10 @@ Welcome to hdlmake's documentation!
 Introduction
 ============
 
+A tool designed to help FPGA designers to manage and share their HDL code by
+automatically finding file dependencies, writing synthesis & simulation
+Makefiles, and fetching IP-Core libraries from remote repositories.
+
 
 Contribute
 ----------
@@ -31,7 +35,8 @@ Support
 -------
 
 If you are experiencing any issues, please let us know.
-We have a mailing list located at: 
+We have a mailing list located at:
+
 - http://www.ohwr.org/mailing_list/show?project_id=hdl-make
 
 If you are seeking for consultancy and training services on advanced ``hdlmake`` use cases, you can get **commercial support from GL Research**, the company on charge of maintaining and developing the tool.
@@ -43,9 +48,8 @@ If you are seeking for consultancy and training services on advanced ``hdlmake``
    :figclass: align-center
 
 
-For direct inquiries, you can contact the ``hdlmake`` project manager:
-
-- Javier Garcia Lasheras: ``jgarcia@gl-research.com``
+- **Company web site**: https://gl-research.com
+- **Project manager**: Javier Garcia <jgarcia@gl-research.com>
 
 
 
