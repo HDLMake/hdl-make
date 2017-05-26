@@ -1459,26 +1459,10 @@ Hdlmake can be run with several arguments. The way of using them is identical wi
 --------------
 Shows help message that is automatically generated with Python's optparse module. Gives a short description of each available option.
 
-``-p, --prefix ARBITRARY_CODE``
--------------------------------
-Add arbitrary Python code from the command line that **will be evaluated before each Manifest.py** parse action across the hierarchy.
 
-As an example, this command will generate the Makefile and will try to print ``Hello hdlmake`` before each ``Manifest.py`` run:
-
-.. code-block:: bash
-
-   hdlmake -p "print('Hello hdlmake')"
-
-
-``-s, --sufix ARBITRARY_CODE``
-------------------------------
-Add arbitrary Python code from the command line that **will be evaluated after each Manifest.py** parse action across the hierarchy.
-
-As an example, this command will generate the Makefile but will try to print ``Bye, bye hdlmake`` after each ``Manifest.py`` run:
-
-.. code-block:: bash
-
-   hdlmake -s "print('Bye, bye hdlmake')"
+``-v, --version``
+--------------
+Print the version of the ``hdlmake`` instance on execution an quit.
 
 
 ``--log LOG``
@@ -1501,4 +1485,25 @@ Set logging level for the Python logger facility. You can choose one of the leve
 | not provided  | 0             |
 +---------------+---------------+
 
+
+``-p, --prefix ARBITRARY_CODE``
+-------------------------------
+Add arbitrary Python code from the command line that **will be evaluated before each Manifest.py** parse action across the hierarchy.
+
+As an example, this command will generate the Makefile and will try to print ``Hello hdlmake`` before each ``Manifest.py`` run:
+
+.. code-block:: bash
+
+   hdlmake -p "print('Hello hdlmake')"
+
+
+``-s, --sufix ARBITRARY_CODE``
+------------------------------
+Add arbitrary Python code from the command line that **will be evaluated after each Manifest.py** parse action across the hierarchy.
+
+As an example, this command will generate the Makefile but will try to print ``Bye, bye hdlmake`` after each ``Manifest.py`` run:
+
+.. code-block:: bash
+
+   hdlmake -s "print('Bye, bye hdlmake')"
 
