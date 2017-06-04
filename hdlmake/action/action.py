@@ -81,9 +81,15 @@ class Action(list):
             self.top_entity = None
         elif action == "simulation":
             self.tool = load_sim_tool(self.config.get("sim_tool"))
+            if (self.config.get("sim_top") == None and
+                    not self.config.get("top_module") == None):
+                self.config["sim_top"] = self.config["top_module"]
             self.top_entity = self.config.get("sim_top")
         elif action == "synthesis":
             self.tool = load_syn_tool(self.config.get("syn_tool"))
+            if (self.config.get("syn_top") == None and
+                    not self.config.get("top_module") == None):
+                self.config["syn_top"] = self.config["top_module"]
             self.top_entity = self.config.get("syn_top")
         else:
             logging.error("Unknown requested action: %s", action)
