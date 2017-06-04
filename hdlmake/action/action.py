@@ -168,7 +168,7 @@ class Action(list):
                    for file_type in self.tool.get_parseable_files()):
                 self.parseable_fileset.add(file_aux)
             else:
-                logging.error("File not supported by the tool: %s",
+                logging.debug("File not supported by the tool: %s",
                               file_aux.path)
         if len(self.privative_fileset) > 0:
             logging.info("Detected %d supported files that are not parseable",
