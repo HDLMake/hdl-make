@@ -84,6 +84,7 @@ class ToolQuartus(ToolSyn):
                     'open': 'project_open $(PROJECT)',
                     'project': 'load_package flow\n'
                                '$(TCL_CREATE)\n'
+                               'remove_all_global_assignments -name *_FILE\n'
                                'source files.tcl',
                     'bitstream': 'load_package flow\n'
                                  '$(TCL_OPEN)\n'
