@@ -176,7 +176,8 @@ PARSE START: %s
 
         # Process the parsed manifest_dict to assign the module properties
         self.process_manifest()
-        self.process_git_submodules()
+        if self.pool.options.submodule:
+            self.process_git_submodules()
 
         # Parse every detected submodule
         for module_aux in self.submodules():
