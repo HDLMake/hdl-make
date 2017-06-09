@@ -179,7 +179,13 @@ def _get_parser():
         '--submodule',
         action='store_true',
         dest="submodule",
-        help="enable automatic Git submodule scanning",)
+        help="enable automatic Git submodule scanning")
+    parser.add_argument(
+        '-a',
+        '--all',
+        action='store_true',
+        dest="all_files",
+        help="use all the listed files, do not solve the fileset")
     parser.add_argument(
         "--log",
         dest="log",
