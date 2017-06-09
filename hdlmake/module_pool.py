@@ -35,4 +35,3 @@ class ModulePool(ActionCore, ActionTree):
 
     def __init__(self, *args):
         ActionCore.__init__(self, *args)
-        ActionTree.__init__(self, *args)
