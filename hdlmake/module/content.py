@@ -135,6 +135,20 @@ class ModuleContent(ModuleCore):
             else:
                 self.git = []
 
+    def process_git_submodules(self):
+        """Get the submodules if found in the Manifest path"""
+        git_submodule_dict = fetch.Git.get_git_submodules(self)
+        git_toplevel = fetch.Git.get_git_toplevel(self)
+        for submodule_key in git_submodule_dict.keys():
+            url = git_submodule_dict[submodule_key]["url"]
+            path = git_submodule_dict[submodule_key]["path"]
+            path = os.path.join(git_toplevel, path)
+            fetchto = os.path.sep.join(path.split(os.path.sep)[:-1])
+            self.git.append(self.pool.new_module(parent=self,
+                                                 url=url,
+                                                 fetchto=fetchto,
+                                                 source=fetch.GIT))
+
     def _process_manifest_makefiles(self):
         """Get the extra makefiles defined in the HDLMake module"""
         # Included Makefiles

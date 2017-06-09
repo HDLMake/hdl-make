@@ -25,6 +25,7 @@ from __future__ import absolute_import
 import os
 from hdlmake.util import path as path_utils
 from hdlmake.util import shell
+from subprocess import PIPE, Popen
 import logging
 from .fetcher import Fetcher
 
@@ -38,9 +39,16 @@ class Git(Fetcher):
         pass
 
     @staticmethod
-    def get_git_toplevel():
+    def get_git_toplevel(module):
         """Get the top level for the Git repository"""
-        return shell.run("git rev-parse --show-toplevel")
+        cur_dir = os.getcwd()
+        try:
+            os.chdir(path_utils.rel2abs(module.path))
+            if not os.path.exists(".gitmodules"):
+                return None
+            return shell.run("git rev-parse --show-toplevel")
+        finally:
+            os.chdir(cur_dir)
 
     @staticmethod
     def get_submodule_commit(submodule_dir):
@@ -94,3 +102,47 @@ class Git(Fetcher):
         """Get the revision number for the Git repository at path"""
         git_cmd = 'git log -1 --format="%H" | cut -c1-32'
         return Fetcher.check_id(path, git_cmd)
+
+    @staticmethod
+    def get_git_submodules(module):
+        """Get a dictionary containing the git submodules
+        that are listed in the module's path"""
+        submodule_dir = path_utils.rel2abs(module.path)
+        if module.isfetched == False:
+            logging.debug("Cannot check submodules, module %s is not fetched",
+                submodule_dir)
+            return {}
+        logging.debug("Checking git submodules in %s",
+            submodule_dir)
+        cur_dir = os.getcwd()
+        try:
+            os.chdir(submodule_dir)
+
+            if not os.path.exists(".gitmodules"):
+                return {}
+            config_submodules = {}
+            config_content = Popen("git config -f .gitmodules --list",
+                                      stdout=PIPE,
+                                      stdin=PIPE,
+                                      close_fds=not shell.check_windows(),
+                                      shell=True)
+            config_lines = [line.strip() for line
+                            in config_content.stdout.readlines()]
+            config_submodule_lines = [line for line in config_lines
+                                      if line.startswith("submodule")]
+            for line in config_submodule_lines:
+                line_split = line.split("=")
+                lhs = line_split[0]
+                rhs = line_split[1]
+                lhs_split = lhs.split(".")
+                module_name = '.'.join(lhs_split[1:-1])
+                if module_name not in config_submodules:
+                    config_submodules[module_name] = {}
+                config_submodules[module_name][lhs_split[-1]] = rhs
+
+            if len(list(config_submodules)) > 0:
+                logging.info("Found git submodules in %s: %s",
+                    module.path, str(config_submodules))
+        finally:
+            os.chdir(cur_dir)
+        return config_submodules
