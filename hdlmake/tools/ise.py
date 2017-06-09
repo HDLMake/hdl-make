@@ -106,6 +106,7 @@ $(TCL_CLOSE)'''
         'save': 'project save',
         'close': 'project close',
         'project': '$(TCL_CREATE)\n'
+                   'xfile remove [search \* -type file]\n'
                    'source files.tcl\n'
                    '{0}\n'
                    'project set top $(TOP_MODULE)\n'
