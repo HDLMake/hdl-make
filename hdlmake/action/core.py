@@ -46,21 +46,20 @@ class ActionCore(Action):
         self.svn_backend = Svn()
         self.local_backend = Local()
 
-    def _check_all_fetched_or_quit(self):
+    def _report_fetch_status(self):
         """Check if every module in the pool is fetched"""
 
         if not len([m for m in self if not m.isfetched]) == 0:
             logging.error(
-                "Fetching must be done before continuing.\n"
+                "Fetching should be done before continuing.\n"
                 "The following modules remains unfetched:\n"
                 "%s",
                 "\n".join([str(m) for m in self if not m.isfetched])
             )
-            quit()
 
     def makefile(self):
         """Write the Makefile for the current design"""
-        self._check_all_fetched_or_quit()
+        self._report_fetch_status()
         self.build_file_set()
         self.solve_file_set()
         combined_fileset = self.parseable_fileset
