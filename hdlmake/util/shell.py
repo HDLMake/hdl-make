@@ -45,7 +45,7 @@ def run(command):
             return None
         return lines[0].strip()
     except CalledProcessError as process_error:
-        logging.error("Cannot clean the module: %s",
+        logging.error("Cannot execute the shell command: %s",
             process_error.output)
         quit()
 
