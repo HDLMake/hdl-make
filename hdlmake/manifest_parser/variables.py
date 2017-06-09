@@ -283,8 +283,8 @@ class ManifestParser(ConfigParser):
             return None
         manifest = _search_for_manifest(path)
         if manifest is None:
-            logging.error("No manifest found in path: %s", path)
-            quit()
+            logging.warning("No manifest found in path: %s", path)
+            return None
         else:
             logging.debug("Parse manifest in: %s", manifest)
             return self.add_config_file(manifest)

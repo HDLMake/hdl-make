@@ -274,7 +274,7 @@ types:[<type 'int'>]
         if not os.path.exists(config_file):
             raise RuntimeError("Config file doesn't exists: " + config_file)
         self.config_file = config_file
-        return
+        return True
 
     def add_prefix_code(self, code):
         """Add the arbitrary Python to be executed just before the Manifest"""

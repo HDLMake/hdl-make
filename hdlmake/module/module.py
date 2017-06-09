@@ -151,27 +151,32 @@ PARSE START: %s
         manifest_parser.add_sufix_code(
             self.pool.options.sufix_code)
 
-        manifest_parser.add_manifest(self.path)
+        parser_tmp = manifest_parser.add_manifest(self.path)
 
-        if self.parent is None:
-            extra_context = {}
+        if not parser_tmp == None:
+
+            if self.parent is None:
+                extra_context = {}
+            else:
+                extra_context = dict(self.top_module.manifest_dict)
+            extra_context["__manifest"] = self.path
+
+            # The parse method is where the most of the parser action takes place!
+            opt_map = None
+            try:
+                opt_map = manifest_parser.parse(extra_context=extra_context)
+            except NameError as name_error:
+                logging.error(
+                    "Error while parsing {0}:\n{1}: {2}.".format(
+                        self.path, type(name_error), name_error))
+                quit()
+            self.manifest_dict = opt_map
         else:
-            extra_context = dict(self.top_module.manifest_dict)
-        extra_context["__manifest"] = self.path
-
-        # The parse method is where the most of the parser action takes place!
-        opt_map = None
-        try:
-            opt_map = manifest_parser.parse(extra_context=extra_context)
-        except NameError as name_error:
-            logging.error(
-                "Error while parsing {0}:\n{1}: {2}.".format(
-                    self.path, type(name_error), name_error))
-            quit()
-        self.manifest_dict = opt_map
+            self.manifest_dict = {}
 
         # Process the parsed manifest_dict to assign the module properties
         self.process_manifest()
+        self.process_git_submodules()
 
         # Parse every detected submodule
         for module_aux in self.submodules():
