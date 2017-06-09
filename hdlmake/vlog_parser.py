@@ -44,6 +44,7 @@ class VerilogPreprocessor(object):
 
     # Reserved verilog preprocessor keywords. The list is certainly not full
     vpp_keywords = [
+        "default_nettype",
         "define",
         "line",
         "include",
