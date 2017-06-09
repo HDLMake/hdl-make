@@ -161,7 +161,7 @@ PARSE START: %s
                 extra_context = dict(self.top_module.manifest_dict)
             extra_context["__manifest"] = self.path
 
-            # The parse method is where the most of the parser action takes place!
+            # The parse method is where most of the parser action takes place!
             opt_map = None
             try:
                 opt_map = manifest_parser.parse(extra_context=extra_context)
