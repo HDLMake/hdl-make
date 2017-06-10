@@ -419,4 +419,8 @@ def create_source_file(path, module, library=None,
         new_file = LATTICE_FILE_DICT[extension](path=path, module=module)
     elif extension in MICROSEMI_FILE_DICT:
         new_file = MICROSEMI_FILE_DICT[extension](path=path, module=module)
+    else:
+        logging.error("Cannot create source file %s, "
+                      "unknown file extension %s", path, extension)
+        quit()
     return new_file
