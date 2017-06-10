@@ -119,7 +119,10 @@ class ToolQuartus(ToolSyn):
             try to guess the value from the device string if not defined"""
             family_names = {
                 "^EP2AGX.*$": "Arria II GX",
+                "^EP1C.*$": "Cyclone",
+                "^EP2C.*$": "Cyclone II",
                 "^EP3C.*$": "Cyclone III",
+                "^EP4C.*$": "Cyclone IV",
                 "^EP4CE.*$": "Cyclone IV E",
                 "^EP4CGX.*$": "Cyclone IV GX",
                 "^5A.*$": "Arria V",
