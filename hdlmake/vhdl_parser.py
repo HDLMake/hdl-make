@@ -94,9 +94,8 @@ class VHDLParser(DepParser):
         # new entity
         entity_pattern = re.compile(
             r"^\s*entity\s+(?P<name>\w+)\s+is\s+(?:port|generic|end)"
-            r".*?(?P=name)\s*;",
+            r".*?((?P=name)|entity)\s*;",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
-
         def do_entity(text):
             """Function to be applied by re.sub to every match of the
             entity_pattern in the VHDL code -- group() returns positive matches
@@ -110,10 +109,16 @@ class VHDLParser(DepParser):
                             DepRelation.ENTITY))
             return "<hdlmake entity_pattern %s.%s>" % (dep_file.library,
                                                        text.group(1))
+
         buf = re.sub(entity_pattern, do_entity, buf)
+
         # new architecture
         architecture_pattern = re.compile(
-            r"^\s*architecture\s+(\w+)\s+of\s+(\w+)\s+is",
+            r"^\s*architecture\s+(?P<name>\w+)\s+of\s+(\w+)\s+is"
+            r".*end\s*((|architecture)\s*(?P=name)|architecture)\s*;",
+            re.DOTALL | re.MULTILINE | re.IGNORECASE)
+        architecture_split_pattern = re.compile(
+            r"^\s*architecture\s+(?P<name>\w+)\s+of\s+(\w+)\s+is",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
 
         def do_architecture(text):
@@ -133,7 +138,8 @@ class VHDLParser(DepParser):
                             DepRelation.ENTITY))
             return "<hdlmake architecture %s.%s>" % (dep_file.library,
                                                      text.group(2))
-        buf = re.sub(architecture_pattern, do_architecture, buf)
+        buf = re.sub(architecture_split_pattern, do_architecture, buf)
+
         # new package
         package_pattern = re.compile(
             r"^\s*package\s+(\w+)\s+is",
@@ -153,6 +159,7 @@ class VHDLParser(DepParser):
             return "<hdlmake package %s.%s>" % (dep_file.library,
                                                 text.group(1))
         buf = re.sub(package_pattern, do_package, buf)
+
         # component declaration
         component_pattern = re.compile(
             r"^\s*component\s+(\w+).*?end\s+component.*?;",
@@ -165,7 +172,40 @@ class VHDLParser(DepParser):
             to the file"""
             logging.debug("found component declaration %s", text.group(1))
             return "<hdlmake component %s>" % text.group(1)
+
         buf = re.sub(component_pattern, do_component, buf)
+
+        # Signal declaration
+        signal_pattern = re.compile(
+            r"^\s*signal\s+(\w+).*?;",
+            re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
+        def do_signal(text):
+            """Function to be applied by re.sub to every match of the
+            signal_pattern in the VHDL code -- group() returns positive
+            matches as indexed plain strings. It doesn't add any relation
+            to the file"""
+            logging.debug("found signal declaration %s", text.group(1))
+            return "<hdlmake signal %s>" % text.group(1)
+
+        buf = re.sub(signal_pattern, do_signal, buf)
+
+        # Constant declaration
+        constant_pattern = re.compile(
+            r"^\s*constant\s+(\w+).*?;",
+            re.DOTALL | re.MULTILINE | re.IGNORECASE)
+
+        def do_constant(text):
+            """Function to be applied by re.sub to every match of the
+            constant_pattern in the VHDL code -- group() returns positive
+            matches as indexed plain strings. It doesn't add any relation
+            to the file"""
+            logging.debug("found constant declaration %s", text.group(1))
+            return "<hdlmake constant %s>" % text.group(1)
+
+        buf = re.sub(constant_pattern, do_constant, buf)
+
+
         # record declaration
         record_pattern = re.compile(
             r"^\s*type\s+(\w+)\s+is\s+record.*?end\s+record.*?;",
@@ -178,10 +218,13 @@ class VHDLParser(DepParser):
             file"""
             logging.debug("found record declaration %s", text.group(1))
             return "<hdlmake record %s>" % text.group(1)
+
         buf = re.sub(record_pattern, do_record, buf)
+
         # function declaration
         function_pattern = re.compile(
-            r"^\s*function\s+(\w+).*?return.*?(?:is|;)",
+            r"^\s*function\s+(?P<name>\w+)"
+            r".*end\s*(|function\s*)(|(?P=name))\s*;",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
 
         def do_function(text):
@@ -191,7 +234,9 @@ class VHDLParser(DepParser):
             to the file"""
             logging.debug("found function declaration %s", text.group(1))
             return "<hdlmake function %s>" % text.group(1)
+
         buf = re.sub(function_pattern, do_function, buf)
+
         # instantions
         libraries = set([dep_file.library])
         instance_pattern = re.compile(
@@ -213,6 +258,7 @@ class VHDLParser(DepParser):
             return "<hdlmake instance %s|%s>" % (text.group(1),
                                                  text.group(2))
         buf = re.sub(instance_pattern, do_instance, buf)
+
         instance_from_library_pattern = re.compile(
             r"^\s*(\w+)\s*\:\s*entity\s*(\w+)\s*\.\s*(\w+)\s*(?:port"
             r"\s+map.*?;|generic\s+map.*?;|\s*;)",
