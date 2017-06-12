@@ -158,7 +158,8 @@ class Action(list):
             self._deps_solved = True
         solved_files = SourceFileSet()
         solved_files.add(dep_solver.make_dependency_set(
-            self.parseable_fileset, self.top_entity))
+            self.parseable_fileset, self.top_entity,
+            self.config.get("extra_modules")))
         self.parseable_fileset = solved_files
 
     def build_file_set(self):

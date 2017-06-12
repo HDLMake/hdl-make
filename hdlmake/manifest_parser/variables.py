@@ -39,8 +39,12 @@ class ManifestParser(ConfigParser):
         general_options = [
             {'name': 'top_module',
              'default': None,
-             'help': "Top level entity for synthesis and simulation",
+             'help': "Top level HDL entity for synthesis and simulation",
              'type': ''},
+            {'name': 'extra_modules',
+             'default': None,
+             'help': "Extra HDL entities that must be present in the design",
+             'type': []},
             {'name': 'include_dirs',
              'default': None,
              'help': "Include dirs for Verilog sources",

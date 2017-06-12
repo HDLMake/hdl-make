@@ -125,28 +125,36 @@ def make_dependency_sorted_list(fileset, reverse=False):
     return sorted_list
 
 
-def make_dependency_set(fileset, top_level_entity):
+def make_dependency_set(fileset, top_level_entity, extra_modules=None):
     """Create the set of all files required to build the named
      top_level_entity."""
     from hdlmake.srcfile import SourceFileSet
     from hdlmake.dep_file import DepRelation
     assert isinstance(fileset, SourceFileSet)
     fset = fileset.filter(DepFile)
-    # Find the file that provides the named top level entity
-    top_rel_vhdl = DepRelation(
-        "%s.%s" %
-        ("work", top_level_entity), DepRelation.PROVIDE, DepRelation.ENTITY)
-    top_rel_vlog = DepRelation(
-        "%s.%s" %
-        ("work", top_level_entity), DepRelation.PROVIDE, DepRelation.MODULE)
+
+    def _check_entity(test_file, entity_name):
+        """ Check if the input file provides the entity pointed by the name"""
+        entity_rel_vhdl = DepRelation(
+            "%s.%s" %
+            ("work", entity_name), DepRelation.PROVIDE, DepRelation.ENTITY)
+        entity_rel_vlog = DepRelation(
+            "%s.%s" %
+            ("work", entity_name), DepRelation.PROVIDE, DepRelation.MODULE)
+        for rel in test_file.rels:
+            if (rel == entity_rel_vhdl) or (rel == entity_rel_vlog):
+                return True
+        return False
+
     top_file = None
+    extra_files = []
     for chk_file in fset:
-        for rel in chk_file.rels:
-            if (rel == top_rel_vhdl) or (rel == top_rel_vlog):
-                top_file = chk_file
-                break
-        if top_file:
-            break
+        if _check_entity(chk_file, top_level_entity):
+            top_file = chk_file
+        if not extra_modules == None:
+            for entity_aux in extra_modules:
+                if _check_entity(chk_file, entity_aux):
+                    extra_files.append(chk_file)
     if top_file is None:
         logging.critical('Could not find a top level file that provides the '
                          'top_module="%s". Continuing with the full file set.',
@@ -156,7 +164,7 @@ def make_dependency_set(fileset, top_level_entity):
     # walking the dependancy tree.
     try:
         dep_file_set = set()
-        file_set = set([top_file])
+        file_set = set([top_file] + extra_files)
         while True:
             chk_file = file_set.pop()
             dep_file_set.add(chk_file)
@@ -164,8 +172,9 @@ def make_dependency_set(fileset, top_level_entity):
     except KeyError:
         # no files left
         pass
+    hierarchy_drivers = [top_level_entity]
+    if not extra_modules == None:
+        hierarchy_drivers += extra_modules
     logging.info("Found %d files as dependancies of %s.",
-                 len(dep_file_set), top_level_entity)
-    # for dep_file in dep_file_set:
-    #    logging.info("\t" + str(dep_file))
+                 len(dep_file_set), ", ".join(hierarchy_drivers))
     return dep_file_set
