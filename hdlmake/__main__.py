@@ -145,24 +145,11 @@ def _get_parser():
         action="store_true",
         dest="withfiles")
     tree.add_argument(
-        "--graphviz",
-        dest="graphviz",
-        default=None,
-        help="qctivate graphviz and specify the program to be used to plot "
-             "the graph (twopi, gvcolor, wc, ccomps, tred, sccmap, fdp, "
-             "circo, neato, acyclic, nop, gvpr, dot, sfdp)")
-    tree.add_argument(
-        "--web",
-        help="export the tree hierarchy in a web friendly JSON format",
-        default=False,
-        action="store_true",
-        dest="web")
-    tree.add_argument(
-        "--solved",
-        help="enable the parser",
-        default=False,
-        action="store_true",
-        dest="solved")
+        "--mode",
+        dest="mode",
+        default="mods",
+        help="set the working mode for the tree generator: "
+             "(mods, dfs, bfs)")
     subparsers.add_parser(
         "manifest-help",
         help="print manifest file variables description")
