@@ -43,7 +43,7 @@ class DepRelation(object):
     PACKAGE = 2
     INCLUDE = 3
     ARCHITECTURE = 4
-    MODULE = ARCHITECTURE
+    MODULE = ENTITY
 
     def __init__(self, obj_name, direction, rel_type):
         assert direction in [DepRelation.PROVIDE, DepRelation.USE]

@@ -107,6 +107,10 @@ class VHDLParser(DepParser):
                 DepRelation("%s.%s" % (dep_file.library, text.group(1)),
                             DepRelation.PROVIDE,
                             DepRelation.ENTITY))
+            dep_file.add_relation(
+                DepRelation("%s.%s" % (dep_file.library, text.group(1)),
+                            DepRelation.USE,
+                            DepRelation.ARCHITECTURE))
             return "<hdlmake entity_pattern %s.%s>" % (dep_file.library,
                                                        text.group(1))
 
@@ -132,10 +136,6 @@ class VHDLParser(DepParser):
                 DepRelation("%s.%s" % (dep_file.library, text.group(2)),
                             DepRelation.PROVIDE,
                             DepRelation.ARCHITECTURE))
-            dep_file.add_relation(
-                DepRelation("%s.%s" % (dep_file.library, text.group(2)),
-                            DepRelation.USE,
-                            DepRelation.ENTITY))
             return "<hdlmake architecture %s.%s>" % (dep_file.library,
                                                      text.group(2))
         buf = re.sub(architecture_split_pattern, do_architecture, buf)
@@ -171,6 +171,10 @@ class VHDLParser(DepParser):
             matches as indexed plain strings. It doesn't add any relation
             to the file"""
             logging.debug("found component declaration %s", text.group(1))
+            dep_file.add_relation(
+                DepRelation("%s.%s" % (dep_file.library, text.group(1)),
+                            DepRelation.USE,
+                            DepRelation.ENTITY))
             return "<hdlmake component %s>" % text.group(1)
 
         buf = re.sub(component_pattern, do_component, buf)
@@ -252,9 +256,9 @@ class VHDLParser(DepParser):
             for lib in libraries:
                 logging.debug("-> instantiates %s.%s as %s",
                               lib, text.group(2), text.group(1))
-                dep_file.add_relation(DepRelation(
-                    "%s.%s" % (lib, text.group(2)),
-                    DepRelation.USE, DepRelation.ARCHITECTURE))
+                #dep_file.add_relation(DepRelation(
+                #    "%s.%s" % (lib, text.group(2)),
+                #    DepRelation.USE, DepRelation.ARCHITECTURE))
             return "<hdlmake instance %s|%s>" % (text.group(1),
                                                  text.group(2))
         buf = re.sub(instance_pattern, do_instance, buf)
@@ -272,17 +276,17 @@ class VHDLParser(DepParser):
             if text.group(2).lower() == "work":
                 logging.debug("-> instantiates %s.%s as %s",
                               dep_file.library, text.group(3), text.group(1))
-                dep_file.add_relation(
-                    DepRelation("%s.%s" % (dep_file.library, text.group(3)),
-                                DepRelation.USE,
-                                DepRelation.ARCHITECTURE))
+                #dep_file.add_relation(
+                #    DepRelation("%s.%s" % (dep_file.library, text.group(3)),
+                #                DepRelation.USE,
+                #                DepRelation.ARCHITECTURE))
             else:
                 logging.debug("-> instantiates %s.%s as %s",
                               text.group(2), text.group(3), text.group(1))
-                dep_file.add_relation(
-                    DepRelation("%s.%s" % (text.group(2), text.group(3)),
-                                DepRelation.USE,
-                                DepRelation.ARCHITECTURE))
+                #dep_file.add_relation(
+                #    DepRelation("%s.%s" % (text.group(2), text.group(3)),
+                #                DepRelation.USE,
+                #                DepRelation.ARCHITECTURE))
             return "<hdlmake instance_from_library %s|%s>" % (text.group(1),
                                                               text.group(3))
         buf = re.sub(instance_from_library_pattern,
