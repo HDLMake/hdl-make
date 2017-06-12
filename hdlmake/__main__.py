@@ -179,6 +179,11 @@ def _get_parser():
         default="info",
         help="logging level: debug, info, warning, error, critical")
     parser.add_argument(
+        "--logfile",
+        help="path to the optional log file",
+        default=None,
+        dest="logfile")
+    parser.add_argument(
         "-p", "--prefix",
         dest="prefix_code",
         default="",

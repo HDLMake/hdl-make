@@ -42,7 +42,7 @@ def set_logging_level(options):
     if not isinstance(numeric_level, int):
         sys.exit('Invalid log level: %s' % options.log)
 
-    if not shell.check_windows():
+    if not shell.check_windows() and options.logfile == None:
         logging.basicConfig(
             format=colored(
                 "%(levelname)s",
@@ -55,7 +55,8 @@ def set_logging_level(options):
             format="%(levelname)s" +
                    "\t%(filename)s:%(lineno)d: %(funcName)s()\t" +
                    "%(message)s",
-            level=numeric_level)
+            level=numeric_level,
+            filename=options.logfile)
     logging.debug(str(options))
 
 
