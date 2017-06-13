@@ -33,8 +33,7 @@ from hdlmake.util import shell
 from hdlmake.util import path as path_mod
 from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
-from hdlmake.srcfile import SourceFileSet
-
+from hdlmake.srcfile import SourceFileSet, VHDLFile, VerilogFile, SVFile
 
 def set_logging_level(options):
     """Set the log level and config (A.K.A. log verbosity)"""
@@ -153,8 +152,11 @@ class Action(list):
         if self.options.all_files:
             return
         if not self._deps_solved:
-            dep_solver.solve(self.parseable_fileset,
-                             self.tool.get_standard_libs())
+            if self.tool == None:
+                dep_solver.solve(self.parseable_fileset)
+            else:
+                dep_solver.solve(self.parseable_fileset,
+                                 self.tool.get_standard_libs())
             self._deps_solved = True
         solved_files = SourceFileSet()
         solved_files.add(dep_solver.make_dependency_set(
@@ -166,15 +168,22 @@ class Action(list):
         """Initialize the parseable and privative fileset contents"""
         total_files = self.build_complete_file_set()
         for file_aux in total_files:
-            if any(isinstance(file_aux, file_type)
-                   for file_type in self.tool.get_privative_files()):
-                self.privative_fileset.add(file_aux)
-            elif any(isinstance(file_aux, file_type)
-                   for file_type in self.tool.get_parseable_files()):
-                self.parseable_fileset.add(file_aux)
+            if self.tool == None:
+                if any(isinstance(file_aux, file_type)
+                       for file_type in [VHDLFile, VerilogFile, SVFile]):
+                    self.parseable_fileset.add(file_aux)
+                else:
+                    self.privative_fileset.add(file_aux)
             else:
-                logging.debug("File not supported by the tool: %s",
-                              file_aux.path)
+                if any(isinstance(file_aux, file_type)
+                       for file_type in self.tool.get_parseable_files()):
+                    self.parseable_fileset.add(file_aux)
+                elif any(isinstance(file_aux, file_type)
+                       for file_type in self.tool.get_privative_files()):
+                    self.privative_fileset.add(file_aux)
+                else:
+                    logging.debug("File not supported by the tool: %s",
+                                  file_aux.path)
         if len(self.privative_fileset) > 0:
             logging.info("Detected %d supported files that are not parseable",
                          len(self.privative_fileset))
