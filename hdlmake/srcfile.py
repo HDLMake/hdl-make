@@ -157,6 +157,11 @@ class XDCFile(File):
     pass
 
 
+class XCFFile(File):
+    """Xilinx XST Constraint File"""
+    pass
+
+
 class COEFile(File):
     """Xilinx Coefficient File"""
     pass
@@ -199,6 +204,7 @@ XILINX_FILE_DICT = {
     'bd': BDFile,
     'xco': XCOFile,
     'xdc': XDCFile,
+    'xcf': XCFFile,
     'coe': COEFile,
     'mif': MIFFile,
     'ram': RAMFile,
