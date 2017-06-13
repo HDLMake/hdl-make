@@ -55,6 +55,7 @@ class ModuleConfig(object):
             basename = self.basename()
             path = path_mod.relpath(os.path.abspath(
                 os.path.join(fetchto, basename)))
+
             # Check if the module dir exists and is not empty
             if os.path.exists(path) and os.listdir(path):
                 self.path = path
@@ -74,7 +75,7 @@ class ModuleConfig(object):
                     "Path to the local module doesn't exist:\n" + url
                     + "\nThis module was instantiated in: " + str(self.parent))
                 quit()
-            self.path = url
+            self.path = path_mod.relpath(url)
             self.isfetched = True
 
     def _check_filepath(self, filepath):

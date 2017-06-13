@@ -36,7 +36,7 @@ class Git(Fetcher):
     used to fetch and handle Git repositories"""
 
     def __init__(self):
-        pass
+        self.submodule = False
 
     @staticmethod
     def get_git_toplevel(module):
@@ -55,8 +55,11 @@ class Git(Fetcher):
         """Get the commit for a repository if defined in Git submodules"""
         status_line = shell.run("git submodule status %s" % submodule_dir)
         status_line = status_line.split()
-        if len(status_line) == 2:
-            return status_line[0][1:]
+        if len(status_line) == 2 or len(status_line) == 3:
+            if status_line[0][0] in ['-', '+', 'U']:
+                return status_line[0][1:]
+            else:
+                return status_line[0]
         else:
             return None
 
@@ -91,6 +94,12 @@ class Git(Fetcher):
             logging.info("Checking out version %s", checkout_id)
             cmd = "(cd {0} && git checkout {1})"
             cmd = cmd.format(mod_path, checkout_id)
+            if os.system(cmd) != 0:
+                return False
+        if self.submodule and not module.isfetched:
+            cmd = ("(cd {0} && git submodule init &&"
+                "git submodule update --recursive)")
+            cmd = cmd.format(mod_path)
             if os.system(cmd) != 0:
                 return False
         module.isfetched = True
@@ -146,3 +155,9 @@ class Git(Fetcher):
         finally:
             os.chdir(cur_dir)
         return config_submodules
+
+
+class GitSM(Git):
+
+    def __init__(self):
+        self.submodule = True

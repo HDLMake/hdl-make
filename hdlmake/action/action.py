@@ -30,7 +30,6 @@ import sys
 
 from hdlmake.tools import load_syn_tool, load_sim_tool
 from hdlmake.util import shell
-from hdlmake.util import path as path_mod
 from hdlmake.util.termcolor import colored
 from hdlmake import new_dep_solver as dep_solver
 from hdlmake.srcfile import SourceFileSet, VHDLFile, VerilogFile, SVFile
@@ -107,7 +106,7 @@ class Action(list):
         from hdlmake.module import Module, ModuleArgs
         self._deps_solved = False
         new_module_args = ModuleArgs()
-        new_module_args.set_args(parent, path_mod.relpath(url), source, fetchto)
+        new_module_args.set_args(parent, url, source, fetchto)
         new_module = Module(new_module_args, self)
         if not self.__contains(new_module):
             self._add(new_module)

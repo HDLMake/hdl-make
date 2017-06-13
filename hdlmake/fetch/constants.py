@@ -26,5 +26,6 @@
 """Module providing the constants required for the fetch process"""
 
 GIT = 1
-SVN = 2
-LOCAL = 3
+GITSM = 2
+SVN = 3
+LOCAL = 4

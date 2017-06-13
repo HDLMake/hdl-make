@@ -73,7 +73,7 @@ class Module(ModuleContent):
             else:
                 return submodule_list
         return __nonull(self.local) + __nonull(self.git) \
-            + __nonull(self.svn)
+            + __nonull(self.gitsm) + __nonull(self.svn)
 
     def remove_dir_from_disk(self):
         """Delete the module dir if it is already fetched and available"""
@@ -176,8 +176,7 @@ PARSE START: %s
 
         # Process the parsed manifest_dict to assign the module properties
         self.process_manifest()
-        if self.pool.options.submodule:
-            self.process_git_submodules()
+        self.process_git_submodules()
 
         # Parse every detected submodule
         for module_aux in self.submodules():

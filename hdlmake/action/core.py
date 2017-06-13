@@ -31,8 +31,8 @@ import os.path
 import hdlmake.fetch as fetch
 import hdlmake.new_dep_solver as dep_solver
 from hdlmake.util import path as path_mod
-from hdlmake.fetch import Svn, Git, Local
-from hdlmake.fetch import SVN, GIT, LOCAL
+from hdlmake.fetch import Svn, Git, GitSM, Local
+from hdlmake.fetch import SVN, GIT, GITSM, LOCAL
 from .action import Action
 
 
@@ -43,6 +43,7 @@ class ActionCore(Action):
     def __init__(self, *args):
         super(ActionCore, self).__init__(*args)
         self.git_backend = Git()
+        self.gitsm_backend = GitSM()
         self.svn_backend = Svn()
         self.local_backend = Local()
 
@@ -79,6 +80,8 @@ class ActionCore(Action):
                 result = self.svn_backend.fetch(module)
             elif module.source is GIT:
                 result = self.git_backend.fetch(module)
+            elif module.source is GITSM:
+                result = self.gitsm_backend.fetch(module)
             elif module.source is LOCAL:
                 result = self.local_backend.fetch(module)
             if result is False:
@@ -88,6 +91,7 @@ class ActionCore(Action):
             new_modules.extend(module.local)
             new_modules.extend(module.svn)
             new_modules.extend(module.git)
+            new_modules.extend(module.gitsm)
             return new_modules
 
         fetch_queue = [m for m in self]
@@ -113,12 +117,12 @@ class ActionCore(Action):
         """Fetch the missing required modules from their remote origin"""
         logging.info("Fetching needed modules.")
         for mod in self:
-            if mod.isfetched:
+            if mod.isfetched and not mod.manifest_dict == None:
                 if 'fetch_pre_cmd' in mod.manifest_dict:
                     os.system(mod.manifest_dict.get("fetch_pre_cmd", ''))
         self._fetch_all()
         for mod in self:
-            if mod.isfetched:
+            if mod.isfetched and not mod.manifest_dict == None:
                 if 'fetch_post_cmd' in mod.manifest_dict:
                     os.system(mod.manifest_dict.get("fetch_post_cmd", ''))
         logging.info("All modules fetched.")
@@ -127,7 +131,7 @@ class ActionCore(Action):
         """Delete the local copy of the fetched modules"""
         logging.info("Removing fetched modules..")
         remove_list = [mod_aux for mod_aux in self
-                       if mod_aux.source in [fetch.GIT, fetch.SVN]
+                       if mod_aux.source in [fetch.GIT, fetch.GITSM, fetch.SVN]
                        and mod_aux.isfetched]
         remove_list.reverse()  # we will remove modules in backward order
         if len(remove_list):
@@ -181,6 +185,8 @@ class ActionCore(Action):
             """Private function that returns a string with the source type"""
             if source_code == fetch.GIT:
                 return "git"
+            elif source_code == fetch.GITSM:
+                return "gitsm"
             elif source_code == fetch.SVN:
                 return "svn"
             elif source_code == fetch.LOCAL:
@@ -192,10 +198,11 @@ class ActionCore(Action):
                 self._print_comment("# MODULE UNFETCHED! -> %s" % mod_aux.url)
             else:
                 self._print_comment("# MODULE START -> %s" % mod_aux.url)
-                if mod_aux.source in [fetch.SVN, fetch.GIT]:
+                if mod_aux.source in [fetch.SVN, fetch.GIT, fetch.GITSM]:
                     self._print_comment("# * URL: " + mod_aux.url)
-                if (mod_aux.source in [fetch.SVN, fetch.GIT, fetch.LOCAL] and
-                        mod_aux.parent):
+                if (mod_aux.source
+                        in [fetch.SVN, fetch.GIT, fetch.GITSM, fetch.LOCAL]
+                        and mod_aux.parent):
                     self._print_comment("# * The parent for this module is: %s"
                                         % mod_aux.parent.url)
                 else:

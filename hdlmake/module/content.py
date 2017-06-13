@@ -45,6 +45,7 @@ class ModuleContent(ModuleCore):
         # Manifest Modules Properties
         self.local = []
         self.git = []
+        self.gitsm = []
         self.svn = []
         self.incl_makefiles = []
         super(ModuleContent, self).__init__()
@@ -135,8 +136,23 @@ class ModuleContent(ModuleCore):
             else:
                 self.git = []
 
+            if "gitsm" in self.manifest_dict["modules"]:
+                self.manifest_dict["modules"]["gitsm"] = path_mod.flatten_list(
+                    self.manifest_dict["modules"]["gitsm"])
+                gitsm_mods = []
+                for url in self.manifest_dict["modules"]["gitsm"]:
+                    gitsm_mods.append(self.pool.new_module(parent=self,
+                                                           url=url,
+                                                           source=fetch.GITSM,
+                                                           fetchto=fetchto))
+                self.gitsm = gitsm_mods
+            else:
+                self.gitsm = []
+
     def process_git_submodules(self):
         """Get the submodules if found in the Manifest path"""
+        if not self.source == fetch.GITSM:
+            return
         git_submodule_dict = fetch.Git.get_git_submodules(self)
         git_toplevel = fetch.Git.get_git_toplevel(self)
         for submodule_key in git_submodule_dict.keys():

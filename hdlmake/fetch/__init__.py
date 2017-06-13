@@ -21,7 +21,7 @@
 
 """This package provides stuff to handle local and remote repositories"""
 
-from .constants import (GIT, SVN, LOCAL)
-from .git import Git
+from .constants import (GIT, GITSM, SVN, LOCAL)
+from .git import Git, GitSM
 from .svn import Svn
 from .local import Local

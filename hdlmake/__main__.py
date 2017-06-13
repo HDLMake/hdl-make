@@ -162,12 +162,6 @@ def _get_parser():
         " " +
         __version__)
     parser.add_argument(
-        '-m',
-        '--submodule',
-        action='store_true',
-        dest="submodule",
-        help="enable automatic Git submodule scanning")
-    parser.add_argument(
         '-a',
         '--all',
         action='store_true',
