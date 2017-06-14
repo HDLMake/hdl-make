@@ -171,10 +171,10 @@ class VHDLParser(DepParser):
             matches as indexed plain strings. It doesn't add any relation
             to the file"""
             logging.debug("found component declaration %s", text.group(1))
-            dep_file.add_relation(
-                DepRelation("%s.%s" % (dep_file.library, text.group(1)),
-                            DepRelation.USE,
-                            DepRelation.ENTITY))
+            #dep_file.add_relation(
+            #    DepRelation("%s.%s" % (dep_file.library, text.group(1)),
+            #                DepRelation.USE,
+            #                DepRelation.ENTITY))
             return "<hdlmake component %s>" % text.group(1)
 
         buf = re.sub(component_pattern, do_component, buf)
@@ -227,8 +227,7 @@ class VHDLParser(DepParser):
 
         # function declaration
         function_pattern = re.compile(
-            r"^\s*function\s+(?P<name>\w+)"
-            r".*end\s*(|function\s*)(|(?P=name))\s*;",
+            r"^\s*function\s+(?P<name>\w+)",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
 
         def do_function(text):
@@ -256,9 +255,9 @@ class VHDLParser(DepParser):
             for lib in libraries:
                 logging.debug("-> instantiates %s.%s as %s",
                               lib, text.group(2), text.group(1))
-                #dep_file.add_relation(DepRelation(
-                #    "%s.%s" % (lib, text.group(2)),
-                #    DepRelation.USE, DepRelation.ARCHITECTURE))
+                dep_file.add_relation(DepRelation(
+                    "%s.%s" % (lib, text.group(2)),
+                    DepRelation.USE, DepRelation.ENTITY))
             return "<hdlmake instance %s|%s>" % (text.group(1),
                                                  text.group(2))
         buf = re.sub(instance_pattern, do_instance, buf)
