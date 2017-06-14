@@ -220,6 +220,10 @@ class ManifestParser(ConfigParser):
         self.add_option_list(sim_options)
         self.add_delimiter()
         modelsim_options = [
+            {'name': 'modelsim_ini_path',
+             'default': None,
+             'help': "Directory containing a custom Modelsim .ini file",
+             'type': ''},
             {'name': 'vsim_opt',
              'default': "",
              'help': "Additional options for vsim",
