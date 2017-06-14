@@ -148,8 +148,6 @@ class Action(list):
 
     def solve_file_set(self):
         """Build file set with only those files required by the top entity"""
-        if self.options.all_files:
-            return
         if not self._deps_solved:
             if self.tool == None:
                 dep_solver.solve(self.parseable_fileset)
@@ -157,6 +155,8 @@ class Action(list):
                 dep_solver.solve(self.parseable_fileset,
                                  self.tool.get_standard_libs())
             self._deps_solved = True
+        if self.options.all_files:
+            return
         solved_files = SourceFileSet()
         solved_files.add(dep_solver.make_dependency_set(
             self.parseable_fileset, self.top_entity,
