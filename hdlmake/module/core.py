@@ -50,8 +50,12 @@ class ModuleConfig(object):
         self.parent = parent
 
         if self.source != fetch.LOCAL:
-            self.url, self.branch, self.revision = \
-                path_mod.url_parse(url)
+            if self.source == fetch.SVN:
+                self.url, self.revision = \
+                    path_mod.svn_parse(url)
+            else:
+                self.url, self.branch, self.revision = \
+                    path_mod.url_parse(url)
             basename = self.basename()
             path = path_mod.relpath(os.path.abspath(
                 os.path.join(fetchto, basename)))

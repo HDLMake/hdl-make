@@ -43,9 +43,9 @@ class Svn(Fetcher):
             os.mkdir(fetchto)
         basename = path_utils.svn_basename(module.url)
         mod_path = os.path.join(fetchto, basename)
-        cmd = "cd {0} && svn checkout {1} " + module.basename()
+        cmd = "cd {0} && svn checkout {1} " + basename
         if module.revision:
-            cmd = cmd.format(fetchto,  module.url + '@' + module.revision)
+            cmd = cmd.format(fetchto, module.url + '@' + module.revision)
         else:
             cmd = cmd.format(fetchto, module.url)
         success = True
@@ -54,7 +54,7 @@ class Svn(Fetcher):
         if os.system(cmd) != 0:
             success = False
         module.isfetched = True
-        module.path = os.path.join(fetchto, module.basename())
+        module.path = mod_path
         return success
 
     @staticmethod

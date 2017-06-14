@@ -29,7 +29,7 @@ import os
 
 def url_parse(url):
     """
-    Check if link to a repo seems to be correct. Filter revision
+    Check if link to a Git repo seems to be correct. Filter revision
     number and branch
     """
     url_clean, branch, rev = None, None, None
@@ -41,6 +41,20 @@ def url_parse(url):
         url_clean = url
 
     return (url_clean, branch, rev)
+
+
+def svn_parse(url):
+    """
+    Check if link to a SVN repo seems to be correct. Filter revision
+    number
+    """
+    url_clean, rev = None, None
+    if "@" in url:
+        url_clean, rev = url.split("@")
+    else:
+        url_clean = url
+
+    return (url_clean, rev)
 
 
 def url_basename(url):
