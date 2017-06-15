@@ -693,6 +693,7 @@ First, consider that we have a project consisting on four HDL modules and one te
        |-- module2
        |-- module3
        |-- module4
+       |-- module5
        `-- tb
 
 Supposing that all of the modules are local to the development machine, i.e. the contents of the modules are available in the local host, the ``Manifest.py``  in ``tb`` directory should look like this:
@@ -700,12 +701,16 @@ Supposing that all of the modules are local to the development machine, i.e. the
 .. code-block:: python
 
    modules = {
-       "local":["../module1","../module2","../module3","../module4"]
+       "local":["../module1",
+                "../module2",
+                "../module3",
+                "../module4",
+                "../module5"]
    }
 
-We only have the ``local`` key and an asociated four elements list containing the path to the respective local folders where the modules are stored.
+We only have the ``local`` key and an asociated five elements list containing the path to the respective local folders where the modules are stored.
 
-This case was very trivial. Let's try now to complicate the situation a bit. Let say, ``module1`` is stored as a local module, ``module2`` and ``module3`` are stored in remote **SVN** repositories, and ``module4`` is stored in a **GIT** repository. Here we have how a sample module declaration including remote repositories would look like:
+This case was very trivial. Let's try now to complicate the situation a bit. Let say, ``module1`` is stored as a local module, ``module2`` and ``module3`` are stored in remote **SVN** repositories, ``module4`` is stored in a **GIT** repository, and ``module5`` is stored in a **GITSM** repository. Here we have how a sample module declaration including remote repositories would look like:
 
 .. code-block:: python
 
@@ -715,7 +720,8 @@ This case was very trivial. Let's try now to complicate the situation a bit. Let
            "http://path.to.repo/module2",
            "http://path.to.repo/module3@25"
        ],
-       "git":"git@github.com:user/module4.git"
+       "git": "git@github.com:user/module4.git",
+       "gitsm": "git@github.com:user/module5.git"
    }
 
 Now we can see that the ``local`` key just has an associated path (i.e. this is a 1-element list), while we have two additional key identifiers: ``svn``, pointing to a list of two remote SVN repositories, and ``git``, pointing to a single remote GIT repository.
@@ -743,6 +749,8 @@ Finally, the Git repository ``module4`` is the only entry for the GIT module lis
        "git":"git@github.com:user/module4.git@@a964df3d84f84ef1f87acb300c4946d8c33e526a"
 
 .. note:: if the requested Git repository is declared as a ``git submodule`` too and we do not provide an extra ``::`` or ``@@``  modifier in the ``Manifest.py``, ``hdlmake`` will read the desired commit id from the respective submodule declaration and will checkout this code revision right after the repository is cloned.
+
+Finally, the GITSM is just a standard Git repository and operates in the same way. The only difference with a standard Git repository for ``hdlmake`` consists in that once a GITSM module has been cloned, a recursive ``git submodule init`` and ``git submodule update`` process will be launched for this repository.
 
 Now, if we run the ``hdlmake fetch`` command from inside the folder where the top Manifest.py is stored, hdlmake will read the local, SVN and GIT module lists and will automatically clone/fetch the remote SVN and GIT repositories. The only issue is that the modules would be fetched to the directory in which we are placed, which is not very elegant. To make the process more flexible, we can add the ``fetchto`` option to the manifest in order to point to the actual folder in which we want to store our remotely hosted modules.
 
