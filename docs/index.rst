@@ -1202,7 +1202,7 @@ If you want to use a different Intel Quartus version, you will need to fix the I
 Mentor Modelsim
 ~~~~~~~~~~~~~~~
 
-In the same sources provided by CERN for the White Rabbit PTP core, there are several complex simulation examples for Mentor Modelsim. These examples cover different features of the WR core and use mixed VHDL, Verilog and SystemVerilog co-simulation:
+In the same sources provided by CERN for the White Rabbit PTP core, there are several complex simulation examples for Mentor Modelsim. These examples cover different features of the WR core and use mixed VHDL, Verilog and SystemVerilog co-simulation (note that Xilinx Unisim libraries are required to be compiled for Modelsim and installed too):
 
 .. code-block:: bash
 
@@ -1251,6 +1251,7 @@ In some version of Modelsim (e.g. ``Modelsim PE 10.5a``), we will need to fix th
 Once everything is ready, we can compile the design sources. As the ``HDLMake`` SystemVerilog parser is not very accurate yet and it is not able to successfully solve the complete hierarchy, we will need to pass the ``-a`` flag to the makefile generation command so that all the files are parsed and passed to the compiler -- even if we cannot relate them to the top entity by using dependency relations:
 
 .. code-block:: bash
+
    hdlmake -a makefile
    make
    vsim -modelsimini modelsim.ini -L unisim -do run.do -i main
@@ -1258,6 +1259,7 @@ Once everything is ready, we can compile the design sources. As the ``HDLMake`` 
 Alternatively, we may provide the full path to the Unisim library (required Xilinx sim components), e.g.:
 
 .. code-block:: bash
+
    vsim -L c:\modeltech_pe_10.5a\xilinx_libs\unisim -do run.do -i main
 
 In this point, if everything goes OK, Modelsim window will open and we will see the waveform progress for the design under test:
