@@ -1202,7 +1202,7 @@ If you want to use a different Intel Quartus version, you will need to fix the I
 Mentor Modelsim
 ~~~~~~~~~~~~~~~
 
-In the same sources provided by CERN for the White Rabbit PTP core, there are several complex simulation examples for Mentor Modelsim. This examples cover different features of the WR core and uses mixed VHDL, Verilog and SystemVerilog co-simulation:
+In the same sources provided by CERN for the White Rabbit PTP core, there are several complex simulation examples for Mentor Modelsim. These examples cover different features of the WR core and use mixed VHDL, Verilog and SystemVerilog co-simulation:
 
 .. code-block:: bash
 
