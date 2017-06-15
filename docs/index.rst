@@ -1191,6 +1191,74 @@ If you want to use a different Intel Quartus version, you will need to fix the I
     -- Retrieval info: 	<generic name="number_of_reconfig_interfaces" value="2" />
     -- Retrieval info: 	<generic name="gui_split_sizes" value="" />
 
+Mentor Modelsim
+~~~~~~~~~~~~~~~
+
+In the same sources provided by CERN for the White Rabbit PTP core, there are several complex simulation examples for Mentor Modelsim. This examples cover different features of the WR core and uses mixed VHDL, Verilog and SystemVerilog co-simulation:
+
+.. code-block:: bash
+
+   git clone git://ohwr.org/hdl-core-lib/wr-cores.git
+   cd wr-cores
+   git checkout wrpc-v4.0
+   git submodule init
+   git submodule update
+
+From the provided simulation examples, we will use the following one. This is a complete demo that simulates a WR PTP Core receiving and processing synchronous Gigabit Ethernet frames, from the PHY interface controller to the embedded 32-bits soft-processor:
+
+.. code-block:: bash
+
+   cd testbench/wrc_core
+
+In some version of Modelsim (e.g. ``Modelsim PE 10.5a``), we will need to fix the declaration of the initialized variables in System Verilog testbenches. As an example, we may apply the modifications highlighted in the following diff patch:
+
+.. code-block:: diff
+
+   diff --git a/testbench/wrc_core/functions.svh b/testbench/wrc_core/functions.svh
+   index 33abf71..8ad1c8e 100644
+   --- a/testbench/wrc_core/functions.svh
+   +++ b/testbench/wrc_core/functions.svh
+   @@ -48,14 +48,14 @@ semaphore  txPkt = new(1);
+     */
+    task send_frames(WBPacketSource src, int n_packets, int ifg = 0 /*[us]*/);
+    // TODO: improve the IFG: allow to make it tighter
+   -  int i, seed = 0,n1=0,n2=0;
+   -  int cur_size, dir;
+   +  static int seed = 0,n1=0,n2=0;
+   +  int i, cur_size, dir;
+      EthPacket pkt, tmpl;
+      EthPacket to_ext[$], to_minic[$];
+   -  EthPacketGenerator gen  = new;
+   +  static EthPacketGenerator gen  = new;
+      int random_ifg; //us
+   -  int min_ifg = 1; //us
+   -  int max_ifg = 100;//us
+   +  static int min_ifg = 1; //us
+   +  static int max_ifg = 100;//us
+   
+      tmpl                = new;
+      tmpl.src                = '{'h22,'h33,'h44,'h44,'h55,'h66};
+   
+
+Once everything is ready, we can compile the design sources. As the ``HDLMake`` SystemVerilog parser is not very accurate yet and it is not able to successfully solve the complete hierarchy, we will need to pass the ``-a`` flag to the makefile generation command so that all the files are parsed and passed to the compiler -- even if we cannot relate them to the top entity by using dependency relations:
+
+.. code-block:: bash
+   hdlmake -a makefile
+   make
+   vsim -modelsimini modelsim.ini -L unisim -do run.do -i main
+
+Alternatively, we may provide the full path to the Unisim library (required Xilinx sim components), e.g.:
+
+.. code-block:: bash
+   vsim -L c:\modeltech_pe_10.5a\xilinx_libs\unisim -do run.do -i main
+
+In this point, if everything goes OK, Modelsim window will open and we will see the waveform progress for the design under test:
+
+.. figure:: images/modelsim_wrc.*
+   :scale: 100
+   :align: center
+   :figclass: align-center
+
 
 hdlmake supported actions/commands
 ==================================
