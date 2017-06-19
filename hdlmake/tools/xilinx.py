@@ -83,11 +83,12 @@ $(TCL_CLOSE)'''
     def _get_properties(self):
         """Create the property list"""
         syn_properties = self.manifest_dict.get("syn_properties")
+        language = self.manifest_dict.get("language")
         properties = [
             ['part', '$(SYN_DEVICE)' +
                      '$(SYN_PACKAGE)' +
                      '$(SYN_GRADE)', 'current_project'],
-            ['target_language', 'VHDL', 'current_project'],
+            ['target_language', language, 'current_project'],
             ['top', '$(TOP_MODULE)', 'get_property srcset [current_run]']]
         fetchto = self.manifest_dict.get("fetchto")
         if not fetchto is None:

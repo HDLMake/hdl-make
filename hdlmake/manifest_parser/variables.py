@@ -54,6 +54,10 @@ class ManifestParser(ConfigParser):
              'help': "What is the action that should be taken if "
              "HDLMake is run in auto mode (simulation/synthesis)",
              'type': ''},
+            {'name': 'language',
+             'default': 'VHDL',
+             'help': "Default language to be used by the tool ",
+             'type': ''},
             {'name': 'library',
              'default': "work",
              'help': "Destination library for module's VHDL files",
