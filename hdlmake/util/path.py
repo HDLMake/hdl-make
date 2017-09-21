@@ -26,6 +26,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 import re
+import fnmatch
 
 
 def url_parse(url):
@@ -165,3 +166,17 @@ def flatten_list(sth):
     else:
         sth = []
     return sth
+
+def locate(pattern, root=os.curdir):
+    """Locate all files matching supplied filename pattern in and below
+    supplied root directory."""
+    print(root)
+    located_files = []
+    for path, dirs, files in os.walk(os.path.abspath(root)):
+        for filename in fnmatch.filter(files, pattern):
+            rel_path = os.path.relpath(path, root)
+            if root != os.curdir:
+                located_files.append(os.path.join(root, rel_path, filename))
+            else:
+                located_files.append(os.path.join(rel_path, filename))
+    return located_files
