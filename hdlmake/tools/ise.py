@@ -31,7 +31,7 @@ from .make_syn import ToolSyn
 
 from hdlmake.util import shell
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile,
-                             UCFFile, CDCFile, NGCFile)
+                             UCFFile, CDCFile, NGCFile, XMPFile)
 
 FAMILY_NAMES = {
     "XC6S": "Spartan6",
@@ -65,7 +65,8 @@ class ToolISE(ToolSyn):
     SUPPORTED_FILES = {
         UCFFile: 'xfile add $(sourcefile)',
         CDCFile: 'xfile add $(sourcefile)',
-        NGCFile: 'xfile add $(sourcefile)'}
+        NGCFile: 'xfile add $(sourcefile)',
+        XMPFile: 'xfile add $(sourcefile)'}
 
     HDL_FILES = {
         VHDLFile: 'xfile add $(sourcefile)',
@@ -107,8 +108,8 @@ $(TCL_CLOSE)'''
         'close': 'project close',
         'project': '$(TCL_CREATE)\n'
                    'xfile remove [search \* -type file]\n'
-                   'source files.tcl\n'
                    '{0}\n'
+                   'source files.tcl\n'
                    'project set top $(TOP_MODULE)\n'
                    '$(TCL_SAVE)\n'
                    '$(TCL_CLOSE)',
