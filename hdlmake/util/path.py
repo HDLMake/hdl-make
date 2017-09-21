@@ -25,6 +25,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import os
+import re
 
 
 def url_parse(url):
@@ -75,11 +76,10 @@ def svn_basename(url):
     """
     Get basename from an SVN url
     """
-    words = url.split('//')
+    m = re.search(r'\/([^\/]*)\/(trunk|tags|branches)', url)
     try:
-        words = words[1].split('/')
-        return '/'.join(words[1:])
-    except IndexError:
+        return m.group(1)
+    except AttributeError:
         return None
 
 
