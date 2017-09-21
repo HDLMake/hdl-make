@@ -25,6 +25,8 @@
 from __future__ import absolute_import
 import os
 import logging
+import colorama
+colorama.init()
 
 from .configparser import ConfigParser
 
@@ -296,7 +298,7 @@ class ManifestParser(ConfigParser):
             return None
         manifest = _search_for_manifest(path)
         if manifest is None:
-            logging.warning("No manifest found in path: %s", path)
+            logging.warning(colorama.Fore.LIGHTRED_EX + "No manifest found in path: %s " + colorama.Fore.RESET, path)
             return None
         else:
             logging.debug("Parse manifest in: %s", manifest)
