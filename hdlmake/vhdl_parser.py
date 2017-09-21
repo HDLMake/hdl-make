@@ -243,8 +243,7 @@ class VHDLParser(DepParser):
         # instantions
         libraries = set([dep_file.library])
         instance_pattern = re.compile(
-            r"^\s*(\w+)\s*\:\s*(\w+)\s*(?:port\s+map.*?;"
-            r"|generic\s+map.*?;|\s*;)",
+            r"^\s*(\w+)\s*:\s*(?:entity\s+\w+\.)?(\w+)\s*(?:port\s+map.*?|generic\s+map.*?)",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
 
         def do_instance(text):
