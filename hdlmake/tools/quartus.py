@@ -68,9 +68,9 @@ class ToolQuartus(ToolSyn):
     HDL_FILES = {
         VHDLFile: _QUARTUS_SOURCE.format('VHDL_FILE') +
                   _QUARTUS_LIBRARY,
-        VerilogFile: _QUARTUS_SOURCE.format('SYSTEMVERILOG_FILE') +
+        VerilogFile: _QUARTUS_SOURCE.format('VERILOG_FILE') +
                      _QUARTUS_LIBRARY,
-        SVFile: _QUARTUS_SOURCE.format('VERILOG_FILE') +
+        SVFile: _QUARTUS_SOURCE.format('SYSTEMVERILOG_FILE') +
                  _QUARTUS_LIBRARY}
 
     CLEAN_TARGETS = {'clean': ["*.rpt", "*.smsg", "*.summary",
