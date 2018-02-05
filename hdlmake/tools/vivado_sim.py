@@ -47,9 +47,10 @@ class ToolVivadoSim(ToolSim):
                                "work", "xsim.dir"],
                      'mrproper': ["*.wdb", "*.vcd"]}
 
-    SIMULATOR_CONTROLS = {'vlog': 'xvlog $<',
-                          'vhdl': 'xvhdl $<',
-                          'compiler': 'xelab -debug all $(TOP_MODULE) '
+
+    SIMULATOR_CONTROLS = {'vlog': '$(eval vlog_srcs := $(vlog_srcs) $^)',
+                          'vhdl': '$(eval vhdl_srcs := $(vhdl_srcs) $^)',
+                          'compiler': 'xvhdl $(XVHDL_OPT) $(vhdl_srcs); xvlog $(XVLOG_OPT) $(vlog_srcs); xelab -debug all $(XELAB_OPT) $(TOP_MODULE) '
                                       '-s $(TOP_MODULE)'}
 
     def __init__(self):
@@ -62,6 +63,10 @@ class ToolVivadoSim(ToolSim):
 
     def _makefile_sim_compilation(self):
         """Generate compile simulation Makefile target for Vivado Simulator"""
+
+        self.writeln("XVLOG_OPT := %s" % self.manifest_dict.get("vlog_opt", ''))
+        self.writeln("XVHDL_OPT := %s" % self.manifest_dict.get("vcom_opt", ''))
+        self.writeln("XELAB_OPT := ")
         self.writeln("simulation: $(VERILOG_OBJ) $(VHDL_OBJ)")
         self.writeln("\t\t" + ToolVivadoSim.SIMULATOR_CONTROLS['compiler'])
         self.writeln()

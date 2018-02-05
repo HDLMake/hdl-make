@@ -71,24 +71,27 @@ PWD := $$(shell pwd)
         fileset = self.fileset
         self.write("VERILOG_SRC := ")
         for vlog in fileset.filter(VerilogFile):
-            self.writeln(vlog.rel_path() + " \\")
+            if not vlog.is_include:
+                self.writeln(vlog.rel_path() + " \\")
         self.writeln()
         self.write("VERILOG_OBJ := ")
         for vlog in fileset.filter(VerilogFile):
+            if not vlog.is_include:
             # make a file compilation indicator (these .dat files are made even
             # if the compilation process fails) and add an ending according
             # to file's extension (.sv and .vhd files may have the same
             # corename and this causes a mess
-            self.writeln(
-                os.path.join(
-                    vlog.library,
-                    vlog.purename,
-                    "." +
-                    vlog.purename +
-                    "_" +
-                    vlog.extension(
-                    )) +
-                " \\")
+                self.writeln(
+                    os.path.join(
+                        vlog.library,
+                        vlog.purename,
+                        "." +
+                        vlog.purename +
+                        "_" +
+                        vlog.extension(
+                        )) +
+                    " \\")
+    
         self.writeln()
         self.write("VHDL_SRC := ")
         for vhdl in fileset.filter(VHDLFile):
@@ -133,15 +136,20 @@ PWD := $$(shell pwd)
                         # the file is included -> we depend directly on it
                         self.write(" \\\n" + dep_file.rel_path())
                 self.writeln()
+                is_include = False
                 if isinstance(file_aux, VHDLFile):
                     command_key = 'vhdl'
+                    aux_opts = ""
                 elif (isinstance(file_aux, VerilogFile) or
                       isinstance(file_aux, SVFile)):
+                    is_include = file_aux.is_include
                     command_key = 'vlog'
-                self.writeln("\t\t" + self._simulator_controls[command_key])
-                self.write("\t\t@" + shell.mkdir_command() + " $(dir $@)")
-                self.writeln(" && " + shell.touch_command()  + " $@ \n")
-                self.writeln()
+                    aux_opts = ""
+                if not is_include:
+                    self.writeln("\t\t" + self._simulator_controls[command_key] + " " + aux_opts)
+                    self.write("\t\t@" + shell.mkdir_command() + " $(dir $@)")
+                    self.writeln(" && " + shell.touch_command()  + " $@ \n")
+                    self.writeln()
 
     def _makefile_sim_command(self):
         """Generic method to write the simulation Makefile user commands"""

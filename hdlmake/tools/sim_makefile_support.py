@@ -127,6 +127,8 @@ class VsimMakefileWriter(ToolSim):
             self.write('\n\n')
         # rules for all _primary.dat files for sv
         for vlog in fileset.filter(VerilogFile):
+            if vlog.is_include:
+              continue
             self.write("%s: %s" % (os.path.join(
                 vlog.library, vlog.purename,
                 ".%s_%s" % (vlog.purename, vlog.extension())),
@@ -134,7 +136,7 @@ class VsimMakefileWriter(ToolSim):
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile
                              in vlog.depends_on if dfile is not vlog]:
-                if dep_file in fileset:
+                if not dep_file.is_include: # in fileset:
                     name = dep_file.purename
                     extension = dep_file.extension()
                     self.write(" \\\n" + os.path.join(
@@ -142,8 +144,15 @@ class VsimMakefileWriter(ToolSim):
                 else:  # the file is included -> we depend directly on the file
                     self.write(" \\\n" + dep_file.rel_path())
             self.writeln()
+
+            aux_opts = ""
+            for inc in vlog.include_dirs:
+                print("DO INCLUDE", inc)
+                aux_opts += "+incdir+"+inc+" "
+
+
             compile_template = string.Template(
-                "\t\tvlog -work ${library} $$(VLOG_FLAGS) "
+                "\t\tvlog -work ${library} $$(VLOG_FLAGS) " + aux_opts + 
                 "${sv_option} $${INCLUDE_DIRS} $$<")
             compile_line = compile_template.substitute(
                 library=vlog.library, sv_option="-sv"
