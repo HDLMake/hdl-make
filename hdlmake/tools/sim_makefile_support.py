@@ -130,6 +130,8 @@ class VsimMakefileWriter(ToolSim):
             self.write('\n\n')
         # rules for all _primary.dat files for sv
         for vlog in fileset.filter(VerilogFile):
+            if vlog.is_include:
+              continue
             self.write("%s: %s" % (os.path.join(
                 vlog.library, vlog.purename,
                 ".%s_%s" % (vlog.purename, vlog.extension())),
@@ -137,7 +139,7 @@ class VsimMakefileWriter(ToolSim):
             # list dependencies, do not include the target file
             for dep_file in [dfile for dfile
                              in vlog.depends_on if dfile is not vlog]:
-                if dep_file in fileset:
+                if dep_file in fileset and not dep_file.is_include:
                     name = dep_file.purename
                     extension = dep_file.extension()
                     self.write(" \\\n" + os.path.join(

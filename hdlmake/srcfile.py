@@ -42,6 +42,7 @@ class SourceFile(DepFile):
 
     def __init__(self, path, module, library):
         assert isinstance(path, six.string_types)
+        self.is_include = False
         self.library = library
         if not library:
             self.library = "work"
@@ -80,7 +81,7 @@ class VerilogFile(SourceFile):
     """This is the class providing the generic Verilog file"""
 
     def __init__(self, path, module, library=None,
-                 include_dirs=None):
+                 include_dirs=None, is_include=False):
         SourceFile.__init__(self, path=path, module=module, library=library)
         from hdlmake.vlog_parser import VerilogParser
         self.include_dirs = []
@@ -90,6 +91,7 @@ class VerilogFile(SourceFile):
         self.parser = VerilogParser(self)
         for dir_aux in self.include_paths:
             self.parser.add_search_path(dir_aux)
+        self.is_include = is_include
 
 
 class SVFile(VerilogFile):
@@ -385,7 +387,7 @@ class SourceFileSet(set):
 
 
 def create_source_file(path, module, library=None,
-                       include_dirs=None):
+                       include_dirs=None, is_include=False):
     """Function that analyzes the given arguments and returns a new HDL source
     file of the appropriated type"""
     if path is None or path == "":
@@ -405,12 +407,14 @@ def create_source_file(path, module, library=None,
         new_file = VerilogFile(path=path,
                                module=module,
                                library=library,
-                               include_dirs=include_dirs)
+                               include_dirs=include_dirs,
+                               is_include=is_include)
     elif extension == 'sv' or extension == 'svh':
         new_file = SVFile(path=path,
                           module=module,
                           library=library,
-                          include_dirs=include_dirs)
+                          include_dirs=include_dirs,
+                          is_include=is_include)
     elif extension == 'wb':
         new_file = WBGenFile(path=path, module=module)
     elif extension == 'tcl':

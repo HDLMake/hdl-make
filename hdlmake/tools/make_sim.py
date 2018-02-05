@@ -71,10 +71,13 @@ PWD := $$(shell pwd)
         fileset = self.fileset
         self.write("VERILOG_SRC := ")
         for vlog in fileset.filter(VerilogFile):
-            self.writeln(vlog.rel_path() + " \\")
+            if not vlog.is_include:
+                self.writeln(vlog.rel_path() + " \\")
         self.writeln()
         self.write("VERILOG_OBJ := ")
         for vlog in fileset.filter(VerilogFile):
+            if vlog.is_include:
+                continue
             # make a file compilation indicator (these .dat files are made even
             # if the compilation process fails) and add an ending according
             # to file's extension (.sv and .vhd files may have the same
@@ -133,11 +136,15 @@ PWD := $$(shell pwd)
                         # the file is included -> we depend directly on it
                         self.write(" \\\n" + dep_file.rel_path())
                 self.writeln()
+                is_include = False
                 if isinstance(file_aux, VHDLFile):
                     command_key = 'vhdl'
                 elif (isinstance(file_aux, VerilogFile) or
                       isinstance(file_aux, SVFile)):
+                    is_include = file_aux.is_include
                     command_key = 'vlog'
+                if is_include:
+                    continue
                 self.writeln("\t\t" + self._simulator_controls[command_key])
                 self.write("\t\t@" + shell.mkdir_command() + " $(dir $@)")
                 self.writeln(" && " + shell.touch_command()  + " $@ \n")

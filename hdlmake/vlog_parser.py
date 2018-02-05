@@ -583,7 +583,8 @@ class VerilogParser(DepParser):
             for file_aux in includes:
                 dep_file.depends_on.add(
                     create_source_file(path=file_aux,
-                                       module=dep_file.module))
+                                       module=dep_file.module,
+                                       is_include=True))
             logging.debug("%s has %d includes.",
                           str(dep_file), len(includes))
         except KeyError:
