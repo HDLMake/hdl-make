@@ -282,7 +282,7 @@ types:[<type 'int'>]
 
     def add_sufix_code(self, code):
         """Add the arbitrary Python to be executed just after the Manifest"""
-        self.prefix_code += code + '\n'
+        self.sufix_code += code + '\n'
 
     def __names(self):
         """A method that returns a list containing the name for every non
@@ -352,7 +352,7 @@ types:[<type 'int'>]
         # - options as local variables.
         content = self.prefix_code + '\n' + content + '\n' + self.sufix_code
         options = self.__parser_runner(content, extra_context)
-        # Checkheck the options that were defined in the local context
+        # Check the options that were defined in the local context
         ret = {}
         for opt_name, val in list(options.items()):
             # Manifest variables starting with __(name) will be ignored,
