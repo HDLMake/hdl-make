@@ -149,7 +149,8 @@ class ActionCore(Action):
         for mod_aux in unfetched_modules:
             logging.warning(
                 "List incomplete, module %s has not been fetched!", mod_aux)
-        self.top_entity = self.options.top
+        if self.options.top != None:
+            self.top_entity = self.options.top
         self.build_file_set()
         self.solve_file_set()
         file_list = dep_solver.make_dependency_sorted_list(

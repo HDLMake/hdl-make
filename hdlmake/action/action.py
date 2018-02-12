@@ -78,7 +78,7 @@ class Action(list):
         action = self.config.get("action")
         if action == None:
             self.tool = None
-            self.top_entity = None
+            self.top_entity = self.config["top_module"]
         elif action == "simulation":
             self.tool = load_sim_tool(self.config.get("sim_tool"))
             if (self.config.get("sim_top") == None and
