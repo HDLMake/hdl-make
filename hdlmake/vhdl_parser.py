@@ -227,7 +227,11 @@ class VHDLParser(DepParser):
 
         # function declaration
         function_pattern = re.compile(
-            r"^\s*function\s+(?P<name>\w+)",
+            r"^\s*function\s+(?P<name>\w+)"
+            r".*?" # gobble arguments if any.
+            r"return\s+\w+"
+            r"(\s+is.*?end\s+function.*?)?" # gobble body if any.
+            r"\s*;",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
 
         def do_function(text):
@@ -243,8 +247,7 @@ class VHDLParser(DepParser):
         # instantions
         libraries = set([dep_file.library])
         instance_pattern = re.compile(
-            r"^\s*(\w+)\s*\:\s*(\w+)\s*(?:port\s+map.*?;"
-            r"|generic\s+map.*?;|\s*;)",
+            r"^\s*(\w+)\s*:\s*(?:entity\s+\w+\.)?(\w+)\s*(?:port\s+map.*?|generic\s+map.*?)",
             re.DOTALL | re.MULTILINE | re.IGNORECASE)
 
         def do_instance(text):
