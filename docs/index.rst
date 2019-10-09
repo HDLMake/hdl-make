@@ -310,7 +310,8 @@ And be sure the following directory is in the PATH, as it will contain ``hdlmake
 Learn by example
 ================
 
-As a companion of ``hdlmake``, we can find a folder containing some easy design examples that can serve us as both tests and design templates. This folder is named ``hdl-make/tests/``and is automatically downloaded when the ``hdlmake`` git repository is fetched.
+As a companion of ``hdlmake``, we can find a folder containing some easy design examples that can serve us as both tests and design templates. This folder is named ``hdl-make/tests/``
+and is automatically downloaded when the ``hdlmake`` git repository is fetched.
 
 
 Overview
@@ -381,7 +382,7 @@ While in the Verilog one the Manifest.py is:
 A basic testbench
 -----------------
 
-Now, if we focus on the ``testbench`` folder, we have that we have again two modules, targeted to cover both the VHDL and the Verilog based counter modules we have just seen.
+Now, if we focus on the ``testbench`` folder, we have again two modules, targeted to cover both the VHDL and the Verilog based counter modules we have just seen.
 
 .. code-block:: bash
 
@@ -395,7 +396,7 @@ Now, if we focus on the ``testbench`` folder, we have that we have again two mod
            |-- counter_tb.vhd
            `-- Manifest.py
 
-Each of the modules contains a single testbench file written in the appropriated language, but in order to define the real project structure, the Manifest.py must include a reference to the modules under test. Thus, in the case of VHDL, the Manifest.py is:
+Each of the modules contains a single testbench file written in the appropriate language, but in order to define the real project structure, the Manifest.py must include a reference to the modules under test. Thus, in the case of VHDL, the Manifest.py is:
 
 .. code-block:: python
 
@@ -1009,7 +1010,8 @@ If you want to regenerate the ISE project by using your **custom Xilinx ISE prop
 Xilinx Vivado
 ~~~~~~~~~~~~~
 
-As an advanced example for Xilinx Vivado, we have chosen the Beam Position Monitor (BPM) design from the Beam Diagnostics group of the Brazilian Synchrotron Light Laboratory (LNLS) for the **AMC FMC Carrier (AFC)**. Equiped in **Xilinx Artix-7** FPGA, it allows to connect clock source to any clock input.
+As an advanced example for Xilinx Vivado, we have chosen the Beam Position Monitor (BPM) design from the Beam Diagnostics group of the Brazilian Synchrotron Light Laboratory (LNLS) for the **AMC FMC Carrier (AFC)**.
+When instantiated in a **Xilinx Artix-7** FPGA, it allows to connect the clock source to any clock input.
 
 - BPM Design: https://github.com/lnls-dig/bpm-gw
 - AMC FMC Carrier (AFC): http://www.ohwr.org/projects/afc/wiki
@@ -1132,7 +1134,7 @@ Now, the WR PTP Core requires a series of HDL libraries that are provided under 
    git submodule init
    git submodule update
 
-Alternatively, if you only want to download the design submodule dependencies the design needs, we can use the ``hdlmake fetch`` feature as the required remote modules are already listed in the provided ``Manifest.py``. As the ``Git`` remote  modules directives doesn't point to a specific branch or commit id, ``hdlmake`` will only clone the listed repositories in the ``fetchto`` folder and then will checkout the appropriated commits by previously interrogating the ``git submodule`` mechanism.
+Alternatively, if you only want to download the design submodule dependencies the design needs, we can use the ``hdlmake fetch`` feature as the required remote modules are already listed in the provided ``Manifest.py``. As the ``Git`` remote modules directives doesn't point to a specific branch or commit id, ``hdlmake`` will only clone the listed repositories in the ``fetchto`` folder and then will checkout the appropriate commits by previously interrogating the ``git submodule`` mechanism.
 
 .. code-block:: bash
 
@@ -1145,7 +1147,7 @@ Once we have all the dependencies, we can run ``hdlmake`` to automatically gener
    hdlmake
    make
 
-It's important to know that this design relies on versioned Intel IP-Cores, so it will only work just out of the box with the appropriated Intel Quartus version (**WR PTP Core v4.0 requires Intel Quartus 16.0**).
+It's important to know that this design relies on versioned Intel IP-Cores, so it will only work just out of the box with the appropriate Intel Quartus version (**WR PTP Core v4.0 requires Intel Quartus 16.0**).
 
 If you want to use a different Intel Quartus version, you will need to fix the IP-Core versions. This is an example patch for **upgrading  WR PTP Core v4.0 from Intel Quartus 16.0 to Intel Quartus 16.1**:
 
@@ -1197,7 +1199,7 @@ hdlmake supported actions/commands
 
 Makefile generation (``makefile``)
 ----------------------------------
-This is the default command for ``hdlmake`` and its basic behaviour will be defined by the value of the ``action`` manifest parameter in the hierachy ``Manifest.py``. ``action`` can be set to ``simulation`` or ``synthesis``, and the associated command sequence will be:
+This is the default command for ``hdlmake`` and its basic behaviour will be defined by the value of the ``action`` manifest parameter in the hierarchy ``Manifest.py``. ``action`` can be set to ``simulation`` or ``synthesis``, and the associated command sequence will be:
 
 - **simulation**: generate a simulation makefile including all the files required for the defined testbench
 - **synthesis**: generate a synthesis makefile including all the files required for bitstream generation
@@ -1466,7 +1468,7 @@ Print the version of the ``hdlmake`` instance on execution an quit.
 
 ``--log LOG``
 -------------
-Set logging level for the Python logger facility. You can choose one of the levels in the following tables, in which the the associated internal logging numeric value is also included:
+Set logging level for the Python logger facility. You can choose one of the levels in the following tables, in which the associated internal logging numeric value is also included:
 
 +---------------+---------------+
 | Log Level     | Numeric Value |
