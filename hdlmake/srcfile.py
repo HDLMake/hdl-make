@@ -264,6 +264,11 @@ class WBGenFile(File):
 
 # INTEL/ALTERA FILES
 
+class IPFile(File):
+    """This is the class providing the Altera Quartus IP file"""
+    pass
+
+
 class QIPFile(File):
     """This is the class providing the Altera Quartus IP file"""
     pass
@@ -311,6 +316,7 @@ class SignalTapFile(File):
 
 ALTERA_FILE_DICT = {
     'stp': SignalTapFile,
+    'ip': IPFile,
     'qip': QIPFile,
     'qsys': QSYSFile,
     'dpf': DPFFile,

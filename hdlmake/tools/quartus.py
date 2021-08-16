@@ -32,8 +32,9 @@ from .make_syn import ToolSyn
 from hdlmake.util import path as path_mod
 from hdlmake.util import shell
 from hdlmake.srcfile import (VHDLFile, VerilogFile, SVFile, DPFFile,
-                             SignalTapFile, SDCFile, QIPFile, QSYSFile,
-                             QSFFile, BSFFile, BDFFile, TDFFile, GDFFile)
+                             SignalTapFile, SDCFile, IPFile, QIPFile,
+                             QSYSFile, QSFFile, BSFFile, BDFFile, TDFFile,
+                             GDFFile)
 
 
 class ToolQuartus(ToolSyn):
@@ -54,6 +55,7 @@ class ToolQuartus(ToolSyn):
     SUPPORTED_FILES = {
         SignalTapFile: _QUARTUS_SOURCE.format('SIGNALTAP_FILE'),
         SDCFile: _QUARTUS_SOURCE.format('SDC_FILE'),
+        IPFile: _QUARTUS_SOURCE.format('IP_FILE'),
         QIPFile: _QUARTUS_SOURCE.format('QIP_FILE'),
         QSYSFile: _QUARTUS_SOURCE.format('QSYS_FILE'),
         DPFFile: _QUARTUS_SOURCE.format('MISC_FILE'),
